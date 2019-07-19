@@ -86,7 +86,9 @@ async def _noPrivateMessage(self, ctx, errorObj:object):
 ################################################################################     
 async def _commandNotFound(self, ctx, errorObj:object):
     await utils.send_error_msg(self, ctx, f"Command not found:\n`{errorObj.command}`")
-    _log_msg_error(self, ctx, errorObj.errorMsg)
+    #errorMsg = errorObj.errorMsg.replace("is ","")
+    errorMsg = "Command not found"
+    _log_msg_error(self, ctx, errorMsg)
 ################################################################################
 ################################################################################
 ################################################################################     
@@ -282,11 +284,11 @@ def _get_error_msg(error):
 ###############################################################################
 def _log_msg_error(self, ctx, errorMsg:str):
     msg = f"({errorMsg})"\
-        f"({ctx.message.author})"\
-        f"({ctx.message.content})"
-    if ctx.guild is not None:           
-        msg+= f"(Server:{ctx.guild}:{ctx.guild.id})"
-    msg += f"(Channel:{ctx.message.channel}:{ctx.message.channel.id})"
+        f"({ctx.message.content})"\
+        f"({ctx.message.author})"
+    if ctx.guild is not None:
+        msg+= f"(Server[{ctx.guild}:{ctx.guild.id}])"
+    msg += f"(Channel[{ctx.message.channel}:{ctx.message.channel.id}])"
     self.bot.log.error(msg)
 ################################################################################
 ################################################################################
