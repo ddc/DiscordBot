@@ -40,17 +40,17 @@ async def run_bg_tasks(bot):
 async def insert_default_initial_configs(bot):
     print("Setting Default Initial configs...")
     serversSql = ServersSql(bot.log)
-    usersSql = UsersSql(bot.log)
     await serversSql.insert_default_initial_server_configs(bot.guilds)
+    usersSql = UsersSql(bot.log)
     await usersSql.insert_all_server_users(bot.guilds)
 ################################################################################
 ################################################################################
 ################################################################################ 
 async def set_others_sql_configs(bot):
     print("Setting Other Sql configs...")
-    alterTablesSql      = AlterTablesSql(bot.log)
-    triggers            = Triggers(bot.log)
+    alterTablesSql = AlterTablesSql(bot.log)
     await alterTablesSql.alter_sqlite_tables()
+    triggers = Triggers(bot.log)
     await triggers.create_triggers()
 ################################################################################
 ################################################################################
@@ -71,9 +71,9 @@ async def set_bot_configs(bot, database, now):
     bot.settings["github_url"]          = str(constants.github_url)
     bot.settings["version"]             = constants.VERSION
     
-    initialConfigsSql   = InitialConfigsSql(bot.log)
-    botConfigsSql       = BotConfigsSql(bot.log)
+    initialConfigsSql = InitialConfigsSql(bot.log)
     await initialConfigsSql.insert_initial_bot_configs(bot)
+    botConfigsSql = BotConfigsSql(bot.log)
     bot_configs = await botConfigsSql.get_bot_configs()
     if len(bot_configs) > 0:
         bot.command_prefix = [bot_configs[0]["prefix"]]
