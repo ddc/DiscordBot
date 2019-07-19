@@ -1,15 +1,25 @@
 #!/bin/bash
 set +e
 
-sudo apt-get install -y ffmpeg
-sudo apt-get install -y libssl-dev
-sudo apt-get install -y libffi-dev
-sudo apt-get install -y libsqlite3-dev
+PYTHON3="/usr/bin/python3"
+PKG_CONFIG_PATH=/opt/vc/lib/pkgconfig:/usr/lib/arm-linux-gnueabihf/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/pgsql/lib/pkgconfig:$PKG_CONFIG_PATH:
+export PKG_CONFIG_PATH
 
-sudo python3 -m pip install -U pip
-sudo python3 -m pip install -U discord.py[voice]
-sudo python3 -m pip install -U requests
-sudo python3 -m pip install -U asyncpg
-sudo python3 -m pip install -U beautifulsoup4
-sudo python3 -m pip install -U imgurpython
-sudo python3 -m pip install -U GitPython
+sudo apt-get install -y libsqlite3-dev
+sudo apt-get install -y libperl-dev
+sudo apt-get install -y python3-pip
+#sudo apt-get install -y python-pip
+#sudo apt-get install -y libgtk2.0-dev
+#sudo apt-get install -y libssl-dev
+#sudo apt-get install -y libffi-dev
+#sudo apt-get install -y ffmpeg
+
+sudo $PYTHON3 -m pip install -U pip
+sudo $PYTHON3 -m pip install -U discord.py[voice]
+sudo $PYTHON3 -m pip install -U requests
+sudo $PYTHON3 -m pip install -U asyncpg
+sudo $PYTHON3 -m pip install -U beautifulsoup4
+sudo $PYTHON3 -m pip install -U imgurpython
+sudo $PYTHON3 -m pip install -U GitPython
+#sudo pip-review --local --interactive
+#sudo pip-review --local --auto
