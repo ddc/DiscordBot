@@ -83,6 +83,11 @@ async def init():
     log = setup_logging()
     conn = await utils.check_database_connection(log)
     if conn is None:
+        db_name = utils.get_settings("Bot", "DatabaseInUse")
+        msg = "Cannot Create Database Connection.\n"\
+              "Please check the server type and try again (sqlite | postgres)."
+        log.error(msg)
+        print(f"{msg}\n==> {db_name}")
         loop.exception() 
     await _set_initial_sql_tables(log)
     bot = await _initialize_bot(log)

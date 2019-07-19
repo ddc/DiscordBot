@@ -159,17 +159,17 @@ async def send_embed(self, ctx, embed, dm, msg=None):
 ################################################################################
 ################################################################################
 ################################################################################      
-async def get_full_dbname():    
+async def get_full_dbname():
+    database_name = None 
     database = get_settings("Bot", "DatabaseInUse")
-    database_name = "SQLite"
-    if database == "postgres":
+    
+    if database.lower() == "postgres":
         pGHost  = get_settings("Database", "Host")
         pGPort  = get_settings("Database", "Port")
         database_name = f"PostgreSQL ({pGHost}:{pGPort})"
-    else:
-        host  = get_settings("Database", "Host")
-        port  = get_settings("Database", "Port")
-        database_name = f"{database} ({host}:{port})"        
+    elif database.lower() == "sqlite":
+        database_name = f"SQLite"    
+            
     return database_name   
 ################################################################################
 ################################################################################

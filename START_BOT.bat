@@ -29,7 +29,7 @@ GOTO end
 :message
 echo Couldn't find a valid Python ^>3.6 installation. Python needs to be installed and available in the PATH environment
 echo variable.
-echo Download Python at: https://www.python.org/ftp/python/3.6.4/python-3.6.4-amd64.exe
+echo Download Python at: https://www.python.org/ftp/python/3.7.4/python-3.7.4-amd64.exe
 PAUSE
 
 :end

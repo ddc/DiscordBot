@@ -35,6 +35,7 @@ class PostgreSQL():
             msg = f"PostgreSQL:Cannot Create Database Connection ({self.pg_host}:{self.pg_port})"
             #self.log.exception("postgres",exc_info=e)
             self.log.error(msg)
+            print(msg)
             raise asyncpg.ConnectionFailureError(e)
 
         return conn
