@@ -32,7 +32,7 @@ class PostgreSQL():
                                          host=self.pg_host)
         except Exception as e:
             conn = None
-            msg = f"PostgreSQL:Cannot Create Database Connection ({self.pg_host}:{self.pg_port})"
+            msg = f"PostgreSQL:Cannot Create Database Connection ({self.pg_host}:{self.pg_port}) [{e.message}]"
             #self.log.exception("postgres",exc_info=e)
             self.log.error(msg)
             print(msg)

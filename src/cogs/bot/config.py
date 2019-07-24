@@ -9,9 +9,9 @@
 
 import discord
 from discord.ext import commands
-from src.cogs.bot.utils import bot_utils as utils, constants, chat_formatting as formatting
 from discord.ext.commands.cooldowns import BucketType
-from src.cogs.bot.utils.checks import Checks
+from .utils import bot_utils as utils, constants, chat_formatting as formatting
+from .utils.checks import Checks
 from src.sql.bot.profanity_filters_sql import ProfanityFilterSql
 from src.sql.bot.server_configs_sql import ServerConfigsSql
 ################################################################################

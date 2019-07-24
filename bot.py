@@ -36,8 +36,8 @@ async def _initialize_bot(log):
 ###############################################################################
 def setup_logging():
     formatter = constants.LOG_FORMATTER
-    #logging.getLogger("discord").setLevel(constants.LOG_LEVEL)
-    #logging.getLogger("discord.http").setLevel(constants.LOG_LEVEL)
+    logging.getLogger("discord").setLevel(constants.LOG_LEVEL)
+    logging.getLogger("discord.http").setLevel(constants.LOG_LEVEL)
     logger = logging.getLogger()
     logger.setLevel(constants.LOG_LEVEL)
     
@@ -73,8 +73,8 @@ def _insert_token():
 ################################################################################ 
 async def _set_initial_sql_tables(log):
     initialTablesSql    = InitialTablesSql(log)
-    gw2InitialTablesSql = Gw2InitialTablesSql(log)
     await initialTablesSql.create_initial_sqlite_bot_tables()
+    gw2InitialTablesSql = Gw2InitialTablesSql(log)
     await gw2InitialTablesSql.create_gw2_sqlite_tables()
 ################################################################################
 ################################################################################

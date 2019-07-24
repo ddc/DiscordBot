@@ -10,13 +10,12 @@
 import asyncio
 import discord
 from discord.ext import commands
-from src.cogs.bot.utils import bot_utils as utils, constants
-from src.cogs.bot.utils.checks import Checks
+from discord.ext.commands.cooldowns import BucketType
+from bot import init_loop
+from .utils import bot_utils as utils, constants, chat_formatting as formatting
+from .utils.checks import Checks
 from src.sql.bot.bot_configs_sql import BotConfigsSql
 from src.sql.bot.servers_sql import ServersSql
-from discord.ext.commands.cooldowns import BucketType
-from src.cogs.bot.utils import chat_formatting as formatting
-from bot import init_loop
 ################################################################################
 ################################################################################
 ################################################################################ 

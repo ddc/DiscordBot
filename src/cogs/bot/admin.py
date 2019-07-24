@@ -9,9 +9,9 @@
 
 import discord
 from discord.ext import commands
-from src.cogs.bot.utils.checks import Checks
-from src.cogs.bot.utils import bot_utils as utils, constants, chat_formatting as formatting
 from discord.ext.commands.cooldowns import BucketType
+from .utils.checks import Checks
+from .utils import bot_utils as utils, constants, chat_formatting as formatting
 from src.sql.bot.blacklists_sql import BlacklistsSql
 from src.sql.bot.mutes_sql import MutesSql
 from src.sql.bot.commands_sql import CommandsSql

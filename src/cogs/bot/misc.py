@@ -7,17 +7,17 @@
 #|*****************************************************
 # # -*- coding: utf-8 -*-
 
-from src.sql.bot.server_configs_sql import ServerConfigsSql
-from src.cogs.bot.utils import constants, chat_formatting as formatting
-from src.cogs.bot.utils import bot_utils as utils
-from discord.ext.commands.cooldowns import BucketType
-from src.sql.bot.dice_rolls_sql import DiceRollsSql
-from src.cogs.bot.utils.checks import Checks
-from discord.ext import commands
 from random import randint
 import datetime
 import discord
 import os
+from discord.ext import commands
+from discord.ext.commands.cooldowns import BucketType
+from .utils import bot_utils as utils, constants, chat_formatting as formatting
+from .utils.checks import Checks
+from src.sql.bot.server_configs_sql import ServerConfigsSql
+from src.sql.bot.dice_rolls_sql import DiceRollsSql
+
 ################################################################################
 ################################################################################
 ###############################################################################
@@ -32,7 +32,7 @@ class Misc(commands.Cog):
 #     async def test(self, ctx):
 #         """(test)"""
 #         
-#         pass
+#         return
 ################################################################################
 ################################################################################
 ################################################################################

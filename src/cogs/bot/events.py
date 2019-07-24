@@ -11,10 +11,8 @@ from src.sql.bot.bot_configs_sql import BotConfigsSql
 from src.sql.bot.server_configs_sql import ServerConfigsSql
 from src.sql.bot.servers_sql import ServersSql
 from src.sql.bot.users_sql import UsersSql
-from src.cogs.bot.utils import bot_utils_events as utilsEvents
 from src.cogs.gw2.utils import gw2_utils as gw2Utils
-from src.cogs.bot.utils import constants
-from src.cogs.bot.utils import bot_utils as utils
+from .utils import bot_utils as utils, constants, bot_utils_events as utilsEvents
 from discord.ext import commands
 import datetime
 import discord
