@@ -32,7 +32,7 @@ class PostgreSQL():
                                          host=self.pg_host)
         except Exception as e:
             conn = None
-            msg = f"PostgreSQL:Cannot Create Database Connection ({self.pg_host}:{self.pg_port}) [{e.message}]"
+            msg = f"PostgreSQL:({e.args})"
             #self.log.exception("postgres",exc_info=e)
             self.log.error(msg)
             print(msg)
@@ -58,8 +58,7 @@ class PostgreSQL():
                 self.log.exception("PostgreSQL",exc_info=e)
                 self.log.error(f"Sql:({sql})")
                 raise asyncpg.InvalidTransactionStateError(e)
-
-            if conn is not None:
+            finally:
                 await conn.close()
 ################################################################################
 ################################################################################
@@ -75,10 +74,9 @@ class PostgreSQL():
             except Exception as e:
                 self.log.exception("PostgreSQL",exc_info=e)
                 self.log.error(f"Sql:({sql})")
-
-            if conn is not None:
+            finally:
                 await conn.close()
-            return finalData
+                return finalData
 ################################################################################
 ################################################################################
 ################################################################################

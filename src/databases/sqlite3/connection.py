@@ -25,13 +25,13 @@ class Sqlite3():
             conn = sqlite3.connect(self.db_file)
         except Exception as e:
             conn = None
-            msg = "sqlite3: Cannot Create Database Connection."
+            msg = "sqlite3:({e.args})"
             #self.log.exception("sqlite3",exc_info=e)
             self.log.error(msg)
             print(msg)
             raise sqlite3.OperationalError(e)
-        finally:
-            return conn
+
+        return conn
 ################################################################################
 ################################################################################
 ################################################################################      
