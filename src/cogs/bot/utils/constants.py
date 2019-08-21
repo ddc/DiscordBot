@@ -29,8 +29,7 @@ INTRO = (f"====================\nDiscord Bot v{VERSION}\n====================")
 ################################################################################
 description         = "A Multifunction Bot for Discord"
 paypal_url          = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=38E66BHC4623Y"
-github_url          = "https://github.com/ddc/DiscordBot"
-download_url        = "https://github.com/ddc/DiscordBot/releases/latest"
+bot_webpage_url     = "https://ddc.github.io/DiscordBot"
 version_url_file    = "https://raw.github.com/ddc/DiscordBot/master/VERSION"
 settings_url_file   = "https://raw.githubusercontent.com/ddc/DiscordBot/master/config/settings.ini"
 python_url          = "https://www.python.org/"

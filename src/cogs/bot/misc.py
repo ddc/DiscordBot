@@ -629,8 +629,7 @@ class Misc(commands.Cog):
         
         await ctx.message.channel.trigger_typing()
         version = constants.VERSION
-        github_url = self.bot.settings["github_url"]
-        download_url = self.bot.settings['download_url']
+        bot_webpage_url = self.bot.settings['bot_webpage_url']
         bot_avatar = self.bot.user.avatar_url
         #python_version_url = "[Python {}.{}.{}]({})".format(*os.sys.version_info[:3], constants.python_url)
         #python_version_fixed_url = f"[Python 3.7.3]({constants.python_url})"
@@ -656,7 +655,7 @@ class Misc(commands.Cog):
                 for apis in constants.apis_included:
                     apis_included += f"({apis}) "
 
-        dev_info_msg = f"Developed as an open source project and hosted on [GitHub]({github_url})\n"\
+        dev_info_msg = f"Developed as an open source project and hosted on [GitHub]({bot_webpage_url})\n"\
                     f"A python discord api wrapper [discord.py]({constants.discordpy_url})\n"\
                     f"Version control [Git]({constants.git_url})\n"\
                     f"Database choices of [SQLite3]({constants.sqlite3_url}) or [PostgreSQL]({constants.postgresql_url})"""
@@ -668,7 +667,7 @@ class Misc(commands.Cog):
             
         color = utils.get_color_settings(constants.settings_filename, "EmbedColors", "EmbedColor")
         embed = discord.Embed(description=str(self.bot.description), color=color)
-        embed.set_author(name=f"{self.bot.user.name} v{constants.VERSION}", icon_url=bot_avatar, url=github_url)
+        embed.set_author(name=f"{self.bot.user.name} v{constants.VERSION}", icon_url=bot_avatar, url=bot_webpage_url)
         embed.set_thumbnail(url=bot_avatar)
         embed.set_footer(text=f"Developed by {str(author)} | {python_version}", icon_url=author_icon_url)
         
@@ -680,7 +679,7 @@ class Misc(commands.Cog):
             embed.add_field(name="APIs Included", value=apis_included, inline=False)
         if games_included is not None:
             embed.add_field(name="Games Included", value=games_included, inline=False)
-        embed.add_field(name="Download", value=f"[Version {version}]({download_url})", inline=True)
+        embed.add_field(name="Download", value=f"[Version {version}]({bot_webpage_url})", inline=True)
         embed.add_field(name="Donations", value=f"[Paypal]({constants.paypal_url})", inline=True)
         embed.add_field(name="Help", value=(f"For a list of command categories, type `{ctx.prefix}help`"), inline=False)
         

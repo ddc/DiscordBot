@@ -43,7 +43,7 @@ class InitialConfigsSql():
             sql = f"""INSERT INTO bot_configs (author_id, url, description)
                    VALUES (
                   {bot.settings['author_id']},
-                  '{constants.download_url}',
+                  '{constants.bot_webpage_url}',
                   '{constants.description}'
                   );"""
             databases = Databases(self.log)

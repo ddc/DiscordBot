@@ -67,8 +67,8 @@ async def set_bot_configs(bot, database, now):
     bot.settings["author_avatar_url"]   = str(author.avatar_url)
     bot.settings["author"]              = f"{author.name}#{author.discriminator}"            
     bot.settings["database"]            = str(database)
-    bot.settings["download_url"]        = str(constants.download_url)
-    bot.settings["github_url"]          = str(constants.github_url)
+    #bot.settings["download_url"]        = str(constants.bot_webpage_url)
+    bot.settings["bot_webpage_url"]     = str(constants.bot_webpage_url)
     bot.settings["version"]             = constants.VERSION
     
     initialConfigsSql = InitialConfigsSql(bot.log)
