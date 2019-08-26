@@ -16,8 +16,7 @@ import datetime
 from random import choice
 import discord
 from operator import attrgetter
-from configparser import ConfigParser
-import ast
+import configparser
 import logging
 from enum import Enum
 import shutil
@@ -400,35 +399,34 @@ def get_server_everyone_role(server:discord.Guild):
 ################################################################################
 ################################################################################
 ################################################################################
-def get_settings(section:str, configName:str):
+def get_settings(section:str, config_name:str):
     settings_filename = constants.settings_filename
-    config = ConfigParser(allow_no_value=True)
-    config.read(settings_filename)
-    try:
-        value = ast.literal_eval(config.get(section, configName))
-    except ValueError:
-        value = config.get(section, configName)
-    except SyntaxError:
+    parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
+    parser._interpolation = configparser.ExtendedInterpolation()
+    parser.read(settings_filename)
+    try: 
+        value = parser.get(section, config_name).replace("\"","")
+    except Exception:
         value = None
     return value
 ################################################################################
 ################################################################################
 ###############################################################################
-# def get_file_settings(file_name:str, section:str, config_name:str):
-#     config = ConfigParser(allow_no_value=True)
-#     config.read(file_name)
-#     try:
-#         value = ast.literal_eval(config.get(section, config_name))
-#     except ValueError:
-#         value = config.get(section, config_name)
-#     except SyntaxError:
-#         value = None
-#     return value
+#def get_file_settings(filename, section, config_name):
+#    settings_filename = filename
+#    parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
+#    parser._interpolation = configparser.ExtendedInterpolation()
+#    parser.read(settings_filename)
+#    try: 
+#        value = parser.get(section, config_name).replace("\"","")
+#    except Exception:
+#        value = None
+#    return value
 ################################################################################
 ################################################################################
 ################################################################################
 def get_color_settings(filename:str, section:str, configName:str):
-    config = ConfigParser()
+    config = configparser.ConfigParser()
     config.read(filename)
     color = str(config.get(section, configName)).lower()
     
