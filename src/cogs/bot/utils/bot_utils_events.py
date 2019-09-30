@@ -1,10 +1,10 @@
 #! /usr/bin/env python3
-#|*****************************************************
+# |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
 # * License           : GPL v3
 # * Python            : 3.6
-#|*****************************************************
+# |*****************************************************
 # # -*- coding: utf-8 -*-
 
 from src.cogs.gw2.utils import gw2_utils as gw2Utils
@@ -14,7 +14,6 @@ from src.sql.bot.initial_configs_sql import InitialConfigsSql
 from src.cogs.bot.utils import chat_formatting as formatting
 from src.sql.bot.alter_tables_sql import AlterTablesSql
 from src.sql.bot.server_configs_sql import ServerConfigsSql
-from src.sql.bot.bot_configs_sql import BotConfigsSql
 from src.sql.bot.blacklists_sql import BlacklistsSql
 from src.sql.bot.commands_sql import CommandsSql
 from src.sql.bot.servers_sql import ServersSql
@@ -23,86 +22,99 @@ from src.cogs.bot.utils.bg_tasks import BgTasks
 from src.sql.bot.triggers import Triggers
 from src.cogs.bot.utils import constants
 from src.cogs.bot.utils import bot_utils as utils
+from discord.ext import commands
+from src.sql.bot.initial_tables_sql import InitialTablesSql
+from src.sql.gw2.gw2_initial_tables_sql import Gw2InitialTablesSql
 import discord
 import random
 import os
-from discord.ext import commands
+
+
 ################################################################################
-################################################################################
-################################################################################    
 async def run_bg_tasks(bot):
     print("Setting BackGround tasks...")
     await set_presence(bot)
     await set_gw2_roles(bot)
+
+
 ################################################################################
+async def set_initial_sql_tables(bot):
+    initialTablesSql = InitialTablesSql(bot)
+    await initialTablesSql.create_initial_sqlite_bot_tables()
+    gw2InitialTablesSql = Gw2InitialTablesSql(bot)
+    await gw2InitialTablesSql.create_gw2_sqlite_tables()
+    initialConfigsSql = InitialConfigsSql(bot)
+    await initialConfigsSql.insert_initial_bot_configs(bot)
+
+
 ################################################################################
-############################################################################### 
 async def insert_default_initial_configs(bot):
     print("Setting Default Initial configs...")
-    serversSql = ServersSql(bot.log)
+    serversSql = ServersSql(bot)
     await serversSql.insert_default_initial_server_configs(bot.guilds)
-    usersSql = UsersSql(bot.log)
+    usersSql = UsersSql(bot)
     await usersSql.insert_all_server_users(bot.guilds)
+
+
 ################################################################################
+async def set_bot_configs(bot, now):
+    print("Setting Bot configs...")
+    author = bot.get_user(195615080665055232)
+    bot.owner = (await bot.application_info()).owner
+    bot.owner_id = bot.owner.id
+    bot.description = str(constants.description)
+    bot.uptime = now
+    bot.help_command = commands.DefaultHelpCommand(dm_help=True)
+    bot.settings["author_id"] = author.id
+    bot.settings["author_avatar_url"] = str(author.avatar_url)
+    bot.settings["author"] = f"{author.name}#{author.discriminator}"
+    #bot.settings["database"] = str(database)
+    bot.settings["bot_webpage_url"] = str(constants.bot_webpage_url)
+    bot.settings["version"] = constants.VERSION
+    bot.settings["exclusive_users_id"] = utils.get_settings("ExclusiveUsers", "ExclusiveUsers")
+    bot.settings["bg_task_change_game"] = utils.get_settings("Bot", "BGChangeGame")
+    bot.settings["full_db_name"] = utils.get_full_db_name()
+    bot.settings["database_in_use"] = bot.settings["full_db_name"].split()[0]
+    if bot.settings["database_in_use"].lower() == "postgresql":
+        bot.settings["pg_host"] = utils.get_settings("Database", "Host")
+        bot.settings["pg_port"] = utils.get_settings("Database", "Port")
+        bot.settings["pg_dbname"] = utils.get_settings("Database", "DBname")
+        bot.settings["pg_username"] = utils.get_settings("Database", "Username")
+        bot.settings["pg_password"] = utils.get_settings("Database", "Password")
+    # elif bot.settings["database_in_use"].lower() == "sqlite":
+
+
+
+
 ################################################################################
-################################################################################ 
 async def set_others_sql_configs(bot):
     print("Setting Other Sql configs...")
-    alterTablesSql = AlterTablesSql(bot.log)
+    alterTablesSql = AlterTablesSql(bot)
     await alterTablesSql.alter_sqlite_tables()
-    triggers = Triggers(bot.log)
+    triggers = Triggers(bot)
     await triggers.create_triggers()
+
+
 ################################################################################
-################################################################################
-################################################################################
-async def set_bot_configs(bot, database, now):
-    print("Setting Bot configs...")
-    author                              = bot.get_user(195615080665055232)
-    bot.owner                           = (await bot.application_info()).owner
-    bot.owner_id                        = bot.owner.id
-    bot.description                     = str(constants.description)
-    bot.uptime                          = now
-    bot.help_command                    = commands.DefaultHelpCommand(dm_help = True) 
-    bot.settings["author_id"]           = author.id
-    bot.settings["author_avatar_url"]   = str(author.avatar_url)
-    bot.settings["author"]              = f"{author.name}#{author.discriminator}"            
-    bot.settings["database"]            = str(database)
-    #bot.settings["download_url"]        = str(constants.bot_webpage_url)
-    bot.settings["bot_webpage_url"]     = str(constants.bot_webpage_url)
-    bot.settings["version"]             = constants.VERSION
-    
-    initialConfigsSql = InitialConfigsSql(bot.log)
-    await initialConfigsSql.insert_initial_bot_configs(bot)
-    botConfigsSql = BotConfigsSql(bot.log)
-    bot_configs = await botConfigsSql.get_bot_configs()
-    if len(bot_configs) > 0:
-        bot.command_prefix = [bot_configs[0]["prefix"]]
-        bot.settings["bg_task_change_game"] = bot_configs[0]["bg_task_change_game"]
-    else:
-        bot.command_prefix = [str(constants.default_prefix)]
-        bot.settings["bg_task_change_game"] = "N"
-################################################################################
-################################################################################
-################################################################################      
 async def set_presence(bot):
     prefix = bot.command_prefix[0]
-    exclusive_users_id = utils.get_settings("ExclusiveUsers", "ExclusiveUsers")
-    if exclusive_users_id is not None:
+
+    if bot.settings["exclusive_users_id"] is not None:
         bot_game_desc = f"PRIVATE BOT | {prefix}help"
         await bot.change_presence(status=discord.Status.online, activity=discord.Game(name=bot_game_desc))
-    elif bot.settings["bg_task_change_game"] == "Y": 
+    elif bot.settings["bg_task_change_game"] == "Y":
         bgTasks = BgTasks(bot)
-        bot.loop.create_task(bgTasks.bgtask_change_presence(utils.get_settings("Bot", "ActivityTimer")))
+        bot.loop.create_task(bgTasks.bgtask_change_presence(utils.get_settings("Bot", "BGActivityTimer")))
     else:
         game = str(random.choice(constants.games_included))
         bot_game_desc = f"{game} | {prefix}help"
         await bot.change_presence(status=discord.Status.online, activity=discord.Game(name=bot_game_desc))
-################################################################################
-################################################################################
+
+
 ################################################################################
 async def set_gw2_roles(bot):
-    gw2Configs = Gw2Configs(bot.log)
-    gw2Roles = Gw2Roles(bot.log)
+    gw2Configs = Gw2Configs(bot)
+    gw2Roles = Gw2Roles(bot)
     bgTasks = BgTasks(bot)
 
     for g in bot.guilds:
@@ -119,32 +131,32 @@ async def set_gw2_roles(bot):
                             role_timer = gw2Utils.get_settings("Defaults", "CheckRoleTimer")
 
                         bot.loop.create_task(bgTasks.bgtask_check_gw2_roles(g, rol, role_timer))
+
+
 ################################################################################
-################################################################################
-################################################################################         
 async def execute_private_msg(self, ctx):
     is_command = True if ctx.prefix is not None else False
     if is_command == False:
-        #checking for custom messages
+        # checking for custom messages
         customMessages = await _check_custom_messages(self, ctx.message)
         if customMessages:
             return
-        
+
         if utils.is_bot_owner(ctx, ctx.message.author):
-            msg=f"Hello master.\nWhat can i do for you?"
+            msg = f"Hello master.\nWhat can i do for you?"
             embed = discord.Embed(color=discord.Color.green(), description=f"{formatting.inline(msg)}")
             await ctx.message.author.send(embed=embed)
-            
+
             cmd = self.bot.get_command("owner")
             await ctx.author.send(formatting.box(cmd.help))
         else:
-            msg="Hello, I don't accept direct messages."
+            msg = "Hello, I don't accept direct messages."
             embed = discord.Embed(color=discord.Color.red(), description=f"{formatting.error_inline(msg)}")
-            await ctx.message.author.send(embed=embed)        
+            await ctx.message.author.send(embed=embed)
     else:
         if not (await _check_exclusive_users(self, ctx)):
             return
-        
+
         blacklistsSql = BlacklistsSql(self.bot.log)
         bl = await blacklistsSql.get_blacklisted_user(ctx.message.author.id)
         if len(bl) > 0:
@@ -157,67 +169,67 @@ async def execute_private_msg(self, ctx):
                         reason_lst.append("---")
                     else:
                         reason_lst.append(value["reason"])
-                
+
             servers = '\n'.join(servers_lst)
             if len(reason_lst) > 0:
                 reason = '\n'.join(reason_lst)
-            msg="You are blacklisted.\n"\
-                "You cannot execute any Bot commands until your are removed from all servers."
-            embed = discord.Embed(title="",color=discord.Color.red(),description=formatting.error_inline(msg))
+            msg = "You are blacklisted.\n" \
+                  "You cannot execute any Bot commands until your are removed from all servers."
+            embed = discord.Embed(title="", color=discord.Color.red(), description=formatting.error_inline(msg))
             embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
-            embed.add_field(name="You are blacklisted on following servers:", 
-                            value=formatting.inline(servers), 
+            embed.add_field(name="You are blacklisted on following servers:",
+                            value=formatting.inline(servers),
                             inline=True)
             embed.add_field(name="Reason", value=formatting.inline(reason), inline=True)
             await ctx.message.channel.send(embed=embed)
-            return            
-        
+            return
+
         msg = "That command is not allowed in direct messages."
         embed = discord.Embed(color=discord.Color.red(), description=f"{formatting.error_inline(msg)}")
         user_cmd = ctx.message.content.split(' ', 1)[0]
         allowed_DM_commands = utils.get_settings("Bot", "DMCommands")
-                   
+
         if allowed_DM_commands is not None:
-            if (isinstance(allowed_DM_commands, tuple)):# more than 1 command, between quotes
+            if (isinstance(allowed_DM_commands, tuple)):  # more than 1 command, between quotes
                 sorted_cmds = sorted(sorted(allowed_DM_commands))
             elif (isinstance(allowed_DM_commands, str)):
                 if "," in allowed_DM_commands:
                     sorted_cmds = allowed_DM_commands.split(",")
                 else:
                     sorted_cmds = allowed_DM_commands.split()
-                
+
             for allowed_cmd in sorted_cmds:
-                if  user_cmd == ctx.prefix+allowed_cmd:
+                if user_cmd == ctx.prefix + allowed_cmd:
                     await self.bot.process_commands(ctx.message)
                     return
-            
+
             allowed_cmds = '\n'.join(sorted_cmds)
-            embed.add_field(name="Commands allowed in direct messages:", 
-                            value=f"{formatting.inline(allowed_cmds)}", 
+            embed.add_field(name="Commands allowed in direct messages:",
+                            value=f"{formatting.inline(allowed_cmds)}",
                             inline=False)
-            
+
         await ctx.message.author.send(embed=embed)
+
+
 ################################################################################
-################################################################################
-################################################################################         
 async def execute_server_msg(self, ctx):
     is_command = True if ctx.prefix is not None else False
     serverConfigsSql = ServerConfigsSql(self.bot.log)
     rs_user_channel_configs = await serverConfigsSql.get_user_channel_configs(ctx.author, ctx.message.channel.id)
-    
+
     if len(rs_user_channel_configs) == 0:
         self.bot.log.error("error with serverConfigsSql.get_user_channel_configs")
         return
-    
-    #block messages from invisible members 
+
+    # block messages from invisible members
     if rs_user_channel_configs[0]["block_invis_members"] == "Y":
         is_member_invis = _check_member_invisible(self, ctx)
         if is_member_invis:
             await utils.delete_last_channel_message(self, ctx)
-            msg="You are Invisible (offline)\n"\
-                f"Server \"{ctx.guild.name}\" does not allow messages from invisible members.\n"\
-                "Please change your status if you want to send messages to this server."
-            embed = discord.Embed(title="",color=discord.Color.red(),description=formatting.error_inline(msg))
+            msg = "You are Invisible (offline)\n" \
+                  f"Server \"{ctx.guild.name}\" does not allow messages from invisible members.\n" \
+                  "Please change your status if you want to send messages to this server."
+            embed = discord.Embed(title="", color=discord.Color.red(), description=formatting.error_inline(msg))
             embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
             try:
                 await ctx.message.author.send(embed=embed)
@@ -227,45 +239,46 @@ async def execute_server_msg(self, ctx):
                 except discord.HTTPException:
                     await ctx.send(f"{ctx.message.author.mention} {msg}")
             return
-    
-    #block bad words profanity filter "on" current channel
-    if rs_user_channel_configs[0]["profanity_filter"] is not None and rs_user_channel_configs[0]["profanity_filter"] == 'Y':
+
+    # block bad words profanity filter "on" current channel
+    if rs_user_channel_configs[0]["profanity_filter"] is not None and rs_user_channel_configs[0][
+        "profanity_filter"] == 'Y':
         bad_word = await _check_profanity_filter_words(self, ctx.message)
         if bad_word: return
 
-    #check for custom messages
+    # check for custom messages
     if rs_user_channel_configs[0]["bot_word_reactions"] == "Y":
         customMessages = await _check_custom_messages(self, ctx.message)
         if customMessages: return
 
-    #checking if member is muted in the current server
+    # checking if member is muted in the current server
     if rs_user_channel_configs[0]["muted"] is not None and rs_user_channel_configs[0]["muted"] == 'Y':
         try:
             await ctx.message.delete()
         except:
-            msg = "Bot does not have permission to delete messages.\n"\
-                "Missing permission: \"Manage Messages\"`"
-            embed = discord.Embed(title="",color=discord.Color.red(),description=msg)
+            msg = "Bot does not have permission to delete messages.\n" \
+                  "Missing permission: \"Manage Messages\"`"
+            embed = discord.Embed(title="", color=discord.Color.red(), description=msg)
             try:
                 await ctx.channel.send(embed=embed)
             except discord.HTTPException:
                 await ctx.channel.send(f"{msg}")
-            return 
-            
-        msg="You are muted.\n"\
-            f"Server: {ctx.guild}\n"\
-            "You cannot type anything.\n"\
-            "Please do not insist.\n"
+            return
+
+        msg = "You are muted.\n" \
+              f"Server: {ctx.guild}\n" \
+              "You cannot type anything.\n" \
+              "Please do not insist.\n"
         if rs_user_channel_configs[0]['muted_reason'] is not None:
             msg += f"\nReason: {rs_user_channel_configs[0]['muted_reason']}"
-        embed = discord.Embed(title="",color=discord.Color.red(),description=formatting.error_inline(msg))
+        embed = discord.Embed(title="", color=discord.Color.red(), description=formatting.error_inline(msg))
         embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
         try:
             await ctx.message.author.send(embed=embed)
         except:
             await ctx.send(f"{ctx.message.author.mention}\n{msg}")
         return
-                
+
     if is_command:
         ignore_prefixes_characteres = await _check_prefixes_characteres(self, ctx.message)
         if ignore_prefixes_characteres: return
@@ -273,23 +286,23 @@ async def execute_server_msg(self, ctx):
         if not (await _check_exclusive_users(self, ctx)):
             return
 
-        #checking if member is blacklisted
+        # checking if member is blacklisted
         if rs_user_channel_configs[0]["blacklisted"] is not None and rs_user_channel_configs[0]["blacklisted"] == 'Y':
             if ctx.message.content.startswith(ctx.prefix):
-                msg="You are blacklisted.\n"\
-                    "You cannot execute any Bot commands.\n"\
-                    "Please do not insist.\n"
+                msg = "You are blacklisted.\n" \
+                      "You cannot execute any Bot commands.\n" \
+                      "Please do not insist.\n"
                 if rs_user_channel_configs[0]['blacklisted_reason'] is not None:
                     msg += f"\nReason: {rs_user_channel_configs[0]['blacklisted_reason']}"
-                embed = discord.Embed(title="",color=discord.Color.red(),description=formatting.error_inline(msg))
+                embed = discord.Embed(title="", color=discord.Color.red(), description=formatting.error_inline(msg))
                 embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
                 try:
                     await ctx.message.channel.send(embed=embed)
                 except discord.HTTPException:
                     await ctx.send(f"{ctx.message.author.mention}\n{msg}")
                 return
-        
-        #execute custom commands
+
+        # execute custom commands
         commandsSql = CommandsSql(self.bot.log)
         rs_command = await commandsSql.get_command(ctx.author.guild.id, str(ctx.invoked_with))
         if len(rs_command) > 0:
@@ -298,22 +311,18 @@ async def execute_server_msg(self, ctx):
             return
 
         await self.bot.process_commands(ctx.message)
-################################################################################
-################################################################################
-################################################################################
-################################################################################ private functions
-################################################################################
-################################################################################
+
+
 ################################################################################
 async def _check_prefixes_characteres(self, message):
-    #ignore 2 sequence of characters ?_? ???
+    # ignore 2 sequence of characters ?_? ???
     second_char = message.content[1:2]
     if not second_char.isalpha():
         return True
+
+
 ################################################################################
-################################################################################
-################################################################################ 
-async def _send_custom_message(message,send_msg:str):
+async def _send_custom_message(message, send_msg: str):
     await message.channel.trigger_typing()
     desc = f":rage: :middle_finger:\n{formatting.inline(send_msg)}"
     if not (isinstance(message.channel, discord.DMChannel)):
@@ -321,17 +330,17 @@ async def _send_custom_message(message,send_msg:str):
     embed = discord.Embed(color=discord.Color.red(),
                           description=desc)
     await message.channel.send(embed=embed)
+
+
 ################################################################################
-################################################################################
-################################################################################    
 def _check_bad_words_file():
     if not os.path.isfile(constants.swear_words_filename):
         print(f"File \"{constants.swear_words_filename}\" was not found.")
         return False
     return True
+
+
 ################################################################################
-################################################################################
-################################################################################        
 async def _check_custom_messages(self, message):
     msg = message.system_content.lower()
     cwords = utils.get_settings("BotReactWords", "BotReactWords")
@@ -351,47 +360,47 @@ async def _check_custom_messages(self, message):
                 if str(cwords) == str(mw):
                     config_word_found = True
                 if str(mw).lower() == "bot" or str(mw).lower() == self.bot.user.mention:
-                    bot_word_found = True            
+                    bot_word_found = True
 
     if isinstance(message.channel, discord.DMChannel):
         bot_word_found = True
-        
+
     if config_word_found == True and bot_word_found == True:
-        send_msg="fu ufk!!!"
+        send_msg = "fu ufk!!!"
         if "stupid" in msg.lower():
-            send_msg="I'm not stupid, fu ufk!!!"
+            send_msg = "I'm not stupid, fu ufk!!!"
         elif "retard" in msg.lower():
-            send_msg="I'm not retard, fu ufk!!!"
+            send_msg = "I'm not retard, fu ufk!!!"
         await _send_custom_message(message, send_msg)
         return True
-    
+
     return False
+
+
 ################################################################################
-################################################################################
-################################################################################ 
-async def _check_profanity_filter_words(self,message):
+async def _check_profanity_filter_words(self, message):
     if _check_bad_words_file():
         f = open(constants.swear_words_filename)
     else:
         return
-    
+
     filecontents = f.readlines()
     f.close()
     user_msg = message.system_content.split()
     prefix = str(self.bot.command_prefix[0])
     for word in user_msg:
         for line in filecontents:
-            if str(word.lower()) == str(line.lower().strip('\n'))\
-            or str(word.lower()) == str((prefix+line).lower().strip('\n')):
-                self.bot.log.info(f"({message.author})"\
-                                f"(Word:{word})"\
-                                f"(Server:{message.guild.name})"\
-                                f"(Channel:{message.channel})")
+            if str(word.lower()) == str(line.lower().strip('\n')) \
+                    or str(word.lower()) == str((prefix + line).lower().strip('\n')):
+                self.bot.log.info(f"({message.author})" \
+                                  f"(Word:{word})" \
+                                  f"(Server:{message.guild.name})" \
+                                  f"(Channel:{message.channel})")
                 if not isinstance(message.channel, discord.DMChannel):
                     try:
                         await message.delete()
                         msg = constants.profanity_filter_msg
-                        embed = discord.Embed(title="",color=discord.Color.red(),description=msg)
+                        embed = discord.Embed(title="", color=discord.Color.red(), description=msg)
                         embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
                         try:
                             await message.channel.send(embed=embed)
@@ -399,29 +408,29 @@ async def _check_profanity_filter_words(self,message):
                             await message.channel.send(f"{message.author.mention} {msg}")
                         return True
                     except:
-                        msg = f"`{formatting.NO_ENTRY} Profanity filter is on but Bot does not have permission to delete messages.\n"\
-                            "Missing permission: \"Manage Messages\"`"
-                        embed = discord.Embed(title="",color=discord.Color.red(),description=msg)
+                        msg = f"`{formatting.NO_ENTRY} Profanity filter is on but Bot does not have permission to delete messages.\n" \
+                              "Missing permission: \"Manage Messages\"`"
+                        embed = discord.Embed(title="", color=discord.Color.red(), description=msg)
                         try:
                             await message.channel.send(embed=embed)
                         except discord.HTTPException:
                             await message.channel.send(f"{msg}")
-                        return True                            
+                        return True
     return False
+
+
 ################################################################################
-################################################################################
-################################################################################
-def _check_member_invisible(self,ctx):
+def _check_member_invisible(self, ctx):
     if ctx.author.status.name == "offline":
         return True
     return False
+
+
 ################################################################################
-################################################################################
-################################################################################ 
-async def _check_exclusive_users(self,ctx):
+async def _check_exclusive_users(self, ctx):
     exclusive_users_id = utils.get_settings("ExclusiveUsers", "ExclusiveUsers")
     user_found = False
-    
+
     if exclusive_users_id is not None:
         if (isinstance(exclusive_users_id, tuple)):
             for ids in exclusive_users_id:
@@ -430,16 +439,14 @@ async def _check_exclusive_users(self,ctx):
         else:
             if ctx.message.author.id == exclusive_users_id:
                 user_found = True
-        
+
     if user_found == False and exclusive_users_id is not None:
-        msg ="This is a Private Bot.\n"\
-            "You are not allowed to execute any commands.\n"\
-            "Only a few users are allowed to use it.\n"\
-            "Please don't insist. Thank You!!!"
+        msg = "This is a Private Bot.\n" \
+              "You are not allowed to execute any commands.\n" \
+              "Only a few users are allowed to use it.\n" \
+              "Please don't insist. Thank You!!!"
         await utils.send_private_error_msg(self, ctx, msg)
         return False
-    
+
     return True
 ################################################################################
-################################################################################
-################################################################################     

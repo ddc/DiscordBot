@@ -1,60 +1,52 @@
 #! /usr/bin/env python3
-#|*****************************************************
+# |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
 # * License           : GPL v3
 # * Python            : 3.6
-#|*****************************************************
+# |*****************************************************
 # # -*- coding: utf-8 -*-
 
 from src.cogs.bot.utils import bot_utils as utils
 from src.databases.sqlite3.connection import Sqlite3
 from src.databases.postgres.connection import PostgreSQL
-################################################################################
-################################################################################
-################################################################################ 
-class Databases():
-    def __init__(self, log):
-        self.log = log
-        self.database_in_use = utils.get_settings("Bot", "DatabaseInUse")
-################################################################################
-################################################################################
-################################################################################
+
+
+class Databases:
+    def __init__(self, bot):
+        self.bot = bot
+        self.database_in_use = self.bot.settings["database_in_use"]
+
+    ################################################################################
     async def check_database_connection(self):
         if self.database_in_use.lower() == "sqlite":
-            sqlite3 = Sqlite3(self.log)
+            sqlite3 = Sqlite3(self.bot)
             return await sqlite3.create_connection()
-        elif self.database_in_use.lower() == "postgres":
-            postgreSQL = PostgreSQL(self.log)
-            return await postgreSQL.create_connection()        
-################################################################################
-################################################################################
-################################################################################
+        elif self.database_in_use.lower() == "postgresql":
+            postgreSQL = PostgreSQL(self.bot)
+            return await postgreSQL.create_connection()
+
+    ################################################################################
     async def execute(self, sql):
         if self.database_in_use.lower() == "sqlite":
-            sqlite3 = Sqlite3(self.log)
+            sqlite3 = Sqlite3(self.bot)
             await sqlite3.executescript(sql)
-        elif self.database_in_use.lower() == "postgres":
-            postgreSQL = PostgreSQL(self.log)
+        elif self.database_in_use.lower() == "postgresql":
+            postgreSQL = PostgreSQL(self.bot)
             await postgreSQL.execute(sql)
-################################################################################
-################################################################################
-################################################################################
+
+    ################################################################################
     async def select(self, sql):
         if self.database_in_use.lower() == "sqlite":
-            sqlite3 = Sqlite3(self.log)
+            sqlite3 = Sqlite3(self.bot)
             return await sqlite3.select(sql)
-        elif self.database_in_use.lower() == "postgres":
-            postgreSQL = PostgreSQL(self.log)
+        elif self.database_in_use.lower() == "postgresql":
+            postgreSQL = PostgreSQL(self.bot)
             return await postgreSQL.select(sql)
-################################################################################
-################################################################################
-################################################################################
+
+    ################################################################################
     async def set_primary_key_type(self):
         if self.database_in_use.lower() == "sqlite":
             return "INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE"
-        elif self.database_in_use.lower() == "postgres":
+        elif self.database_in_use.lower() == "postgresql":
             return "BIGSERIAL NOT NULL PRIMARY KEY UNIQUE"
-################################################################################
-################################################################################
-################################################################################

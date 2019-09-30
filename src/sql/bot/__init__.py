@@ -1,5 +1,5 @@
 __all__ = ['alter_tables_sql',
-           'blacklist_sql',
+           'blacklists_sql',
            'bot_configs_sql',
            'commands_sql',
            'dice_rolls_sql',

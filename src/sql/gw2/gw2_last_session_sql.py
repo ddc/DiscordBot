@@ -1,32 +1,28 @@
 #! /usr/bin/env python3
-#|*****************************************************
+# |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
 # * License           : GPL v3
 # * Python            : 3.6
-#|*****************************************************
+# |*****************************************************
 # # -*- coding: utf-8 -*-
 
 from src.databases.databases import Databases
 from src.cogs.bot.utils import bot_utils as utils
-################################################################################
-################################################################################
-################################################################################
-class Gw2LastSessionSql():
-    def __init__(self, log):
-        self.log = log
-        self.database_in_use = utils.get_settings("Bot", "DatabaseInUse")
-################################################################################
-################################################################################
-################################################################################
-    async def get_user_last_session(self, discord_user_id:int):
+
+
+class Gw2LastSessionSql:
+    def __init__(self, bot):
+        self.bot = bot
+
+    ################################################################################
+    async def get_user_last_session(self, discord_user_id: int):
         sql = f"SELECT * FROM gw2_sessions WHERE discord_user_id = {discord_user_id};"
-        databases = Databases(self.log)
+        databases = Databases(self.bot)
         return await databases.select(sql)
-################################################################################
-################################################################################
-################################################################################
-    async def insert_last_session_start(self, user_stats:object):
+
+    ################################################################################
+    async def insert_last_session_start(self, user_stats: object):
         sql = f"""DELETE FROM gw2_sessions WHERE discord_user_id = {user_stats.discord_user_id};
         DELETE FROM gw2_chars_start WHERE discord_user_id = {user_stats.discord_user_id};
         DELETE FROM gw2_chars_end WHERE discord_user_id = {user_stats.discord_user_id};
@@ -70,12 +66,11 @@ class Gw2LastSessionSql():
                 {user_stats.castles},
                 {user_stats.towers},
                 {user_stats.keeps});"""
-        databases = Databases(self.log)
+        databases = Databases(self.bot)
         await databases.execute(sql)
-################################################################################
-################################################################################
-################################################################################
-    async def update_last_session_end(self, user_stats:object):
+
+    ################################################################################
+    async def update_last_session_end(self, user_stats: object):
         sql = f"""UPDATE gw2_sessions SET
                     end_wvw_rank =               {user_stats.wvw_rank},
                     end_gold =                   {user_stats.gold},
@@ -94,27 +89,13 @@ class Gw2LastSessionSql():
                     end_towers =                 {user_stats.towers},
                     end_keeps =                  {user_stats.keeps}
                     WHERE discord_user_id =      {user_stats.discord_user_id};"""
-        databases = Databases(self.log)
+        databases = Databases(self.bot)
         await databases.execute(sql)
-################################################################################
-################################################################################
-################################################################################
-    async def update_last_session_end_date(self, user_stats:object):
+
+    ################################################################################
+    async def update_last_session_end_date(self, user_stats: object):
         sql = f"""UPDATE gw2_sessions SET
                     end_date = '{user_stats.date}'
                     WHERE discord_user_id = {user_stats.discord_user_id};"""
-        databases = Databases(self.log)
+        databases = Databases(self.bot)
         await databases.execute(sql)
-################################################################################
-################################################################################
-################################################################################          
-#     async def get_next_session_sequence(self):
-#         if self.database_in_use == "postgres":
-#             sql = "SELECT nextval('gw2_sessions_id_seq');"
-#         elif self.database_in_use == "sqlite":
-#             sql = "SELECT seq from sqlite_sequence where name = 'gw2_sessions';"
-#         databases = Databases(self.log)
-#         return await databases.select(sql)
-################################################################################
-################################################################################
-################################################################################ 

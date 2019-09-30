@@ -1,27 +1,25 @@
 #! /usr/bin/env python3
-#|*****************************************************
+# |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
 # * License           : GPL v3
 # * Python            : 3.6
-#|*****************************************************
+# |*****************************************************
 # # -*- coding: utf-8 -*-
 
 from src.databases.databases import Databases
 from src.cogs.bot.utils import bot_utils as utils
-################################################################################
-################################################################################
-################################################################################
-class Triggers():
-    def __init__(self, log):
-        self.log = log
-        self.database_in_use = utils.get_settings("Bot", "DatabaseInUse")
-################################################################################
-################################################################################
-################################################################################
+
+
+class Triggers:
+    def __init__(self, bot):
+        self.bot = bot
+        self.database_in_use = self.bot.settings["database_in_use"]
+
+    ################################################################################
     async def create_triggers(self):
-        if self.database_in_use == "sqlite":
-            sql="""CREATE TRIGGER IF NOT EXISTS before_insert_bot_configs
+        if self.database_in_use.lower() == "sqlite":
+            sql = """CREATE TRIGGER IF NOT EXISTS before_insert_bot_configs
                     BEFORE INSERT ON bot_configs
                     BEGIN
                         SELECT CASE
@@ -40,8 +38,8 @@ class Triggers():
                     BEGIN
                         SELECT RAISE(ABORT, 'CANNOT CHANGE BOT URL.');
                     END;"""
-        elif self.database_in_use == "postgres":
-            sql="""DROP TRIGGER IF EXISTS before_insert_bot_configs ON bot_configs;
+        elif self.database_in_use.lower() == "postgresql":
+            sql = """DROP TRIGGER IF EXISTS before_insert_bot_configs ON bot_configs;
                 DROP TRIGGER IF EXISTS before_update_author_id ON bot_configs;
                 DROP TRIGGER IF EXISTS before_update_bot_url ON bot_configs;
                 ------
@@ -82,8 +80,5 @@ class Triggers():
                     WHEN (OLD.url IS DISTINCT FROM NEW.url)
                     EXECUTE PROCEDURE before_update_bot_url_func();"""
 
-        databases = Databases(self.log)
+        databases = Databases(self.bot)
         await databases.execute(sql)
-################################################################################
-################################################################################
-################################################################################

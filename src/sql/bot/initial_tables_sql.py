@@ -1,28 +1,26 @@
 #! /usr/bin/env python3
-#|*****************************************************
+# |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
 # * License           : GPL v3
 # * Python            : 3.6
-#|*****************************************************
+# |*****************************************************
 # # -*- coding: utf-8 -*-
 from src.cogs.bot.utils import bot_utils as utils
 from src.databases.databases import Databases
-################################################################################
-################################################################################
-################################################################################ 
-class InitialTablesSql():
-    def __init__(self, log):
-        self.log = log
-        self.database_in_use = utils.get_settings("Bot", "DatabaseInUse")
-################################################################################
-################################################################################
-################################################################################ 
+
+
+class InitialTablesSql:
+    def __init__(self, bot):
+        self.bot = bot
+        self.database_in_use = self.bot.settings["database_in_use"]
+
+    ################################################################################
     async def create_initial_sqlite_bot_tables(self):
-        databases = Databases(self.log)
+        databases = Databases(self.bot)
         primary_key_type = await databases.set_primary_key_type()
-        
-        sql =f"""
+
+        sql = f"""
             CREATE TABLE IF NOT EXISTS users (
                 discord_user_id   BIGINT  NOT NULL PRIMARY KEY UNIQUE,
                 user_name         TEXT    NOT NULL,
@@ -112,9 +110,7 @@ class InitialTablesSql():
                 author_id            BIGINT   NOT NULL,
                 url                  TEXT     NOT NULL,
                 description          TEXT     NOT NULL,
-                bg_task_change_game  CHAR(1)  NOT NULL DEFAULT 'N',
                 FOREIGN KEY(author_id) REFERENCES users(discord_user_id) ON DELETE CASCADE,
-                CONSTRAINT bg_task_change_game_y_n CHECK (bg_task_change_game IN ('Y','N')),
                 CONSTRAINT check_prefix CHECK (prefix IN ('!','$','%','^','&','?','>','<','.',';'))
                );
                      
@@ -130,6 +126,3 @@ class InitialTablesSql():
                
             """
         await databases.execute(sql)
-################################################################################
-################################################################################
-################################################################################

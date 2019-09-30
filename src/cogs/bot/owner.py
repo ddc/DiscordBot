@@ -139,8 +139,8 @@ class Owner(commands.Cog):
             color = utils.get_color_settings(constants.settings_filename, "EmbedColors", "EmbedOwnerColor")
             embed = discord.Embed(description=msg, color=color)
             await utils.send_embed(self, ctx, embed, False, msg)
-            await botConfigsSql.update_bot_bg_task_change_game(str(new_status))
             self.bot.settings["bg_task_change_game"] = str(new_status)
+
                         
             #need to restart bot here to kill bg task
             self.bot.unload_extension("src.cogs.bot.events")

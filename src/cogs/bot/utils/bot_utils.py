@@ -1,10 +1,10 @@
 #! /usr/bin/env python3
-#|*****************************************************
+# |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
 # * License           : GPL v3
 # * Python            : 3.6
-#|*****************************************************
+# |*****************************************************
 # # -*- coding: utf-8 -*-
 
 from _sqlite3 import Error
@@ -24,113 +24,115 @@ import subprocess
 import json
 import os
 import sys
-#import asyncio
-#from bs4 import BeautifulSoup
+# import asyncio
+# from bs4 import BeautifulSoup
+
+
 ################################################################################
-################################################################################
-################################################################################
-class Object():
+class Object:
     created = str(datetime.datetime.now().strftime(f"{constants.date_formatter} {constants.time_formatter}"))
+
     def toJson(self):
-        return json.dumps(self,default=lambda o: o.__dict__,sort_keys=True,indent=4)
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+
     def toDict(self):
-        jsonString = json.dumps(self,default=lambda o: o.__dict__,sort_keys=True,indent=4)
+        jsonString = json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
         jsonDict = json.loads(jsonString)
         return jsonDict
+
+
 ################################################################################
-################################################################################
-################################################################################ 
-async def check_database_connection(log):
-    databases = Databases(log)
+async def check_database_connection(bot):
+    databases = Databases(bot)
     conn = await databases.check_database_connection()
     return conn
+
+
 ################################################################################
-################################################################################
-################################################################################ 
 async def init_bot(log):
     token = None
     if os.path.isfile(constants.token_filename):
         tokenFile = open(constants.token_filename, encoding="utf-8", mode="r")
         token = tokenFile.read().split('\n', 1)[0].strip('\n')
         tokenFile.close()
-    
+
     bot = commands.Bot(command_prefix='?', description=str(constants.description))
-    bot.log                 = log
-    bot.settings            = dict()
-    bot.settings["token"]   = token
+    bot.log = log
+    bot.settings = dict()
+    bot.settings["token"] = token
     return bot
-################################################################################
-################################################################################
+
+
 ################################################################################
 async def send_info_msg(self, ctx, msg):
     await ctx.message.channel.trigger_typing()
-    embed = discord.Embed(color=discord.Color.red(),description=formatting.info(msg))     
+    embed = discord.Embed(color=discord.Color.red(), description=formatting.info(msg))
     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
     await send_embed(self, ctx, embed, False, msg)
-################################################################################
-################################################################################
+
+
 ################################################################################
 async def send_error_msg(self, ctx, msg):
     await ctx.message.channel.trigger_typing()
-    embed = discord.Embed(color=discord.Color.red(),description=formatting.error(msg))     
+    embed = discord.Embed(color=discord.Color.red(), description=formatting.error(msg))
     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
     await send_embed(self, ctx, embed, False, msg)
+
+
 ################################################################################
-################################################################################
-###############################################################################  
 async def send_msg(self, ctx, msg):
     await ctx.message.channel.trigger_typing()
     color = get_color_settings(constants.settings_filename, "EmbedColors", "EmbedColor")
-    embed = discord.Embed(color=color,description=msg)
+    embed = discord.Embed(color=color, description=msg)
     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
     await send_embed(self, ctx, embed, False, msg)
+
+
 ################################################################################
-################################################################################
-###############################################################################  
 async def send_private_msg(self, ctx, msg):
     color = get_color_settings(constants.settings_filename, "EmbedColors", "EmbedColor")
-    embed = discord.Embed(color=color,description=msg)
-    #embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
+    embed = discord.Embed(color=color, description=msg)
+    # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
     await send_embed(self, ctx, embed, True, msg)
+
+
 ################################################################################
-################################################################################
-###############################################################################  
 async def send_private_info_msg(self, ctx, msg):
-    embed = discord.Embed(color=discord.Color.red(),description=formatting.info(msg))
-    #embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
+    embed = discord.Embed(color=discord.Color.red(), description=formatting.info(msg))
+    # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
     await send_embed(self, ctx, embed, True, msg)
+
+
 ################################################################################
-################################################################################
-###############################################################################  
 async def send_private_error_msg(self, ctx, msg):
-    embed = discord.Embed(color=discord.Color.red(),description=formatting.error(msg))
-    #embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
+    embed = discord.Embed(color=discord.Color.red(), description=formatting.error(msg))
+    # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
     await send_embed(self, ctx, embed, True, msg)
+
+
 ################################################################################
-################################################################################
-###############################################################################     
-async def send_help_msg(self, ctx, cmd):    
+async def send_help_msg(self, ctx, cmd):
     if self.bot.help_command.dm_help:
         await ctx.author.send(formatting.box(cmd.help))
     else:
         await ctx.send(formatting.box(cmd.help))
+
+
 ################################################################################
-################################################################################
-################################################################################          
 def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
-    #logger = logging.getLogger(__name__)
+    # logger = logging.getLogger(__name__)
     logger = logging.getLogger()
     stderr_hdlr = logging.StreamHandler(stream=sys.stdout)
     stderr_hdlr.setLevel(constants.LOG_LEVEL)
     stderr_hdlr.setFormatter(constants.LOG_FORMATTER)
     logger.addHandler(stderr_hdlr)
-    if issubclass(exc_type, KeyboardInterrupt)\
-    or issubclass(exc_type, EOFError):
+    if issubclass(exc_type, KeyboardInterrupt) \
+            or issubclass(exc_type, EOFError):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
     logger.exception("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-################################################################################
-################################################################################
+
+
 ################################################################################
 async def send_embed(self, ctx, embed, dm, msg=None):
     try:
@@ -142,12 +144,13 @@ async def send_embed(self, ctx, embed, dm, msg=None):
         else:
             await ctx.send(embed=embed)
     except discord.HTTPException as err:
-    #except discord.Forbidden as err:  
+        # except discord.Forbidden as err:
         if "Cannot send messages to this user" in err.text:
             await ctx.send(f"{ctx.message.author.mention}\n")
             err_msg = "Direct messages are disable in your configuration.\n" \
-           "If you want to receive messages from Bots, you need to enable this option under Privacy & Safety:\n"\
-           "\"Allow direct messages from server members.\"\n"
+                      "If you want to receive messages from Bots, "\
+                      "you need to enable this option under Privacy & Safety:\n" \
+                      "\"Allow direct messages from server members.\"\n"
             await ctx.send(formatting.red_text(err_msg))
             if msg is not None:
                 await ctx.send(formatting.green_text(msg))
@@ -155,195 +158,195 @@ async def send_embed(self, ctx, embed, dm, msg=None):
             await ctx.send(f"{ctx.message.author.mention}\n")
             if msg is not None:
                 await ctx.send(f"{formatting.green_text(msg)}")
+
+
 ################################################################################
-################################################################################
-################################################################################      
-async def get_full_dbname():
-    database_name = None 
+def get_full_db_name():
+    database_name = None
     database = get_settings("Bot", "DatabaseInUse")
-    
+
     if database.lower() == "postgres":
-        pGHost  = get_settings("Database", "Host")
-        pGPort  = get_settings("Database", "Port")
+        pGHost = get_settings("Database", "Host")
+        pGPort = get_settings("Database", "Port")
         database_name = f"PostgreSQL ({pGHost}:{pGPort})"
     elif database.lower() == "sqlite":
-        database_name = f"SQLite"    
-            
-    return database_name   
+        database_name = f"SQLite"
+
+    return database_name
+
+
 ################################################################################
-################################################################################
-###############################################################################        
 async def delete_last_channel_message(self, ctx, warning=False):
     if not is_private_message(self, ctx):
-        try: 
+        try:
             await ctx.message.delete()
-            if warning:    
+            if warning:
                 await send_msg(self, ctx, formatting.inline("Your message was removed for privacy."))
         except:
-            #await send_msg(self, ctx, "Bot does not have permission to delete messages.\n"\
+            # await send_msg(self, ctx, "Bot does not have permission to delete messages.\n"\
             #                        "Missing permission: `Manage Messages`")
             return
+
+
 ################################################################################
-################################################################################
-###############################################################################
 async def load_cogs(self):
     print("Loading Bot Extensions...")
     for ext in constants.cogs:
         try:
-            if hasattr(self,"bot"):
+            if hasattr(self, "bot"):
                 self.bot.load_extension(ext)
             else:
                 self.load_extension(ext)
-            #print(f"\t {ext}")
+            # print(f"\t {ext}")
         except Exception as e:
             print(f"ERROR: FAILED to load extension: {ext}")
             print(f"\t{e.__class__.__name__}: {e}\n")
+
+
 ################################################################################
-################################################################################
-###############################################################################
 async def reload_cogs(self):
     print("RE-Loading Bot Extensions...")
     for ext in constants.cogs:
         try:
-            if hasattr(self,"bot"):
+            if hasattr(self, "bot"):
                 self.bot.reload_extension(ext)
             else:
                 self.reload_extension(ext)
-            #print(f"\t {ext}")
+            # print(f"\t {ext}")
         except Exception as e:
             print(f"ERROR: FAILED to load extension: {ext}")
             print(f"\t{e.__class__.__name__}: {e}\n")
+
+
 ################################################################################
-################################################################################
-################################################################################ 
 def read_token():
     try:
         return input("Insert your BOT token here:> ").strip()
     except SyntaxError:
         pass
+
+
 ################################################################################
-################################################################################
-################################################################################
-def insert_spaces(number_spaces:int):
-    spaces=""
+def insert_spaces(number_spaces: int):
+    spaces = ""
     for x in range(0, number_spaces):
         spaces += " "
     return spaces
+
+
 ################################################################################
-################################################################################ 
-############################################################################### 
 def get_msg_prefix(self, message):
     for prefix in self.bot.command_prefix:
         if message.content.startswith(prefix):
             return prefix
-    return None 
+    return None
+
+
 ################################################################################
-################################################################################
-###############################################################################                          
-def is_member_admin(member:discord.Member):
-    if member is not None\
-    and hasattr(member, "guild_permissions")\
-    and member.guild_permissions.administrator:
+def is_member_admin(member: discord.Member):
+    if member is not None \
+            and hasattr(member, "guild_permissions") \
+            and member.guild_permissions.administrator:
         return True
     return False
+
+
 ################################################################################
-################################################################################
-###############################################################################                          
-def is_bot_owner(ctx, member:discord.Member):
+def is_bot_owner(ctx, member: discord.Member):
     if ctx.bot.owner.id == member.id:
         return True
     return False
+
+
 ################################################################################
-################################################################################
-###############################################################################                          
-def is_server_owner(ctx, member:discord.Member):
+def is_server_owner(ctx, member: discord.Member):
     if member.id == ctx.guild.owner_id:
         return True
-    return False    
+    return False
+
+
 ################################################################################
-################################################################################
-###############################################################################      
 def is_private_message(self, ctx):
     return True if isinstance(ctx.channel, discord.DMChannel) else False
+
+
 ################################################################################
-################################################################################
-################################################################################  
-def format_date_time(date:datetime):
+def format_date_time(date: datetime):
     new_date = date.strftime(f"{constants.date_formatter} {constants.time_formatter}")
     return new_date
+
+
 ################################################################################
-################################################################################
-################################################################################  
-def format_date(date:datetime):
+def format_date(date: datetime):
     new_date = date.strftime(constants.date_formatter)
     return new_date
+
+
 ################################################################################
-################################################################################
-################################################################################ 
-def get_todays_date():    
+def get_todays_date():
     return str(datetime.datetime.now().strftime(constants.date_formatter))
+
+
 ################################################################################
-################################################################################
-################################################################################ 
 def get_todays_date_time():
     return str(datetime.datetime.now().strftime(f"{constants.date_formatter} {constants.time_formatter}"))
+
+
 ################################################################################
-################################################################################
-################################################################################
-def get_current_time():    
+def get_current_time():
     return str(datetime.datetime.now().strftime(constants.time_formatter))
+
+
 ################################################################################
-################################################################################ 
-################################################################################
-def get_object_member_by_str(self, ctx, member_str:str):
+def get_object_member_by_str(self, ctx, member_str: str):
     if not is_private_message(self, ctx):
         try:
-            current_member_discriminator = int(member_str.split('#',1)[1].lower())
+            current_member_discriminator = int(member_str.split('#', 1)[1].lower())
         except Exception:
             return None
-        
-        current_member_name = member_str.split('#',1)[0].lower()
-        #checking if string matches a member nickname
+
+        current_member_name = member_str.split('#', 1)[0].lower()
+        # checking if string matches a member nickname
         for member in ctx.guild.members:
             if member.nick is not None:
                 if str(member.nick.lower()) == str(member_str.lower()):
                     return member
-            #checking if string matches a member name
-            if current_member_name.split()[0].lower() == member.display_name.split()[0].lower()\
-            and int(current_member_discriminator) == int(member.discriminator):
-                    return member
+            # checking if string matches a member name
+            if current_member_name.split()[0].lower() == member.display_name.split()[0].lower() \
+                    and int(current_member_discriminator) == int(member.discriminator):
+                return member
     return None
+
+
 ################################################################################
-################################################################################
-################################################################################
-def get_member_name_by_id(self, ctx, discord_author_id:int): 
+def get_member_name_by_id(self, ctx, discord_author_id: int):
     member = ctx.guild.get_member(discord_author_id)
     member_name = ""
     if member is not None:
         if member.nick is not None:
             temp_name = str(member.nick)
         else:
-            temp_name = str(member).split('#',1)[0]
-        
+            temp_name = str(member).split('#', 1)[0]
+
         member_name = temp_name
-        #member_name = (temp_name.encode('ascii', 'ignore')).decode("utf-8")
+        # member_name = (temp_name.encode('ascii', 'ignore')).decode("utf-8")
         return member_name
     else:
         return None
+
+
 ################################################################################
-################################################################################
-################################################################################         
-def get_object_channel(self, ctx, channel_str:str):
+def get_object_channel(self, ctx, channel_str: str):
     for channel in ctx.guild.text_channels:
         if str(channel.name).lower() == channel_str.lower():
             return channel
+
+
 ################################################################################
-################################################################################
-################################################################################ 
-async def channel_to_send_msg(bot, server:discord.Guild):
+async def channel_to_send_msg(bot, server: discord.Guild):
     serverConfigsSql = ServerConfigsSql(bot.log)
     rs = await serverConfigsSql.get_server_configs(server.id)
-    default_text_channel = rs[0]["default_text_channel"]         
+    default_text_channel = rs[0]["default_text_channel"]
     sorted_channels = sorted(server.text_channels, key=attrgetter('position'))
     if default_text_channel is None or default_text_channel == "" or len(default_text_channel) == 0:
         return get_server_first_public_text_channel(server)
@@ -352,13 +355,13 @@ async def channel_to_send_msg(bot, server:discord.Guild):
             if channel.name == default_text_channel:
                 return channel
     return None
+
+
 ################################################################################
-################################################################################
-################################################################################
-def get_server_first_public_text_channel(server:discord.Guild):
+def get_server_first_public_text_channel(server: discord.Guild):
     sorted_text_channels = sorted(server.text_channels, key=attrgetter('position'))
     general_channel = discord.utils.get(sorted_text_channels, name="general")
-    
+
     if general_channel is not None:
         if hasattr(general_channel, 'overwrites'):
             if len(general_channel.overwrites) > 0:
@@ -381,141 +384,139 @@ def get_server_first_public_text_channel(server:discord.Guild):
             else:
                 return channel
     return None
+
+
 ################################################################################
-################################################################################
-################################################################################             
-def get_member_first_public_text_channel(member:discord.Member):
+def get_member_first_public_text_channel(member: discord.Member):
     sorted_channels = sorted(member.guild.text_channels, key=attrgetter('position'))
     for channel in sorted_channels:
         if (member.permissions_in(channel).read_messages == True):
             return channel
     return None
+
+
 ################################################################################
-################################################################################
-################################################################################
-def get_server_everyone_role(server:discord.Guild):
+def get_server_everyone_role(server: discord.Guild):
     return server.default_role
-    #return discord.utils.get(server.roles, name="@everyone")
+    # return discord.utils.get(server.roles, name="@everyone")
+
+
 ################################################################################
-################################################################################
-################################################################################
-def get_settings(section:str, config_name:str):
+def get_settings(section: str, config_name: str):
     settings_filename = constants.settings_filename
     parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
     parser._interpolation = configparser.ExtendedInterpolation()
     parser.read(settings_filename)
-    try: 
-        value = parser.get(section, config_name).replace("\"","")
+    try:
+        value = parser.get(section, config_name).replace("\"", "")
     except Exception:
         value = None
+    if len(value) == 0:
+        value = None
     return value
+    # settings_filename = constants.settings_filename
+    # config = ConfigParser(allow_no_value=True)
+    # config.read(settings_filename)
+    # try:
+    #     value = ast.literal_eval(config.get(section, configName))
+    # except ValueError:
+    #     value = config.get(section, configName)
+    # except SyntaxError:
+    #     value = None
+    # return value
+
+
 ################################################################################
-################################################################################
-###############################################################################
-#def get_file_settings(filename, section, config_name):
-#    settings_filename = filename
-#    parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
-#    parser._interpolation = configparser.ExtendedInterpolation()
-#    parser.read(settings_filename)
-#    try: 
-#        value = parser.get(section, config_name).replace("\"","")
-#    except Exception:
-#        value = None
-#    return value
-################################################################################
-################################################################################
-################################################################################
-def get_color_settings(filename:str, section:str, configName:str):
+def get_color_settings(filename: str, section: str, configName: str):
     config = configparser.ConfigParser()
     config.read(filename)
     color = str(config.get(section, configName)).lower()
-    
+
     if str(color) == "random":
         return discord.Color(value=get_random_color())
-    
+
     for cor in Colors:
         if cor.name.lower() == color.lower():
             return cor.value
+
+
 ################################################################################
-################################################################################
-################################################################################        
 def get_random_color():
-    #color = discord.Color(value=get_random_color())
+    # color = discord.Color(value=get_random_color())
     color = ''.join([choice('0123456789ABCDEF') for x in range(6)])
     color = int(color, 16)
     return color
+
+
 ################################################################################
-################################################################################
-################################################################################        
 class Colors(Enum):
-    teal            = discord.Color.teal()
-    dark_teal       = discord.Color.dark_teal()
-    green           = discord.Color.green()
-    dark_green      = discord.Color.dark_green()
-    blue            = discord.Color.blue()
-    dark_blue       = discord.Color.dark_blue()
-    purple          = discord.Color.purple()
-    dark_purple     = discord.Color.dark_purple()
-    magenta         = discord.Color.magenta()
-    dark_magenta    = discord.Color.dark_magenta()
-    gold            = discord.Color.gold()
-    dark_gold       = discord.Color.dark_gold()
-    orange          = discord.Color.orange()
-    dark_orange     = discord.Color.dark_orange()
-    red             = discord.Color.red()
-    dark_red        = discord.Color.dark_red()
-    lighter_grey    = discord.Color.lighter_grey()
-    dark_grey       = discord.Color.dark_grey()
-    light_grey      = discord.Color.light_grey()
-    darker_grey     = discord.Color.darker_grey()
-    blurple         = discord.Color.blurple()
-    greyple         = discord.Color.greyple()
+    teal = discord.Color.teal()
+    dark_teal = discord.Color.dark_teal()
+    green = discord.Color.green()
+    dark_green = discord.Color.dark_green()
+    blue = discord.Color.blue()
+    dark_blue = discord.Color.dark_blue()
+    purple = discord.Color.purple()
+    dark_purple = discord.Color.dark_purple()
+    magenta = discord.Color.magenta()
+    dark_magenta = discord.Color.dark_magenta()
+    gold = discord.Color.gold()
+    dark_gold = discord.Color.dark_gold()
+    orange = discord.Color.orange()
+    dark_orange = discord.Color.dark_orange()
+    red = discord.Color.red()
+    dark_red = discord.Color.dark_red()
+    lighter_grey = discord.Color.lighter_grey()
+    dark_grey = discord.Color.dark_grey()
+    light_grey = discord.Color.light_grey()
+    darker_grey = discord.Color.darker_grey()
+    blurple = discord.Color.blurple()
+    greyple = discord.Color.greyple()
+
+
 ################################################################################
-################################################################################
-################################################################################  
-def get_region_flag(region:str):
+def get_region_flag(region: str):
     flag = ""
     if "brazil" in str(region).lower():
-        flag=":flag_br:"
+        flag = ":flag_br:"
     elif "eu" in str(region).lower():
-        flag=":flag_eu:"
+        flag = ":flag_eu:"
     elif "hong" in str(region).lower():
-        flag=":flag_hk:"
+        flag = ":flag_hk:"
     elif "japan" in str(region).lower():
-        flag=":flag_jp:"
+        flag = ":flag_jp:"
     elif "russia" in str(region).lower():
-        flag=":flag_ru:"
+        flag = ":flag_ru:"
     elif "singapore" in str(region).lower():
-        flag=":flag_sg:"
+        flag = ":flag_sg:"
     elif "sydney" in str(region).lower():
-        flag=":flag_au:"
+        flag = ":flag_au:"
     elif "us" in str(region).lower():
-        flag=":flag_us:"
+        flag = ":flag_us:"
     return flag
-###############################################################################  
-################################################################################
-################################################################################
+
+
 ###############################################################################
 def clear_screen():
     if constants.IS_WINDOWS:
         os.system("cls")
     else:
         os.system("clear")
+
+
 ################################################################################
-################################################################################
-###############################################################################
 def is_git_installed():
     try:
         subprocess.call(["git", "--version"], stdout=subprocess.DEVNULL,
-                                              stdin =subprocess.DEVNULL,
-                                              stderr=subprocess.DEVNULL)
+                        stdin=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL)
     except FileNotFoundError:
         return False
     else:
         return True
+
+
 ################################################################################
-################################################################################
-###############################################################################
 # def is_nping_installed():
 #     try:
 #         subprocess.call(["nping", "--version"], stdout=subprocess.DEVNULL,
@@ -526,24 +527,22 @@ def is_git_installed():
 #     else:
 #         return True
 ################################################################################
-################################################################################
-###############################################################################
 def wait_return():
     try:
         input("Press enter to continue...").strip()
     except SyntaxError:
         pass
+
+
 ################################################################################
-################################################################################
-###############################################################################
 def user_choice():
     try:
         return input(">>> ").lower().strip()
     except SyntaxError:
         pass
+
+
 ################################################################################
-################################################################################
-################################################################################   
 def recursive_overwrite(src, dest, ignore=None):
     if os.path.isdir(src):
         if not os.path.isdir(dest):
@@ -555,37 +554,37 @@ def recursive_overwrite(src, dest, ignore=None):
             ignored = set()
         for f in files:
             if f not in ignored:
-                recursive_overwrite(os.path.join(src, f), 
-                                                  os.path.join(dest, f), 
-                                                  ignore)
+                recursive_overwrite(os.path.join(src, f),
+                                    os.path.join(dest, f),
+                                    ignore)
     else:
         shutil.copyfile(src, dest)
-################################################################################
-################################################################################
+
+
 ################################################################################
 async def execute_all_sql_files(self):
-    dirpath = constants.sql_dirpath+"/"
+    dirpath = constants.sql_dirpath + "/"
     if not os.path.isdir(dirpath):
         msg = "Cant find SQL dir path: "
-        print (msg+dirpath)
+        print(msg + dirpath)
         return
-    
+
     print("\n==> WARNING: EXECUTING SQL FILES INSIDE DATA/SQL DIR <==")
     all_dir_files = os.listdir(dirpath)
     self.bot.temp = dict()
     for filename in all_dir_files:
         if filename[-4:].lower() == ".sql":
-            file = open(dirpath+filename, encoding="utf-8", mode="r")
+            file = open(dirpath + filename, encoding="utf-8", mode="r")
             sql = file.read()
             file.close()
             self.bot.temp["sqlFileName"] = str(filename)
             self.bot.temp["sql"] = str(sql)
             try:
-                print("File: "+ str(filename))
+                print("File: " + str(filename))
                 databases = Databases(self.log)
                 await databases.execute(sql)
             except Error as e:
-                sql = sql.replace('\n','')
+                sql = sql.replace('\n', '')
                 e_message = str(e.args[0].args[0]).strip(',')
                 if len(sql) > 500:
                     sql = "sql too big to fit the screen, check the file for more info..."
@@ -593,8 +592,8 @@ async def execute_all_sql_files(self):
                 self.bot.log.error(error_msg)
     self.bot.temp.clear()
     del self.bot.temp
-################################################################################
-################################################################################
+
+
 ################################################################################
 def get_time_passed(time_str):
     FMT = constants.time_formatter
@@ -605,34 +604,34 @@ def get_time_passed(time_str):
     else:
         time_passed = datetime.datetime.strptime(str(time_passed_delta), FMT)
     return time_passed
+
+
 ################################################################################
-################################################################################
-################################################################################
-async def create_admin_commands_channel(self, guild:discord.Guild):
+async def create_admin_commands_channel(self, guild: discord.Guild):
     for chan in guild.text_channels:
         if chan.name == 'bot-commands':
             return
-    
+
     _overwrites = {
         guild.default_role: discord.PermissionOverwrite(read_messages=True, send_messages=True),
         guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True)
     }
-    
+
     prefix = self.bot.command_prefix[0]
-    msg = "Use this channel to type bot commands.\n"\
-        f"If you are an admin and wish to list configurations: `{prefix}config list`\n"\
-        f"To get a list of commands: `{prefix}help`"
+    msg = "Use this channel to type bot commands.\n" \
+          f"If you are an admin and wish to list configurations: `{prefix}config list`\n" \
+          f"To get a list of commands: `{prefix}help`"
     try:
         channel = await guild.create_text_channel("Bot Commands", overwrites=_overwrites)
         await channel.edit(topic=msg)
         await channel.edit(name="Bot Commands")
         await channel.send(f"{msg}")
-    except discord.Forbidden as err:  
+    except discord.Forbidden as err:
         self.bot.log.info(f"(Server:{guild.name})(BOT IS NOT ADMIN)({err.text} to create channel: bot-commands)")
     except discord.HTTPException as err:
         self.bot.log.info(f"(Server:{guild.name})({err.text})")
-################################################################################
-################################################################################
+
+
 ################################################################################
 def get_bot_stats(bot):
     result = {}
@@ -645,7 +644,7 @@ def get_bot_stats(bot):
         if u.bot == False:
             unique_users += 1
         if u.bot == True:
-            bot_users += 1 
+            bot_users += 1
 
     for g in bot.guilds:
         for c in g.channels:
@@ -660,28 +659,28 @@ def get_bot_stats(bot):
     users = f"({unique_users} users)({bot_users} bots)[{len(bot.users)} total]"
     result['users'] = users
 
-    channels = f"({text_channels} text)({voice_channels} voice)[{int(text_channels+voice_channels)} total]"
+    channels = f"({text_channels} text)({voice_channels} voice)[{int(text_channels + voice_channels)} total]"
     result['channels'] = channels
 
     return result
+
+
 ################################################################################
-################################################################################
-################################################################################
-def check_server_has_role(self, server:discord.Guild, role_name:str):
+def check_server_has_role(self, server: discord.Guild, role_name: str):
     for rol in server.roles:
         if rol.name.lower() == role_name.lower():
             return rol
     return None
+
+
 ################################################################################
-################################################################################
-################################################################################
-def check_user_has_role(self, member:discord.Member, role_name:str):
+def check_user_has_role(self, member: discord.Member, role_name: str):
     for rol in member.roles:
         if rol.name.lower() == role_name.lower():
             return rol
     return None
-################################################################################
-################################################################################
+
+
 ################################################################################
 # async def skill_embed(self, skill):
 #     description = None
@@ -721,6 +720,3 @@ def check_user_has_role(self, member:discord.Member, role_name:str):
 # 
 #     return data
 ################################################################################
-################################################################################
-################################################################################
-    

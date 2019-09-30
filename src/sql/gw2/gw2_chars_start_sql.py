@@ -1,23 +1,21 @@
 #! /usr/bin/env python3
-#|*****************************************************
+# |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
 # * License           : GPL v3
 # * Python            : 3.6
-#|*****************************************************
+# |*****************************************************
 # # -*- coding: utf-8 -*-
 
 from src.databases.databases import Databases
-################################################################################
-################################################################################
-################################################################################
-class Gw2CharsStartSql():
-    def __init__(self, log):
-        self.log = log
-################################################################################
-################################################################################
-################################################################################
-    async def insert_character(self, insert_obj:object, api_req_characters):
+
+
+class Gw2CharsStartSql:
+    def __init__(self, bot):
+        self.bot = bot
+
+    ################################################################################
+    async def insert_character(self, insert_obj: object, api_req_characters):
         sql = ""
         discord_user_id = insert_obj.discord_user_id
         for char_name in api_req_characters:
@@ -38,15 +36,11 @@ class Gw2CharsStartSql():
                     '{name}',
                     '{profession}',
                     '{deaths}');"""
-        databases = Databases(self.log)
+        databases = Databases(self.bot)
         await databases.execute(sql)
-################################################################################
-################################################################################
-################################################################################
-    async def get_all_start_characters(self, discord_user_id:int):
+
+    ################################################################################
+    async def get_all_start_characters(self, discord_user_id: int):
         sql = f"SELECT * FROM gw2_chars_start WHERE discord_user_id = {discord_user_id};\n"
-        databases = Databases(self.log)
+        databases = Databases(self.bot)
         return await databases.select(sql)
-################################################################################
-################################################################################
-################################################################################
