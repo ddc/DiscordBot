@@ -8,8 +8,8 @@
 # # -*- coding: utf-8 -*-
 
 from src.cogs.gw2.utils import gw2_utils as gw2Utils
-from src.sql.gw2.gw2_roles_sql import Gw2Roles
-from src.sql.gw2.gw2_configs_sql import Gw2Configs
+from src.sql.gw2.gw2_roles_sql import Gw2RolesSql
+from src.sql.gw2.gw2_configs_sql import Gw2ConfigsSql
 from src.sql.bot.initial_configs_sql import InitialConfigsSql
 from src.cogs.bot.utils import chat_formatting as formatting
 from src.sql.bot.alter_tables_sql import AlterTablesSql
@@ -57,36 +57,6 @@ async def insert_default_initial_configs(bot):
 
 
 ################################################################################
-async def set_bot_configs(bot, now):
-    print("Setting Bot configs...")
-    author = bot.get_user(195615080665055232)
-    bot.owner = (await bot.application_info()).owner
-    bot.owner_id = bot.owner.id
-    bot.description = str(constants.description)
-    bot.uptime = now
-    bot.help_command = commands.DefaultHelpCommand(dm_help=True)
-    bot.settings["author_id"] = author.id
-    bot.settings["author_avatar_url"] = str(author.avatar_url)
-    bot.settings["author"] = f"{author.name}#{author.discriminator}"
-    #bot.settings["database"] = str(database)
-    bot.settings["bot_webpage_url"] = str(constants.bot_webpage_url)
-    bot.settings["version"] = constants.VERSION
-    bot.settings["exclusive_users_id"] = utils.get_settings("ExclusiveUsers", "ExclusiveUsers")
-    bot.settings["bg_task_change_game"] = utils.get_settings("Bot", "BGChangeGame")
-    bot.settings["full_db_name"] = utils.get_full_db_name()
-    bot.settings["database_in_use"] = bot.settings["full_db_name"].split()[0]
-    if bot.settings["database_in_use"].lower() == "postgresql":
-        bot.settings["pg_host"] = utils.get_settings("Database", "Host")
-        bot.settings["pg_port"] = utils.get_settings("Database", "Port")
-        bot.settings["pg_dbname"] = utils.get_settings("Database", "DBname")
-        bot.settings["pg_username"] = utils.get_settings("Database", "Username")
-        bot.settings["pg_password"] = utils.get_settings("Database", "Password")
-    # elif bot.settings["database_in_use"].lower() == "sqlite":
-
-
-
-
-################################################################################
 async def set_others_sql_configs(bot):
     print("Setting Other Sql configs...")
     alterTablesSql = AlterTablesSql(bot)
@@ -99,12 +69,12 @@ async def set_others_sql_configs(bot):
 async def set_presence(bot):
     prefix = bot.command_prefix[0]
 
-    if bot.settings["exclusive_users_id"] is not None:
+    if bot.settings["ExclusiveUsers"] is not None:
         bot_game_desc = f"PRIVATE BOT | {prefix}help"
         await bot.change_presence(status=discord.Status.online, activity=discord.Game(name=bot_game_desc))
-    elif bot.settings["bg_task_change_game"] == "Y":
+    elif bot.settings["BGChangeGame"] == "Y":
         bgTasks = BgTasks(bot)
-        bot.loop.create_task(bgTasks.bgtask_change_presence(utils.get_settings("Bot", "BGActivityTimer")))
+        bot.loop.create_task(bgTasks.bgtask_change_presence(bot.settings["BGActivityTimer"]))
     else:
         game = str(random.choice(constants.games_included))
         bot_game_desc = f"{game} | {prefix}help"
@@ -113,8 +83,8 @@ async def set_presence(bot):
 
 ################################################################################
 async def set_gw2_roles(bot):
-    gw2Configs = Gw2Configs(bot)
-    gw2Roles = Gw2Roles(bot)
+    gw2Configs = Gw2ConfigsSql(bot)
+    gw2Roles = Gw2RolesSql(bot)
     bgTasks = BgTasks(bot)
 
     for g in bot.guilds:
@@ -128,7 +98,7 @@ async def set_gw2_roles(bot):
                         if len(rs_gw2_sc) > 0:
                             role_timer = rs_gw2_sc[0]["role_timer"]
                         else:
-                            role_timer = gw2Utils.get_settings("Defaults", "CheckRoleTimer")
+                            role_timer = bot.gw2_settings["CheckRoleTimer"]
 
                         bot.loop.create_task(bgTasks.bgtask_check_gw2_roles(g, rol, role_timer))
 
@@ -157,7 +127,7 @@ async def execute_private_msg(self, ctx):
         if not (await _check_exclusive_users(self, ctx)):
             return
 
-        blacklistsSql = BlacklistsSql(self.bot.log)
+        blacklistsSql = BlacklistsSql(self.bot)
         bl = await blacklistsSql.get_blacklisted_user(ctx.message.author.id)
         if len(bl) > 0:
             if ctx.message.content.startswith(ctx.prefix):
@@ -187,7 +157,7 @@ async def execute_private_msg(self, ctx):
         msg = "That command is not allowed in direct messages."
         embed = discord.Embed(color=discord.Color.red(), description=f"{formatting.error_inline(msg)}")
         user_cmd = ctx.message.content.split(' ', 1)[0]
-        allowed_DM_commands = utils.get_settings("Bot", "DMCommands")
+        allowed_DM_commands = self.bot.settings["DMCommands"]
 
         if allowed_DM_commands is not None:
             if (isinstance(allowed_DM_commands, tuple)):  # more than 1 command, between quotes
@@ -214,7 +184,7 @@ async def execute_private_msg(self, ctx):
 ################################################################################
 async def execute_server_msg(self, ctx):
     is_command = True if ctx.prefix is not None else False
-    serverConfigsSql = ServerConfigsSql(self.bot.log)
+    serverConfigsSql = ServerConfigsSql(self.bot)
     rs_user_channel_configs = await serverConfigsSql.get_user_channel_configs(ctx.author, ctx.message.channel.id)
 
     if len(rs_user_channel_configs) == 0:
@@ -303,7 +273,7 @@ async def execute_server_msg(self, ctx):
                 return
 
         # execute custom commands
-        commandsSql = CommandsSql(self.bot.log)
+        commandsSql = CommandsSql(self.bot)
         rs_command = await commandsSql.get_command(ctx.author.guild.id, str(ctx.invoked_with))
         if len(rs_command) > 0:
             await ctx.message.channel.trigger_typing()
@@ -343,7 +313,7 @@ def _check_bad_words_file():
 ################################################################################
 async def _check_custom_messages(self, message):
     msg = message.system_content.lower()
-    cwords = utils.get_settings("BotReactWords", "BotReactWords")
+    cwords = self.bot.settings["BotReactWords"]
     config_word_found = False
     bot_word_found = False
 
@@ -428,7 +398,7 @@ def _check_member_invisible(self, ctx):
 
 ################################################################################
 async def _check_exclusive_users(self, ctx):
-    exclusive_users_id = utils.get_settings("ExclusiveUsers", "ExclusiveUsers")
+    exclusive_users_id = self.bot.settings["ExclusiveUsers"]
     user_found = False
 
     if exclusive_users_id is not None:
@@ -449,4 +419,3 @@ async def _check_exclusive_users(self, ctx):
         return False
 
     return True
-################################################################################

@@ -10,7 +10,7 @@
 from src.databases.databases import Databases
 
 
-class Gw2Roles:
+class Gw2RolesSql:
     def __init__(self, bot):
         self.bot = bot
 

@@ -14,27 +14,22 @@ from src.cogs.bot.utils import bot_utils as utils
 class PostgreSQL:
     def __init__(self, bot):
         self.bot = bot
-        self.pg_host = self.bot.settings["pg_host"]
-        self.pg_port = self.bot.settings["pg_port"]
-        self.pg_dbname = self.bot.settings["pg_dbname"]
-        self.pg_username = self.bot.settings["pg_username"]
-        self.pg_password = self.bot.settings["pg_password"]
 
     ################################################################################
     async def create_connection(self):
         try:
-            conn = await asyncpg.connect(user=self.pg_username,
-                                         password=self.pg_password,
-                                         database=self.pg_dbname,
-                                         port=self.pg_port,
-                                         host=self.pg_host)
+            conn = await asyncpg.connect(user=self.bot.settings["DBUsername"],
+                                         password=self.bot.settings["DBPassword"],
+                                         database=self.bot.settings["DBName"],
+                                         port=self.bot.settings["DBPort"],
+                                         host=self.bot.settings["DBHost"])
         except Exception as e:
             conn = None
             msg = f"PostgreSQL:({e.args})"
-            # self.log.exception("postgres",exc_info=e)
             self.bot.log.error(msg)
             print(msg)
-            raise asyncpg.ConnectionFailureError(e)
+            # self.log.exception("postgres",exc_info=e)
+            # raise asyncpg.ConnectionFailureError(e)
 
         return conn
 

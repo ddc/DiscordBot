@@ -10,9 +10,9 @@
 from src.databases.databases import Databases
 
 
-class Gw2Configs:
-    def __init__(self, log):
-        self.bot = log
+class Gw2ConfigsSql:
+    def __init__(self, bot):
+        self.bot = bot
 
     ################################################################################
     async def get_gw2_server_configs(self, discord_server_id: int):

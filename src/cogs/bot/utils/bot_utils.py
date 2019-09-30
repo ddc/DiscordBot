@@ -24,11 +24,12 @@ import subprocess
 import json
 import os
 import sys
+
+
 # import asyncio
 # from bs4 import BeautifulSoup
 
 
-################################################################################
 class Object:
     created = str(datetime.datetime.now().strftime(f"{constants.date_formatter} {constants.time_formatter}"))
 
@@ -46,21 +47,6 @@ async def check_database_connection(bot):
     databases = Databases(bot)
     conn = await databases.check_database_connection()
     return conn
-
-
-################################################################################
-async def init_bot(log):
-    token = None
-    if os.path.isfile(constants.token_filename):
-        tokenFile = open(constants.token_filename, encoding="utf-8", mode="r")
-        token = tokenFile.read().split('\n', 1)[0].strip('\n')
-        tokenFile.close()
-
-    bot = commands.Bot(command_prefix='?', description=str(constants.description))
-    bot.log = log
-    bot.settings = dict()
-    bot.settings["token"] = token
-    return bot
 
 
 ################################################################################
@@ -148,7 +134,7 @@ async def send_embed(self, ctx, embed, dm, msg=None):
         if "Cannot send messages to this user" in err.text:
             await ctx.send(f"{ctx.message.author.mention}\n")
             err_msg = "Direct messages are disable in your configuration.\n" \
-                      "If you want to receive messages from Bots, "\
+                      "If you want to receive messages from Bots, " \
                       "you need to enable this option under Privacy & Safety:\n" \
                       "\"Allow direct messages from server members.\"\n"
             await ctx.send(formatting.red_text(err_msg))
@@ -161,17 +147,15 @@ async def send_embed(self, ctx, embed, dm, msg=None):
 
 
 ################################################################################
-def get_full_db_name():
+def get_full_db_name(bot):
     database_name = None
-    database = get_settings("Bot", "DatabaseInUse")
-
+    database = bot.settings["DatabaseInUse"]
     if database.lower() == "postgres":
-        pGHost = get_settings("Database", "Host")
-        pGPort = get_settings("Database", "Port")
-        database_name = f"PostgreSQL ({pGHost}:{pGPort})"
+        db_host = bot.settings["DBHost"]
+        db_port = bot.settings["DBPort"]
+        database_name = f"PostgreSQL ({db_host}:{db_port})"
     elif database.lower() == "sqlite":
         database_name = f"SQLite"
-
     return database_name
 
 
@@ -344,7 +328,7 @@ def get_object_channel(self, ctx, channel_str: str):
 
 ################################################################################
 async def channel_to_send_msg(bot, server: discord.Guild):
-    serverConfigsSql = ServerConfigsSql(bot.log)
+    serverConfigsSql = ServerConfigsSql(bot)
     rs = await serverConfigsSql.get_server_configs(server.id)
     default_text_channel = rs[0]["default_text_channel"]
     sorted_channels = sorted(server.text_channels, key=attrgetter('position'))
@@ -402,7 +386,30 @@ def get_server_everyone_role(server: discord.Guild):
 
 
 ################################################################################
-def get_settings(section: str, config_name: str):
+def get_all_ini_file_settings(settings_filename: str):
+    dictionary = {}
+    parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
+    parser.optionxform = str  # this wont change all values to lowercase
+    parser._interpolation = configparser.ExtendedInterpolation()
+    parser.read(settings_filename)
+    for section in parser.sections():
+        # dictionary[section] = {}
+        for option in parser.options(section):
+            try:
+                value = parser.get(section, option).replace("\"", "")
+            except Exception:
+                value = None
+            if value is not None and len(value) == 0:
+                value = None
+
+            # dictionary[section][option] = value
+            dictionary[option] = value
+    return dictionary
+
+
+################################################################################
+def get_ini_settings(section: str, config_name: str):
+    #print(f"Accessing: {section} - {config_name}")
     settings_filename = constants.settings_filename
     parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
     parser._interpolation = configparser.ExtendedInterpolation()
@@ -411,28 +418,14 @@ def get_settings(section: str, config_name: str):
         value = parser.get(section, config_name).replace("\"", "")
     except Exception:
         value = None
-    if len(value) == 0:
+    if value is not None and len(value) == 0:
         value = None
     return value
-    # settings_filename = constants.settings_filename
-    # config = ConfigParser(allow_no_value=True)
-    # config.read(settings_filename)
-    # try:
-    #     value = ast.literal_eval(config.get(section, configName))
-    # except ValueError:
-    #     value = config.get(section, configName)
-    # except SyntaxError:
-    #     value = None
-    # return value
 
 
 ################################################################################
-def get_color_settings(filename: str, section: str, configName: str):
-    config = configparser.ConfigParser()
-    config.read(filename)
-    color = str(config.get(section, configName)).lower()
-
-    if str(color) == "random":
+def get_color_settings(color: str):
+    if str(color).lower() == "random":
         return discord.Color(value=get_random_color())
 
     for cor in Colors:
@@ -680,7 +673,6 @@ def check_user_has_role(self, member: discord.Member, role_name: str):
             return rol
     return None
 
-
 ################################################################################
 # async def skill_embed(self, skill):
 #     description = None
@@ -719,4 +711,3 @@ def check_user_has_role(self, member: discord.Member, role_name: str):
 #                 pass
 # 
 #     return data
-################################################################################

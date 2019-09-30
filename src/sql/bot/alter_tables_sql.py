@@ -14,11 +14,11 @@ from src.cogs.bot.utils import bot_utils as utils
 class AlterTablesSql:
     def __init__(self, bot):
         self.bot = bot
-        self.database_in_use = self.bot.settings["database_in_use"]
+        self.database_in_use = self.bot.settings["DatabaseInUse"]
 
     ################################################################################
     async def alter_sqlite_tables(self):
         if self.database_in_use.lower() == "sqlite":
             pass
-        elif self.database_in_use.lower() == "postgresql":
+        elif self.database_in_use.lower() == "postgres":
             pass

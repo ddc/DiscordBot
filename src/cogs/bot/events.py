@@ -12,14 +12,14 @@ from src.sql.bot.server_configs_sql import ServerConfigsSql
 from src.sql.bot.servers_sql import ServersSql
 from src.sql.bot.users_sql import UsersSql
 from src.cogs.gw2.utils import gw2_utils as gw2Utils
-from .utils import bot_utils as utils, constants, bot_utils_events as utilsEvents
+from src.cogs.bot.utils import bot_utils as utils, constants
+from src.cogs.bot.utils import bot_utils_events as utilsEvents
 from discord.ext import commands
 import datetime
 import discord
 import os
 
 
-################################################################################
 class Events(commands.Cog):
     """(Bot events)"""
 
@@ -65,7 +65,7 @@ class Events(commands.Cog):
         @bot.event
         async def on_guild_join(guild: discord.Guild):
             await utilsEvents.insert_default_initial_configs(bot)
-            botConfigsSql = BotConfigsSql(self.bot.log)
+            botConfigsSql = BotConfigsSql(self.bot)
             configs = await botConfigsSql.get_bot_configs()
             prefix = configs[0]["prefix"]
             games_included = None
@@ -101,14 +101,14 @@ class Events(commands.Cog):
         ################################################################################
         @bot.event
         async def on_guild_remove(guild: discord.Guild):
-            serversSql = ServersSql(self.bot.log)
+            serversSql = ServersSql(self.bot)
             await serversSql.delete_server(guild.id)
 
         ################################################################################
         @bot.event
         async def on_member_join(member: discord.Member):
-            usersSql = UsersSql(self.bot.log)
-            serverConfigsSql = ServerConfigsSql(self.bot.log)
+            usersSql = UsersSql(self.bot)
+            serverConfigsSql = ServerConfigsSql(self.bot)
             await usersSql.insert_user(member)
             rs = await serverConfigsSql.get_server_configs(member.guild.id)
             if len(rs) > 0 and rs[0]["msg_on_join"] == "Y":
@@ -128,8 +128,8 @@ class Events(commands.Cog):
         @bot.event
         async def on_member_remove(member: discord.Member):
             if bot.user.id == member.id: return
-            usersSql = UsersSql(self.bot.log)
-            serverConfigsSql = ServerConfigsSql(self.bot.log)
+            usersSql = UsersSql(self.bot)
+            serverConfigsSql = ServerConfigsSql(self.bot)
             await usersSql.delete_user(member)
             rs = await serverConfigsSql.get_server_configs(member.guild.id)
             if len(rs) > 0 and rs[0]["msg_on_leave"] == "Y":
@@ -148,14 +148,14 @@ class Events(commands.Cog):
         ################################################################################
         @bot.event
         async def on_guild_update(before: discord.Guild, after: discord.Guild):
-            serversSql = ServersSql(self.bot.log)
-            serverConfigsSql = ServerConfigsSql(self.bot.log)
+            serversSql = ServersSql(self.bot)
+            serverConfigsSql = ServerConfigsSql(self.bot)
             await serversSql.update_server_changes(before, after)
             rs = await serverConfigsSql.get_server_configs(after.id)
             if len(rs) > 0 and rs[0]["msg_on_server_update"] == "Y":
                 msg = "New Server Settings:\n"
                 now = datetime.datetime.now()
-                color = utils.get_color_settings(constants.settings_filename, "EmbedColors", "EmbedColor")
+                color = self.bot.settings["EmbedColor"]
                 embed = discord.Embed(color=color, description="New Server Settings")
                 embed.set_footer(text=f"{now.strftime('%c')}")
 
@@ -209,14 +209,14 @@ class Events(commands.Cog):
             if str(before.status) != str(after.status):
                 return
 
-            usersSql = UsersSql(self.bot.log)
-            serverConfigsSql = ServerConfigsSql(self.bot.log)
+            usersSql = UsersSql(self.bot)
+            serverConfigsSql = ServerConfigsSql(self.bot)
             await usersSql.update_user_changes(before, after)
             rs_sc = await serverConfigsSql.get_server_configs(after.guild.id)
             if len(rs_sc) > 0 and rs_sc[0]["msg_on_member_update"] == "Y":
                 msg = "Profile Changes:\n\n"
                 now = datetime.datetime.now()
-                color = utils.get_color_settings(constants.settings_filename, "EmbedColors", "EmbedColor")
+                color = self.bot.settings["EmbedColor"]
                 embed = discord.Embed(color=color)
                 embed.set_author(name=after.display_name, icon_url=after.avatar_url)
                 embed.set_footer(text=f"{now.strftime('%c')}")
@@ -251,17 +251,23 @@ class Events(commands.Cog):
         ################################################################################
         @bot.event
         async def on_ready():
-            now = datetime.datetime.now()
-            await utilsEvents.set_bot_configs(bot, now)
+            author = bot.get_user(constants.AUTHOR_ID)
+            bot.owner = (await bot.application_info()).owner
+            bot.owner_id = bot.owner.id
+            bot.settings["author_id"] = author.id
+            bot.settings["author_avatar_url"] = str(author.avatar_url)
+            bot.settings["author"] = f"{author.name}#{author.discriminator}"
+            full_db_name = bot.settings["full_db_name"]
 
             conn = await utils.check_database_connection(bot)
             if conn is None:
-                db_name = utils.get_settings("Bot", "DatabaseInUse")
                 msg = "Cannot Create Database Connection.\n" \
-                      "Please check the server type and try again (sqlite | postgres)."
+                      f"Please check if the server is up and try again ({full_db_name})."
                 bot.log.error(msg)
-                print(f"{msg}\n==> {db_name}")
-                bot.loop.exception()
+                print(f"{msg}")
+                await bot.logout()
+                #await bot.loop.exception()
+                return
 
             await utilsEvents.set_initial_sql_tables(bot)
             await utilsEvents.insert_default_initial_configs(bot)
@@ -270,14 +276,13 @@ class Events(commands.Cog):
             utils.clear_screen()
 
             # executing all sql files inside dir data/sql
-            if (utils.get_settings("ExecuteSqlFilesOnBoot", "ExecuteSqlFilesOnBoot").lower() == "yes"):
+            if bot.settings["ExecuteSqlFilesOnBoot"].lower() == "yes":
                 await utils.execute_all_sql_files(self)
 
             bot_stats = utils.get_bot_stats(bot)
             servers = bot_stats["servers"]
             users = bot_stats["users"]
             channels = bot_stats["channels"]
-            full_db_name = bot.settings["full_db_name"]
 
             conn_msg = "====> Bot is online and connected to Discord <===="
             print(f"{constants.INTRO}")
@@ -290,7 +295,7 @@ class Events(commands.Cog):
             print(f"Users: {users}")
             print(f"Channels: {channels}")
             print("--------------------")
-            print(f"{now.strftime('%c')}")
+            print(f"{bot.uptime.strftime('%c')}")
             bot.log.info(conn_msg)
 
 

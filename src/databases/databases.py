@@ -15,14 +15,14 @@ from src.databases.postgres.connection import PostgreSQL
 class Databases:
     def __init__(self, bot):
         self.bot = bot
-        self.database_in_use = self.bot.settings["database_in_use"]
+        self.database_in_use = self.bot.settings["DatabaseInUse"]
 
     ################################################################################
     async def check_database_connection(self):
         if self.database_in_use.lower() == "sqlite":
             sqlite3 = Sqlite3(self.bot)
             return await sqlite3.create_connection()
-        elif self.database_in_use.lower() == "postgresql":
+        elif self.database_in_use.lower() == "postgres":
             postgreSQL = PostgreSQL(self.bot)
             return await postgreSQL.create_connection()
 
@@ -31,7 +31,7 @@ class Databases:
         if self.database_in_use.lower() == "sqlite":
             sqlite3 = Sqlite3(self.bot)
             await sqlite3.executescript(sql)
-        elif self.database_in_use.lower() == "postgresql":
+        elif self.database_in_use.lower() == "postgres":
             postgreSQL = PostgreSQL(self.bot)
             await postgreSQL.execute(sql)
 
@@ -40,7 +40,7 @@ class Databases:
         if self.database_in_use.lower() == "sqlite":
             sqlite3 = Sqlite3(self.bot)
             return await sqlite3.select(sql)
-        elif self.database_in_use.lower() == "postgresql":
+        elif self.database_in_use.lower() == "postgres":
             postgreSQL = PostgreSQL(self.bot)
             return await postgreSQL.select(sql)
 
@@ -48,5 +48,5 @@ class Databases:
     async def set_primary_key_type(self):
         if self.database_in_use.lower() == "sqlite":
             return "INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE"
-        elif self.database_in_use.lower() == "postgresql":
+        elif self.database_in_use.lower() == "postgres":
             return "BIGSERIAL NOT NULL PRIMARY KEY UNIQUE"

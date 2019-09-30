@@ -14,7 +14,7 @@ from src.cogs.bot.utils import bot_utils as utils
 class Triggers:
     def __init__(self, bot):
         self.bot = bot
-        self.database_in_use = self.bot.settings["database_in_use"]
+        self.database_in_use = self.bot.settings["DatabaseInUse"]
 
     ################################################################################
     async def create_triggers(self):
@@ -38,7 +38,7 @@ class Triggers:
                     BEGIN
                         SELECT RAISE(ABORT, 'CANNOT CHANGE BOT URL.');
                     END;"""
-        elif self.database_in_use.lower() == "postgresql":
+        elif self.database_in_use.lower() == "postgres":
             sql = """DROP TRIGGER IF EXISTS before_insert_bot_configs ON bot_configs;
                 DROP TRIGGER IF EXISTS before_update_author_id ON bot_configs;
                 DROP TRIGGER IF EXISTS before_update_bot_url ON bot_configs;

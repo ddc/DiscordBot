@@ -13,7 +13,7 @@ from src.databases.databases import Databases
 class InitialTablesSql:
     def __init__(self, bot):
         self.bot = bot
-        self.database_in_use = self.bot.settings["database_in_use"]
+        self.database_in_use = self.bot.settings["DatabaseInUse"]
 
     ################################################################################
     async def create_initial_sqlite_bot_tables(self):
