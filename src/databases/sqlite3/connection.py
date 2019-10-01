@@ -15,7 +15,7 @@ from src.cogs.bot.utils import constants
 class Sqlite3:
     def __init__(self, bot):
         self.bot = bot
-        self.db_file = constants.database_filename
+        self.db_file = constants.DATABASE_FILENAME
 
     ################################################################################
     async def create_connection(self):

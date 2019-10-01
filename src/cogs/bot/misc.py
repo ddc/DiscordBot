@@ -26,13 +26,13 @@ class Misc(commands.Cog):
         self.bot = bot
 
     ################################################################################
-    @commands.command()
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "RollDiceCooldown"), BucketType.user)
-    async def test(self, ctx):
-        """(test)"""
-
-        color = self.bot.settings["EmbedOwnerColor"]
-        print(color)
+    # @commands.command()
+    # @commands.cooldown(1, 5, BucketType.user)
+    # async def test(self, ctx):
+    #     """(test)"""
+    #
+    #     color = self.bot.settings["EmbedOwnerColor"]
+    #     print(color)
 
     ################################################################################
     @commands.group()
@@ -627,34 +627,34 @@ class Misc(commands.Cog):
         version = constants.VERSION
         bot_webpage_url = self.bot.settings['bot_webpage_url']
         bot_avatar = self.bot.user.avatar_url
-        # python_version_url = "[Python {}.{}.{}]({})".format(*os.sys.version_info[:3], constants.python_url)
-        # python_version_fixed_url = f"[Python 3.7.3]({constants.python_url})"
+        # python_version_url = "[Python {}.{}.{}]({})".format(*os.sys.version_info[:3], constants.PYTHON_URL)
+        # python_version_fixed_url = f"[Python 3.7.3]({constants.PYTHON_URL})"
         python_version = "Python {}.{}.{}".format(*os.sys.version_info[:3])
         author = self.bot.get_user(self.bot.settings['author_id'])
         author_icon_url = author.avatar_url
 
         games_included = None
-        if constants.games_included is not None:
-            if len(constants.games_included) == 1:
-                games_included = f"{constants.games_included[0]}"
-            elif len(constants.games_included) > 1:
+        if constants.GAMES_INCLUDED is not None:
+            if len(constants.GAMES_INCLUDED) == 1:
+                games_included = f"{constants.GAMES_INCLUDED[0]}"
+            elif len(constants.GAMES_INCLUDED) > 1:
                 games_included = ""
-                for games in constants.games_included:
+                for games in constants.GAMES_INCLUDED:
                     games_included += f"({games}) "
 
         apis_included = None
-        if constants.apis_included is not None:
-            if len(constants.apis_included) == 1:
-                apis_included = f"{constants.apis_included[0]}"
-            elif len(constants.apis_included) > 1:
+        if constants.APIS_INCLUDED is not None:
+            if len(constants.APIS_INCLUDED) == 1:
+                apis_included = f"{constants.APIS_INCLUDED[0]}"
+            elif len(constants.APIS_INCLUDED) > 1:
                 apis_included = ""
-                for apis in constants.apis_included:
+                for apis in constants.APIS_INCLUDED:
                     apis_included += f"({apis}) "
 
         dev_info_msg = f"Developed as an open source project and hosted on [GitHub]({bot_webpage_url})\n" \
-                       f"A python discord api wrapper [discord.py]({constants.discordpy_url})\n" \
-                       f"Version control [Git]({constants.git_url})\n" \
-                       f"Database choices of [SQLite3]({constants.sqlite3_url}) or [PostgreSQL]({constants.postgresql_url})"""
+                       f"A python discord api wrapper [discord.py]({constants.DISCORDPY_URL})\n" \
+                       f"Version control [Git]({constants.GIT_URL})\n" \
+                       f"Databases [SQLite3]({constants.SQLITE3_URL}) or [PostgreSQL]({constants.POSTGRESQL_URL})"""
 
         bot_stats = utils.get_bot_stats(self.bot)
         servers = bot_stats["servers"]
@@ -676,7 +676,7 @@ class Misc(commands.Cog):
         if games_included is not None:
             embed.add_field(name="Games Included", value=games_included, inline=False)
         embed.add_field(name="Download", value=f"[Version {version}]({bot_webpage_url})", inline=True)
-        embed.add_field(name="Donations", value=f"[Paypal]({constants.paypal_url})", inline=True)
+        embed.add_field(name="Donations", value=f"[Paypal]({constants.PAYPAL_URL})", inline=True)
         embed.add_field(name="Help", value=(f"For a list of command categories, type `{ctx.prefix}help`"), inline=False)
 
         await utils.send_embed(self, ctx, embed, False)

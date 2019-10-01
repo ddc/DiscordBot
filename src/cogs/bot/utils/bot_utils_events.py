@@ -76,7 +76,7 @@ async def set_presence(bot):
         bgTasks = BgTasks(bot)
         bot.loop.create_task(bgTasks.bgtask_change_presence(bot.settings["BGActivityTimer"]))
     else:
-        game = str(random.choice(constants.games_included))
+        game = str(random.choice(constants.GAMES_INCLUDED))
         bot_game_desc = f"{game} | {prefix}help"
         await bot.change_presence(status=discord.Status.online, activity=discord.Game(name=bot_game_desc))
 
@@ -304,8 +304,8 @@ async def _send_custom_message(message, send_msg: str):
 
 ################################################################################
 def _check_bad_words_file():
-    if not os.path.isfile(constants.swear_words_filename):
-        print(f"File \"{constants.swear_words_filename}\" was not found.")
+    if not os.path.isfile(constants.SWEAR_WORDS_FILENAME):
+        print(f"File \"{constants.SWEAR_WORDS_FILENAME}\" was not found.")
         return False
     return True
 
@@ -350,7 +350,7 @@ async def _check_custom_messages(self, message):
 ################################################################################
 async def _check_profanity_filter_words(self, message):
     if _check_bad_words_file():
-        f = open(constants.swear_words_filename)
+        f = open(constants.SWEAR_WORDS_FILENAME)
     else:
         return
 
@@ -369,7 +369,7 @@ async def _check_profanity_filter_words(self, message):
                 if not isinstance(message.channel, discord.DMChannel):
                     try:
                         await message.delete()
-                        msg = constants.profanity_filter_msg
+                        msg = constants.PROFANITY_FILTER_MSG
                         embed = discord.Embed(title="", color=discord.Color.red(), description=msg)
                         embed.set_author(name=message.author.display_name, icon_url=message.author.avatar_url)
                         try:

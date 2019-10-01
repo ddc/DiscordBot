@@ -33,7 +33,7 @@ class GW2Misc(commands.Cog):
 
         posts = []
         len_eb_fields = 0
-        wiki_url = gw2Constants.wiki_url
+        wiki_url = gw2Constants.WIKI_URL
         search = search.replace(" ", "+")
         full_wiki_url = (f"{wiki_url}/index.php?title=Special%3ASearch&search={search}&fulltext=Search")
 
@@ -94,12 +94,12 @@ class GW2Misc(commands.Cog):
                 else:
                     embed.add_field(name="No results", value=f"[Click here]({full_wiki_url})")
 
-            embed.set_thumbnail(url=gw2Constants.gw2_wiki_icon_url)
+            embed.set_thumbnail(url=gw2Constants.GW2_WIKI_ICON_URL)
             await utils.send_embed(self, ctx, embed, False)
 
     ################################################################################
     async def gw2_info(self, ctx, skill):
-        wiki_url = gw2Constants.wiki_url
+        wiki_url = gw2Constants.WIKI_URL
         skill = skill.replace(" ", "_")
         skill_sanitized = str(re.escape(skill)).title()
         skill_sanitized = skill_sanitized.replace("Of", "of")

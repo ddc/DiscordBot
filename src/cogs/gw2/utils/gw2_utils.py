@@ -145,7 +145,7 @@ def is_private_message(self, ctx):
 ################################################################################
 def get_ini_settings(section: str, config_name: str):
     #print(f"Accessing: {section} - {config_name}")
-    settings_filename = gw2Constants.gw2_settings_filename
+    settings_filename = gw2Constants.GW2_SETTINGS_FILENAME
     parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
     parser._interpolation = configparser.ExtendedInterpolation()
     parser.read(settings_filename)

@@ -37,12 +37,12 @@ async def _initialize_bot(log):
 ################################################################################
 async def _init_bot(log):
     token = None
-    if os.path.isfile(constants.token_filename):
-        tokenFile = open(constants.token_filename, encoding="utf-8", mode="r")
+    if os.path.isfile(constants.TOKEN_FILENAME):
+        tokenFile = open(constants.TOKEN_FILENAME, encoding="utf-8", mode="r")
         token = tokenFile.read().split('\n', 1)[0].strip('\n')
         tokenFile.close()
 
-    bot = commands.Bot(command_prefix='?')
+    bot = commands.Bot(command_prefix=constants.DEFAULT_PREFIX)
     bot.log = log
     bot.token = token
     return bot
@@ -57,7 +57,7 @@ def setup_logging():
     logger.setLevel(constants.LOG_LEVEL)
 
     file_hdlr = logging.handlers.RotatingFileHandler(
-        filename=constants.logs_filename,
+        filename=constants.LOGS_FILENAME,
         maxBytes=10 * 1024 * 1024,
         encoding="utf-8",
         backupCount=5,
@@ -77,7 +77,7 @@ def setup_logging():
 ################################################################################
 def _insert_token():
     utils.clear_screen()
-    tokenFile = open(constants.token_filename, encoding="utf-8", mode="w")
+    tokenFile = open(constants.TOKEN_FILENAME, encoding="utf-8", mode="w")
     print("Please insert your BOT TOKEN bellow:")
     token = utils.read_token()
     tokenFile.write(token)
@@ -89,10 +89,10 @@ def _insert_token():
 async def _set_bot_configs(bot):
     print("Setting Bot configs...")
     bot.uptime = datetime.datetime.now()
-    bot.description = str(constants.description)
+    bot.description = str(constants.DESCRIPTION)
     bot.help_command = commands.DefaultHelpCommand(dm_help=True)
-    bot.settings = utils.get_all_ini_file_settings(constants.settings_filename)
-    bot.settings["bot_webpage_url"] = str(constants.bot_webpage_url)
+    bot.settings = utils.get_all_ini_file_settings(constants.SETTINGS_FILENAME)
+    bot.settings["bot_webpage_url"] = str(constants.BOT_WEBPAGE_URL)
     bot.settings["version"] = constants.VERSION
     bot.settings["full_db_name"] = utils.get_full_db_name(bot)
     bot.settings["EmbedOwnerColor"] = utils.get_color_settings(bot.settings["EmbedOwnerColor"])
@@ -102,8 +102,9 @@ async def _set_bot_configs(bot):
 ################################################################################
 async def _set_other_cogs_configs(bot):
     print("Setting Other Cogs configs...")
-    bot.gw2_settings = utils.get_all_ini_file_settings(gw2Constants.gw2_settings_filename)
+    bot.gw2_settings = utils.get_all_ini_file_settings(gw2Constants.GW2_SETTINGS_FILENAME)
     bot.gw2_settings["EmbedColor"] = utils.get_color_settings(bot.gw2_settings["EmbedColor"])
+
 
 ################################################################################
 async def init():
@@ -116,20 +117,20 @@ async def init():
     bot.log.info("=====> INITIALIZING BOT <=====")
     print("Logging in to Discord...")
     print("Checking Database Configs...")
-    token = str(bot.token)
 
     try:
-        await bot.login(token)
+        await bot.login(str(bot.token))
+        del bot.token
         await bot.connect()
     except discord.LoginFailure as e:
         for errorMsg in e.args:
             if "Improper token has been passed" in errorMsg:
-                open(constants.token_filename, 'w').close()
+                open(constants.TOKEN_FILENAME, 'w').close()
                 formatted_lines = traceback.format_exc().splitlines()
                 for err in formatted_lines:
                     if "discord." in err:
                         log.error(err)
-                log.error(f"\n===> ERROR: Unable to login. {errorMsg}:{token}\n")
+                log.error(f"\n===> ERROR: Unable to login. {errorMsg}:{str(bot.token)}\n")
     except Exception:
         loop.run_until_complete(bot.logout())
 

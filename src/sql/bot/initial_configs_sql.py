@@ -39,8 +39,8 @@ class InitialConfigsSql:
             sql = f"""INSERT INTO bot_configs (author_id, url, description)
                    VALUES (
                   {bot.settings['author_id']},
-                  '{constants.bot_webpage_url}',
-                  '{constants.description}'
+                  '{constants.BOT_WEBPAGE_URL}',
+                  '{constants.DESCRIPTION}'
                   );"""
             databases = Databases(self.bot)
             await databases.execute(sql)

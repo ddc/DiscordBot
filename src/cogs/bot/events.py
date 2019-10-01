@@ -70,12 +70,12 @@ class Events(commands.Cog):
             prefix = configs[0]["prefix"]
             games_included = None
 
-            if constants.games_included is not None:
-                if len(constants.games_included) == 1:
-                    games_included = f"{constants.games_included[0]}"
-                elif len(constants.games_included) > 1:
+            if constants.GAMES_INCLUDED is not None:
+                if len(constants.GAMES_INCLUDED) == 1:
+                    games_included = f"{constants.GAMES_INCLUDED[0]}"
+                elif len(constants.GAMES_INCLUDED) > 1:
                     games_included = ""
-                    for games in constants.games_included:
+                    for games in constants.GAMES_INCLUDED:
                         games_included += f"({games}) "
             msg = f"Thanks for using *{self.bot.user.name}!*\n" \
                   f"To learn more about this bot: `{prefix}about`\n" \

@@ -121,20 +121,20 @@ def parse_cli_arguments():
 def update():
     has_git = utils.is_git_installed()
     if has_git:
-        remote_url = "https://github.com/ddc/DiscordBot.git"
+        bot_remote_git_url = constants.BOT_REMOTE_GIT_URL
         src_dir = tempfile.mkdtemp()
         dst_dir = dirname
-        subprocess.call(("git", "clone", "--depth=50", "--branch=master", remote_url, src_dir))
+        subprocess.call(("git", "clone", "--depth=50", "--branch=master", bot_remote_git_url, src_dir))
         utils.recursive_overwrite(src_dir, dst_dir)
         print("\nBot was updated successfully.\n")
     else:
         print("\nWARNING: Unable to update.\n"
               "Git installation was not found.\n"
               "If you want to update, please install Git.\n"
-              "https://git-scm.com/download\n")
-    ################################################################################
+              f"{constants.GIT_URL}\n")
 
 
+################################################################################
 def run(auto_restart):
     interpreter = sys.executable
     if interpreter is None:  # This should never happen
@@ -164,7 +164,7 @@ def run(auto_restart):
 
 ################################################################################
 def check_new_version():
-    version_url_file = constants.version_url_file
+    version_url_file = constants.VERSION_URL_FILE
     req = requests.get(version_url_file)
     client_version = constants.VERSION
     if req.status_code == 200:
@@ -185,9 +185,9 @@ def check_config_files():
     if not os.path.exists("logs"):
         os.makedirs("logs")
 
-    if not os.path.exists(constants.settings_filename):
-        src_url = constants.settings_url_file
-        dst = constants.settings_filename
+    if not os.path.exists(constants.SETTINGS_FILENAME):
+        src_url = constants.SETTINGS_URL_FILE
+        dst = constants.SETTINGS_FILENAME
         try:
             urllib.request.urlretrieve(src_url, dst)
         except urllib.request.HTTPError as e:
@@ -197,9 +197,9 @@ def check_config_files():
             exit(1)
             return
 
-    if not os.path.exists(gw2_constants.gw2_settings_filename):
-        src_url = gw2_constants.gw2_settings_url_file
-        dst = gw2_constants.gw2_settings_filename
+    if not os.path.exists(gw2_constants.GW2_SETTINGS_FILENAME):
+        src_url = gw2_constants.GW2_SETTINGS_URL_FILE
+        dst = gw2_constants.GW2_SETTINGS_FILENAME
         try:
             urllib.request.urlretrieve(src_url, dst)
         except urllib.request.HTTPError as e:
@@ -208,9 +208,9 @@ def check_config_files():
                   "Exiting...")
             exit(1)
             return
-        ################################################################################
 
 
+################################################################################
 if __name__ == '__main__':
     args = parse_cli_arguments()
     check_config_files()

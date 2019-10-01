@@ -1,4 +1,3 @@
-pip
 discord.py[voice]
 requests
 asyncpg

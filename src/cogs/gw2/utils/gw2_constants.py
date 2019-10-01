@@ -7,7 +7,7 @@
 # |*****************************************************
 # # -*- coding: utf-8 -*-
 
-gw2_settings_filename = "config/gw2_settings.ini"
-wiki_url = "https://wiki.guildwars2.com"
-gw2_wiki_icon_url = "https://wiki.guildwars.com/images/b/bf/Normal_gw2logo.jpg"
-gw2_settings_url_file = "https://raw.githubusercontent.com/ddc/DiscordBot/master/config/gw2_settings.ini"
+GW2_SETTINGS_FILENAME = "config/gw2_settings.ini"
+WIKI_URL = "https://wiki.guildwars2.com"
+GW2_WIKI_ICON_URL = "https://wiki.guildwars.com/images/b/bf/Normal_gw2logo.jpg"
+GW2_SETTINGS_URL_FILE = "https://raw.githubusercontent.com/ddc/DiscordBot/master/config/gw2_settings.ini"

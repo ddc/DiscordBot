@@ -88,4 +88,3 @@ class ServersSql:
               ORDER BY server_name ASC;"""
         databases = Databases(self.bot)
         return await databases.select(sql)
-    ################################################################################

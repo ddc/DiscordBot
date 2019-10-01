@@ -31,7 +31,7 @@ import sys
 
 
 class Object:
-    created = str(datetime.datetime.now().strftime(f"{constants.date_formatter} {constants.time_formatter}"))
+    created = str(datetime.datetime.now().strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
 
     def toJson(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
@@ -68,7 +68,7 @@ async def send_error_msg(self, ctx, msg):
 ################################################################################
 async def send_msg(self, ctx, msg):
     await ctx.message.channel.trigger_typing()
-    color = get_color_settings(constants.settings_filename, "EmbedColors", "EmbedColor")
+    color = get_color_settings(constants.SETTINGS_FILENAME, "EmbedColors", "EmbedColor")
     embed = discord.Embed(color=color, description=msg)
     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
     await send_embed(self, ctx, embed, False, msg)
@@ -76,7 +76,7 @@ async def send_msg(self, ctx, msg):
 
 ################################################################################
 async def send_private_msg(self, ctx, msg):
-    color = get_color_settings(constants.settings_filename, "EmbedColors", "EmbedColor")
+    color = get_color_settings(constants.SETTINGS_FILENAME, "EmbedColors", "EmbedColor")
     embed = discord.Embed(color=color, description=msg)
     # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
     await send_embed(self, ctx, embed, True, msg)
@@ -175,7 +175,7 @@ async def delete_last_channel_message(self, ctx, warning=False):
 ################################################################################
 async def load_cogs(self):
     print("Loading Bot Extensions...")
-    for ext in constants.cogs:
+    for ext in constants.COGS:
         try:
             if hasattr(self, "bot"):
                 self.bot.load_extension(ext)
@@ -190,7 +190,7 @@ async def load_cogs(self):
 ################################################################################
 async def reload_cogs(self):
     print("RE-Loading Bot Extensions...")
-    for ext in constants.cogs:
+    for ext in constants.COGS:
         try:
             if hasattr(self, "bot"):
                 self.bot.reload_extension(ext)
@@ -256,29 +256,29 @@ def is_private_message(self, ctx):
 
 ################################################################################
 def format_date_time(date: datetime):
-    new_date = date.strftime(f"{constants.date_formatter} {constants.time_formatter}")
+    new_date = date.strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
     return new_date
 
 
 ################################################################################
 def format_date(date: datetime):
-    new_date = date.strftime(constants.date_formatter)
+    new_date = date.strftime(constants.DATE_FORMATTER)
     return new_date
 
 
 ################################################################################
 def get_todays_date():
-    return str(datetime.datetime.now().strftime(constants.date_formatter))
+    return str(datetime.datetime.now().strftime(constants.DATE_FORMATTER))
 
 
 ################################################################################
 def get_todays_date_time():
-    return str(datetime.datetime.now().strftime(f"{constants.date_formatter} {constants.time_formatter}"))
+    return str(datetime.datetime.now().strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
 
 
 ################################################################################
 def get_current_time():
-    return str(datetime.datetime.now().strftime(constants.time_formatter))
+    return str(datetime.datetime.now().strftime(constants.TIME_FORMATTER))
 
 
 ################################################################################
@@ -410,7 +410,7 @@ def get_all_ini_file_settings(settings_filename: str):
 ################################################################################
 def get_ini_settings(section: str, config_name: str):
     #print(f"Accessing: {section} - {config_name}")
-    settings_filename = constants.settings_filename
+    settings_filename = constants.SETTINGS_FILENAME
     parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
     parser._interpolation = configparser.ExtendedInterpolation()
     parser.read(settings_filename)
@@ -556,7 +556,7 @@ def recursive_overwrite(src, dest, ignore=None):
 
 ################################################################################
 async def execute_all_sql_files(self):
-    dirpath = constants.sql_dirpath + "/"
+    dirpath = constants.SQL_DIRPATH + "/"
     if not os.path.isdir(dirpath):
         msg = "Cant find SQL dir path: "
         print(msg + dirpath)

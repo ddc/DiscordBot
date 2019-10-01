@@ -12,9 +12,9 @@ import sys
 import platform
 import logging
 
-versionFile = open("VERSION", encoding="utf-8", mode="r")
-VERSION = versionFile.read().split('\n', 1)[0].strip('\n')
-versionFile.close()
+_versionFile = open("VERSION", encoding="utf-8", mode="r")
+VERSION = _versionFile.read().split('\n', 1)[0].strip('\n')
+_versionFile.close()
 ################################################################################
 IS_WINDOWS = os.name == "nt"
 IS_MAC = sys.platform == "darwin"
@@ -23,39 +23,40 @@ INTERACTIVE_MODE = not len(sys.argv) > 1
 PYTHON_OK = sys.version_info >= (3, 6)
 INTRO = (f"====================\nDiscord Bot v{VERSION}\n====================")
 ################################################################################
-description = "A Multifunction Bot for Discord"
-paypal_url = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=38E66BHC4623Y"
-bot_webpage_url = "https://ddc.github.io/DiscordBot"
-version_url_file = "https://raw.github.com/ddc/DiscordBot/master/VERSION"
-settings_url_file = "https://raw.githubusercontent.com/ddc/DiscordBot/master/config/settings.ini"
-python_url = "https://www.python.org/"
-discordpy_url = "https://github.com/Rapptz/discord.py"
-git_url = "https://git-scm.com"
-sqlite3_url = "https://sqlite.org"
-postgresql_url = "https://www.postgresql.org"
-default_prefix = "?"
+DESCRIPTION = "A Multifunction Bot for Discord"
+DEFAULT_PREFIX = "?"
 AUTHOR_ID = 195615080665055232
+PAYPAL_URL = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=38E66BHC4623Y"
+BOT_WEBPAGE_URL = "https://ddc.github.io/DiscordBot"
+BOT_REMOTE_GIT_URL = "https://github.com/ddc/DiscordBot.git"
+VERSION_URL_FILE = "https://raw.github.com/ddc/DiscordBot/master/VERSION"
+SETTINGS_URL_FILE = "https://raw.githubusercontent.com/ddc/DiscordBot/master/config/settings.ini"
+PYTHON_URL = "https://www.python.org/"
+DISCORDPY_URL = "https://github.com/Rapptz/discord.py"
+GIT_URL = "https://git-scm.com"
+SQLITE3_URL = "https://sqlite.org"
+POSTGRESQL_URL = "https://www.postgresql.org"
 ################################################################################
-settings_filename = "config/settings.ini"
-token_filename = "config/token.txt"
-swear_words_filename = "data/swear_words"
-database_filename = "data/database.db"
-logs_filename = "logs/bot.log"
-sql_dirpath = "data/sql"
+SETTINGS_FILENAME = "config/settings.ini"
+TOKEN_FILENAME = "config/token.txt"
+SWEAR_WORDS_FILENAME = "data/swear_words"
+DATABASE_FILENAME = "data/database.db"
+LOGS_FILENAME = "logs/bot.log"
+SQL_DIRPATH = "data/sql"
 ###############################################################################
-date_formatter = "%b/%d/%Y"
-time_formatter = "%H:%M:%S"
+DATE_FORMATTER = "%b/%d/%Y"
+TIME_FORMATTER = "%H:%M:%S"
 LOG_LEVEL = logging.INFO  # INFO or DEBUG
 LOG_FORMATTER = logging.Formatter('%(asctime)s:[%(levelname)s]:[%(filename)s:%(funcName)s:%(lineno)d]:%(message)s',
-                                  datefmt=f"[{date_formatter} {time_formatter}]")
+                                  datefmt=f"[{DATE_FORMATTER} {TIME_FORMATTER}]")
 ################################################################################
-profanity_filter_msg = "Your message was removed.\nPlease don't say offensive words in this channel."
+PROFANITY_FILTER_MSG = "Your message was removed.\nPlease don't say offensive words in this channel."
 ###############################################################################
-games_included = ["Guild Wars 2"]
+GAMES_INCLUDED = ["Guild Wars 2"]
 ###############################################################################
-apis_included = []
+APIS_INCLUDED = []
 ###############################################################################
-cogs = ["src.cogs.bot.admin",
+COGS = ["src.cogs.bot.admin",
         "src.cogs.bot.config",
         "src.cogs.bot.errors",
         "src.cogs.bot.events",
