@@ -107,7 +107,7 @@ async def _checkFailure(self, ctx, errorObj: object):
         await BotUtils.send_error_msg(self, ctx, user_msg)
         _log_msg_error(self, ctx, errorMsg)
     elif "not owner" in errorObj.errorMsg:
-        user_msg = f"Only the bot owner can use this command."
+        user_msg = f"Only bot owners can use this command."
         errorMsg = "CheckFailure: Not Owner"
         await BotUtils.send_error_msg(self, ctx, user_msg)
         _log_msg_error(self, ctx, errorMsg)

@@ -6,3 +6,8 @@ __pycache__/
 
 # Jetbrains
 .idea/
+
+# poject
+!/config/token.txt
+!/data/database.db
+!/logs/bot.log
