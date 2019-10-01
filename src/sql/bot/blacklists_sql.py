@@ -19,14 +19,14 @@ class BlacklistsSql:
     ################################################################################
     async def insert_blacklisted_user(self, user: discord.User, author: discord.user, reason: None):
         todays_date = BotUtils.get_todays_date_time()
-        sql = f"""INSERT INTO blacklists 
+        sql = f"""INSERT INTO blacklists
                     (discord_server_id,
                     discord_user_id,
                     discord_author_id,
                     date"""
         if reason is not None:
             sql += ",reason"
-        sql += f""")VALUES (
+        sql += f""")VALUES(
                 {user.guild.id},
                 {user.id},
                 {author.id},
@@ -92,8 +92,8 @@ class BlacklistsSql:
             FROM blacklists,
                    servers,
                    users
-            WHERE blacklists.discord_user_id = {discord_user_id} 
-                   AND blacklists.discord_server_id = servers.discord_server_id 
+            WHERE blacklists.discord_user_id = {discord_user_id}
+                   AND blacklists.discord_server_id = servers.discord_server_id
                   AND blacklists.discord_user_id = users.discord_user_id;"""
         databases = Databases(self.bot)
         return await databases.select(sql)
