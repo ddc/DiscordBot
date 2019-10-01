@@ -10,7 +10,7 @@ Choice of PostgreSQL or SQLite3 as database.
 ### [Install guide - Wiki](https://ddc.github.io/DiscordBot)
 + Install [Python3.7](https://www.python.org/downloads/release)
 + Install [Git](https://git-scm.com/download/win)
-+ Python modules can be installed using the script "install_reqs.bat", running as admin, this will also install Discord API
++ Python modules can be installed using the script "install_reqs", running as root, this will also install Discord API
 
 ## Requirements
 + [Python3.7](https://www.python.org/downloads/release)

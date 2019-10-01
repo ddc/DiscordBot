@@ -10,7 +10,8 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-from .utils import bot_utils as utils, constants, chat_formatting as formatting
+from .utils import bot_utils as BotUtils
+from .utils import chat_formatting as Formatting
 from .utils.checks import Checks
 from src.sql.bot.profanity_filters_sql import ProfanityFilterSql
 from src.sql.bot.server_configs_sql import ServerConfigsSql
@@ -51,7 +52,7 @@ class Config(commands.Cog):
             else:
                 cmd = self.bot.get_command("config")
 
-            await utils.send_help_msg(self, ctx, cmd)
+            await BotUtils.send_help_msg(self, ctx, cmd)
             return
 
         ctx.invoked_subcommand
@@ -59,7 +60,7 @@ class Config(commands.Cog):
     ################################################################################
     @config.command(name="bladmin")
     @Checks.check_is_bot_owner()
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
     async def config_blacklist_admins(self, ctx, *, new_status: str):
         """(Able to blacklist server's admins)
         
@@ -87,12 +88,12 @@ class Config(commands.Cog):
         if rs[0]["blacklist_admins"] != str(new_status):
             await  serverConfigsSql.update_blacklist_admins(ctx.guild.id, str(new_status))
 
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @config.command(name="muteadmin")
     @Checks.check_is_bot_owner()
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
     async def config_mute_admins(self, ctx, *, new_status: str):
         """(Able to mute server's admins)
         
@@ -120,11 +121,11 @@ class Config(commands.Cog):
         if rs[0]["mute_admins"] != str(new_status):
             await  serverConfigsSql.update_mute_admins(ctx.guild.id, str(new_status))
 
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @config.command(name="joinmessage")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
     async def config_join_message(self, ctx, *, new_status: str):
         """(Show message when a user joins the server)
 
@@ -150,11 +151,11 @@ class Config(commands.Cog):
         if rs[0]["msg_on_join"] != str(new_status):
             await serverConfigsSql.update_msg_on_join(ctx.guild.id, str(new_status))
 
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @config.command(name="leavemessage")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
     async def config_leave_message(self, ctx, *, new_status: str):
         """(Show message when a user leaves the server)
          
@@ -180,11 +181,11 @@ class Config(commands.Cog):
         if rs[0]["msg_on_leave"] != str(new_status):
             await serverConfigsSql.update_msg_on_leave(ctx.guild.id, str(new_status))
 
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @config.command(name="servermessage")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
     async def config_server_message(self, ctx, *, new_status: str):
         """(Show message when a server gets updated)
          
@@ -210,11 +211,11 @@ class Config(commands.Cog):
         if rs[0]["msg_on_server_update"] != str(new_status):
             await serverConfigsSql.update_msg_on_server_update(ctx.guild.id, str(new_status))
 
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @config.command(name="membermessage")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
     async def config_member_message(self, ctx, *, new_status: str):
         """(Show message when a member make changes on his/her profile)
          
@@ -240,11 +241,11 @@ class Config(commands.Cog):
         if rs[0]["msg_on_member_update"] != str(new_status):
             await serverConfigsSql.update_msg_on_member_update(ctx.guild.id, str(new_status))
 
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @config.command(name="blockinvisible")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
     async def config_block_invis_members(self, ctx, *, new_status: str):
         """(Block messages from invisible members)
          
@@ -270,11 +271,11 @@ class Config(commands.Cog):
         if rs[0]["block_invis_members"] != str(new_status):
             await serverConfigsSql.update_block_invis_members(ctx.guild.id, str(new_status))
 
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @config.command(name="mentionpool")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
     async def config_mention_everyone_pool_cmd(self, ctx, *, new_status: str):
         """(Mention everyone when the pool command is used)
          
@@ -300,11 +301,11 @@ class Config(commands.Cog):
         if rs[0]["mention_everyone_pool_cmd"] != str(new_status):
             await serverConfigsSql.update_mention_everyone_pool_cmd(ctx.guild.id, str(new_status))
 
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @config.command(name="anonymouspool")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
     async def config_anonymous_pool(self, ctx, *, new_status: str):
         """(Hide the author's name from the pool command)
          
@@ -330,11 +331,11 @@ class Config(commands.Cog):
         if rs[0]["anonymous_pool"] != str(new_status):
             await serverConfigsSql.update_anonymous_pool(ctx.guild.id, str(new_status))
 
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @config.command(name="botreactions")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
     async def config_bot_word_reactions(self, ctx, *, new_status: str):
         """(Bot will react to member words)
          
@@ -360,11 +361,11 @@ class Config(commands.Cog):
         if rs[0]["bot_word_reactions"] != str(new_status):
             await serverConfigsSql.update_bot_word_reactions(ctx.guild.id, str(new_status))
 
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @config.command(name="defaultchannel")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
     async def config_default_text_channel(self, ctx, *, text_channel: str):
         """(Set default text channel to be used for bot messages)
         
@@ -391,7 +392,7 @@ class Config(commands.Cog):
         if text_channel is None:
             msg = "First public text channel is going to be used for bot messages"
         else:
-            msg = f"Default text channel to be used for bot messages: {formatting.inline(text_channel)}"
+            msg = f"Default text channel to be used for bot messages: {Formatting.inline(text_channel)}"
 
         color = discord.Color.green()
         embed = discord.Embed(description=msg, color=color)
@@ -400,11 +401,11 @@ class Config(commands.Cog):
         if rs[0]["default_text_channel"] != str(text_channel):
             await serverConfigsSql.update_default_text_channel(ctx.guild.id, str(text_channel))
 
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @config.command(name="pfilter")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
     async def config_pfilter(self, ctx, *, stats_channel: str):
         """(Block offensive words by users)
          
@@ -425,11 +426,11 @@ class Config(commands.Cog):
             elif ctx.guild.me.guild_permissions.manage_messages:
                 has_perms = True
             if not has_perms:
-                msg = f"`{formatting.NO_ENTRY} Bot does not have permission to delete messages.\n" \
+                msg = f"`{Formatting.NO_ENTRY} Bot does not have permission to delete messages.\n" \
                       "Profanity filter could not be activated.\n" \
                       "Missing permission: \"Manage Messages\"`"
                 embed = discord.Embed(title="", color=discord.Color.red(), description=msg)
-                await utils.send_embed(self, ctx, embed, False, msg)
+                await BotUtils.send_embed(self, ctx, embed, False, msg)
                 return
 
             new_pf_status = "Y"
@@ -443,7 +444,7 @@ class Config(commands.Cog):
             raise commands.BadArgument(message="BadArgument")
 
             # get object channel from string
-        channel = utils.get_object_channel(self, ctx, ch_name)
+        channel = BotUtils.get_object_channel(self, ctx, ch_name)
         if channel is None:
             raise commands.BadArgument(message=f"Channel not found: `{ch_name}`")
 
@@ -455,11 +456,11 @@ class Config(commands.Cog):
         elif len(rs) > 0 and new_pf_status == "N":
             await profanityFilterSql.delete_profanity_filter_channel(channel)
 
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @config.command(name="list")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
     async def config_config_list(self, ctx):
         """(List all bot configurations)
         
@@ -481,8 +482,8 @@ class Config(commands.Cog):
         else:
             channel_names = "No channels listed"
 
-        on = formatting.green_text("ON")
-        off = formatting.red_text("OFF")
+        on = Formatting.green_text("ON")
+        off = Formatting.red_text("OFF")
         color = self.bot.settings["EmbedColor"]
 
         embed = discord.Embed(color=color)
@@ -521,16 +522,16 @@ class Config(commands.Cog):
         if sc[0]["default_text_channel"] is not None and sc[0]["default_text_channel"] != "":
             default_text_channel = sc[0]["default_text_channel"]
         else:
-            default_text_channel = f"{utils.get_server_first_public_text_channel(ctx.guild)}"
+            default_text_channel = f"{BotUtils.get_server_first_public_text_channel(ctx.guild)}"
 
         embed.add_field(
             name=f"Text channel to display bot messages\n(defaults to the top first public channel)\n*`{ctx.prefix}config defaultchannel <channel_name>`*",
-            value=formatting.inline(default_text_channel), inline=False)
-        embed.add_field(name="Text channels with profanity filter activated", value=formatting.inline(channel_names),
+            value=Formatting.inline(default_text_channel), inline=False)
+        embed.add_field(name="Text channels with profanity filter activated", value=Formatting.inline(channel_names),
                         inline=False)
 
         embed.set_footer(text=f"For more info: {ctx.prefix}help config")
-        await utils.send_embed(self, ctx, embed, True)
+        await BotUtils.send_embed(self, ctx, embed, True)
 
 
 ################################################################################

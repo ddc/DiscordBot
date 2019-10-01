@@ -7,9 +7,6 @@
 # |*****************************************************
 # # -*- coding: utf-8 -*-
 
-# from src.databases.databases import Databases
-from src.cogs.bot.utils import bot_utils as utils
-
 
 class AlterTablesSql:
     def __init__(self, bot):

@@ -13,7 +13,9 @@ import discord
 import os
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-from .utils import bot_utils as utils, constants, chat_formatting as formatting
+from .utils import bot_utils as BotUtils
+from .utils import constants
+from .utils import chat_formatting as Formatting
 from .utils.checks import Checks
 from src.sql.bot.server_configs_sql import ServerConfigsSql
 from src.sql.bot.dice_rolls_sql import DiceRollsSql
@@ -36,7 +38,7 @@ class Misc(commands.Cog):
 
     ################################################################################
     @commands.group()
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "RollDiceCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "RollDiceCooldown"), BucketType.user)
     async def roll(self, ctx):
         """(Rolls random number [between 1 and user choice])
 
@@ -96,14 +98,14 @@ class Misc(commands.Cog):
                     userBestRoll = roll
 
                 if serverHighestUser == str(author):
-                    await ctx.send(formatting.inline(f"You are the server winner: {userBestRoll}"))
+                    await ctx.send(Formatting.inline(f"You are the server winner: {userBestRoll}"))
                 else:
-                    await ctx.send(formatting.inline(f"Server highest roll: {serverHighestRoll}"))
-                    await ctx.send(formatting.inline(f"Your highest roll: {userBestRoll}"))
+                    await ctx.send(Formatting.inline(f"Server highest roll: {serverHighestRoll}"))
+                    await ctx.send(Formatting.inline(f"Your highest roll: {userBestRoll}"))
 
                 await ctx.send(f"{author.mention} :game_die: {roll} :game_die:")
             else:
-                await utils.send_error_msg(self, ctx, "Dice size needs to be higher than 1")
+                await BotUtils.send_error_msg(self, ctx, "Dice size needs to be higher than 1")
 
             return
 
@@ -140,16 +142,16 @@ class Misc(commands.Cog):
         diceRollsSql = DiceRollsSql(self.bot)
         if member_str is not None:
             # get object member from string
-            member = utils.get_object_member_by_str(self, ctx, member_str)
+            member = BotUtils.get_object_member_by_str(self, ctx, member_str)
             if member is None:
-                await utils.send_error_msg(self, ctx, f"Member `{member_str}` not found\n" \
+                await BotUtils.send_error_msg(self, ctx, f"Member `{member_str}` not found\n" \
                                                       f"Use `{ctx.prefix}roll results member#1234`")
                 return
 
             if dice_size is None:
                 rs = await diceRollsSql.get_all_user_dice_rolls(server.id, member.id)
                 if len(rs) == 0:
-                    await utils.send_error_msg(self, ctx, f"There are no dice rolls from {member_str} in this server.")
+                    await BotUtils.send_error_msg(self, ctx, f"There are no dice rolls from {member_str} in this server.")
                     return
 
                 rolls_lst = []
@@ -164,13 +166,13 @@ class Misc(commands.Cog):
                 rolls = '\n'.join(rolls_lst)
 
                 embed.set_author(name=f"{ctx.guild.name} ({member_str})", icon_url=f"{ctx.guild.icon_url}")
-                embed.add_field(name="Dice Size", value=formatting.inline(dice_sizes), inline=True)
-                embed.add_field(name="Roll", value=formatting.inline(rolls), inline=True)
-                await utils.send_embed(self, ctx, embed, False)
+                embed.add_field(name="Dice Size", value=Formatting.inline(dice_sizes), inline=True)
+                embed.add_field(name="Roll", value=Formatting.inline(rolls), inline=True)
+                await BotUtils.send_embed(self, ctx, embed, False)
         else:
             rs = await diceRollsSql.get_all_server_dice_rolls(server.id, dice_size)
             if len(rs) == 0:
-                await utils.send_error_msg(self, ctx,
+                await BotUtils.send_error_msg(self, ctx,
                                            f"There are no dice rolls of the size {dice_size} in this server.")
                 return
 
@@ -178,7 +180,7 @@ class Misc(commands.Cog):
             rolls_lst = []
             position = 1
             for key, value in rs.items():
-                member_name = utils.get_member_name_by_id(self, ctx, value["discord_user_id"])
+                member_name = BotUtils.get_member_name_by_id(self, ctx, value["discord_user_id"])
                 member_lst.append(f"{position}) {member_name}")
                 rolls_lst.append(str(value["roll"]))
                 position += 1
@@ -187,9 +189,9 @@ class Misc(commands.Cog):
             rolls = '\n'.join(rolls_lst)
 
             embed.set_author(name=f"{ctx.guild.name} (Dice Size: {dice_size})", icon_url=f"{ctx.guild.icon_url}")
-            embed.add_field(name="Member", value=formatting.inline(members), inline=True)
-            embed.add_field(name="Roll", value=formatting.inline(rolls), inline=True)
-            await utils.send_embed(self, ctx, embed, False)
+            embed.add_field(name="Member", value=Formatting.inline(members), inline=True)
+            embed.add_field(name="Roll", value=Formatting.inline(rolls), inline=True)
+            await BotUtils.send_embed(self, ctx, embed, False)
 
     ################################################################################
     @roll.command(name="reset")
@@ -204,11 +206,11 @@ class Misc(commands.Cog):
         diceRollsSql = DiceRollsSql(self.bot)
         await ctx.message.channel.trigger_typing()
         await diceRollsSql.delete_all_server_dice_rolls(ctx.guild.id)
-        await utils.send_msg(self, ctx, "Dice rolls from all members in this server have been deleted.")
+        await BotUtils.send_msg(self, ctx, "Dice rolls from all members in this server have been deleted.")
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
     async def pool(self, ctx, *, questions: str):
         """(Creates a numeric list of choices pool)
 
@@ -223,7 +225,7 @@ class Misc(commands.Cog):
         """
 
         await ctx.message.channel.trigger_typing()
-        await utils.delete_last_channel_message(self, ctx)
+        await BotUtils.delete_last_channel_message(self, ctx)
 
         new_question_list = []
         serverConfigsSql = ServerConfigsSql(self.bot)
@@ -248,8 +250,8 @@ class Misc(commands.Cog):
                 counter += 1
 
         new_question = '\n'.join(new_question_list)
-        color = utils.get_random_color()
-        embed = discord.Embed(color=color, description=formatting.orange_text(new_question))
+        color = BotUtils.get_random_color()
+        embed = discord.Embed(color=color, description=Formatting.orange_text(new_question))
         list_size = len(new_question_list)
 
         if list_size == 2:
@@ -258,17 +260,17 @@ class Misc(commands.Cog):
                   "The first sentence is always the question\n" \
                   f"For a simple line pool, use the command: {ctx.prefix}simplepool" \
                   f"For more info: {ctx.prefix}help pool"
-            await utils.send_error_msg(self, ctx, msg)
+            await BotUtils.send_error_msg(self, ctx, msg)
             return
 
         if list_size > 11:
             msg = "Cannot exceed more than 10 choices.\n" \
                   f"command: {ctx.prefix}pool"
-            await utils.send_error_msg(self, ctx, msg)
+            await BotUtils.send_error_msg(self, ctx, msg)
             return
 
         if anonymous_pool == False:
-            author_name = utils.get_member_name_by_id(self, ctx, ctx.message.author.id)
+            author_name = BotUtils.get_member_name_by_id(self, ctx, ctx.message.author.id)
             embed.set_author(name=author_name, icon_url=ctx.message.author.avatar_url)
 
         try:
@@ -288,7 +290,7 @@ class Misc(commands.Cog):
         ################################################################################
 
     @commands.command()
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
     async def simplepool(self, ctx, *, question: str):
         """(Create a simple yes,no,emojis pool)
 
@@ -304,7 +306,7 @@ class Misc(commands.Cog):
         """
 
         await ctx.message.channel.trigger_typing()
-        await utils.delete_last_channel_message(self, ctx)
+        await BotUtils.delete_last_channel_message(self, ctx)
 
         server = ctx.message.guild
         question_list = []
@@ -357,14 +359,14 @@ class Misc(commands.Cog):
         new_question = ' '.join(question_list)
         if len(new_question) == 0:
             msg = f"Please ask at least one question!!!\n Command: {ctx.prefix}simplepool"
-            await utils.send_error_msg(self, ctx, msg)
+            await BotUtils.send_error_msg(self, ctx, msg)
             return
 
-        color = utils.get_random_color()
-        embed = discord.Embed(color=color, description=formatting.orange_text(new_question))
+        color = BotUtils.get_random_color()
+        embed = discord.Embed(color=color, description=Formatting.orange_text(new_question))
 
         if anonymous_pool == False:
-            author_name = utils.get_member_name_by_id(self, ctx, ctx.message.author.id)
+            author_name = BotUtils.get_member_name_by_id(self, ctx, ctx.message.author.id)
             embed.set_author(name=author_name, icon_url=ctx.message.author.avatar_url)
 
         try:
@@ -377,7 +379,7 @@ class Misc(commands.Cog):
             await msg.add_reaction("\U0001F44E")
         elif len(reactions_list) == 1:
             msg = f"Please use more than one emoji!!!\n Command: {ctx.prefix}pool"
-            await utils.send_error_msg(self, ctx, msg)
+            await BotUtils.send_error_msg(self, ctx, msg)
             return
         elif len(reactions_list) > 1:
             for reaction in reactions_list:
@@ -389,7 +391,7 @@ class Misc(commands.Cog):
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
     async def echo(self, ctx, *, msg: str):
         """(Show your msg again)
 
@@ -398,11 +400,11 @@ class Misc(commands.Cog):
         """
 
         await ctx.message.channel.trigger_typing()
-        await utils.send_msg(self, ctx, formatting.inline(msg))
+        await BotUtils.send_msg(self, ctx, Formatting.inline(msg))
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
     async def ping(self, ctx):
         """(Test latency)
 
@@ -429,7 +431,7 @@ class Misc(commands.Cog):
     #         await ctx.send(embed=embed)
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
     async def lmgtfy(self, ctx, *, search_terms: str):
         """(Creates a lmgtfy link)
 
@@ -440,12 +442,12 @@ class Misc(commands.Cog):
         """
 
         await ctx.message.channel.trigger_typing()
-        search_terms = formatting.escape_mass_mentions(search_terms.replace(" ", "+"))
+        search_terms = Formatting.escape_mass_mentions(search_terms.replace(" ", "+"))
         await ctx.send(f"https://lmgtfy.com/?q={search_terms}")
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "AdminCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "AdminCooldown"), BucketType.user)
     async def invites(self, ctx):
         """(List active invites link for the current server)
 
@@ -475,13 +477,13 @@ class Misc(commands.Cog):
         if revoked_invites:
             embed.add_field(name=f'Revoked Invites ({len(revoked_invites)})', value='\n'.join(revoked_invites))
         if len(unlimited_invites) > 0 or len(limited_invites) > 0 or len(revoked_invites) > 0:
-            await utils.send_embed(self, ctx, embed, False)
+            await BotUtils.send_embed(self, ctx, embed, False)
         else:
-            await utils.send_msg(self, ctx, formatting.inline("No current invites on any channel."))
+            await BotUtils.send_msg(self, ctx, Formatting.inline("No current invites on any channel."))
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
     async def serverinfo(self, ctx):
         """(Shows server's informations)
 
@@ -508,8 +510,8 @@ class Misc(commands.Cog):
 
         text_channels = len(server.text_channels)
         voice_channels = len(server.voice_channels)
-        flag = utils.get_region_flag(str(server.region))
-        created = utils.format_date_time(server.created_at)
+        flag = BotUtils.get_region_flag(str(server.region))
+        created = BotUtils.format_date_time(server.created_at)
         passed = (now - server.created_at).days
         created_at = (f"Since {created}. That's over {passed} days ago!")
 
@@ -531,11 +533,11 @@ class Misc(commands.Cog):
         else:
             data.set_author(name=server.name)
 
-        await utils.send_embed(self, ctx, data, False)
+        await BotUtils.send_embed(self, ctx, data, False)
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
     async def userinfo(self, ctx, *, member_str: str):
         """(Shows users's informations)
 
@@ -550,11 +552,11 @@ class Misc(commands.Cog):
 
         if not member_str[-4:].isnumeric():
             msg = "Please use full member name with tag number: member#1234"
-            await utils.send_error_msg(self, ctx, msg)
+            await BotUtils.send_error_msg(self, ctx, msg)
             return
 
         # get object member from string
-        member = utils.get_object_member_by_str(self, ctx, member_str)
+        member = BotUtils.get_object_member_by_str(self, ctx, member_str)
         if member is None:
             user = author
         else:
@@ -611,11 +613,11 @@ class Misc(commands.Cog):
         else:
             data.set_author(name=name)
 
-        await utils.send_embed(self, ctx, data, False)
+        await BotUtils.send_embed(self, ctx, data, False)
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
     async def about(self, ctx):
         """(Information about this bot)
 
@@ -656,7 +658,7 @@ class Misc(commands.Cog):
                        f"Version control [Git]({constants.GIT_URL})\n" \
                        f"Databases [SQLite3]({constants.SQLITE3_URL}) or [PostgreSQL]({constants.POSTGRESQL_URL})"""
 
-        bot_stats = utils.get_bot_stats(self.bot)
+        bot_stats = BotUtils.get_bot_stats(self.bot)
         servers = bot_stats["servers"]
         users = bot_stats["users"]
         # channels = bot_stats["channels"]
@@ -679,11 +681,11 @@ class Misc(commands.Cog):
         embed.add_field(name="Donations", value=f"[Paypal]({constants.PAYPAL_URL})", inline=True)
         embed.add_field(name="Help", value=(f"For a list of command categories, type `{ctx.prefix}help`"), inline=False)
 
-        await utils.send_embed(self, ctx, embed, False)
+        await BotUtils.send_embed(self, ctx, embed, False)
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
     async def lp(self, ctx):
         """(Useful information to learn python)
 
@@ -702,7 +704,7 @@ class Misc(commands.Cog):
         color = self.bot.settings["EmbedColor"]
         embed = discord.Embed(color=color)
         embed.add_field(name="Useful information to learn python", value=field_value, inline=True)
-        await utils.send_embed(self, ctx, embed, False)
+        await BotUtils.send_embed(self, ctx, embed, False)
 
 
 ################################################################################

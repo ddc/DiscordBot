@@ -8,7 +8,6 @@
 # # -*- coding: utf-8 -*-
 
 import asyncpg
-from src.cogs.bot.utils import bot_utils as utils
 
 
 class PostgreSQL:

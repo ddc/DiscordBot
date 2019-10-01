@@ -6,8 +6,9 @@
 # * Python            : 3.6
 # |*****************************************************
 # # -*- coding: utf-8 -*-
+
 import discord
-from src.cogs.bot.utils import bot_utils as utils
+from src.cogs.bot.utils import bot_utils as BotUtils
 from src.databases.databases import Databases
 
 
@@ -17,7 +18,7 @@ class MutesSql:
 
     ################################################################################
     async def insert_mute_user(self, user: discord.User, author: discord.user, reason: None):
-        todays_date = utils.get_todays_date_time()
+        todays_date = BotUtils.get_todays_date_time()
         sql = f"""INSERT INTO mutes 
                     (discord_server_id,
                     discord_user_id,

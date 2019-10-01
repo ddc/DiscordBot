@@ -9,10 +9,10 @@
 
 import discord
 from enum import Enum
-from src.cogs.bot.utils import bot_utils as utils
-from src.cogs.gw2.utils.gw2_api import Gw2Api
-import src.cogs.gw2.utils.gw2_constants as gw2Constants
 import configparser
+from src.cogs.bot.utils import bot_utils as BotUtils
+from src.cogs.gw2.utils.gw2_api import Gw2Api
+import src.cogs.gw2.utils.gw2_constants as Gw2Constants
 from src.sql.gw2.gw2_last_session_sql import Gw2LastSessionSql
 from src.sql.gw2.gw2_chars_end_sql import Gw2CharsEndSql
 from src.sql.gw2.gw2_chars_start_sql import Gw2CharsStartSql
@@ -131,9 +131,9 @@ async def delete_api_key_message(self, ctx):
     if not isinstance(ctx.channel, discord.DMChannel):
         try:
             await ctx.message.delete()
-            await utils.send_msg(self, ctx, "Your message with your API Key was removed for privacy.")
+            await BotUtils.send_msg(self, ctx, "Your message with your API Key was removed for privacy.")
         except:
-            await utils.send_msg(self, ctx, "Bot does not have permission to delete the message with your API key.\n" \
+            await BotUtils.send_msg(self, ctx, "Bot does not have permission to delete the message with your API key.\n" \
                                             "Missing permission: `Manage Messages`")
 
 
@@ -145,7 +145,7 @@ def is_private_message(self, ctx):
 ################################################################################
 def get_ini_settings(section: str, config_name: str):
     #print(f"Accessing: {section} - {config_name}")
-    settings_filename = gw2Constants.GW2_SETTINGS_FILENAME
+    settings_filename = Gw2Constants.GW2_SETTINGS_FILENAME
     parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
     parser._interpolation = configparser.ExtendedInterpolation()
     parser.read(settings_filename)
@@ -171,7 +171,7 @@ async def last_session_gw2_event_after(bot, after: discord.Member):
                 api_key = rs_api_key[0]["key"]
                 object_start = await get_last_session_user_stats(bot, None, api_key)
                 object_start.discord_user_id = after.id
-                object_start.date = utils.get_todays_date_time()
+                object_start.date = BotUtils.get_todays_date_time()
                 gw2LastSessionSql = Gw2LastSessionSql(bot)
                 await gw2LastSessionSql.insert_last_session_start(object_start)
                 await insert_characters(bot, after, api_key, "start")
@@ -187,9 +187,9 @@ async def last_session_gw2_event_before(bot, before: discord.Member):
             gw2LastSessionSql = Gw2LastSessionSql(bot)
             rs_ls = await gw2LastSessionSql.get_user_last_session(before.id)
             if len(rs_ls) > 0:
-                object_end = utils.Object()
+                object_end = BotUtils.Object()
                 object_end.discord_user_id = before.id
-                object_end.date = utils.get_todays_date_time()
+                object_end.date = BotUtils.get_todays_date_time()
                 await gw2LastSessionSql.update_last_session_end_date(object_end)
 
 
@@ -199,7 +199,7 @@ async def get_last_session_user_stats(self, ctx, api_key):
         self.bot = self
 
     gw2Api = Gw2Api(self.bot)
-    user_obj = utils.Object()
+    user_obj = BotUtils.Object()
     user_obj.gold = 0
     user_obj.karma = 0
     user_obj.laurels = 0
@@ -222,7 +222,7 @@ async def get_last_session_user_stats(self, ctx, api_key):
         api_req_achiev = await gw2Api.call_api("account/achievements", key=api_key)
     except Exception as e:
         if ctx is not None:
-            await utils.send_error_msg(self, ctx, "GW2 API is currently down. Try again later...")
+            await BotUtils.send_error_msg(self, ctx, "GW2 API is currently down. Try again later...")
             return self.bot.log.error(e)
 
     user_obj.acc_name = api_req_acc["name"]
@@ -276,7 +276,7 @@ async def insert_characters(self, member: discord.Member, api_key, type_session:
 
     try:
         api_req_characters = await gw2Api.call_api("characters", key=api_key)
-        insert_obj = utils.Object()
+        insert_obj = BotUtils.Object()
         insert_obj.api_key = api_key
         insert_obj.ctx = ctx
         insert_obj.gw2Api = gw2Api
@@ -290,7 +290,7 @@ async def insert_characters(self, member: discord.Member, api_key, type_session:
             await gw2CharsEndSql.insert_character(insert_obj, api_req_characters)
 
     except Exception as e:
-        # await utils.send_error_msg(self, ctx, e)
+        # await BotUtils.send_error_msg(self, ctx, e)
         return self.bot.log.error(ctx, e)
 
 
@@ -470,7 +470,7 @@ async def assignGw2GuildRoles(self, ctx, member: discord.Member, new_server_role
         try:
             is_valid_key = await gw2Api.check_api_key(api_key)
         except Exception as e:
-            await utils.send_private_error_msg(self, ctx, e)
+            await BotUtils.send_private_error_msg(self, ctx, e)
             self.bot.log.error(ctx, e)
             return
 
@@ -480,7 +480,7 @@ async def assignGw2GuildRoles(self, ctx, member: discord.Member, new_server_role
                 api_req_acc = await gw2Api.call_api(endpoint, key=api_key)
                 member_server_id = api_req_acc["world"]
             except Exception as e:
-                await utils.send_private_error_msg(self, ctx, e)
+                await BotUtils.send_private_error_msg(self, ctx, e)
                 self.bot.log.error(ctx, e)
                 return
 
@@ -489,7 +489,7 @@ async def assignGw2GuildRoles(self, ctx, member: discord.Member, new_server_role
                 api_req_server = await gw2Api.call_api(endpoint, key=api_key)
                 gw2_server_name = api_req_server["name"]
             except Exception as e:
-                await utils.send_private_error_msg(self, ctx, e)
+                await BotUtils.send_private_error_msg(self, ctx, e)
                 self.bot.log.error(ctx, e)
                 return
 
@@ -558,7 +558,7 @@ async def check_gw2_roles(self, server: discord.Guild):
                         self.bot.log.error(e)
                         return
 
-                    server_has_role = utils.check_server_has_role(self, server, gw2_server_name)
+                    server_has_role = BotUtils.check_server_has_role(self, server, gw2_server_name)
                     # discord doesnt have role that match gw2 member api key
                     if server_has_role is None:
                         await removeAllGw2RolesFromUser(self, member)

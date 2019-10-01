@@ -7,11 +7,10 @@
 # |*****************************************************
 # # -*- coding: utf-8 -*-
 
-from src.cogs.gw2.utils import gw2_utils as gw2Utils
 from src.sql.gw2.gw2_roles_sql import Gw2RolesSql
 from src.sql.gw2.gw2_configs_sql import Gw2ConfigsSql
 from src.sql.bot.initial_configs_sql import InitialConfigsSql
-from src.cogs.bot.utils import chat_formatting as formatting
+from src.cogs.bot.utils import chat_formatting as Formatting
 from src.sql.bot.alter_tables_sql import AlterTablesSql
 from src.sql.bot.server_configs_sql import ServerConfigsSql
 from src.sql.bot.blacklists_sql import BlacklistsSql
@@ -21,8 +20,7 @@ from src.sql.bot.users_sql import UsersSql
 from src.cogs.bot.utils.bg_tasks import BgTasks
 from src.sql.bot.triggers import Triggers
 from src.cogs.bot.utils import constants
-from src.cogs.bot.utils import bot_utils as utils
-from discord.ext import commands
+from src.cogs.bot.utils import bot_utils as BotUtils
 from src.sql.bot.initial_tables_sql import InitialTablesSql
 from src.sql.gw2.gw2_initial_tables_sql import Gw2InitialTablesSql
 import discord
@@ -112,16 +110,16 @@ async def execute_private_msg(self, ctx):
         if customMessages:
             return
 
-        if utils.is_bot_owner(ctx, ctx.message.author):
+        if BotUtils.is_bot_owner(ctx, ctx.message.author):
             msg = f"Hello master.\nWhat can i do for you?"
-            embed = discord.Embed(color=discord.Color.green(), description=f"{formatting.inline(msg)}")
+            embed = discord.Embed(color=discord.Color.green(), description=f"{Formatting.inline(msg)}")
             await ctx.message.author.send(embed=embed)
 
             cmd = self.bot.get_command("owner")
-            await ctx.author.send(formatting.box(cmd.help))
+            await ctx.author.send(Formatting.box(cmd.help))
         else:
             msg = "Hello, I don't accept direct messages."
-            embed = discord.Embed(color=discord.Color.red(), description=f"{formatting.error_inline(msg)}")
+            embed = discord.Embed(color=discord.Color.red(), description=f"{Formatting.error_inline(msg)}")
             await ctx.message.author.send(embed=embed)
     else:
         if not (await _check_exclusive_users(self, ctx)):
@@ -145,17 +143,17 @@ async def execute_private_msg(self, ctx):
                 reason = '\n'.join(reason_lst)
             msg = "You are blacklisted.\n" \
                   "You cannot execute any Bot commands until your are removed from all servers."
-            embed = discord.Embed(title="", color=discord.Color.red(), description=formatting.error_inline(msg))
+            embed = discord.Embed(title="", color=discord.Color.red(), description=Formatting.error_inline(msg))
             embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
             embed.add_field(name="You are blacklisted on following servers:",
-                            value=formatting.inline(servers),
+                            value=Formatting.inline(servers),
                             inline=True)
-            embed.add_field(name="Reason", value=formatting.inline(reason), inline=True)
+            embed.add_field(name="Reason", value=Formatting.inline(reason), inline=True)
             await ctx.message.channel.send(embed=embed)
             return
 
         msg = "That command is not allowed in direct messages."
-        embed = discord.Embed(color=discord.Color.red(), description=f"{formatting.error_inline(msg)}")
+        embed = discord.Embed(color=discord.Color.red(), description=f"{Formatting.error_inline(msg)}")
         user_cmd = ctx.message.content.split(' ', 1)[0]
         allowed_DM_commands = self.bot.settings["DMCommands"]
 
@@ -175,7 +173,7 @@ async def execute_private_msg(self, ctx):
 
             allowed_cmds = '\n'.join(sorted_cmds)
             embed.add_field(name="Commands allowed in direct messages:",
-                            value=f"{formatting.inline(allowed_cmds)}",
+                            value=f"{Formatting.inline(allowed_cmds)}",
                             inline=False)
 
         await ctx.message.author.send(embed=embed)
@@ -195,11 +193,11 @@ async def execute_server_msg(self, ctx):
     if rs_user_channel_configs[0]["block_invis_members"] == "Y":
         is_member_invis = _check_member_invisible(self, ctx)
         if is_member_invis:
-            await utils.delete_last_channel_message(self, ctx)
+            await BotUtils.delete_last_channel_message(self, ctx)
             msg = "You are Invisible (offline)\n" \
                   f"Server \"{ctx.guild.name}\" does not allow messages from invisible members.\n" \
                   "Please change your status if you want to send messages to this server."
-            embed = discord.Embed(title="", color=discord.Color.red(), description=formatting.error_inline(msg))
+            embed = discord.Embed(title="", color=discord.Color.red(), description=Formatting.error_inline(msg))
             embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
             try:
                 await ctx.message.author.send(embed=embed)
@@ -241,7 +239,7 @@ async def execute_server_msg(self, ctx):
               "Please do not insist.\n"
         if rs_user_channel_configs[0]['muted_reason'] is not None:
             msg += f"\nReason: {rs_user_channel_configs[0]['muted_reason']}"
-        embed = discord.Embed(title="", color=discord.Color.red(), description=formatting.error_inline(msg))
+        embed = discord.Embed(title="", color=discord.Color.red(), description=Formatting.error_inline(msg))
         embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
         try:
             await ctx.message.author.send(embed=embed)
@@ -264,7 +262,7 @@ async def execute_server_msg(self, ctx):
                       "Please do not insist.\n"
                 if rs_user_channel_configs[0]['blacklisted_reason'] is not None:
                     msg += f"\nReason: {rs_user_channel_configs[0]['blacklisted_reason']}"
-                embed = discord.Embed(title="", color=discord.Color.red(), description=formatting.error_inline(msg))
+                embed = discord.Embed(title="", color=discord.Color.red(), description=Formatting.error_inline(msg))
                 embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
                 try:
                     await ctx.message.channel.send(embed=embed)
@@ -294,7 +292,7 @@ async def _check_prefixes_characteres(self, message):
 ################################################################################
 async def _send_custom_message(message, send_msg: str):
     await message.channel.trigger_typing()
-    desc = f":rage: :middle_finger:\n{formatting.inline(send_msg)}"
+    desc = f":rage: :middle_finger:\n{Formatting.inline(send_msg)}"
     if not (isinstance(message.channel, discord.DMChannel)):
         desc = f"{desc}\n{message.author.mention}"
     embed = discord.Embed(color=discord.Color.red(),
@@ -378,7 +376,7 @@ async def _check_profanity_filter_words(self, message):
                             await message.channel.send(f"{message.author.mention} {msg}")
                         return True
                     except:
-                        msg = f"`{formatting.NO_ENTRY} Profanity filter is on but Bot does not have permission to delete messages.\n" \
+                        msg = f"`{Formatting.NO_ENTRY} Profanity filter is on but Bot does not have permission to delete messages.\n" \
                               "Missing permission: \"Manage Messages\"`"
                         embed = discord.Embed(title="", color=discord.Color.red(), description=msg)
                         try:
@@ -415,7 +413,7 @@ async def _check_exclusive_users(self, ctx):
               "You are not allowed to execute any commands.\n" \
               "Only a few users are allowed to use it.\n" \
               "Please don't insist. Thank You!!!"
-        await utils.send_private_error_msg(self, ctx, msg)
+        await BotUtils.send_private_error_msg(self, ctx, msg)
         return False
 
     return True

@@ -7,7 +7,7 @@
 # |*****************************************************
 # # -*- coding: utf-8 -*-
 
-from src.cogs.bot.utils import bot_utils as utils, constants
+from src.cogs.bot.utils import constants
 from src.sql.bot.bot_configs_sql import BotConfigsSql
 from src.sql.bot.users_sql import UsersSql
 from src.databases.databases import Databases

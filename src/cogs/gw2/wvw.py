@@ -10,12 +10,11 @@
 import discord
 from src.cogs.gw2.utils.gw2_exceptions import APIKeyError
 from src.sql.gw2.gw2_key_sql import Gw2KeySql
-from src.cogs.gw2.utils import gw2_utils as gw2Utils
-from src.cogs.bot.utils import bot_utils as utils
+from src.cogs.gw2.utils import gw2_utils as Gw2Utils
+from src.cogs.bot.utils import bot_utils as BotUtils
 from src.cogs.gw2.utils.gw2_api import Gw2Api
 from discord.ext import commands
-from src.cogs.bot.utils import chat_formatting as formatting
-import src.cogs.gw2.utils.gw2_constants as gw2Constants
+from src.cogs.bot.utils import chat_formatting as Formatting
 
 
 class GW2WvW(commands.Cog):
@@ -39,21 +38,21 @@ class GW2WvW(commands.Cog):
                     results = await gw2Api.call_api("account", key=api_key)
                     wid = results["world"]
                 else:
-                    return await utils.send_error_msg(self,
+                    return await BotUtils.send_error_msg(self,
                                                       ctx,
                                                       "You dont have an API key registered in this server.\n"
                                                       f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
                                                       f"To check your API key use: `{ctx.prefix}gw2 key info`")
             except APIKeyError as e:
-                return await utils.send_error_msg(self, ctx, "No world name or key associated with your account")
+                return await BotUtils.send_error_msg(self, ctx, "No world name or key associated with your account")
             except Exception as e:
-                await utils.send_error_msg(self, ctx, e)
+                await BotUtils.send_error_msg(self, ctx, e)
                 return self.bot.log.error(ctx, e)
         else:
-            wid = await gw2Utils.get_world_id(self, world)
+            wid = await Gw2Utils.get_world_id(self, world)
 
         if not wid:
-            return await utils.send_error_msg(self, ctx, f"Invalid world name\n{world}")
+            return await BotUtils.send_error_msg(self, ctx, f"Invalid world name\n{world}")
 
         try:
             await ctx.message.channel.trigger_typing()
@@ -63,7 +62,7 @@ class GW2WvW(commands.Cog):
             endpoint = f"worlds?id={wid}"
             worldinfo = await gw2Api.call_api(endpoint)
         except Exception as e:
-            await utils.send_error_msg(self, ctx, e)
+            await BotUtils.send_error_msg(self, ctx, e)
             return self.bot.log.error(ctx, e)
 
         if wid < 2001:
@@ -77,7 +76,7 @@ class GW2WvW(commands.Cog):
             if wid in value:
                 worldcolor = key
         if not worldcolor:
-            await utils.send_error_msg(self, ctx, "Could not resolve world's color")
+            await BotUtils.send_error_msg(self, ctx, "Could not resolve world's color")
             return
         if worldcolor == "red":
             color = discord.Color.red()
@@ -117,15 +116,15 @@ class GW2WvW(commands.Cog):
         _title = f"{worldinfo['name']}"
 
         embed = discord.Embed(title=_title, description=tier, color=color)
-        embed.add_field(name="Score", value=formatting.inline(score), inline=True)
-        embed.add_field(name="Points per tick", value=formatting.inline(ppt), inline=True)
-        embed.add_field(name="Victory Points", value=formatting.inline(victoryp), inline=True)
-        embed.add_field(name="Skirmish", value=formatting.inline(skirmish), inline=True)
-        embed.add_field(name="Kills", value=formatting.inline(kills), inline=True)
-        embed.add_field(name="Deaths", value=formatting.inline(deaths), inline=True)
-        embed.add_field(name="K/D ratio", value=formatting.inline(str(kd)), inline=True)
-        embed.add_field(name="Population", value=formatting.inline(population), inline=False)
-        await utils.send_embed(self, ctx, embed, False)
+        embed.add_field(name="Score", value=Formatting.inline(score), inline=True)
+        embed.add_field(name="Points per tick", value=Formatting.inline(ppt), inline=True)
+        embed.add_field(name="Victory Points", value=Formatting.inline(victoryp), inline=True)
+        embed.add_field(name="Skirmish", value=Formatting.inline(skirmish), inline=True)
+        embed.add_field(name="Kills", value=Formatting.inline(kills), inline=True)
+        embed.add_field(name="Deaths", value=Formatting.inline(deaths), inline=True)
+        embed.add_field(name="K/D ratio", value=Formatting.inline(str(kd)), inline=True)
+        embed.add_field(name="Population", value=Formatting.inline(population), inline=False)
+        await BotUtils.send_embed(self, ctx, embed, False)
 
     ################################################################################
     async def gw2_match(self, ctx, world: str = None):
@@ -149,21 +148,21 @@ class GW2WvW(commands.Cog):
                     results = await gw2Api.call_api("account", key=api_key)
                     wid = results["world"]
                 else:
-                    return await utils.send_error_msg(self, ctx,
+                    return await BotUtils.send_error_msg(self, ctx,
                                                       "Missing World Name\n" \
                                                       f"Use `{ctx.prefix}gw2 match <world_name>`\n" \
                                                       "Or register an API key on your account.\n" \
                                                       f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`")
             except APIKeyError as e:
-                return await utils.send_error_msg(self, ctx, "No world name or API key associated with your account.")
+                return await BotUtils.send_error_msg(self, ctx, "No world name or API key associated with your account.")
             except Exception as e:
-                await utils.send_error_msg(self, ctx, e)
+                await BotUtils.send_error_msg(self, ctx, e)
                 return self.bot.log.error(ctx, e)
         else:
-            wid = await gw2Utils.get_world_id(self, world)
+            wid = await Gw2Utils.get_world_id(self, world)
 
         if not wid:
-            return await utils.send_error_msg(self, ctx, f"Invalid world: {world}")
+            return await BotUtils.send_error_msg(self, ctx, f"Invalid world: {world}")
 
         try:
             await ctx.message.channel.trigger_typing()
@@ -185,7 +184,7 @@ class GW2WvW(commands.Cog):
             blue_values = await _get_match_embed_values(self, "blue", matches)
             red_values = await _get_match_embed_values(self, "red", matches)
         except Exception as e:
-            await utils.send_error_msg(self, ctx, e)
+            await BotUtils.send_error_msg(self, ctx, e)
             return self.bot.log.error(ctx, e)
 
         color = self.bot.gw2_settings["EmbedColor"]
@@ -196,7 +195,7 @@ class GW2WvW(commands.Cog):
         embed.add_field(name="--------------------", value=green_values, inline=True)
         embed.add_field(name="--------------------", value=blue_values, inline=True)
         embed.add_field(name="--------------------", value=red_values, inline=True)
-        await utils.send_embed(self, ctx, embed, False)
+        await BotUtils.send_embed(self, ctx, embed, False)
 
     ################################################################################
     async def gw2_kdr(self, ctx, world: str = None):
@@ -220,20 +219,20 @@ class GW2WvW(commands.Cog):
                     results = await gw2Api.call_api("account", key=api_key)
                     wid = results["world"]
                 else:
-                    return await utils.send_error_msg(self, ctx,
+                    return await BotUtils.send_error_msg(self, ctx,
                                                       f"""Invalid World Name
                                     Use {ctx.prefix}gw2 match <world_name>
                                     Or register an API key on your account.""")
             except APIKeyError as e:
-                return await utils.send_error_msg(self, ctx, "No world name or key associated with your account")
+                return await BotUtils.send_error_msg(self, ctx, "No world name or key associated with your account")
             except Exception as e:
-                await utils.send_error_msg(self, ctx, e)
+                await BotUtils.send_error_msg(self, ctx, e)
                 return self.bot.log.error(ctx, e)
         else:
-            wid = await gw2Utils.get_world_id(self, world)
+            wid = await Gw2Utils.get_world_id(self, world)
 
         if not wid:
-            return await utils.send_error_msg(self, ctx, f"Invalid world: {world}")
+            return await BotUtils.send_error_msg(self, ctx, f"Invalid world: {world}")
 
         try:
             await ctx.message.channel.trigger_typing()
@@ -255,7 +254,7 @@ class GW2WvW(commands.Cog):
             blue_values = await _get_kdr_embed_values(self, "blue", matches)
             red_values = await _get_kdr_embed_values(self, "red", matches)
         except Exception as e:
-            await utils.send_error_msg(self, ctx, e)
+            await BotUtils.send_error_msg(self, ctx, e)
             return self.bot.log.error(ctx, e)
 
         color = self.bot.gw2_settings["EmbedColor"]
@@ -266,7 +265,7 @@ class GW2WvW(commands.Cog):
         embed.add_field(name="--------------------", value=green_values, inline=True)
         embed.add_field(name="--------------------", value=blue_values, inline=True)
         embed.add_field(name="--------------------", value=red_values, inline=True)
-        await utils.send_embed(self, ctx, embed, False)
+        await BotUtils.send_embed(self, ctx, embed, False)
 
 
 ################################################################################
@@ -280,7 +279,7 @@ async def _get_map_names_embed_values(self, map_color: str, matches):
             primary_server_id.append(str(ids))
 
     match_ids = ','.join(primary_server_id)
-    worlds_names = await gw2Utils.get_world_name_population(self, str(match_ids))
+    worlds_names = await Gw2Utils.get_world_name_population(self, str(match_ids))
     worlds_names = '\n'.join(worlds_names)
 
     return worlds_names

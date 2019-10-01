@@ -9,7 +9,7 @@
 
 from _sqlite3 import Error
 from discord.ext import commands
-from src.cogs.bot.utils import constants, chat_formatting as formatting
+from src.cogs.bot.utils import constants, chat_formatting as Formatting
 from src.databases.databases import Databases
 from src.sql.bot.server_configs_sql import ServerConfigsSql
 import datetime
@@ -52,7 +52,7 @@ async def check_database_connection(bot):
 ################################################################################
 async def send_info_msg(self, ctx, msg):
     await ctx.message.channel.trigger_typing()
-    embed = discord.Embed(color=discord.Color.red(), description=formatting.info(msg))
+    embed = discord.Embed(color=discord.Color.red(), description=Formatting.info(msg))
     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
     await send_embed(self, ctx, embed, False, msg)
 
@@ -60,7 +60,7 @@ async def send_info_msg(self, ctx, msg):
 ################################################################################
 async def send_error_msg(self, ctx, msg):
     await ctx.message.channel.trigger_typing()
-    embed = discord.Embed(color=discord.Color.red(), description=formatting.error(msg))
+    embed = discord.Embed(color=discord.Color.red(), description=Formatting.error(msg))
     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
     await send_embed(self, ctx, embed, False, msg)
 
@@ -84,14 +84,14 @@ async def send_private_msg(self, ctx, msg):
 
 ################################################################################
 async def send_private_info_msg(self, ctx, msg):
-    embed = discord.Embed(color=discord.Color.red(), description=formatting.info(msg))
+    embed = discord.Embed(color=discord.Color.red(), description=Formatting.info(msg))
     # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
     await send_embed(self, ctx, embed, True, msg)
 
 
 ################################################################################
 async def send_private_error_msg(self, ctx, msg):
-    embed = discord.Embed(color=discord.Color.red(), description=formatting.error(msg))
+    embed = discord.Embed(color=discord.Color.red(), description=Formatting.error(msg))
     # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
     await send_embed(self, ctx, embed, True, msg)
 
@@ -99,9 +99,9 @@ async def send_private_error_msg(self, ctx, msg):
 ################################################################################
 async def send_help_msg(self, ctx, cmd):
     if self.bot.help_command.dm_help:
-        await ctx.author.send(formatting.box(cmd.help))
+        await ctx.author.send(Formatting.box(cmd.help))
     else:
-        await ctx.send(formatting.box(cmd.help))
+        await ctx.send(Formatting.box(cmd.help))
 
 
 ################################################################################
@@ -137,13 +137,13 @@ async def send_embed(self, ctx, embed, dm, msg=None):
                       "If you want to receive messages from Bots, " \
                       "you need to enable this option under Privacy & Safety:\n" \
                       "\"Allow direct messages from server members.\"\n"
-            await ctx.send(formatting.red_text(err_msg))
+            await ctx.send(Formatting.red_text(err_msg))
             if msg is not None:
-                await ctx.send(formatting.green_text(msg))
+                await ctx.send(Formatting.green_text(msg))
         else:
             await ctx.send(f"{ctx.message.author.mention}\n")
             if msg is not None:
-                await ctx.send(f"{formatting.green_text(msg)}")
+                await ctx.send(f"{Formatting.green_text(msg)}")
 
 
 ################################################################################
@@ -165,7 +165,7 @@ async def delete_last_channel_message(self, ctx, warning=False):
         try:
             await ctx.message.delete()
             if warning:
-                await send_msg(self, ctx, formatting.inline("Your message was removed for privacy."))
+                await send_msg(self, ctx, Formatting.inline("Your message was removed for privacy."))
         except:
             # await send_msg(self, ctx, "Bot does not have permission to delete messages.\n"\
             #                        "Missing permission: `Manage Messages`")

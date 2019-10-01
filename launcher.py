@@ -20,41 +20,41 @@ import tempfile
 import requests
 import urllib.request
 from src.cogs.bot.utils import constants
-from src.cogs.bot.utils import bot_utils as utils
-from src.cogs.gw2.utils import gw2_constants
+from src.cogs.bot.utils import bot_utils as BotUtils
+from src.cogs.gw2.utils import gw2_constants as Gw2Constants
 
 
 def main():
     if constants.IS_WINDOWS:
         os.system("TITLE Discord Bot - Launcher")
 
-    utils.clear_screen()
+    BotUtils.clear_screen()
     while True:
         print(f"{constants.INTRO}\n")
         print("1. Start Bot")
         print("2. Updates")
         print("0. Quit")
-        choice = utils.user_choice()
+        choice = BotUtils.user_choice()
         if choice == "1":
             run(auto_restart=True)
         elif choice == "2":
             update_menu()
         elif choice == "0":
             break
-        utils.clear_screen()
+        BotUtils.clear_screen()
 
 
 ################################################################################
 def update_menu():
-    has_git = utils.is_git_installed()
-    utils.clear_screen()
+    has_git = BotUtils.is_git_installed()
+    BotUtils.clear_screen()
     while True:
         print(f"{constants.INTRO}\n")
         print("Update: (require admin privileges)")
         print("1. Update Bot")
         print("2. Update Requirements")
         print("0. Go back")
-        choice = utils.user_choice()
+        choice = BotUtils.user_choice()
         if choice == "1":
             if not has_git:
                 print("\nWARNING: Git not found. This means that it's either not "
@@ -63,14 +63,14 @@ def update_menu():
             else:
                 update()
                 if constants.INTERACTIVE_MODE:
-                    utils.wait_return()
+                    BotUtils.wait_return()
         elif choice == "2":
             update_requirements()
             if constants.INTERACTIVE_MODE:
-                utils.wait_return()
+                BotUtils.wait_return()
         elif choice == "0":
             break
-        utils.clear_screen()
+        BotUtils.clear_screen()
 
 
 ################################################################################
@@ -91,14 +91,14 @@ def update_requirements():
         foo = line.strip('\n')
         arguments.append(foo)
 
-    utils.clear_screen()
+    BotUtils.clear_screen()
     for module in arguments:
         if module != "pip":
             print(f"\n\n==> Updating: {module}")
             command = interpreter, "-m", "pip", "install", "-U", module
             code = subprocess.call(command)
             if code != 0:
-                utils.clear_screen()
+                BotUtils.clear_screen()
                 return print(f"\nAn error occurred trying to update: {module}\n")
 
     print("PIP should be manually upgraded: python -m pip install --upgrade pip\n")
@@ -119,13 +119,13 @@ def parse_cli_arguments():
 
 ################################################################################
 def update():
-    has_git = utils.is_git_installed()
+    has_git = BotUtils.is_git_installed()
     if has_git:
         bot_remote_git_url = constants.BOT_REMOTE_GIT_URL
         src_dir = tempfile.mkdtemp()
         dst_dir = dirname
         subprocess.call(("git", "clone", "--depth=50", "--branch=master", bot_remote_git_url, src_dir))
-        utils.recursive_overwrite(src_dir, dst_dir)
+        BotUtils.recursive_overwrite(src_dir, dst_dir)
         print("\nBot was updated successfully.\n")
     else:
         print("\nWARNING: Unable to update.\n"
@@ -159,7 +159,7 @@ def run(auto_restart):
 
     print(f"Bot has been terminated.\nExit code: {code}")
     if constants.INTERACTIVE_MODE:
-        utils.wait_return()
+        BotUtils.wait_return()
 
 
 ################################################################################
@@ -197,9 +197,9 @@ def check_config_files():
             exit(1)
             return
 
-    if not os.path.exists(gw2_constants.GW2_SETTINGS_FILENAME):
-        src_url = gw2_constants.GW2_SETTINGS_URL_FILE
-        dst = gw2_constants.GW2_SETTINGS_FILENAME
+    if not os.path.exists(Gw2Constants.GW2_SETTINGS_FILENAME):
+        src_url = Gw2Constants.GW2_SETTINGS_URL_FILE
+        dst = Gw2Constants.GW2_SETTINGS_FILENAME
         try:
             urllib.request.urlretrieve(src_url, dst)
         except urllib.request.HTTPError as e:
@@ -222,14 +222,14 @@ if __name__ == '__main__':
         print("Python 3.6 or higher is required. Please install the required version.\n"
               "Press enter to continue...")
         if constants.INTERACTIVE_MODE:
-            utils.wait_return()
+            BotUtils.wait_return()
         exit(1)
 
     if pip is None:
         print("Bot cannot work without the pip module.\n" \
               "Please make sure to install Python with pip module.")
         if constants.INTERACTIVE_MODE:
-            utils.wait_return()
+            BotUtils.wait_return()
         exit(1)
 
     if args.update:

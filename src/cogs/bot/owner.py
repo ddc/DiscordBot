@@ -12,7 +12,8 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from bot import init_loop
-from .utils import bot_utils as utils, constants, chat_formatting as formatting
+from .utils import bot_utils as BotUtils
+from .utils import chat_formatting as Formatting
 from .utils.checks import Checks
 from src.sql.bot.bot_configs_sql import BotConfigsSql
 from src.sql.bot.servers_sql import ServersSql
@@ -46,14 +47,14 @@ class Owner(commands.Cog):
             else:
                 cmd = self.bot.get_command("owner")
 
-            await utils.send_help_msg(self, ctx, cmd)
+            await BotUtils.send_help_msg(self, ctx, cmd)
             return
 
         ctx.invoked_subcommand
 
     ################################################################################
     @owner.command(name="prefix")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
     async def owner_prefix(self, ctx, *, new_prefix: str):
         """(Change bot prefix for commands)
         
@@ -63,7 +64,7 @@ class Owner(commands.Cog):
         owner prefix <new_prefix>
         """
 
-        # utils.delete_last_channel_message(self, ctx)
+        # BotUtils.delete_last_channel_message(self, ctx)
         await ctx.message.channel.trigger_typing()
         possible_prefixes = "!$%^&?><.;"
         if new_prefix not in possible_prefixes:
@@ -83,11 +84,11 @@ class Owner(commands.Cog):
         color = self.bot.settings["EmbedOwnerColor"]
         msg = f"Bot prefix has been changed to: `{new_prefix}`"
         embed = discord.Embed(description=msg, color=color)
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @owner.command(name="botdescription")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
     async def owner_description(self, ctx, *, desc: str):
         """(Change bot description)
         
@@ -95,7 +96,7 @@ class Owner(commands.Cog):
         owner botdescription <new_description>
         """
 
-        # utils.delete_last_channel_message(self, ctx)
+        # BotUtils.delete_last_channel_message(self, ctx)
         await ctx.message.channel.trigger_typing()
         botConfigsSql = BotConfigsSql(self.bot)
         await botConfigsSql.update_bot_description(desc)
@@ -104,11 +105,11 @@ class Owner(commands.Cog):
         color = self.bot.settings["EmbedOwnerColor"]
         msg = f"Bot description changed to: \"`{desc}`\""
         embed = discord.Embed(description=msg, color=color)
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @owner.command(name="bgtaskgame")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
     async def owner_bg_task_change_game(self, ctx, *, new_status: str):
         """(Background task to update the game bot is playing from time to time)
         
@@ -118,7 +119,7 @@ class Owner(commands.Cog):
         owner bgtaskgame [on | off]
         """
 
-        # utils.delete_last_channel_message(self, ctx)
+        # BotUtils.delete_last_channel_message(self, ctx)
         await ctx.message.channel.trigger_typing()
         if new_status.lower() == "on":
             new_status = "Y"
@@ -134,7 +135,7 @@ class Owner(commands.Cog):
         if rs[0]["bg_task_change_game"] != str(new_status):
             color = self.bot.settings["EmbedOwnerColor"]
             embed = discord.Embed(description=msg, color=color)
-            await utils.send_embed(self, ctx, embed, False, msg)
+            await BotUtils.send_embed(self, ctx, embed, False, msg)
             self.bot.settings["BGChangeGame"] = str(new_status)
 
             # need to restart bot here to kill bg task
@@ -147,7 +148,7 @@ class Owner(commands.Cog):
         ################################################################################
 
     @owner.command(name="botgame")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
     async def owner_botgame(self, ctx, *, game: str):
         """(Change game that bot is playing)
          
@@ -155,7 +156,7 @@ class Owner(commands.Cog):
         owner botgame <game>
         """
 
-        # utils.delete_last_channel_message(self, ctx)
+        # BotUtils.delete_last_channel_message(self, ctx)
         await ctx.message.channel.trigger_typing()
         prefix = self.bot.command_prefix[0]
         bot_game_desc = f"{game} | {prefix}help"
@@ -168,14 +169,14 @@ class Owner(commands.Cog):
         if self.bot.settings["BGChangeGame"] == "Y":
             bg_task_warning = f"Background task that update bot activity is ON\nActivity will change after {self.bot.settings['BGActivityTimer']} secs."
             embed.description = bg_task_warning
-            await utils.send_embed(self, ctx, embed, True, msg)
+            await BotUtils.send_embed(self, ctx, embed, True, msg)
 
         embed.description = f"```I'm now playing: {game}```"
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @owner.command(name="reloadcog")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
     async def owner_reload_cog(self, ctx, *, name: str):
         """(Command to reload a module)
         
@@ -183,7 +184,7 @@ class Owner(commands.Cog):
         owner reloadcog <cog_name>
         """
 
-        # utils.delete_last_channel_message(self, ctx)
+        # BotUtils.delete_last_channel_message(self, ctx)
         await ctx.message.channel.trigger_typing()
         color = self.bot.settings["EmbedOwnerColor"]
         full_cog_name = f"src.cogs.bot.{name}"
@@ -196,11 +197,11 @@ class Owner(commands.Cog):
             msg = f'**`RELOAD SUCCESS`**\nCog: {name}'
 
         embed = discord.Embed(description=msg, color=color)
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @owner.command(name="servers")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
     async def owner_servers(self, ctx):
         """(Display all servers in database)
 
@@ -208,7 +209,7 @@ class Owner(commands.Cog):
         owner servers
         """
 
-        # utils.delete_last_channel_message(self, ctx)
+        # BotUtils.delete_last_channel_message(self, ctx)
         await ctx.message.channel.trigger_typing()
         serversSql = ServersSql(self.bot)
         rs = await serversSql.get_all_servers()
@@ -221,7 +222,7 @@ class Owner(commands.Cog):
         owner_list = []
         for key, value in rs.items():
             region = str(value["region"])
-            region_flag = utils.get_region_flag(region)
+            region_flag = BotUtils.get_region_flag(region)
             name_list.append(value["server_name"])
             region_list.append(f"{region_flag} `{region}`")
             owner_list.append(value["owner_name"])
@@ -230,15 +231,15 @@ class Owner(commands.Cog):
         owners = '\n'.join(owner_list)
         regions = '\n'.join(region_list)
 
-        embed.add_field(name="Name", value=formatting.inline(names), inline=True)
-        embed.add_field(name="Owner", value=formatting.inline(owners), inline=True)
+        embed.add_field(name="Name", value=Formatting.inline(names), inline=True)
+        embed.add_field(name="Owner", value=Formatting.inline(owners), inline=True)
         embed.add_field(name="Voice Region", value=regions, inline=True)
         msg = f"Servers:\n`{names}`"
-        await utils.send_embed(self, ctx, embed, True, msg)
+        await BotUtils.send_embed(self, ctx, embed, True, msg)
 
     ################################################################################
     @owner.command(name="reloadallcogs")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
     async def owner_reload(self, ctx):
         """(Command to reload all bot cogs)
          
@@ -246,17 +247,17 @@ class Owner(commands.Cog):
         owner reloadallcogs
         """
 
-        # utils.delete_last_channel_message(self, ctx)
-        await utils.reload_cogs(self)
+        # BotUtils.delete_last_channel_message(self, ctx)
+        await BotUtils.reload_cogs(self)
 
         color = self.bot.settings["EmbedOwnerColor"]
         msg = "All cogs have been loaded successfully"
         embed = discord.Embed(description=msg, color=color)
-        await utils.send_embed(self, ctx, embed, False, msg)
+        await BotUtils.send_embed(self, ctx, embed, False, msg)
 
     ################################################################################
     @owner.command(name="executesql")
-    @commands.cooldown(1, utils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
     async def owner_execute_sql(self, ctx):
         """(Command to execute all sql files inside data/sql directory)
          
@@ -264,14 +265,14 @@ class Owner(commands.Cog):
         owner executesql
         """
 
-        # utils.delete_last_channel_message(self, ctx)
+        # BotUtils.delete_last_channel_message(self, ctx)
         await ctx.message.channel.trigger_typing()
-        await utils.execute_all_sql_files(self)
+        await BotUtils.execute_all_sql_files(self)
 
         color = self.bot.settings["EmbedOwnerColor"]
         msg = "All SQL have been loaded successfully"
         embed = discord.Embed(description=msg, color=color)
-        await utils.send_embed(self, ctx, embed, True, msg)
+        await BotUtils.send_embed(self, ctx, embed, True, msg)
 
 
 ################################################################################

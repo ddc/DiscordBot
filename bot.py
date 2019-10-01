@@ -15,8 +15,8 @@ import traceback
 import aiohttp
 import discord
 from src.cogs.bot.utils import constants
-from src.cogs.bot.utils import bot_utils as utils
-import src.cogs.gw2.utils.gw2_constants as gw2Constants
+from src.cogs.bot.utils import bot_utils as BotUtils
+import src.cogs.gw2.utils.gw2_constants as Gw2Constants
 from discord.ext import commands
 import datetime
 
@@ -70,16 +70,16 @@ def setup_logging():
     stderr_hdlr.setLevel(constants.LOG_LEVEL)
     logger.addHandler(stderr_hdlr)
 
-    sys.excepthook = utils.log_uncaught_exceptions
+    sys.excepthook = BotUtils.log_uncaught_exceptions
     return logger
 
 
 ################################################################################
 def _insert_token():
-    utils.clear_screen()
+    BotUtils.clear_screen()
     tokenFile = open(constants.TOKEN_FILENAME, encoding="utf-8", mode="w")
     print("Please insert your BOT TOKEN bellow:")
-    token = utils.read_token()
+    token = BotUtils.read_token()
     tokenFile.write(token)
     tokenFile.close()
     return token
@@ -91,19 +91,19 @@ async def _set_bot_configs(bot):
     bot.uptime = datetime.datetime.now()
     bot.description = str(constants.DESCRIPTION)
     bot.help_command = commands.DefaultHelpCommand(dm_help=True)
-    bot.settings = utils.get_all_ini_file_settings(constants.SETTINGS_FILENAME)
+    bot.settings = BotUtils.get_all_ini_file_settings(constants.SETTINGS_FILENAME)
     bot.settings["bot_webpage_url"] = str(constants.BOT_WEBPAGE_URL)
     bot.settings["version"] = constants.VERSION
-    bot.settings["full_db_name"] = utils.get_full_db_name(bot)
-    bot.settings["EmbedOwnerColor"] = utils.get_color_settings(bot.settings["EmbedOwnerColor"])
-    bot.settings["EmbedColor"] = utils.get_color_settings(bot.settings["EmbedColor"])
+    bot.settings["full_db_name"] = BotUtils.get_full_db_name(bot)
+    bot.settings["EmbedOwnerColor"] = BotUtils.get_color_settings(bot.settings["EmbedOwnerColor"])
+    bot.settings["EmbedColor"] = BotUtils.get_color_settings(bot.settings["EmbedColor"])
 
 
 ################################################################################
 async def _set_other_cogs_configs(bot):
     print("Setting Other Cogs configs...")
-    bot.gw2_settings = utils.get_all_ini_file_settings(gw2Constants.GW2_SETTINGS_FILENAME)
-    bot.gw2_settings["EmbedColor"] = utils.get_color_settings(bot.gw2_settings["EmbedColor"])
+    bot.gw2_settings = BotUtils.get_all_ini_file_settings(Gw2Constants.GW2_SETTINGS_FILENAME)
+    bot.gw2_settings["EmbedColor"] = BotUtils.get_color_settings(bot.gw2_settings["EmbedColor"])
 
 
 ################################################################################
@@ -113,7 +113,7 @@ async def init():
     bot.aiosession = aiohttp.ClientSession(loop=bot.loop)
     await _set_bot_configs(bot)
     await _set_other_cogs_configs(bot)
-    await utils.load_cogs(bot)
+    await BotUtils.load_cogs(bot)
     bot.log.info("=====> INITIALIZING BOT <=====")
     print("Logging in to Discord...")
     print("Checking Database Configs...")

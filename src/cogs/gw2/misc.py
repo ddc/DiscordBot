@@ -12,10 +12,10 @@ import discord
 from discord.ext import commands
 from bs4 import BeautifulSoup
 from src.cogs.gw2.utils.gw2_api import Gw2Api
-from src.cogs.bot.utils import bot_utils as utils
-from src.cogs.gw2.utils import gw2_utils as gw2Utils
-from src.cogs.bot.utils import chat_formatting as formatting
-import src.cogs.gw2.utils.gw2_constants as gw2Constants
+from src.cogs.bot.utils import bot_utils as BotUtils
+from src.cogs.gw2.utils import gw2_utils as Gw2Utils
+from src.cogs.bot.utils import chat_formatting as Formatting
+import src.cogs.gw2.utils.gw2_constants as Gw2Constants
 # import subprocess
 
 
@@ -33,7 +33,7 @@ class GW2Misc(commands.Cog):
 
         posts = []
         len_eb_fields = 0
-        wiki_url = gw2Constants.WIKI_URL
+        wiki_url = Gw2Constants.WIKI_URL
         search = search.replace(" ", "+")
         full_wiki_url = (f"{wiki_url}/index.php?title=Special%3ASearch&search={search}&fulltext=Search")
 
@@ -51,7 +51,7 @@ class GW2Misc(commands.Cog):
                 posts = soup.find_all("div", {"class": "mw-search-result-heading"})[:50]
                 totalPosts = len(posts)
                 if not posts:
-                    await utils.send_msg(ctx, "No results!")
+                    await BotUtils.send_msg(ctx, "No results!")
                     return
 
                 color = self.bot.gw2_settings["EmbedColor"]
@@ -94,12 +94,12 @@ class GW2Misc(commands.Cog):
                 else:
                     embed.add_field(name="No results", value=f"[Click here]({full_wiki_url})")
 
-            embed.set_thumbnail(url=gw2Constants.GW2_WIKI_ICON_URL)
-            await utils.send_embed(self, ctx, embed, False)
+            embed.set_thumbnail(url=Gw2Constants.GW2_WIKI_ICON_URL)
+            await BotUtils.send_embed(self, ctx, embed, False)
 
     ################################################################################
     async def gw2_info(self, ctx, skill):
-        wiki_url = gw2Constants.WIKI_URL
+        wiki_url = Gw2Constants.WIKI_URL
         skill = skill.replace(" ", "_")
         skill_sanitized = str(re.escape(skill)).title()
         skill_sanitized = skill_sanitized.replace("Of", "of")
@@ -112,7 +112,7 @@ class GW2Misc(commands.Cog):
                 # info not found
                 wrong_skill_name = str(skill_sanitized.replace('_', ' '))
                 color = discord.Color.red()
-                embed = discord.Embed(description=f"`{formatting.NO_ENTRY}` Info not found: `{wrong_skill_name}`\n" \
+                embed = discord.Embed(description=f"`{Formatting.NO_ENTRY}` Info not found: `{wrong_skill_name}`\n" \
                                                   "Please check your spelling and try again!",
                                       color=color)
             else:
@@ -154,8 +154,8 @@ class GW2Misc(commands.Cog):
                                 tp_results = await tp_r.text()
                                 sell_td = BeautifulSoup(tp_results, 'html.parser').findAll("td", {"id": "sell-price"})
                                 buy_td = BeautifulSoup(tp_results, 'html.parser').findAll("td", {"id": "buy-price"})
-                                tp_sell_price = gw2Utils.format_gold(sell_td[0]["data-price"])
-                                tp_buy_price = gw2Utils.format_gold(buy_td[0]["data-price"])
+                                tp_sell_price = Gw2Utils.format_gold(sell_td[0]["data-price"])
+                                tp_buy_price = Gw2Utils.format_gold(buy_td[0]["data-price"])
 
                                 skill_description = f"{skill_description}\n" \
                                                     "**Trading Post:**\n" \
@@ -173,7 +173,7 @@ class GW2Misc(commands.Cog):
                 embed.set_thumbnail(url=skill_icon_url)
 
             embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
-            await utils.send_embed(self, ctx, embed, False)
+            await BotUtils.send_embed(self, ctx, embed, False)
 
     ################################################################################
     async def gw2_worlds(self, ctx):
@@ -189,23 +189,23 @@ class GW2Misc(commands.Cog):
             gw2Api = Gw2Api(self.bot)
             results = await gw2Api.call_api(endpoint)
         except Exception as e:
-            await utils.send_error_msg(self, ctx, e)
+            await BotUtils.send_error_msg(self, ctx, e)
             return self.bot.log.error(ctx, e)
 
         color = self.bot.gw2_settings["EmbedColor"]
         description = "~~~~~ NA Servers ~~~~~"
-        embed = discord.Embed(color=color, description=formatting.inline(description))
+        embed = discord.Embed(color=color, description=Formatting.inline(description))
         for world in results:
             if world["id"] < 2001:
-                embed.add_field(name=world["name"], value=formatting.inline(world["population"]), inline=True)
+                embed.add_field(name=world["name"], value=Formatting.inline(world["population"]), inline=True)
 
         await ctx.send(embed=embed)
 
         description = "~~~~~ EU Servers ~~~~~"
-        embed = discord.Embed(color=color, description=formatting.inline(description))
+        embed = discord.Embed(color=color, description=Formatting.inline(description))
         for world in results:
             if world["id"] >= 2001:
-                embed.add_field(name=world["name"], value=formatting.inline(world["population"]), inline=True)
+                embed.add_field(name=world["name"], value=Formatting.inline(world["population"]), inline=True)
 
         await ctx.send(embed=embed)
 
@@ -261,12 +261,12 @@ class GW2Misc(commands.Cog):
     #     """
     #
     #     await ctx.message.channel.trigger_typing()
-    #     if (utils.is_nping_installed()):
+    #     if (BotUtils.is_nping_installed()):
     #         max_rtt = None
     #         min_rtt = None
     #         avg_rtt = None
     #         world_name = str(world_name.replace(ctx.prefix+"gw2 ping ", "")).split(' ', 1)[0]
-    #         ip = bot.gw2_settings[world_name.upper()] # gw2Utils.get_ini_settings("WORLDS_IP", world_name.upper())
+    #         ip = bot.gw2_settings[world_name.upper()] # Gw2Utils.get_ini_settings("WORLDS_IP", world_name.upper())
     #         result = subprocess.Popen(['nping','-c3','--tcp-connect','-p6112',ip], shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     #         for line in result.stdout.readlines():
     #             if "Max rtt" in str(line, 'utf-8'):
@@ -291,13 +291,13 @@ class GW2Misc(commands.Cog):
     #     elif(world_name.upper() == "GREENBL"):
     #         color = discord.Color.green()
     #     else:
-    #         color = utils.get_random_color()
+    #         color = BotUtils.get_random_color()
     #
     #     msg = f"IP: {ip}\n"
     #     msg += f"Max: {max_rtt}\n"
     #     msg += f"Min: {min_rtt}\n"
     #     msg += f"Avg: {avg_rtt}"
-    #     embed = discord.Embed(color=color,description=world_name.upper()+"\n"+formatting.inline(msg))
+    #     embed = discord.Embed(color=color,description=world_name.upper()+"\n"+Formatting.inline(msg))
     #     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
     #     embed.set_footer(text=f"For more info: {ctx.prefix}help gw2 ping")
-    #     await utils.send_embed(self, ctx, embed, False, msg)
+    #     await BotUtils.send_embed(self, ctx, embed, False, msg)

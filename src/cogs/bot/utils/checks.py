@@ -8,7 +8,7 @@
 # # -*- coding: utf-8 -*-
 
 from discord.ext import commands
-from src.cogs.bot.utils import bot_utils as utils
+from src.cogs.bot.utils import bot_utils as BotUtils
 
 
 class Checks:
@@ -18,7 +18,7 @@ class Checks:
     ################################################################################
     def check_is_admin():
         def predicate(ctx):
-            if utils.is_member_admin(ctx.message.author):
+            if BotUtils.is_member_admin(ctx.message.author):
                 return True
             else:
                 raise commands.CheckFailure(message="not admin")
@@ -28,7 +28,7 @@ class Checks:
     ################################################################################
     def check_is_bot_owner():
         def predicate(ctx):
-            if utils.is_bot_owner(ctx, ctx.message.author):
+            if BotUtils.is_bot_owner(ctx, ctx.message.author):
                 return True
             else:
                 raise commands.CheckFailure(message="not owner")
@@ -39,7 +39,7 @@ class Checks:
 #         async def predicate(ctx):
 #             musicUsersSql = MusicUsersSql(ctx.bot.log)
 #             rs = await musicUsersSql.get_allowed_music_user(ctx.message.author)
-#             adm = utils.is_member_admin(ctx.message.author)
+#             adm = BotUtils.is_member_admin(ctx.message.author)
 #             if (len(rs)>0) or (adm == True):
 #                 return True
 #             else:

@@ -8,7 +8,7 @@
 # # -*- coding: utf-8 -*-
 
 import discord
-from src.cogs.bot.utils import bot_utils as utils
+from src.cogs.bot.utils import bot_utils as BotUtils
 from src.databases.databases import Databases
 
 
@@ -38,7 +38,7 @@ class CommandsSql:
 
     ################################################################################
     async def insert_command(self, user: discord.User, command_name: str, text: str):
-        todays_date = utils.get_todays_date_time()
+        todays_date = BotUtils.get_todays_date_time()
         sql = f""" INSERT INTO commands (discord_server_id, discord_author_id, command_name, description, date)
             VALUES (
             {user.guild.id},

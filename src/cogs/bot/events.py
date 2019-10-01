@@ -11,9 +11,10 @@ from src.sql.bot.bot_configs_sql import BotConfigsSql
 from src.sql.bot.server_configs_sql import ServerConfigsSql
 from src.sql.bot.servers_sql import ServersSql
 from src.sql.bot.users_sql import UsersSql
-from src.cogs.gw2.utils import gw2_utils as gw2Utils
-from src.cogs.bot.utils import bot_utils as utils, constants
-from src.cogs.bot.utils import bot_utils_events as utilsEvents
+from src.cogs.gw2.utils import gw2_utils as Gw2Utils
+from src.cogs.bot.utils import bot_utils as BotUtils
+from src.cogs.bot.utils import constants
+from src.cogs.bot.utils import bot_utils_events as UtilsEvents
 from discord.ext import commands
 import datetime
 import discord
@@ -57,14 +58,14 @@ class Events(commands.Cog):
                 return
 
             if (isinstance(ctx.channel, discord.DMChannel)):
-                await utilsEvents.execute_private_msg(self, ctx)
+                await UtilsEvents.execute_private_msg(self, ctx)
             else:
-                await utilsEvents.execute_server_msg(self, ctx)
+                await UtilsEvents.execute_server_msg(self, ctx)
 
         ################################################################################
         @bot.event
         async def on_guild_join(guild: discord.Guild):
-            await utilsEvents.insert_default_initial_configs(bot)
+            await UtilsEvents.insert_default_initial_configs(bot)
             botConfigsSql = BotConfigsSql(self.bot)
             configs = await botConfigsSql.get_bot_configs()
             prefix = configs[0]["prefix"]
@@ -90,13 +91,13 @@ class Events(commands.Cog):
                    f"To get a list of commands: `{prefix}help`"
             embed = discord.Embed(color=discord.Color.green(), description=msg)
             embed.set_author(name=guild.me.display_name, icon_url=guild.me.avatar_url)
-            channel_to_send_msg = await utils.channel_to_send_msg(bot, guild)
+            channel_to_send_msg = await BotUtils.channel_to_send_msg(bot, guild)
             if channel_to_send_msg is not None:
                 try:
                     await channel_to_send_msg.send(embed=embed)
                 except discord.HTTPException:
                     await channel_to_send_msg.send(msg)
-            await utils.create_admin_commands_channel(self, guild)
+            await BotUtils.create_admin_commands_channel(self, guild)
 
         ################################################################################
         @bot.event
@@ -117,7 +118,7 @@ class Events(commands.Cog):
                 embed.set_thumbnail(url=member.avatar_url)
                 embed.set_author(name="Joined the Server")
                 embed.set_footer(text=f"{now.strftime('%c')}")
-                channel_to_send_msg = await utils.channel_to_send_msg(bot, member.guild)
+                channel_to_send_msg = await BotUtils.channel_to_send_msg(bot, member.guild)
                 if channel_to_send_msg is not None:
                     try:
                         await channel_to_send_msg.send(embed=embed)
@@ -138,7 +139,7 @@ class Events(commands.Cog):
                 embed.set_thumbnail(url=member.avatar_url)
                 embed.set_author(name="Left the Server")
                 embed.set_footer(text=f"{now.strftime('%c')}")
-                channel_to_send_msg = await utils.channel_to_send_msg(bot, member.guild)
+                channel_to_send_msg = await BotUtils.channel_to_send_msg(bot, member.guild)
                 if channel_to_send_msg is not None:
                     try:
                         await channel_to_send_msg.send(embed=embed)
@@ -166,8 +167,8 @@ class Events(commands.Cog):
                     msg += f"New Name: `{after.name}`\n"
 
                 if str(before.region) != str(after.region):
-                    before_flag = utils.get_region_flag(str(before.region))
-                    after_flag = utils.get_region_flag(str(after.region))
+                    before_flag = BotUtils.get_region_flag(str(before.region))
+                    after_flag = BotUtils.get_region_flag(str(after.region))
                     if before.region is not None:
                         embed.add_field(name="Previous Region", value=before_flag + " " + str(before.region))
                     embed.add_field(name="New Region", value=f"{after_flag} {after.region}")
@@ -186,7 +187,7 @@ class Events(commands.Cog):
                     msg += f"New Server Owner: `{after.owner}`\n"
 
                 if len(embed.fields) > 0:
-                    channel_to_send_msg = await utils.channel_to_send_msg(bot, after)
+                    channel_to_send_msg = await BotUtils.channel_to_send_msg(bot, after)
                     if channel_to_send_msg is not None:
                         try:
                             await channel_to_send_msg.send(embed=embed)
@@ -201,9 +202,9 @@ class Events(commands.Cog):
 
             if before.activity != after.activity:
                 if after.activity is not None and after.activity.type == discord.ActivityType.playing:
-                    await gw2Utils.last_session_gw2_event_after(bot, after)
+                    await Gw2Utils.last_session_gw2_event_after(bot, after)
                 elif before.activity is not None and before.activity.type == discord.ActivityType.playing:
-                    await gw2Utils.last_session_gw2_event_before(bot, before)
+                    await Gw2Utils.last_session_gw2_event_before(bot, before)
 
             # do nothing if changed status
             if str(before.status) != str(after.status):
@@ -241,7 +242,7 @@ class Events(commands.Cog):
                     msg += f"New Avatar: \n{after.avatar_url}\n"
 
                 if len(embed.fields) > 0:
-                    channel_to_send_msg = await utils.channel_to_send_msg(bot, after.guild)
+                    channel_to_send_msg = await BotUtils.channel_to_send_msg(bot, after.guild)
                     if channel_to_send_msg is not None:
                         try:
                             await channel_to_send_msg.send(embed=embed)
@@ -259,7 +260,7 @@ class Events(commands.Cog):
             bot.settings["author"] = f"{author.name}#{author.discriminator}"
             full_db_name = bot.settings["full_db_name"]
 
-            conn = await utils.check_database_connection(bot)
+            conn = await BotUtils.check_database_connection(bot)
             if conn is None:
                 msg = "Cannot Create Database Connection.\n" \
                       f"Please check if the server is up and try again ({full_db_name})."
@@ -269,17 +270,17 @@ class Events(commands.Cog):
                 #await bot.loop.exception()
                 return
 
-            await utilsEvents.set_initial_sql_tables(bot)
-            await utilsEvents.insert_default_initial_configs(bot)
-            await utilsEvents.set_others_sql_configs(bot)
-            await utilsEvents.run_bg_tasks(bot)
-            utils.clear_screen()
+            await UtilsEvents.set_initial_sql_tables(bot)
+            await UtilsEvents.insert_default_initial_configs(bot)
+            await UtilsEvents.set_others_sql_configs(bot)
+            await UtilsEvents.run_bg_tasks(bot)
+            BotUtils.clear_screen()
 
             # executing all sql files inside dir data/sql
             if bot.settings["ExecuteSqlFilesOnBoot"].lower() == "yes":
-                await utils.execute_all_sql_files(self)
+                await BotUtils.execute_all_sql_files(self)
 
-            bot_stats = utils.get_bot_stats(bot)
+            bot_stats = BotUtils.get_bot_stats(bot)
             servers = bot_stats["servers"]
             users = bot_stats["users"]
             channels = bot_stats["channels"]

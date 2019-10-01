@@ -6,7 +6,7 @@
 # * Python            : 3.6
 # |*****************************************************
 # # -*- coding: utf-8 -*-
-from src.cogs.bot.utils import bot_utils as utils
+
 from src.databases.databases import Databases
 
 

@@ -9,11 +9,10 @@
 
 import discord
 import datetime
-from src.cogs.bot.utils import chat_formatting as formatting
+from src.cogs.bot.utils import chat_formatting as Formatting
 from src.cogs.gw2.utils.gw2_api import Gw2Api
 from discord.ext import commands
-from src.cogs.bot.utils import bot_utils as utils
-import src.cogs.gw2.utils.gw2_constants as gw2Constants
+from src.cogs.bot.utils import bot_utils as BotUtils
 
 
 class GW2Daily(commands.Cog):
@@ -34,21 +33,21 @@ class GW2Daily(commands.Cog):
             await _daily_embed(self, ctx, "fractals")
         else:
             msg = "Wrong type.\n Types need to be pve, pvp, wvw, fractals.\nPlease try again."
-            await utils.send_error_msg(self, ctx, msg)
+            await BotUtils.send_error_msg(self, ctx, msg)
 
 
 ################################################################################
 async def _daily_embed(self, ctx, daily_type: str):
     await ctx.message.channel.trigger_typing()
     achiev_id_lst = []
-    todays_date = utils.format_date(datetime.datetime.now())
+    todays_date = BotUtils.format_date(datetime.datetime.now())
     gw2Api = Gw2Api(self.bot)
 
     try:
         endpoint = "achievements/daily"
         api_all_dailies = await gw2Api.call_api(endpoint)
     except Exception as e:
-        await utils.send_error_msg(self, ctx, e)
+        await BotUtils.send_error_msg(self, ctx, e)
         return self.bot.log.error(ctx, e)
 
     for achiev_id in api_all_dailies[daily_type]:
@@ -59,7 +58,7 @@ async def _daily_embed(self, ctx, daily_type: str):
         endpoint = f"achievements?ids={achiev_ids}"
         api_daily_desc = await gw2Api.call_api(endpoint)
     except Exception as e:
-        await utils.send_error_msg(self, ctx, e)
+        await BotUtils.send_error_msg(self, ctx, e)
         return self.bot.log.error(ctx, e)
 
     color = self.bot.gw2_settings["EmbedColor"]
@@ -79,14 +78,14 @@ async def _daily_embed(self, ctx, daily_type: str):
             reward_name = api_items_desc["name"]
             reward_amount = str(api_daily_desc[x]["rewards"][0]["count"])
         except Exception as e:
-            await utils.send_error_msg(self, ctx, e)
+            await BotUtils.send_error_msg(self, ctx, e)
             return self.bot.log.error(ctx, e)
 
         dt = x + 1
         name = f"{dt}) {name} ({reward_amount} {reward_name})"
-        value = formatting.inline(requirement)
+        value = Formatting.inline(requirement)
 
         embed.add_field(name=name, value=value, inline=False)
 
     await ctx.message.channel.trigger_typing()
-    await utils.send_embed(self, ctx, embed, False)
+    await BotUtils.send_embed(self, ctx, embed, False)

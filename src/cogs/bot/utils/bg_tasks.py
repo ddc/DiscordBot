@@ -11,7 +11,7 @@ import discord
 import asyncio
 import random
 from src.cogs.bot.utils import constants
-from src.cogs.gw2.utils import gw2_utils as gw2Utils
+from src.cogs.gw2.utils import gw2_utils as Gw2Utils
 
 
 class BgTasks:
@@ -35,5 +35,5 @@ class BgTasks:
         await self.bot.wait_until_ready()
         while not self.bot.is_closed():
             self.bot.log.info(f"(Background task {task_timer}s)(Gw2 roles)({server}:{server.id})(Role:{role})")
-            await gw2Utils.check_gw2_roles(self, server)
+            await Gw2Utils.check_gw2_roles(self, server)
             await asyncio.sleep(int(task_timer))
