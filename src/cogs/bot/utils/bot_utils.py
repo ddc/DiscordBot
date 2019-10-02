@@ -385,7 +385,7 @@ def get_server_everyone_role(server: discord.Guild):
 
 ################################################################################
 def get_all_ini_file_settings(file_name: str):
-    print(f"Accessing file: {file_name}")
+    #print(f"Accessing file: {file_name}")
     dictionary = {}
     parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
     parser.optionxform = str  # this wont change all values to lowercase
