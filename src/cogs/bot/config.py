@@ -15,6 +15,7 @@ from .utils import chat_formatting as Formatting
 from .utils.checks import Checks
 from src.sql.bot.profanity_filters_sql import ProfanityFilterSql
 from src.sql.bot.server_configs_sql import ServerConfigsSql
+from src.cogs.bot.utils.cooldowns import CoolDowns
 
 
 class Config(commands.Cog):
@@ -60,7 +61,7 @@ class Config(commands.Cog):
     ################################################################################
     @config.command(name="bladmin")
     @Checks.check_is_bot_owner()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_blacklist_admins(self, ctx, *, new_status: str):
         """(Able to blacklist server's admins)
         
@@ -93,7 +94,7 @@ class Config(commands.Cog):
     ################################################################################
     @config.command(name="muteadmin")
     @Checks.check_is_bot_owner()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_mute_admins(self, ctx, *, new_status: str):
         """(Able to mute server's admins)
         
@@ -125,7 +126,7 @@ class Config(commands.Cog):
 
     ################################################################################
     @config.command(name="joinmessage")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_join_message(self, ctx, *, new_status: str):
         """(Show message when a user joins the server)
 
@@ -155,7 +156,7 @@ class Config(commands.Cog):
 
     ################################################################################
     @config.command(name="leavemessage")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_leave_message(self, ctx, *, new_status: str):
         """(Show message when a user leaves the server)
          
@@ -185,7 +186,7 @@ class Config(commands.Cog):
 
     ################################################################################
     @config.command(name="servermessage")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_server_message(self, ctx, *, new_status: str):
         """(Show message when a server gets updated)
          
@@ -215,7 +216,7 @@ class Config(commands.Cog):
 
     ################################################################################
     @config.command(name="membermessage")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_member_message(self, ctx, *, new_status: str):
         """(Show message when a member make changes on his/her profile)
          
@@ -245,7 +246,7 @@ class Config(commands.Cog):
 
     ################################################################################
     @config.command(name="blockinvisible")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_block_invis_members(self, ctx, *, new_status: str):
         """(Block messages from invisible members)
          
@@ -275,7 +276,7 @@ class Config(commands.Cog):
 
     ################################################################################
     @config.command(name="mentionpool")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_mention_everyone_pool_cmd(self, ctx, *, new_status: str):
         """(Mention everyone when the pool command is used)
          
@@ -305,7 +306,7 @@ class Config(commands.Cog):
 
     ################################################################################
     @config.command(name="anonymouspool")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_anonymous_pool(self, ctx, *, new_status: str):
         """(Hide the author's name from the pool command)
          
@@ -335,7 +336,7 @@ class Config(commands.Cog):
 
     ################################################################################
     @config.command(name="botreactions")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_bot_word_reactions(self, ctx, *, new_status: str):
         """(Bot will react to member words)
          
@@ -365,7 +366,7 @@ class Config(commands.Cog):
 
     ################################################################################
     @config.command(name="defaultchannel")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_default_text_channel(self, ctx, *, text_channel: str):
         """(Set default text channel to be used for bot messages)
         
@@ -405,7 +406,7 @@ class Config(commands.Cog):
 
     ################################################################################
     @config.command(name="pfilter")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_pfilter(self, ctx, *, stats_channel: str):
         """(Block offensive words by users)
          
@@ -460,7 +461,7 @@ class Config(commands.Cog):
 
     ################################################################################
     @config.command(name="list")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "ConfigCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_config_list(self, ctx):
         """(List all bot configurations)
         

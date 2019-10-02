@@ -24,8 +24,6 @@ import subprocess
 import json
 import os
 import sys
-
-
 # import asyncio
 # from bs4 import BeautifulSoup
 
@@ -386,12 +384,13 @@ def get_server_everyone_role(server: discord.Guild):
 
 
 ################################################################################
-def get_all_ini_file_settings(settings_filename: str):
+def get_all_ini_file_settings(file_name: str):
+    print(f"Accessing file: {file_name}")
     dictionary = {}
     parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
     parser.optionxform = str  # this wont change all values to lowercase
     parser._interpolation = configparser.ExtendedInterpolation()
-    parser.read(settings_filename)
+    parser.read(file_name)
     for section in parser.sections():
         # dictionary[section] = {}
         for option in parser.options(section):
@@ -408,19 +407,18 @@ def get_all_ini_file_settings(settings_filename: str):
 
 
 ################################################################################
-def get_ini_settings(section: str, config_name: str):
-    #print(f"Accessing: {section} - {config_name}")
-    settings_filename = constants.SETTINGS_FILENAME
-    parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
-    parser._interpolation = configparser.ExtendedInterpolation()
-    parser.read(settings_filename)
-    try:
-        value = parser.get(section, config_name).replace("\"", "")
-    except Exception:
-        value = None
-    if value is not None and len(value) == 0:
-        value = None
-    return value
+# def get_ini_settings(file_name: str, section: str, config_name: str):
+#     #print(f"Accessing: {file_name}: {section}-{config_name}")
+#     parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
+#     parser._interpolation = configparser.ExtendedInterpolation()
+#     parser.read(file_name)
+#     try:
+#         value = parser.get(section, config_name).replace("\"", "")
+#     except Exception:
+#         value = None
+#     if value is not None and len(value) == 0:
+#         value = None
+#     return value
 
 
 ################################################################################

@@ -17,6 +17,7 @@ from .utils import chat_formatting as Formatting
 from .utils.checks import Checks
 from src.sql.bot.bot_configs_sql import BotConfigsSql
 from src.sql.bot.servers_sql import ServersSql
+from src.cogs.bot.utils.cooldowns import CoolDowns
 
 
 class Owner(commands.Cog):
@@ -54,7 +55,7 @@ class Owner(commands.Cog):
 
     ################################################################################
     @owner.command(name="prefix")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_prefix(self, ctx, *, new_prefix: str):
         """(Change bot prefix for commands)
         
@@ -88,7 +89,7 @@ class Owner(commands.Cog):
 
     ################################################################################
     @owner.command(name="botdescription")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_description(self, ctx, *, desc: str):
         """(Change bot description)
         
@@ -109,7 +110,7 @@ class Owner(commands.Cog):
 
     ################################################################################
     @owner.command(name="bgtaskgame")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_bg_task_change_game(self, ctx, *, new_status: str):
         """(Background task to update the game bot is playing from time to time)
         
@@ -148,7 +149,7 @@ class Owner(commands.Cog):
         ################################################################################
 
     @owner.command(name="botgame")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_botgame(self, ctx, *, game: str):
         """(Change game that bot is playing)
          
@@ -166,7 +167,7 @@ class Owner(commands.Cog):
         msg = f"```I'm now playing: {game}```"
         await self.bot.change_presence(activity=discord.Game(name=bot_game_desc))
 
-        if self.bot.settings["BGChangeGame"] == "Y":
+        if self.bot.settings["BGChangeGame"].lower() == "yes":
             bg_task_warning = f"Background task that update bot activity is ON\nActivity will change after {self.bot.settings['BGActivityTimer']} secs."
             embed.description = bg_task_warning
             await BotUtils.send_embed(self, ctx, embed, True, msg)
@@ -176,7 +177,7 @@ class Owner(commands.Cog):
 
     ################################################################################
     @owner.command(name="reloadcog")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_reload_cog(self, ctx, *, name: str):
         """(Command to reload a module)
         
@@ -201,7 +202,7 @@ class Owner(commands.Cog):
 
     ################################################################################
     @owner.command(name="servers")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_servers(self, ctx):
         """(Display all servers in database)
 
@@ -239,7 +240,7 @@ class Owner(commands.Cog):
 
     ################################################################################
     @owner.command(name="reloadallcogs")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_reload(self, ctx):
         """(Command to reload all bot cogs)
          
@@ -257,7 +258,7 @@ class Owner(commands.Cog):
 
     ################################################################################
     @owner.command(name="executesql")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "OwnerCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_execute_sql(self, ctx):
         """(Command to execute all sql files inside data/sql directory)
          

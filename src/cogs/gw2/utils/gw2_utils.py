@@ -143,22 +143,6 @@ def is_private_message(self, ctx):
 
 
 ################################################################################
-def get_ini_settings(section: str, config_name: str):
-    #print(f"Accessing: {section} - {config_name}")
-    settings_filename = Gw2Constants.GW2_SETTINGS_FILENAME
-    parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
-    parser._interpolation = configparser.ExtendedInterpolation()
-    parser.read(settings_filename)
-    try:
-        value = parser.get(section, config_name).replace("\"", "")
-    except Exception:
-        value = None
-    if value is not None and len(value) == 0:
-        value = None
-    return value
-
-
-################################################################################
 async def last_session_gw2_event_after(bot, after: discord.Member):
     if str(after.activity.name) == "Guild Wars 2":
         gw2Configs = Gw2ConfigsSql(bot)

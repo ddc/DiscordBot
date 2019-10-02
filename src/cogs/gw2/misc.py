@@ -266,7 +266,7 @@ class GW2Misc(commands.Cog):
     #         min_rtt = None
     #         avg_rtt = None
     #         world_name = str(world_name.replace(ctx.prefix+"gw2 ping ", "")).split(' ', 1)[0]
-    #         ip = bot.gw2_settings[world_name.upper()] # Gw2Utils.get_ini_settings("WORLDS_IP", world_name.upper())
+    #         ip = bot.gw2_settings[world_name.upper()] # BotUtils.get_ini_settings(Gw2Constants.GW2_SETTINGS_FILENAME, "WORLDS_IP", world_name.upper())
     #         result = subprocess.Popen(['nping','-c3','--tcp-connect','-p6112',ip], shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     #         for line in result.stdout.readlines():
     #             if "Max rtt" in str(line, 'utf-8'):

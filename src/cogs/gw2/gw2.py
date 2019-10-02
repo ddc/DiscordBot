@@ -19,6 +19,7 @@ from src.cogs.gw2.last_session import GW2LastSession
 from src.cogs.gw2.misc import GW2Misc
 from src.cogs.gw2.wvw import GW2WvW
 from src.cogs.bot.utils import bot_utils as BotUtils
+from src.cogs.gw2.utils.gw2_cooldowns import GW2CoolDowns
 
 
 class GuildWars2(commands.Cog):
@@ -61,13 +62,13 @@ class GuildWars2(commands.Cog):
 
     ################################################################################
     @gw2Group.command()
-    @commands.cooldown(1, Gw2Utils.get_ini_settings("Gw2Cooldowns", "AccountCooldown"), BucketType.user)
+    @commands.cooldown(1, GW2CoolDowns.AccountCooldown.value, BucketType.user)
     async def account(self, ctx):
         await GW2Account.gw2_account(self, ctx)
 
     ################################################################################
     @gw2Group.command()
-    @commands.cooldown(1, Gw2Utils.get_ini_settings("Gw2Cooldowns", "ApiKeysCooldown"), BucketType.user)
+    @commands.cooldown(1, GW2CoolDowns.ApiKeysCooldown.value, BucketType.user)
     @Checks.check_is_admin()
     async def config(self, ctx, *, sub_command: str = None):
         """(Guild Wars 2 configurations commands - Admin)
@@ -103,7 +104,7 @@ class GuildWars2(commands.Cog):
 
     ################################################################################
     @gw2Group.command()
-    @commands.cooldown(1, Gw2Utils.get_ini_settings("Gw2Cooldowns", "DailyCooldown"), BucketType.user)
+    @commands.cooldown(1, GW2CoolDowns.DailyCooldown.value, BucketType.user)
     async def daily(self, ctx, *, daily_type: str = None):
         """(Show today's Dailies)
         
@@ -122,7 +123,7 @@ class GuildWars2(commands.Cog):
 
     ################################################################################
     @gw2Group.command()
-    @commands.cooldown(1, Gw2Utils.get_ini_settings("Gw2Cooldowns", "ApiKeysCooldown"), BucketType.user)
+    @commands.cooldown(1, GW2CoolDowns.ApiKeysCooldown.value, BucketType.user)
     async def key(self, ctx, *, cmd_api_key: str = None):
         """(Commands related to GW2 API keys)
 
@@ -144,31 +145,31 @@ class GuildWars2(commands.Cog):
 
     ################################################################################
     @gw2Group.command(name="lastsession")
-    @commands.cooldown(1, Gw2Utils.get_ini_settings("Gw2Cooldowns", "LastSessionCooldown"), BucketType.user)
+    @commands.cooldown(1, GW2CoolDowns.LastSessionCooldown.value, BucketType.user)
     async def lastSession(self, ctx):
         await GW2LastSession.gw2_lastSession(self, ctx)
 
     ################################################################################ WVW
     @gw2Group.command()
-    @commands.cooldown(1, Gw2Utils.get_ini_settings("Gw2Cooldowns", "WvwCooldown"), BucketType.user)
+    @commands.cooldown(1, GW2CoolDowns.WvwCooldown.value, BucketType.user)
     async def wvwinfo(self, ctx, *, world: str = None):
         await GW2WvW.gw2_wvwinfo(self, ctx, world)
 
     ################################################################################
     @gw2Group.command()
-    @commands.cooldown(1, Gw2Utils.get_ini_settings("Gw2Cooldowns", "WvwCooldown"), BucketType.user)
+    @commands.cooldown(1, GW2CoolDowns.WvwCooldown.value, BucketType.user)
     async def match(self, ctx, *, world: str = None):
         await GW2WvW.gw2_match(self, ctx, world)
 
     ################################################################################
     @gw2Group.command()
-    @commands.cooldown(1, Gw2Utils.get_ini_settings("Gw2Cooldowns", "WvwCooldown"), BucketType.user)
+    @commands.cooldown(1, GW2CoolDowns.WvwCooldown.value, BucketType.user)
     async def kdr(self, ctx, *, world: str = None):
         await GW2WvW.gw2_kdr(self, ctx, world)
 
     ################################################################################ MISC
     @gw2Group.command()
-    @commands.cooldown(1, Gw2Utils.get_ini_settings("Gw2Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, GW2CoolDowns.MiscCooldown.value, BucketType.user)
     async def wiki(self, ctx, *, search: str = None):
         """ (Search the Guild wars 2 wiki)
         
@@ -184,7 +185,7 @@ class GuildWars2(commands.Cog):
 
     ################################################################################
     @gw2Group.command()
-    @commands.cooldown(1, Gw2Utils.get_ini_settings("Gw2Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, GW2CoolDowns.MiscCooldown.value, BucketType.user)
     async def info(self, ctx, *, skill: str = None):
         """ (Information about a given name/skill/rune)
         
@@ -200,7 +201,7 @@ class GuildWars2(commands.Cog):
 
     ################################################################################
     @gw2Group.command()
-    @commands.cooldown(1, Gw2Utils.get_ini_settings("Gw2Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, GW2CoolDowns.MiscCooldown.value, BucketType.user)
     async def worlds(self, ctx):
         await GW2Misc.gw2_worlds(self, ctx)
 

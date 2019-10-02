@@ -1,7 +1,8 @@
 __all__ = ['bg_tasks',
+           'bot_utils',
+           'bot_utils_events',
            'chat_formatting',
            'checks',
            'constants',
-           'bot_utils_events',
-           'bot_utils'
+           'cooldowns'
            ]

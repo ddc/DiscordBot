@@ -70,7 +70,7 @@ async def set_presence(bot):
     if bot.settings["ExclusiveUsers"] is not None:
         bot_game_desc = f"PRIVATE BOT | {prefix}help"
         await bot.change_presence(status=discord.Status.online, activity=discord.Game(name=bot_game_desc))
-    elif bot.settings["BGChangeGame"] == "Y":
+    elif bot.settings["BGChangeGame"].lower() == "yes":
         bgTasks = BgTasks(bot)
         bot.loop.create_task(bgTasks.bgtask_change_presence(bot.settings["BGActivityTimer"]))
     else:

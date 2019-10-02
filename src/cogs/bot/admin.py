@@ -17,6 +17,7 @@ from src.sql.bot.blacklists_sql import BlacklistsSql
 from src.sql.bot.mutes_sql import MutesSql
 from src.sql.bot.commands_sql import CommandsSql
 from src.sql.bot.server_configs_sql import ServerConfigsSql
+from src.cogs.bot.utils.cooldowns import CoolDowns
 
 
 class Admin(commands.Cog):
@@ -28,7 +29,7 @@ class Admin(commands.Cog):
     ################################################################################
     @commands.command()
     @Checks.check_is_admin()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "AdminCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.AdminCooldown.value, BucketType.user)
     async def kick(self, ctx, member: discord.Member, *, reason=None):
         """(Kick member from the server)
         
@@ -95,7 +96,7 @@ class Admin(commands.Cog):
     ###############################################################################
     @commands.command()
     @Checks.check_is_admin()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "AdminCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.AdminCooldown.value, BucketType.user)
     async def ban(self, ctx, member: discord.Member, *, reason=None):
         """(Ban member from the server)
 
@@ -162,7 +163,7 @@ class Admin(commands.Cog):
     ###############################################################################
     @commands.command()
     @Checks.check_is_admin()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "AdminCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.AdminCooldown.value, BucketType.user)
     async def unban(self, ctx, *, user: discord.User):
         """(Unban user from the server)
 
@@ -186,7 +187,7 @@ class Admin(commands.Cog):
     ###############################################################################
     @commands.command()
     @Checks.check_is_admin()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "AdminCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.AdminCooldown.value, BucketType.user)
     async def banlist(self, ctx):
         """(List all members that have been banned from the server)
         
@@ -246,7 +247,7 @@ class Admin(commands.Cog):
 
     ################################################################################
     @blacklist.command(name="add")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "BlacklistCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.BlacklistCooldown.value, BucketType.user)
     async def blacklist_add(self, ctx, member: discord.Member, *, reason=None):
         """(Add user to blacklist)
 
@@ -294,7 +295,7 @@ class Admin(commands.Cog):
 
     #################################################################################
     @blacklist.command(name="remove")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "BlacklistCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.BlacklistCooldown.value, BucketType.user)
     async def blacklist_remove_user(self, ctx, *, member: discord.Member):
         """(Remove blacklisted user)
          
@@ -319,7 +320,7 @@ class Admin(commands.Cog):
 
     #################################################################################
     @blacklist.command(name="removeall")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "BlacklistCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.BlacklistCooldown.value, BucketType.user)
     async def blacklist_remove_all_users(self, ctx):
         """(Remove all blacklisted users)
          
@@ -337,7 +338,7 @@ class Admin(commands.Cog):
 
     #################################################################################
     @blacklist.command(name="list")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "BlacklistCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.BlacklistCooldown.value, BucketType.user)
     async def blacklist_list(self, ctx):
         """(List all blacklisted users)
          
@@ -421,7 +422,7 @@ class Admin(commands.Cog):
 
     ################################################################################
     @mute.command(name="add")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MuteCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.MuteCooldown.value, BucketType.user)
     async def mute_add(self, ctx, member: discord.Member, *, reason=None):
         """(Mute an user)
 
@@ -468,7 +469,7 @@ class Admin(commands.Cog):
 
     #################################################################################
     @mute.command(name="remove")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MuteCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.MuteCooldown.value, BucketType.user)
     async def mute_remove_user(self, ctx, *, member: discord.Member):
         """(Remove muted user)
          
@@ -493,7 +494,7 @@ class Admin(commands.Cog):
 
     #################################################################################
     @mute.command(name="removeall")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MuteCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.MuteCooldown.value, BucketType.user)
     async def mute_remove_all_users(self, ctx):
         """(Remove all muted users)
          
@@ -511,7 +512,7 @@ class Admin(commands.Cog):
 
     #################################################################################
     @mute.command(name="list")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MuteCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.MuteCooldown.value, BucketType.user)
     async def mute_list(self, ctx):
         """(List all muted users)
          
@@ -581,7 +582,7 @@ class Admin(commands.Cog):
 
     ################################################################################
     @customcom.command(name="add")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "CustomCmdCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.CustomCmdCooldown.value, BucketType.user)
     async def cc_add(self, ctx, command_name: str, *, text: str):
         """(Adds a custom command)
 
@@ -616,7 +617,7 @@ class Admin(commands.Cog):
 
     ################################################################################
     @customcom.command(name="remove")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "CustomCmdCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.CustomCmdCooldown.value, BucketType.user)
     async def cc_remove(self, ctx, command_name: str):
         """(Removes a custom command)
 
@@ -644,7 +645,7 @@ class Admin(commands.Cog):
 
     ################################################################################
     @customcom.command(name="edit")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "CustomCmdCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.CustomCmdCooldown.value, BucketType.user)
     async def cc_edit(self, ctx, command_name: str, *, text: str):
         """(Edits a custom command)
 
@@ -674,7 +675,7 @@ class Admin(commands.Cog):
 
     ################################################################################
     @customcom.command(name="removeall")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "CustomCmdCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.CustomCmdCooldown.value, BucketType.user)
     async def cc_remove_all(self, ctx):
         """(Removes all custom commands)
 
@@ -696,7 +697,7 @@ class Admin(commands.Cog):
 
     ################################################################################
     @customcom.command(name="list")
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "CustomCmdCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.CustomCmdCooldown.value, BucketType.user)
     async def cc_list(self, ctx):
         """(Shows custom commands list)
 

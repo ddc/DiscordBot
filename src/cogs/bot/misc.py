@@ -19,6 +19,7 @@ from .utils import chat_formatting as Formatting
 from .utils.checks import Checks
 from src.sql.bot.server_configs_sql import ServerConfigsSql
 from src.sql.bot.dice_rolls_sql import DiceRollsSql
+from src.cogs.bot.utils.cooldowns import CoolDowns
 
 
 class Misc(commands.Cog):
@@ -29,16 +30,16 @@ class Misc(commands.Cog):
 
     ################################################################################
     # @commands.command()
-    # @commands.cooldown(1, 5, BucketType.user)
+    # @commands.cooldown(1, CoolDowns.RollDiceCooldown.value, BucketType.user)
     # async def test(self, ctx):
     #     """(test)"""
     #
-    #     color = self.bot.settings["EmbedOwnerColor"]
-    #     print(color)
-
+    #     a = CoolDowns.RollDiceCooldown.value
+    #     print(a)
+    #
     ################################################################################
     @commands.group()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "RollDiceCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.RollDiceCooldown.value, BucketType.user)
     async def roll(self, ctx):
         """(Rolls random number [between 1 and user choice])
 
@@ -145,13 +146,14 @@ class Misc(commands.Cog):
             member = BotUtils.get_object_member_by_str(self, ctx, member_str)
             if member is None:
                 await BotUtils.send_error_msg(self, ctx, f"Member `{member_str}` not found\n" \
-                                                      f"Use `{ctx.prefix}roll results member#1234`")
+                                                         f"Use `{ctx.prefix}roll results member#1234`")
                 return
 
             if dice_size is None:
                 rs = await diceRollsSql.get_all_user_dice_rolls(server.id, member.id)
                 if len(rs) == 0:
-                    await BotUtils.send_error_msg(self, ctx, f"There are no dice rolls from {member_str} in this server.")
+                    await BotUtils.send_error_msg(self, ctx,
+                                                  f"There are no dice rolls from {member_str} in this server.")
                     return
 
                 rolls_lst = []
@@ -173,7 +175,7 @@ class Misc(commands.Cog):
             rs = await diceRollsSql.get_all_server_dice_rolls(server.id, dice_size)
             if len(rs) == 0:
                 await BotUtils.send_error_msg(self, ctx,
-                                           f"There are no dice rolls of the size {dice_size} in this server.")
+                                              f"There are no dice rolls of the size {dice_size} in this server.")
                 return
 
             member_lst = []
@@ -210,7 +212,7 @@ class Misc(commands.Cog):
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def pool(self, ctx, *, questions: str):
         """(Creates a numeric list of choices pool)
 
@@ -290,7 +292,7 @@ class Misc(commands.Cog):
         ################################################################################
 
     @commands.command()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def simplepool(self, ctx, *, question: str):
         """(Create a simple yes,no,emojis pool)
 
@@ -391,7 +393,7 @@ class Misc(commands.Cog):
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def echo(self, ctx, *, msg: str):
         """(Show your msg again)
 
@@ -404,7 +406,7 @@ class Misc(commands.Cog):
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def ping(self, ctx):
         """(Test latency)
 
@@ -429,9 +431,10 @@ class Misc(commands.Cog):
     #             color = discord.Color.red()
     #         embed=discord.Embed(title=None, description=f"Ping: {p} ms", color=color)
     #         await ctx.send(embed=embed)
+    #
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def lmgtfy(self, ctx, *, search_terms: str):
         """(Creates a lmgtfy link)
 
@@ -447,7 +450,7 @@ class Misc(commands.Cog):
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "AdminCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.AdminCooldown.value, BucketType.user)
     async def invites(self, ctx):
         """(List active invites link for the current server)
 
@@ -483,7 +486,7 @@ class Misc(commands.Cog):
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def serverinfo(self, ctx):
         """(Shows server's informations)
 
@@ -537,7 +540,7 @@ class Misc(commands.Cog):
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def userinfo(self, ctx, *, member_str: str):
         """(Shows users's informations)
 
@@ -617,7 +620,7 @@ class Misc(commands.Cog):
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def about(self, ctx):
         """(Information about this bot)
 
@@ -685,7 +688,7 @@ class Misc(commands.Cog):
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, BotUtils.get_ini_settings("Cooldowns", "MiscCooldown"), BucketType.user)
+    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def lp(self, ctx):
         """(Useful information to learn python)
 
