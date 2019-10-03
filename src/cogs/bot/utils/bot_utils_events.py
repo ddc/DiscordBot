@@ -29,13 +29,6 @@ import os
 
 
 ################################################################################
-async def run_bg_tasks(bot):
-    print("Setting BackGround tasks...")
-    await set_presence(bot)
-    await set_gw2_roles(bot)
-
-
-################################################################################
 async def set_initial_sql_tables(bot):
     initialTablesSql = InitialTablesSql(bot)
     await initialTablesSql.create_initial_sqlite_bot_tables()
@@ -47,7 +40,6 @@ async def set_initial_sql_tables(bot):
 
 ################################################################################
 async def insert_default_initial_configs(bot):
-    print("Setting Default Initial configs...")
     serversSql = ServersSql(bot)
     await serversSql.insert_default_initial_server_configs(bot.guilds)
     usersSql = UsersSql(bot)
@@ -56,11 +48,16 @@ async def insert_default_initial_configs(bot):
 
 ################################################################################
 async def set_others_sql_configs(bot):
-    print("Setting Other Sql configs...")
     alterTablesSql = AlterTablesSql(bot)
     await alterTablesSql.alter_sqlite_tables()
     triggers = Triggers(bot)
     await triggers.create_triggers()
+
+
+################################################################################
+async def run_bg_tasks(bot):
+    await set_presence(bot)
+    await set_gw2_roles(bot)
 
 
 ################################################################################
@@ -81,24 +78,25 @@ async def set_presence(bot):
 
 ################################################################################
 async def set_gw2_roles(bot):
-    gw2Configs = Gw2ConfigsSql(bot)
-    gw2Roles = Gw2RolesSql(bot)
-    bgTasks = BgTasks(bot)
+    if bot.gw2_settings["BGCheckRoleTimer"].lower() == "yes":
+        gw2Configs = Gw2ConfigsSql(bot)
+        gw2Roles = Gw2RolesSql(bot)
+        bgTasks = BgTasks(bot)
 
-    for g in bot.guilds:
-        rs_gw2_rl = await gw2Roles.get_all_gw2_server_roles(g.id)
-        if len(rs_gw2_rl) > 0:
-            for key, value in rs_gw2_rl.items():
-                role_name = value["role_name"]
-                for rol in g.roles:
-                    if rol.name.lower() == role_name.lower():
-                        rs_gw2_sc = await gw2Configs.get_gw2_server_configs(g.id)
-                        if len(rs_gw2_sc) > 0:
-                            role_timer = rs_gw2_sc[0]["role_timer"]
-                        else:
-                            role_timer = bot.gw2_settings["CheckRoleTimer"]
+        for g in bot.guilds:
+            rs_gw2_rl = await gw2Roles.get_all_gw2_server_roles(g.id)
+            if len(rs_gw2_rl) > 0:
+                for key, value in rs_gw2_rl.items():
+                    role_name = value["role_name"]
+                    for rol in g.roles:
+                        if rol.name.lower() == role_name.lower():
+                            rs_gw2_sc = await gw2Configs.get_gw2_server_configs(g.id)
+                            if len(rs_gw2_sc) > 0:
+                                role_timer = rs_gw2_sc[0]["role_timer"]
+                            else:
+                                role_timer = bot.gw2_settings["BGRoleTimer"]
 
-                        bot.loop.create_task(bgTasks.bgtask_check_gw2_roles(g, rol, role_timer))
+                            bot.loop.create_task(bgTasks.bgtask_check_gw2_roles(g, rol, role_timer))
 
 
 ################################################################################

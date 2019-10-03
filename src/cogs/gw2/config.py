@@ -80,7 +80,7 @@ async def _list(self, ctx):
 
     if len(rs) == 0:
         last_session = "N"
-        role_timer = f"{self.bot.gw2_settings['CheckRoleTimer']} secs (Default)"
+        role_timer = f"{self.bot.gw2_settings['BGRoleTimer']} secs (Default)"
     else:
         last_session = rs[0]["last_session"]
         role_timer = f"{rs[0]['role_timer']} secs"

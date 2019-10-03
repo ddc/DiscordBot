@@ -172,7 +172,7 @@ async def delete_last_channel_message(self, ctx, warning=False):
 
 ################################################################################
 async def load_cogs(self):
-    print("Loading Bot Extensions...")
+    #self.bot.log.info("Loading Bot Extensions...")
     for ext in constants.COGS:
         try:
             if hasattr(self, "bot"):
@@ -181,13 +181,13 @@ async def load_cogs(self):
                 self.load_extension(ext)
             # print(f"\t {ext}")
         except Exception as e:
-            print(f"ERROR: FAILED to load extension: {ext}")
-            print(f"\t{e.__class__.__name__}: {e}\n")
+            self.bot.log.error(f"ERROR: FAILED to load extension: {ext}")
+            self.bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
 
 
 ################################################################################
 async def reload_cogs(self):
-    print("RE-Loading Bot Extensions...")
+    self.bot.log.info("RE-Loading Bot Extensions...")
     for ext in constants.COGS:
         try:
             if hasattr(self, "bot"):
@@ -196,8 +196,8 @@ async def reload_cogs(self):
                 self.reload_extension(ext)
             # print(f"\t {ext}")
         except Exception as e:
-            print(f"ERROR: FAILED to load extension: {ext}")
-            print(f"\t{e.__class__.__name__}: {e}\n")
+            self.bot.log.error(f"ERROR: FAILED to load extension: {ext}")
+            self.bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
 
 
 ################################################################################

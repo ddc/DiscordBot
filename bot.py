@@ -87,7 +87,6 @@ def _insert_token():
 
 ################################################################################
 async def _set_bot_configs(bot):
-    print("Setting Bot configs...")
     bot.uptime = datetime.datetime.now()
     bot.description = str(constants.DESCRIPTION)
     bot.help_command = commands.DefaultHelpCommand(dm_help=True)
@@ -101,7 +100,6 @@ async def _set_bot_configs(bot):
 
 ################################################################################
 async def _set_other_cogs_configs(bot):
-    print("Setting Other Cogs configs...")
     bot.gw2_settings = BotUtils.get_all_ini_file_settings(Gw2Constants.GW2_SETTINGS_FILENAME)
     bot.gw2_settings["EmbedColor"] = BotUtils.get_color_settings(bot.gw2_settings["EmbedColor"])
 
@@ -113,10 +111,9 @@ async def init():
     bot.aiosession = aiohttp.ClientSession(loop=bot.loop)
     await _set_bot_configs(bot)
     await _set_other_cogs_configs(bot)
+    print("Loading Bot Extensions...")
     await BotUtils.load_cogs(bot)
     bot.log.info("=====> INITIALIZING BOT <=====")
-    print("Logging in to Discord...")
-    print("Checking Database Configs...")
 
     try:
         await bot.login(str(bot.token))
