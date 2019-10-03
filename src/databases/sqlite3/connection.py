@@ -24,9 +24,9 @@ class Sqlite3:
         except Exception as e:
             conn = None
             msg = "sqlite3:({e.args})"
+            # print(msg)
             # self.bot.log.exception("sqlite3",exc_info=e)
             self.bot.log.error(msg)
-            print(msg)
             raise sqlite3.OperationalError(e)
 
         return conn

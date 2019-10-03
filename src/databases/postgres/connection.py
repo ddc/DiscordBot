@@ -26,8 +26,8 @@ class PostgreSQL:
             conn = None
             msg = f"PostgreSQL:({e.args})"
             self.bot.log.error(msg)
-            print(msg)
-            # self.log.exception("postgres",exc_info=e)
+            # print(msg)
+            # self.bot.log.exception("postgres",exc_info=e)
             # raise asyncpg.ConnectionFailureError(e)
 
         return conn

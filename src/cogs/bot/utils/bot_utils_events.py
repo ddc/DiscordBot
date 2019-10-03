@@ -299,9 +299,9 @@ async def _send_custom_message(message, send_msg: str):
 
 
 ################################################################################
-def _check_bad_words_file():
+def _check_bad_words_file(self):
     if not os.path.isfile(constants.SWEAR_WORDS_FILENAME):
-        print(f"File \"{constants.SWEAR_WORDS_FILENAME}\" was not found.")
+        self.bot.log.error(f"File \"{constants.SWEAR_WORDS_FILENAME}\" was not found.")
         return False
     return True
 
@@ -345,7 +345,7 @@ async def _check_custom_messages(self, message):
 
 ################################################################################
 async def _check_profanity_filter_words(self, message):
-    if _check_bad_words_file():
+    if _check_bad_words_file(self):
         f = open(constants.SWEAR_WORDS_FILENAME)
     else:
         return

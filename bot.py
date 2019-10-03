@@ -49,32 +49,6 @@ async def _init_bot(log):
 
 
 ################################################################################
-def setup_logging():
-    formatter = constants.LOG_FORMATTER
-    logging.getLogger("discord").setLevel(constants.LOG_LEVEL)
-    logging.getLogger("discord.http").setLevel(constants.LOG_LEVEL)
-    logger = logging.getLogger()
-    logger.setLevel(constants.LOG_LEVEL)
-
-    file_hdlr = logging.handlers.RotatingFileHandler(
-        filename=constants.LOGS_FILENAME,
-        maxBytes=10 * 1024 * 1024,
-        encoding="utf-8",
-        backupCount=5,
-        mode='a')
-    file_hdlr.setFormatter(formatter)
-    logger.addHandler(file_hdlr)
-
-    stderr_hdlr = logging.StreamHandler()
-    stderr_hdlr.setFormatter(formatter)
-    stderr_hdlr.setLevel(constants.LOG_LEVEL)
-    logger.addHandler(stderr_hdlr)
-
-    sys.excepthook = BotUtils.log_uncaught_exceptions
-    return logger
-
-
-################################################################################
 def _insert_token():
     BotUtils.clear_screen()
     tokenFile = open(constants.TOKEN_FILENAME, encoding="utf-8", mode="w")
@@ -106,12 +80,12 @@ async def _set_other_cogs_configs(bot):
 
 ################################################################################
 async def init():
-    log = setup_logging()
+    log = BotUtils.setup_logging()
     bot = await _initialize_bot(log)
     bot.aiosession = aiohttp.ClientSession(loop=bot.loop)
     await _set_bot_configs(bot)
     await _set_other_cogs_configs(bot)
-    print("Loading Bot Extensions...")
+    bot.log.debug("Loading Bot Extensions...")
     await BotUtils.load_cogs(bot)
     bot.log.info("=====> INITIALIZING BOT <=====")
 

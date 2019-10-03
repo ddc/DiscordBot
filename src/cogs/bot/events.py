@@ -270,16 +270,16 @@ class Events(commands.Cog):
                 #await bot.loop.exception()
                 return
 
-            print("Setting Initial SQL Tables...")
+            bot.log.debug("Setting Initial SQL Tables...")
             await UtilsEvents.set_initial_sql_tables(bot)
 
-            print("Setting Default Initial configs...")
+            bot.log.debug("Setting Default Initial configs...")
             await UtilsEvents.insert_default_initial_configs(bot)
 
-            print("Setting Other Sql configs...")
+            bot.log.debug("Setting Other Sql configs...")
             await UtilsEvents.set_others_sql_configs(bot)
 
-            print("Setting BackGround tasks...")
+            bot.log.debug("Setting BackGround tasks...")
             await UtilsEvents.run_bg_tasks(bot)
 
             BotUtils.clear_screen()

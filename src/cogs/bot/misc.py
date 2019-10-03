@@ -35,7 +35,7 @@ class Misc(commands.Cog):
     #     """(test)"""
     #
     #     a = CoolDowns.RollDiceCooldown.value
-    #     print(a)
+    #     self.bot.log.info(a)
     #
     ################################################################################
     @commands.group()

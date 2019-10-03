@@ -36,16 +36,16 @@ def main():
         print("0. Quit")
         choice = BotUtils.user_choice()
         if choice == "1":
-            run(auto_restart=True)
+            _run(auto_restart=True)
         elif choice == "2":
-            update_menu()
+            _update_menu()
         elif choice == "0":
             break
         BotUtils.clear_screen()
 
 
 ################################################################################
-def update_menu():
+def _update_menu():
     has_git = BotUtils.is_git_installed()
     BotUtils.clear_screen()
     while True:
@@ -57,15 +57,15 @@ def update_menu():
         choice = BotUtils.user_choice()
         if choice == "1":
             if not has_git:
-                print("\nWARNING: Git not found. This means that it's either not "
-                      "installed or not in the PATH environment variable.\n"
-                      "Git is needed to update the Bot!\n")
+                log.error("\nWARNING: Git not found. This means that it's either not "
+                          "installed or not in the PATH environment variable.\n"
+                          "Git is needed to update the Bot!\n")
             else:
-                update()
+                _update()
                 if constants.INTERACTIVE_MODE:
                     BotUtils.wait_return()
         elif choice == "2":
-            update_requirements()
+            _update_requirements()
             if constants.INTERACTIVE_MODE:
                 BotUtils.wait_return()
         elif choice == "0":
@@ -74,7 +74,7 @@ def update_menu():
 
 
 ################################################################################
-def update_requirements():
+def _update_requirements():
     interpreter = sys.executable
     if interpreter is None:
         raise RuntimeError("Python interpreter not found.")
@@ -99,14 +99,14 @@ def update_requirements():
             code = subprocess.call(command)
             if code != 0:
                 BotUtils.clear_screen()
-                return print(f"\nAn error occurred trying to update: {module}\n")
+                return log.error(f"\nAn error occurred trying to update: {module}\n")
 
-    print("PIP should be manually upgraded: python -m pip install --upgrade pip\n")
-    print("\nAll requirements are up tp date.\n")
+    log.info("PIP should be manually upgraded: python -m pip install --upgrade pip\n")
+    log.info("\nAll requirements are up tp date.\n")
 
 
 ################################################################################
-def parse_cli_arguments():
+def _parse_cli_arguments():
     parser = argparse.ArgumentParser(description="Discord Bot's launcher")
     parser.add_argument("--start", "-s",
                         help="Starts the bot",
@@ -118,7 +118,7 @@ def parse_cli_arguments():
 
 
 ################################################################################
-def update():
+def _update():
     has_git = BotUtils.is_git_installed()
     if has_git:
         bot_remote_git_url = constants.BOT_REMOTE_GIT_URL
@@ -126,16 +126,16 @@ def update():
         dst_dir = dirname
         subprocess.call(("git", "clone", "--depth=50", "--branch=master", bot_remote_git_url, src_dir))
         BotUtils.recursive_overwrite(src_dir, dst_dir)
-        print("\nBot was updated successfully.\n")
+        log.info("\nBot was updated successfully.\n")
     else:
-        print("\nWARNING: Unable to update.\n"
-              "Git installation was not found.\n"
-              "If you want to update, please install Git.\n"
-              f"{constants.GIT_URL}\n")
+        log.error("\nWARNING: Unable to update.\n"
+                  "Git installation was not found.\n"
+                  "If you want to update, please install Git.\n"
+                  f"{constants.GIT_URL}\n")
 
 
 ################################################################################
-def run(auto_restart):
+def _run(auto_restart):
     interpreter = sys.executable
     if interpreter is None:  # This should never happen
         raise RuntimeError("Python interpreter not found.")
@@ -157,13 +157,13 @@ def run(auto_restart):
                 if not auto_restart:
                     break
 
-    print(f"Bot has been terminated.\nExit code: {code}")
+    log.error(f"Bot has been terminated.\nExit code: {code}")
     if constants.INTERACTIVE_MODE:
         BotUtils.wait_return()
 
 
 ################################################################################
-def check_new_version():
+def _check_new_version():
     version_url_file = constants.VERSION_URL_FILE
     req = requests.get(version_url_file)
     client_version = constants.VERSION
@@ -177,11 +177,11 @@ def check_new_version():
         else:
             return False
     else:
-        print("ERROR: VERSION file was not found.\n")
+        log.error("ERROR: VERSION file was not found.\n")
 
 
 ################################################################################
-def check_config_files():
+def _check_config_files():
     if not os.path.exists("logs"):
         os.makedirs("logs")
 
@@ -191,9 +191,9 @@ def check_config_files():
         try:
             urllib.request.urlretrieve(src_url, dst)
         except urllib.request.HTTPError as e:
-            print("ERROR: Could not download settings file.\n" \
-                  f"{e}.\n{src_url}\n" \
-                  "Exiting...")
+            log.error("ERROR: Could not download settings file.\n"
+                      f"{e}.\n{src_url}\n"
+                      "Exiting...")
             exit(1)
             return
 
@@ -203,44 +203,44 @@ def check_config_files():
         try:
             urllib.request.urlretrieve(src_url, dst)
         except urllib.request.HTTPError as e:
-            print("ERROR: Could not download GW2 settings file.\n" \
-                  f"{e}.\n{src_url}\n" \
-                  "Exiting...")
+            log.error("ERROR: Could not download GW2 settings file.\n"
+                      f"{e}.\n{src_url}\n"
+                      "Exiting...")
             exit(1)
             return
 
 
 ################################################################################
 if __name__ == '__main__':
-    args = parse_cli_arguments()
-    check_config_files()
+    log = BotUtils.setup_logging()
+    args = _parse_cli_arguments()
+    _check_config_files()
     abspath = os.path.abspath(__file__)
     dirname = os.path.dirname(abspath)
 
     os.chdir(dirname)
     if not constants.PYTHON_OK:
-        print("Python 3.6 or higher is required. Please install the required version.\n"
-              "Press enter to continue...")
+        log.error("Python 3.6 or higher is required. Please install the required version.\n"
+                  "Press enter to continue...")
         if constants.INTERACTIVE_MODE:
             BotUtils.wait_return()
         exit(1)
 
     if pip is None:
-        print("Bot cannot work without the pip module.\n" \
-              "Please make sure to install Python with pip module.")
+        log.error("Bot cannot work without the pip module.\n"
+                  "Please make sure to install Python with pip module.")
         if constants.INTERACTIVE_MODE:
             BotUtils.wait_return()
         exit(1)
 
     if args.update:
         print(sys.argv[1])
-        update()
+        _update()
 
     if constants.INTERACTIVE_MODE:
-        if check_new_version():
-            update()
+        if _check_new_version():
+            _update()
         main()
     elif args.start:
-        print(sys.argv[1])
-        print("Starting...")
-        run(auto_restart=True)
+        print(f"({sys.argv[1]}) Starting...")
+        _run(auto_restart=True)

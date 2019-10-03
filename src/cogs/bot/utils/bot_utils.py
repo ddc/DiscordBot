@@ -17,7 +17,7 @@ from random import choice
 import discord
 from operator import attrgetter
 import configparser
-import logging
+import logging.handlers
 from enum import Enum
 import shutil
 import subprocess
@@ -38,6 +38,32 @@ class Object:
         jsonString = json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
         jsonDict = json.loads(jsonString)
         return jsonDict
+
+
+################################################################################
+def setup_logging():
+    formatter = constants.LOG_FORMATTER
+    logging.getLogger("discord").setLevel(constants.LOG_LEVEL)
+    logging.getLogger("discord.http").setLevel(constants.LOG_LEVEL)
+    logger = logging.getLogger()
+    logger.setLevel(constants.LOG_LEVEL)
+
+    file_hdlr = logging.handlers.RotatingFileHandler(
+        filename=constants.LOGS_FILENAME,
+        maxBytes=10 * 1024 * 1024,
+        encoding="utf-8",
+        backupCount=5,
+        mode='a')
+    file_hdlr.setFormatter(formatter)
+    logger.addHandler(file_hdlr)
+
+    stderr_hdlr = logging.StreamHandler()
+    stderr_hdlr.setFormatter(formatter)
+    stderr_hdlr.setLevel(constants.LOG_LEVEL)
+    logger.addHandler(stderr_hdlr)
+
+    sys.excepthook = log_uncaught_exceptions
+    return logger
 
 
 ################################################################################
@@ -179,7 +205,7 @@ async def load_cogs(self):
                 self.bot.load_extension(ext)
             else:
                 self.load_extension(ext)
-            # print(f"\t {ext}")
+            # self.bot.log.info(f"\t {ext}")
         except Exception as e:
             self.bot.log.error(f"ERROR: FAILED to load extension: {ext}")
             self.bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
@@ -194,7 +220,7 @@ async def reload_cogs(self):
                 self.bot.reload_extension(ext)
             else:
                 self.reload_extension(ext)
-            # print(f"\t {ext}")
+            # self.bot.log.info(f"\t {ext}")
         except Exception as e:
             self.bot.log.error(f"ERROR: FAILED to load extension: {ext}")
             self.bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
@@ -385,7 +411,7 @@ def get_server_everyone_role(server: discord.Guild):
 
 ################################################################################
 def get_all_ini_file_settings(file_name: str):
-    #print(f"Accessing file: {file_name}")
+    # self.bot.log.info(f"Accessing file: {file_name}")
     dictionary = {}
     parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
     parser.optionxform = str  # this wont change all values to lowercase
@@ -408,7 +434,7 @@ def get_all_ini_file_settings(file_name: str):
 
 ################################################################################
 # def get_ini_settings(file_name: str, section: str, config_name: str):
-#     #print(f"Accessing: {file_name}: {section}-{config_name}")
+#     # self.bot.log.info(f"Accessing: {file_name}: {section}-{config_name}")
 #     parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
 #     parser._interpolation = configparser.ExtendedInterpolation()
 #     parser.read(file_name)
@@ -557,10 +583,10 @@ async def execute_all_sql_files(self):
     dirpath = constants.SQL_DIRPATH + "/"
     if not os.path.isdir(dirpath):
         msg = "Cant find SQL dir path: "
-        print(msg + dirpath)
+        self.bot.log.info(msg + dirpath)
         return
 
-    print("\n==> WARNING: EXECUTING SQL FILES INSIDE DATA/SQL DIR <==")
+    self.bot.log.info("\n==> WARNING: EXECUTING SQL FILES INSIDE DATA/SQL DIR <==")
     all_dir_files = os.listdir(dirpath)
     self.bot.temp = dict()
     for filename in all_dir_files:
@@ -571,7 +597,7 @@ async def execute_all_sql_files(self):
             self.bot.temp["sqlFileName"] = str(filename)
             self.bot.temp["sql"] = str(sql)
             try:
-                print("File: " + str(filename))
+                self.bot.log.info("File: " + str(filename))
                 databases = Databases(self.log)
                 await databases.execute(sql)
             except Error as e:

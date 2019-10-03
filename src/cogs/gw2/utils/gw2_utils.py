@@ -148,7 +148,6 @@ async def last_session_gw2_event_after(bot, after: discord.Member):
         gw2Configs = Gw2ConfigsSql(bot)
         rs_gw2_sc = await gw2Configs.get_gw2_server_configs(after.guild.id)
         if len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"] == "Y":
-            print("1")
             gw2KeySql = Gw2KeySql(bot)
             rs_api_key = await gw2KeySql.get_server_user_api_key(after.guild.id, after.id)
             if len(rs_api_key) > 0:
@@ -167,7 +166,6 @@ async def last_session_gw2_event_before(bot, before: discord.Member):
         gw2Configs = Gw2ConfigsSql(bot)
         rs_gw2_sc = await gw2Configs.get_gw2_server_configs(before.guild.id)
         if len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"] == "Y":
-            print("2")
             gw2LastSessionSql = Gw2LastSessionSql(bot)
             rs_ls = await gw2LastSessionSql.get_user_last_session(before.id)
             if len(rs_ls) > 0:
