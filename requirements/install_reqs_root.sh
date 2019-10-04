@@ -8,7 +8,10 @@ export PKG_CONFIG_PATH
 sudo apt-get install -y libsqlite3-dev
 sudo apt-get install -y libperl-dev
 sudo apt-get install -y python3-pip
-#sudo apt-get install -y python-pip
+sudo apt-get install -y python3-dev
+sudo apt-get install -y python3-pip
+sudo apt-get install -y python3-setuptools
+sudo apt-get install -y python3-distutils
 #sudo apt-get install -y libgtk2.0-dev
 #sudo apt-get install -y libssl-dev
 #sudo apt-get install -y libffi-dev
