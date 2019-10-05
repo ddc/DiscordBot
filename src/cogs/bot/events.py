@@ -262,10 +262,9 @@ class Events(commands.Cog):
 
             conn = await BotUtils.check_database_connection(bot)
             if conn is None:
-                msg = "Cannot Create Database Connection.\n" \
-                      f"Please check if the server is up and try again ({full_db_name})."
+                msg = "Cannot Create Database Connection."\
+                      f"Check if the server is up and try again ({full_db_name})."
                 bot.log.error(msg)
-                print(f"{msg}")
                 await bot.logout()
                 #await bot.loop.exception()
                 return

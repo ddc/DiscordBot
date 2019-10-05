@@ -22,7 +22,6 @@ class Checks:
                 return True
             else:
                 raise commands.CheckFailure(message="not admin")
-
         return commands.check(predicate)
 
     ################################################################################
@@ -32,16 +31,16 @@ class Checks:
                 return True
             else:
                 raise commands.CheckFailure(message="not owner")
-
         return commands.check(predicate)
-################################################################################
-#     def check_is_music_user():
-#         async def predicate(ctx):
-#             musicUsersSql = MusicUsersSql(ctx.bot.log)
-#             rs = await musicUsersSql.get_allowed_music_user(ctx.message.author)
-#             adm = BotUtils.is_member_admin(ctx.message.author)
-#             if (len(rs)>0) or (adm == True):
-#                 return True
-#             else:
-#                 raise commands.CheckFailure(message="not music user") 
-#         return commands.check(predicate)
+
+    ###############################################################################
+    # def check_is_music_user():
+    #     async def predicate(ctx):
+    #         musicUsersSql = MusicUsersSql(ctx.bot.log)
+    #         rs = await musicUsersSql.get_allowed_music_user(ctx.message.author)
+    #         adm = BotUtils.is_member_admin(ctx.message.author)
+    #         if (len(rs) > 0) or (adm == True):
+    #             return True
+    #         else:
+    #             raise commands.CheckFailure(message="not music user")
+    #     return commands.check(predicate)
