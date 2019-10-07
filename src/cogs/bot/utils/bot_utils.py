@@ -413,7 +413,7 @@ def get_server_everyone_role(server: discord.Guild):
 def get_all_ini_file_settings(file_name: str):
     # self.bot.log.info(f"Accessing file: {file_name}")
     dictionary = {}
-    parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
+    parser = configparser.ConfigParser(delimiters='=', allow_no_value=True)
     parser.optionxform = str  # this wont change all values to lowercase
     parser._interpolation = configparser.ExtendedInterpolation()
     parser.read(file_name)
