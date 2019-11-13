@@ -39,7 +39,7 @@ class Checks:
     #         musicUsersSql = MusicUsersSql(ctx.bot.log)
     #         rs = await musicUsersSql.get_allowed_music_user(ctx.message.author)
     #         adm = BotUtils.is_member_admin(ctx.message.author)
-    #         if (len(rs) > 0) or (adm == True):
+    #         if (len(rs) > 0) or (adm is True):
     #             return True
     #         else:
     #             raise commands.CheckFailure(message="not music user")

@@ -72,13 +72,13 @@ class GW2LastSession(commands.Cog):
         if "characters" not in api_permissions:
             characters = False
 
-        if account == False or wallet == False or progression == False or characters == False:
+        if account is False or wallet is False or progression is False or characters is False:
             prefix = str(self.bot.command_prefix[0])
             error_msg = "To use this command your API key needs to have the following permissions:\n"
-            error_msg += "- account is OK\n" if account == True else "- account is ISSING\n"
-            error_msg += "- characters is OK\n" if characters == True else "- characters is MISSING\n"
-            error_msg += "- progression is OK\n" if progression == True else "- progression is MISSING\n"
-            error_msg += "- wallet is OK\n" if wallet == True else "- wallet is MISSING\n"
+            error_msg += "- account is OK\n" if account is True else "- account is MISSING\n"
+            error_msg += "- characters is OK\n" if characters is True else "- characters is MISSING\n"
+            error_msg += "- progression is OK\n" if progression is True else "- progression is MISSING\n"
+            error_msg += "- wallet is OK\n" if wallet is True else "- wallet is MISSING\n"
             error_msg += "Please add another API key with permissions that are MISSING if you want to use this command.\n" \
                          f"To add or replace an API key use: `{prefix}gw2 key add <api_key>`\n" \
                          f"To check your API key use: `{ctx.prefix}gw2 key info`"

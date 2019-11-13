@@ -271,7 +271,7 @@ class Misc(commands.Cog):
             await BotUtils.send_error_msg(self, ctx, msg)
             return
 
-        if anonymous_pool == False:
+        if anonymous_pool is False:
             author_name = BotUtils.get_member_name_by_id(self, ctx, ctx.message.author.id)
             embed.set_author(name=author_name, icon_url=ctx.message.author.avatar_url)
 
@@ -337,7 +337,7 @@ class Misc(commands.Cog):
                 is_question = False
                 temp_emoji = str(word)
 
-            if is_discord_emoji == False:
+            if is_discord_emoji is False:
                 if len(server.emojis) > 0:
                     for emoji in server.emojis:
                         sename_str = f"<:{emoji.name}:{emoji.id}>"
@@ -346,16 +346,16 @@ class Misc(commands.Cog):
                             is_question = False
                             temp_emoji = emoji
 
-            if is_question == True:
+            if is_question is True:
                 question_list.append(str(word))
-            elif is_server_emoji == True or is_discord_emoji == True:
+            elif is_server_emoji is True or is_discord_emoji is True:
                 emoji_already_in_list = False
                 if len(reactions_list) > 0:
                     for rl in reactions_list:
                         if str(word) == str(rl):
                             emoji_already_in_list = True
 
-                if emoji_already_in_list == False:
+                if emoji_already_in_list is False:
                     reactions_list.append(temp_emoji)
 
         new_question = ' '.join(question_list)
@@ -367,7 +367,7 @@ class Misc(commands.Cog):
         color = BotUtils.get_random_color()
         embed = discord.Embed(color=color, description=Formatting.orange_text(new_question))
 
-        if anonymous_pool == False:
+        if anonymous_pool is False:
             author_name = BotUtils.get_member_name_by_id(self, ctx, ctx.message.author.id)
             embed.set_author(name=author_name, icon_url=ctx.message.author.avatar_url)
 
@@ -501,8 +501,8 @@ class Misc(commands.Cog):
                       if m.status == discord.Status.online
                       or m.status == discord.Status.idle])
 
-        # total_users = len([x.bot for x in server.members if x.bot == False])
-        # total_bots = len([x.bot for x in server.members if x.bot == True])
+        # total_users = len([x.bot for x in server.members if x.bot is False])
+        # total_bots = len([x.bot for x in server.members if x.bot is True])
         total_users = 0
         total_bots = 0
         for x in server.members:

@@ -20,7 +20,7 @@ class UsersSql:
         databases = Databases(self.bot)
         for server in servers:
             for user in server.members:
-                # if user.bot == False:
+                # if user.bot is False:
                 avatar_url = str(user.avatar_url)
                 current_user = await self.get_user(user.id)
                 if len(current_user) == 0:
@@ -30,7 +30,7 @@ class UsersSql:
 
     ################################################################################
     async def insert_user(self, user: discord.User):
-        # if user.bot == False:
+        # if user.bot is False:
         current_user = await self.get_user(user.id)
         if len(current_user) == 0:
             avatar_url = str(user.avatar_url)

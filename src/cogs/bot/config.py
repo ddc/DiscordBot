@@ -387,7 +387,7 @@ class Config(commands.Cog):
             channel_exists = True
             text_channel = None
 
-        if channel_exists == False:
+        if channel_exists is False:
             raise commands.BadArgument(message="BadArgument_default_text_channel")
 
         if text_channel is None:

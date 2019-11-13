@@ -377,7 +377,7 @@ def get_server_first_public_text_channel(server: discord.Guild):
                     if keys.name == "@everyone":
                         for value in values:
                             if value[0] == "read_messages":
-                                if value[1] == True or value[1] is None:
+                                if value[1] is True or value[1] is None:
                                     return general_channel
 
     for channel in sorted_text_channels:
@@ -387,7 +387,7 @@ def get_server_first_public_text_channel(server: discord.Guild):
                     if keys.name == "@everyone":
                         for value in values:
                             if value[0] == "read_messages":
-                                if value[1] == True or value[1] is None:
+                                if value[1] is True or value[1] is None:
                                     return channel
             else:
                 return channel
@@ -398,7 +398,7 @@ def get_server_first_public_text_channel(server: discord.Guild):
 def get_member_first_public_text_channel(member: discord.Member):
     sorted_channels = sorted(member.guild.text_channels, key=attrgetter('position'))
     for channel in sorted_channels:
-        if (member.permissions_in(channel).read_messages == True):
+        if (member.permissions_in(channel).read_messages is True):
             return channel
     return None
 
@@ -658,9 +658,9 @@ def get_bot_stats(bot):
     voice_channels = 0
 
     for u in bot.users:
-        if u.bot == False:
+        if u.bot is False:
             unique_users += 1
-        if u.bot == True:
+        if u.bot is True:
             bot_users += 1
 
     for g in bot.guilds:

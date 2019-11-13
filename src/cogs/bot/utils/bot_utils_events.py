@@ -102,7 +102,7 @@ async def set_gw2_roles(bot):
 ################################################################################
 async def execute_private_msg(self, ctx):
     is_command = True if ctx.prefix is not None else False
-    if is_command == False:
+    if is_command is False:
         # checking for custom messages
         customMessages = await _check_custom_messages(self, ctx.message)
         if customMessages:
@@ -309,21 +309,14 @@ def _check_bad_words_file(self):
 ################################################################################
 async def _check_custom_messages(self, message):
     msg = message.system_content.lower()
-    cwords = self.bot.settings["BotReactWords"]
+    cwords = "🖕," + self.bot.settings["BotReactWords"]
     config_word_found = False
     bot_word_found = False
 
     if cwords is not None:
-        if (isinstance(cwords, tuple)):
-            for cw in cwords:
-                for mw in msg.split():
-                    if str(cw) == str(mw):
-                        config_word_found = True
-                    if str(mw).lower() == "bot" or str(mw).lower() == self.bot.user.mention:
-                        bot_word_found = True
-        else:
+        for cw in cwords.split(","):
             for mw in msg.split():
-                if str(cwords) == str(mw):
+                if str(cw) == str(mw):
                     config_word_found = True
                 if str(mw).lower() == "bot" or str(mw).lower() == self.bot.user.mention:
                     bot_word_found = True
@@ -331,7 +324,7 @@ async def _check_custom_messages(self, message):
     if isinstance(message.channel, discord.DMChannel):
         bot_word_found = True
 
-    if config_word_found == True and bot_word_found == True:
+    if config_word_found is True and bot_word_found is True:
         send_msg = "fu ufk!!!"
         if "stupid" in msg.lower():
             send_msg = "I'm not stupid, fu ufk!!!"
@@ -339,7 +332,6 @@ async def _check_custom_messages(self, message):
             send_msg = "I'm not retard, fu ufk!!!"
         await _send_custom_message(message, send_msg)
         return True
-
     return False
 
 
@@ -398,7 +390,7 @@ async def _check_exclusive_users(self, ctx):
     user_found = False
 
     if exclusive_users_id is not None:
-        if (isinstance(exclusive_users_id, tuple)):
+        if isinstance(exclusive_users_id, tuple):
             for ids in exclusive_users_id:
                 if ctx.message.author.id == ids:
                     user_found = True
@@ -406,7 +398,7 @@ async def _check_exclusive_users(self, ctx):
             if ctx.message.author.id == exclusive_users_id:
                 user_found = True
 
-    if user_found == False and exclusive_users_id is not None:
+    if user_found is False and exclusive_users_id is not None:
         msg = "This is a Private Bot.\n" \
               "You are not allowed to execute any commands.\n" \
               "Only a few users are allowed to use it.\n" \

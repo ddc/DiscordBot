@@ -50,14 +50,16 @@ class Events(commands.Cog):
         ################################################################################
         @bot.event
         async def on_message(message: discord.Message):
-            if len(message.content) == 0: return
+            if len(message.content) == 0:
+                return
+
             ctx = await bot.get_context(message)
             # execute bot messages immediately
             if ctx.author.bot:
                 await bot.process_commands(message)
                 return
 
-            if (isinstance(ctx.channel, discord.DMChannel)):
+            if isinstance(ctx.channel, discord.DMChannel):
                 await UtilsEvents.execute_private_msg(self, ctx)
             else:
                 await UtilsEvents.execute_server_msg(self, ctx)
@@ -262,11 +264,11 @@ class Events(commands.Cog):
 
             conn = await BotUtils.check_database_connection(bot)
             if conn is None:
-                msg = "Cannot Create Database Connection."\
+                msg = "Cannot Create Database Connection." \
                       f"Check if the server is up and try again ({full_db_name})."
                 bot.log.error(msg)
                 await bot.logout()
-                #await bot.loop.exception()
+                # await bot.loop.exception()
                 return
 
             bot.log.debug("Setting Initial SQL Tables...")

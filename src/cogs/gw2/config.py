@@ -192,7 +192,7 @@ async def _apirole(self, ctx, stats_sever: str):
 
     # check gw2 server name passed by user
     correct_gw2_server_name = Gw2Utils.check_gw2_server_name_role(new_server)
-    if correct_gw2_server_name == False:
+    if correct_gw2_server_name is False:
         raise commands.BadArgument(message="BadArgument_Gw2ConfigServer")
 
     # check if server already has gw2 server role name
@@ -231,13 +231,13 @@ async def _apirole(self, ctx, stats_sever: str):
         # assign new role to channels
         role_found = False
         for chan in ctx.guild.channels:
-            if (isinstance(chan, discord.CategoryChannel)):
+            if isinstance(chan, discord.CategoryChannel):
                 if "public" not in chan.name.lower():
                     for rol in chan.overwrites:
                         if rol[0].name.lower() == new_role.name.lower():
                             role_found = True
                             break
-                    if role_found == False:
+                    if role_found is False:
                         await chan.set_permissions(everyone_role, overwrite=everyone_role_overwrites)
                         await chan.set_permissions(new_role, overwrite=new_role_overwrites)
                     role_found = False
