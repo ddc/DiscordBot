@@ -637,6 +637,7 @@ class Misc(commands.Cog):
         python_version = "Python {}.{}.{}".format(*os.sys.version_info[:3])
         author = self.bot.get_user(self.bot.settings['author_id'])
         author_icon_url = author.avatar_url
+        db_in_use = self.bot.settings["full_db_name"].split()[0]
 
         games_included = None
         if constants.GAMES_INCLUDED is not None:
@@ -657,9 +658,13 @@ class Misc(commands.Cog):
                     apis_included += f"({apis}) "
 
         dev_info_msg = f"Developed as an open source project and hosted on [GitHub]({bot_webpage_url})\n" \
-                       f"A python discord api wrapper [discord.py]({constants.DISCORDPY_URL})\n" \
-                       f"Version control [Git]({constants.GIT_URL})\n" \
-                       f"Databases [SQLite3]({constants.SQLITE3_URL}) or [PostgreSQL]({constants.POSTGRESQL_URL})"""
+                       f"A python discord api wrapper: [discord.py]({constants.DISCORDPY_URL})\n" \
+                       f"Version control: [Git]({constants.GIT_URL})\n"""
+
+        if db_in_use.lower() == "postgresql":
+            dev_info_msg += f"Database: [PostgreSQL]({constants.POSTGRESQL_URL})"
+        elif db_in_use.lower() == "sqlite":
+            dev_info_msg += f"Database: [SQLite3]({constants.SQLITE3_URL})"
 
         bot_stats = BotUtils.get_bot_stats(self.bot)
         servers = bot_stats["servers"]
