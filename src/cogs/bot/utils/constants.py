@@ -12,7 +12,9 @@ import sys
 import platform
 import logging
 
-_versionFile = open("VERSION", encoding="utf-8", mode="r")
+abspath = os.path.abspath(__file__)
+root_path = os.path.dirname(abspath).replace("\\src\\cogs\\bot\\utils", "")
+_versionFile = open(f"{root_path}\\VERSION", encoding="utf-8", mode="r")
 VERSION = _versionFile.read().split('\n', 1)[0].strip('\n')
 _versionFile.close()
 ################################################################################
