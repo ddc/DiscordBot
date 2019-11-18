@@ -12,17 +12,20 @@ import sys
 import platform
 import logging
 
-abspath = os.path.abspath(__file__)
-root_path = os.path.dirname(abspath).replace("\\src\\cogs\\bot\\utils", "")
-_versionFile = open(f"{root_path}\\VERSION", encoding="utf-8", mode="r")
-VERSION = _versionFile.read().split('\n', 1)[0].strip('\n')
-_versionFile.close()
-################################################################################
 IS_WINDOWS = os.name == "nt"
 IS_MAC = sys.platform == "darwin"
 IS_64BIT = platform.machine().endswith("64")
 INTERACTIVE_MODE = not len(sys.argv) > 1
 PYTHON_OK = sys.version_info >= (3, 6)
+abspath = os.path.abspath(__file__)
+if IS_WINDOWS:
+        root_path = os.path.dirname(abspath).replace("\\src\\cogs\\bot\\utils", "")
+        _versionFile = open(f"{root_path}\\VERSION", encoding="utf-8", mode="r")
+else:
+        root_path = os.path.dirname(abspath).replace("/src/cogs/bot/utils", "")
+        _versionFile = open(f"{root_path}/VERSION", encoding="utf-8", mode="r")
+VERSION = _versionFile.read().split('\n', 1)[0].strip('\n')
+_versionFile.close()
 INTRO = (f"====================\nDiscord Bot v{VERSION}\n====================")
 ################################################################################
 DESCRIPTION = "A Multifunction Bot for Discord"
