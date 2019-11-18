@@ -21,9 +21,21 @@ abspath = os.path.abspath(__file__)
 if IS_WINDOWS:
         root_path = os.path.dirname(abspath).replace("\\src\\cogs\\bot\\utils", "")
         _versionFile = open(f"{root_path}\\VERSION", encoding="utf-8", mode="r")
+        SETTINGS_FILENAME = f"{root_path}\\config\\settings.ini"
+        TOKEN_FILENAME = f"{root_path}\\config\\token.txt"
+        SWEAR_WORDS_FILENAME = f"{root_path}\\data\\swear_words"
+        DATABASE_FILENAME = f"{root_path}\\data\\database.db"
+        LOGS_FILENAME = f"{root_path}\\logs\\bot.log"
+        SQL_DIRPATH = f"{root_path}\\data\\sql"
 else:
         root_path = os.path.dirname(abspath).replace("/src/cogs/bot/utils", "")
         _versionFile = open(f"{root_path}/VERSION", encoding="utf-8", mode="r")
+        SETTINGS_FILENAME = f"{root_path}/config/settings.ini"
+        TOKEN_FILENAME = f"{root_path}/config/token.txt"
+        SWEAR_WORDS_FILENAME = f"{root_path}/data/swear_words"
+        DATABASE_FILENAME = f"{root_path}/data/database.db"
+        LOGS_FILENAME = f"{root_path}/logs/bot.log"
+        SQL_DIRPATH = f"{root_path}/data/sql"
 VERSION = _versionFile.read().split('\n', 1)[0].strip('\n')
 _versionFile.close()
 INTRO = (f"====================\nDiscord Bot v{VERSION}\n====================")
@@ -42,13 +54,6 @@ GIT_URL = "https://git-scm.com"
 SQLITE3_URL = "https://sqlite.org"
 POSTGRESQL_URL = "https://www.postgresql.org"
 ################################################################################
-SETTINGS_FILENAME = "config/settings.ini"
-TOKEN_FILENAME = "config/token.txt"
-SWEAR_WORDS_FILENAME = "data/swear_words"
-DATABASE_FILENAME = "data/database.db"
-LOGS_FILENAME = "logs/bot.log"
-SQL_DIRPATH = "data/sql"
-###############################################################################
 DATE_FORMATTER = "%b/%d/%Y"
 TIME_FORMATTER = "%H:%M:%S"
 LOG_LEVEL = logging.INFO  # INFO or DEBUG
