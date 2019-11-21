@@ -1,0 +1,18 @@
+version: '3'
+services:
+    db:
+        image: postgres:11
+        container_name: db
+        restart: always
+        ports:
+            - "5432:5432"
+        volumes:
+            - /opt/pgdata:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_PASSWORD=postgres
+    bot:
+        build: .
+        container_name: bot
+        env_file: .env
+        depends_on:
+            - "db"
