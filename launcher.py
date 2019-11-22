@@ -16,6 +16,7 @@ import argparse
 import os
 import subprocess
 import sys
+import time
 import tempfile
 import requests
 import urllib.request
@@ -140,24 +141,28 @@ def _run(auto_restart):
     if interpreter is None:  # This should never happen
         raise RuntimeError("Python interpreter not found.")
 
-    cmd = (interpreter, "bot.py")
+    (output, e) = "", ""
+    cmd = [interpreter, "bot.py"]
     while True:
         try:
-            code = subprocess.call(cmd)
-        except KeyboardInterrupt:
+            process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            output = process.stdout
+            code = process.returncode
+        except Exception as e:
             code = 0
             break
-        else:
-            if code == 0:
-                break
-            elif code == 26:
-                print("Restarting...")
-                continue
-            else:
-                if not auto_restart:
-                    break
 
-    log.error(f"Bot has been terminated.\nExit code: {code}")
+        if code == 0:
+            break
+        elif code == 26:
+            print(f"Restarting in {constants.TIME_BEFORE_START} secs...")
+            time.sleep(constants.TIME_BEFORE_START)
+            continue
+        else:
+            if not auto_restart:
+                break
+
+    log.error(f"Bot has been terminated.[Exit code:{code} {output} {e}]")
     if constants.INTERACTIVE_MODE:
         BotUtils.wait_return()
 
@@ -242,5 +247,6 @@ if __name__ == '__main__':
             _update()
         main()
     elif args.start:
-        print(f"({sys.argv[1]}) Starting...")
+        print(f"Starting in {constants.TIME_BEFORE_START} secs... ({sys.argv[1]})")
+        time.sleep(constants.TIME_BEFORE_START)
         _run(auto_restart=True)

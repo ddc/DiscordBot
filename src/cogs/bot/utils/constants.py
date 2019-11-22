@@ -12,6 +12,7 @@ import sys
 import platform
 import logging
 
+TIME_BEFORE_START = 5
 IS_WINDOWS = os.name == "nt"
 IS_MAC = sys.platform == "darwin"
 IS_64BIT = platform.machine().endswith("64")
