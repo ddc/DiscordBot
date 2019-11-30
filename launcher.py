@@ -141,11 +141,11 @@ def _run(auto_restart):
     if interpreter is None:  # This should never happen
         raise RuntimeError("Python interpreter not found.")
 
-    (output, e) = "", ""
+    (code, output, e) = 0, "", ""
     cmd = [interpreter, "bot.py"]
     while True:
         try:
-            process = subprocess.run(cmd, shell=True, check=True, universal_newlines=True)
+            process = subprocess.run(cmd, check=True, universal_newlines=True)
             output = process.stdout
             code = process.returncode
         except Exception as e:
