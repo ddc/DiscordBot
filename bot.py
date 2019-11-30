@@ -10,10 +10,10 @@
 import os
 import sys
 import asyncio
-import logging.handlers
 import traceback
 import aiohttp
 import discord
+import time
 from src.cogs.bot.utils import constants
 from src.cogs.bot.utils import bot_utils as BotUtils
 import src.cogs.gw2.utils.gw2_constants as Gw2Constants
@@ -108,6 +108,8 @@ async def init():
 
 ################################################################################
 def init_loop():
+    print(f"Starting Bot in {constants.TIME_BEFORE_START} secs...")
+    time.sleep(constants.TIME_BEFORE_START)
     loop = asyncio.get_event_loop()
     try:
         loop.run_until_complete(init())

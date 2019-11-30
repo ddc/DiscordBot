@@ -145,7 +145,7 @@ def _run(auto_restart):
     cmd = [interpreter, "bot.py"]
     while True:
         try:
-            process = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+            process = subprocess.run(cmd, shell=True, check=True, universal_newlines=True)
             output = process.stdout
             code = process.returncode
         except Exception as e:
@@ -247,6 +247,6 @@ if __name__ == '__main__':
             _update()
         main()
     elif args.start:
-        print(f"Starting in {constants.TIME_BEFORE_START} secs... ({sys.argv[1]})")
+        print(f"Launching in {constants.TIME_BEFORE_START} secs... ({sys.argv[1]})")
         time.sleep(constants.TIME_BEFORE_START)
         _run(auto_restart=True)
