@@ -102,8 +102,9 @@ async def init():
                     if "discord." in err:
                         log.error(err)
                 log.error(f"\n===> ERROR: Unable to login. {errorMsg}:{str(bot.token)}\n")
-    except Exception:
-        loop.run_until_complete(bot.logout())
+    except Exception as e:
+        log.error(f"Bot has been terminated. {e}]")
+        #loop.run_until_complete(bot.logout())
 
 
 ################################################################################

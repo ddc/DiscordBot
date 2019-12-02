@@ -141,7 +141,9 @@ def _run(auto_restart):
     if interpreter is None:  # This should never happen
         raise RuntimeError("Python interpreter not found.")
 
-    (code, output, e) = 0, "", ""
+    code = 0
+    output = ""
+    e = ""
     cmd = [interpreter, "bot.py"]
     while True:
         try:
