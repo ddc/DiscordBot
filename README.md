@@ -82,6 +82,7 @@ Choice of PostgreSQL or SQLite3 as database.
 | echo											| Show your msg again						 |
 | ping											| Test latency by receiving a ping message	 |
 | roll 											| Rolls random number					  	 |
+| tts <_message_>				                | Send TTS as .mp3 to channel	             |
 | serverinfo									| Shows server's informations				 |
 | userinfo <_member#1234_>						| Shows discord user informations			 |
 | lmgtfy <_link_>								| Creates a lmgtfy link						 |

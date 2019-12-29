@@ -20,6 +20,7 @@ from .utils.checks import Checks
 from src.sql.bot.server_configs_sql import ServerConfigsSql
 from src.sql.bot.dice_rolls_sql import DiceRollsSql
 from src.cogs.bot.utils.cooldowns import CoolDowns
+from gtts import gTTS
 
 
 class Misc(commands.Cog):
@@ -30,13 +31,37 @@ class Misc(commands.Cog):
 
     ################################################################################
     # @commands.command()
-    # @commands.cooldown(1, CoolDowns.RollDiceCooldown.value, BucketType.user)
+    # @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     # async def test(self, ctx):
     #     """(test)"""
     #
     #     a = CoolDowns.RollDiceCooldown.value
     #     self.bot.log.info(a)
     #
+    ################################################################################
+    @commands.command()
+    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
+    async def tts(self, ctx, *, str_tts: str):
+        """(Send TTS as .mp3 to channel)
+
+        Example:
+        tts Hello everyone!
+        """
+
+        await ctx.message.channel.trigger_typing()
+        author = str(ctx.message.author).replace('#', '')
+        display_filename = f"{BotUtils.get_member_name_by_id(self, ctx, ctx.message.author.id)}.mp3"
+        file_path = f"data/{author}.mp3"
+        tts = gTTS(text=str_tts)
+        tts.save(file_path)
+        await ctx.send(Formatting.inline(str_tts), file=discord.File(file_path, display_filename))
+
+        try:
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+        except OSError as e:
+            self.bot.log.error(f"{e}")
+
     ################################################################################
     @commands.group()
     @commands.cooldown(1, CoolDowns.RollDiceCooldown.value, BucketType.user)

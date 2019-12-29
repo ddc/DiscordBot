@@ -4,3 +4,4 @@ asyncpg
 beautifulsoup4
 imgurpython
 GitPython
+gTTS

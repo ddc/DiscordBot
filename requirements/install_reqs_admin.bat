@@ -13,6 +13,7 @@ IF %ERRORLEVEL% NEQ 0 GOTO attempt
 %SYSTEMROOT%\py.exe -3 -m pip install -U beautifulsoup4
 %SYSTEMROOT%\py.exe -3 -m pip install -U imgurpython
 %SYSTEMROOT%\py.exe -3 -m pip install -U GitPython
+%SYSTEMROOT%\py.exe -3 -m pip install -U gTTS
 PAUSE
 GOTO end
 
@@ -27,6 +28,7 @@ py.exe -3 -m pip install -U asyncpg
 py.exe -3 -m pip install -U beautifulsoup4
 py.exe -3 -m pip install -U imgurpython
 py.exe -3 -m pip install -U GitPython
+py.exe -3 -m pip install -U gTTS
 PAUSE
 GOTO end
 
@@ -41,6 +43,7 @@ python.exe -m pip install -U asyncpg
 python.exe -m pip install -U beautifulsoup4
 python.exe -m pip install -U imgurpython
 python.exe -m pip install -U GitPython
+python.exe -m pip install -U gTTS
 PAUSE
 GOTO end
 
@@ -55,6 +58,7 @@ pip install -U asyncpg
 pip install -U beautifulsoup4
 pip install -U imgurpython
 pip install -U GitPython
+pip install -U gTTS
 PAUSE
 GOTO end
 
@@ -62,7 +66,7 @@ GOTO end
 clear
 echo Couldn't find a valid Python ^>3.7 installation. Python needs to be installed and available in the PATH environment
 echo variable.
-echo Download Python at: https://www.python.org/ftp/python/3.7.4/python-3.7.4-amd64.exe
+echo Download Python at: https://www.python.org/downloads/releases
 PAUSE
 
 :end
