@@ -54,7 +54,7 @@ class Misc(commands.Cog):
         display_filename = f"{BotUtils.get_member_name_by_id(self, ctx, ctx.message.author.id)}.mp3"
         file_path = f"data/{author}.mp3"
         new_tts_msg = ""
-        new_msg = ""
+        # new_msg = ""
 
         if "<@!" in tts_text:
             mentions = tts_text.split(' ')
@@ -62,20 +62,20 @@ class Misc(commands.Cog):
                 if "<@!" in msg:
                     member_id = msg.strip(' ').strip('<@!').strip('>')
                     member = ctx.guild.get_member(int(member_id))
-                    new_msg = f"{new_msg} {member.mention}"
                     new_tts_msg = f"{new_tts_msg} @{member.display_name}"
+                    # new_msg = f"{new_msg} {member.mention}"
                 else:
-                    new_msg = f"{new_msg} {msg}"
                     new_tts_msg = f"{new_tts_msg} {msg}"
+                    # new_msg = f"{new_msg} {msg}"
 
-        if len(new_msg) == 0:
-            new_msg = tts_text
         if len(new_tts_msg) == 0:
             new_tts_msg = tts_text
+        # if len(new_msg) == 0:
+        #     new_msg = tts_text
 
         tts = gTTS(text=new_tts_msg)
         tts.save(file_path)
-        await ctx.send(new_msg)
+        # await ctx.send(new_msg)
         await ctx.send(file=discord.File(file_path, display_filename))
 
         try:
