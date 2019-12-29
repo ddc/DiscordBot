@@ -31,17 +31,18 @@ class Misc(commands.Cog):
 
     ################################################################################
     # @commands.command()
-    # @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
+    # #@commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     # async def test(self, ctx):
     #     """(test)"""
     #
-    #     a = CoolDowns.RollDiceCooldown.value
-    #     self.bot.log.info(a)
-    #
+    #     member = ctx.guild.get_member(int(195615080665055232))
+    #     msg = f"testing {member.mention}"
+    #     await ctx.send(msg)
+
     ################################################################################
     @commands.command()
     @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
-    async def tts(self, ctx, *, str_tts: str):
+    async def tts(self, ctx, *, tts_text: str):
         """(Send TTS as .mp3 to channel)
 
         Example:
@@ -52,9 +53,22 @@ class Misc(commands.Cog):
         author = str(ctx.message.author).replace('#', '')
         display_filename = f"{BotUtils.get_member_name_by_id(self, ctx, ctx.message.author.id)}.mp3"
         file_path = f"data/{author}.mp3"
-        tts = gTTS(text=str_tts)
+
+        if "<@!" in tts_text:
+            mentions = tts_text.split(' ')
+            new_msg_lst = []
+            for msg in mentions:
+                if "<@!" in msg:
+                    member_id = msg.strip(' ').strip('<@!').strip('>')
+                    member = ctx.guild.get_member(int(member_id))
+                    new_msg_lst.append(f"@{member.display_name}")
+                else:
+                    new_msg_lst.append(msg)
+            tts_text = ' '.join(new_msg_lst)
+
+        tts = gTTS(text=tts_text)
         tts.save(file_path)
-        await ctx.send(Formatting.inline(str_tts), file=discord.File(file_path, display_filename))
+        await ctx.send(Formatting.inline(tts_text), file=discord.File(file_path, display_filename))
 
         try:
             if os.path.isfile(file_path):

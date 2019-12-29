@@ -79,7 +79,7 @@ async def _info_key(self, ctx, sub_command=None):
                         name = "***This API Key is INVALID or no longer exists in gw2 api database***"
                     else:
                         is_valid_key = "YES"
-                        name = f"{(ctx.message.author)}"
+                        name = f"{ctx.message.author}"
                 except Exception as e:
                     await BotUtils.send_private_error_msg(self, ctx, e)
                     self.bot.log.error(ctx, e)
@@ -115,7 +115,7 @@ async def _info_key(self, ctx, sub_command=None):
                     name = "***This API Key is INVALID (or no longer exists in gw2 api database)***"
                 else:
                     is_valid_key = "YES"
-                    name = f"{(ctx.message.author)}"
+                    name = f"{ctx.message.author}"
             except Exception as e:
                 await BotUtils.send_private_error_msg(self, ctx, e)
                 self.bot.log.error(ctx, e)
