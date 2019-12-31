@@ -10,22 +10,9 @@ Choice of PostgreSQL or SQLite3 as database.
 ### [Install guide - Wiki](https://ddc.github.io/DiscordBot)
 + Install [Python3.7](https://www.python.org/downloads/release)
 + Install [Git](https://git-scm.com/download/win)
-+ Python modules can be installed using the script "install_reqs", running as root, this will also install Discord API or:
++ Python modules can be installed using the script "install_reqs", running as root or using pip:
     + pip install -r requirements/requirements.txt
 
-## Requirements
-+ [Python3.7](https://www.python.org/downloads/release)
-+ [Discord Bot Api](https://discordapp.com/developers/applications/me)
-+ [Git](https://git-scm.com/download/win)
-+ Python Modules:
-    + [discord.py](https://pypi.org/project/discord)
-    + [requests](https://pypi.python.org/pypi/requests)
-    + [asyncpg](https://pypi.python.org/pypi/asyncpg/)
-    + [beautifulsoup4](https://pypi.org/project/beautifulsoup4/)
-    + [imgurpython](https://pypi.python.org/pypi/imgurpython)
-    + [gitPython](https://pypi.python.org/pypi/gitPython)
-    + [gTTS](https://pypi.python.org/pypi/gTTS)
-    
 ## Games Included
 + [Guild Wars 2](https://www.guildwars2.com)
 
