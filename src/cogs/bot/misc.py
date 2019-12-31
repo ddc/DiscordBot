@@ -7,10 +7,10 @@
 # |*****************************************************
 # # -*- coding: utf-8 -*-
 
-from random import randint
+import os
 import datetime
 import discord
-import os
+from random import randint
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from .utils import bot_utils as BotUtils
@@ -21,6 +21,7 @@ from src.sql.bot.server_configs_sql import ServerConfigsSql
 from src.sql.bot.dice_rolls_sql import DiceRollsSql
 from src.cogs.bot.utils.cooldowns import CoolDowns
 from gtts import gTTS
+from io import BytesIO
 
 
 class Misc(commands.Cog):
@@ -43,46 +44,46 @@ class Misc(commands.Cog):
     @commands.command()
     @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def tts(self, ctx, *, tts_text: str):
-        """(Send TTS as .mp3 to channel)
+        """(Send TTS as .mp3 to the channel)
 
         Example:
         tts Hello everyone!
         """
 
         await ctx.message.channel.trigger_typing()
-        author = str(ctx.message.author).replace('#', '')
         display_filename = f"{BotUtils.get_member_name_by_id(self, ctx, ctx.message.author.id)}.mp3"
-        file_path = f"data/{author}.mp3"
-        new_tts_msg = ""
-        # new_msg = ""
+        new_tts_msg = None
+        # new_msg = None
 
         if "<@!" in tts_text:
             mentions = tts_text.split(' ')
+            new_tts_msg = []
+            # new_msg = []
             for msg in mentions:
                 if "<@!" in msg:
                     member_id = msg.strip(' ').strip('<@!').strip('>')
                     member = ctx.guild.get_member(int(member_id))
-                    new_tts_msg = f"{new_tts_msg} @{member.display_name}"
-                    # new_msg = f"{new_msg} {member.mention}"
+                    new_tts_msg.append(f"@{member.display_name}")
+                    # new_msg.append(f"{member.mention}")
                 else:
-                    new_tts_msg = f"{new_tts_msg} {msg}"
-                    # new_msg = f"{new_msg} {msg}"
+                    new_tts_msg.append(msg)
+                    # new_msg.append(msg)
 
-        if len(new_tts_msg) == 0:
+            new_tts_msg = ' '.join(new_tts_msg)
+            # new_msg = ' '.join(new_msg)
+
+        if new_tts_msg is None:
             new_tts_msg = tts_text
-        # if len(new_msg) == 0:
-        #     new_msg = tts_text
+        # if new_msg is None:
+        #    new_msg = tts_text
 
+        mp3_fp = BytesIO()
         tts = gTTS(text=new_tts_msg)
-        tts.save(file_path)
+        tts.write_to_fp(mp3_fp)
+        mp3_fp.seek(0)
         # await ctx.send(new_msg)
-        await ctx.send(file=discord.File(file_path, display_filename))
-
-        try:
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-        except OSError as e:
-            self.bot.log.error(f"{e}")
+        await ctx.send(file=discord.File(mp3_fp, display_filename))
+        mp3_fp.close()
 
     ################################################################################
     @commands.group()
