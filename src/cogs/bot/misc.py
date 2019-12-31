@@ -44,7 +44,7 @@ class Misc(commands.Cog):
     @commands.command()
     @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def tts(self, ctx, *, tts_text: str):
-        """(Send TTS as .mp3 to the channel)
+        """(Send TTS as .mp3 to current channel)
 
         Example:
         tts Hello everyone!
