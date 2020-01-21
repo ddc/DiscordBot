@@ -7,11 +7,11 @@
 
 Choice of PostgreSQL or SQLite3 as database.
 
-### [Install guide - Wiki](https://ddc.github.io/DiscordBot)
+### [Install Guide - Wiki](https://ddc.github.io/DiscordBot)
 + Install [Python3.7](https://www.python.org/downloads/release)
 + Install [Git](https://git-scm.com/download/win)
 + Python modules can be installed using the script "install_reqs", running as root or using pip:
-    + pip install -r requirements/requirements.txt
+    + pip install -r requirements.txt
 
 ## Games Included
 + [Guild Wars 2](https://www.guildwars2.com)

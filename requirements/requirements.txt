@@ -1,7 +1,0 @@
-discord.py[voice]
-requests
-asyncpg
-beautifulsoup4
-imgurpython
-GitPython
-gTTS
