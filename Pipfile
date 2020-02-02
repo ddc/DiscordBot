@@ -1,0 +1,18 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+requests = "*"
+asyncpg = "*"
+beautifulsoup4 = "*"
+imgurpython = "*"
+GitPython = "*"
+gTTS = "==2.1.1"
+"discord.py" = "==1.3.1"
+
+[requires]
+python_version = "3.8"
