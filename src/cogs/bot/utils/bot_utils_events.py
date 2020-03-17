@@ -44,6 +44,8 @@ async def insert_default_initial_configs(bot):
     await serversSql.insert_default_initial_server_configs(bot.guilds)
     usersSql = UsersSql(bot)
     await usersSql.insert_all_server_users(bot.guilds)
+    gw2Configs = Gw2ConfigsSql(bot)
+    await gw2Configs.insert_default_initial_gw2_server_configs(bot.guilds, bot.gw2_settings["BGRoleTimer"])
 
 
 ################################################################################

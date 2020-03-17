@@ -58,7 +58,7 @@ class GW2LastSession(commands.Cog):
         if len(rs_api_key) == 0:
             return await BotUtils.send_error_msg(self, ctx, "You dont have an API key registered in this server.\n"
                                                             f"To add or replace an API key use: `{ctx.prefix}gw2 key "
-                                                            f"add`\n"
+                                                            "add`\n"
                                                             f"To check your API key use: `{ctx.prefix}gw2 key info`")
 
         api_key = rs_api_key[0]["key"]

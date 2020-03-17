@@ -155,11 +155,7 @@ async def _roletimer(self, ctx, role_timer: int):
     msg = f"Timer changed to: `{role_timer} seconds`"
     embed = discord.Embed(description=msg, color=color)
     gw2Configs = Gw2ConfigsSql(self.bot)
-    rs = await gw2Configs.get_gw2_server_configs(ctx.message.channel.guild.id)
-    if len(rs) == 0:
-        await gw2Configs.insert_gw2_role_timer(ctx.message.channel.guild.id, role_timer)
-    elif int(rs[0]["role_timer"]) != role_timer:
-        await gw2Configs.update_gw2_role_timer(ctx.message.channel.guild.id, role_timer)
+    await gw2Configs.update_gw2_role_timer(ctx.message.channel.guild.id, role_timer)
 
     await BotUtils.send_embed(self, ctx, embed, False, msg)
 

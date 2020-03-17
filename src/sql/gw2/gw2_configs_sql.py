@@ -8,6 +8,7 @@
 # # -*- coding: utf-8 -*-
 
 from src.databases.databases import Databases
+import discord
 
 
 class Gw2ConfigsSql:
@@ -49,3 +50,17 @@ class Gw2ConfigsSql:
                 WHERE discord_server_id = {discord_server_id};"""
         databases = Databases(self.bot)
         await databases.execute(sql)
+
+
+    ################################################################################
+    async def insert_default_initial_gw2_server_configs(self, servers: discord.Guild, role_timer: int):
+        databases = Databases(self.bot)
+        for server in servers:
+            current_server = await self.get_gw2_server_configs(server.id)
+            if len(current_server) == 0:
+                sql = f"""INSERT INTO gw2_configs (discord_server_id, role_timer)
+                        VALUES ({server.id}, '{role_timer}');"""
+                await databases.execute(sql)
+
+
+
