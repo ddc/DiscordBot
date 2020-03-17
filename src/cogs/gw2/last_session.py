@@ -50,10 +50,10 @@ class GW2LastSession(commands.Cog):
         rs_api_key = await gw2KeySql.get_server_user_api_key(ctx.guild.id, discord_user_id)
 
         if len(rs_api_key) == 0:
-            return await BotUtils.send_error_msg(self, ctx,
-                                              "You dont have an API key registered in this server.\n" \
-                                              f"To add or replace an API key use: `{ctx.prefix}gw2 key add`\n"
-                                              f"To check your API key use: `{ctx.prefix}gw2 key info`")
+            return await BotUtils.send_error_msg(self, ctx, "You dont have an API key registered in this server.\n"
+                                                            f"To add or replace an API key use: `{ctx.prefix}gw2 key "
+                                                            f"add`\n"
+                                                            f"To check your API key use: `{ctx.prefix}gw2 key info`")
 
         api_key = rs_api_key[0]["key"]
         gw2_server = rs_api_key[0]["server_name"]
@@ -79,7 +79,8 @@ class GW2LastSession(commands.Cog):
             error_msg += "- characters is OK\n" if characters is True else "- characters is MISSING\n"
             error_msg += "- progression is OK\n" if progression is True else "- progression is MISSING\n"
             error_msg += "- wallet is OK\n" if wallet is True else "- wallet is MISSING\n"
-            error_msg += "Please add another API key with permissions that are MISSING if you want to use this command.\n" \
+            error_msg += "Please add another API key with permissions that are MISSING if you want to use this " \
+                         "command.\n" \
                          f"To add or replace an API key use: `{prefix}gw2 key add <api_key>`\n" \
                          f"To check your API key use: `{ctx.prefix}gw2 key info`"
             return await BotUtils.send_error_msg(self, ctx, error_msg)
@@ -106,9 +107,8 @@ class GW2LastSession(commands.Cog):
 
             still_playing_msg = None
             if not (isinstance(ctx.channel, discord.DMChannel)):
-                if hasattr(ctx.message.author, "activity") \
-                        and ctx.message.author.activity is not None \
-                        and str(ctx.message.author.activity.name) == "Guild Wars 2":
+                if hasattr(ctx.message.author, "activity") and ctx.message.author.activity is not None and str(
+                        ctx.message.author.activity.name) == "Guild Wars 2":
                     still_playing_msg = f"{ctx.message.author.mention} You are playing Guild Wars 2 at the moment.\n" \
                                         "Your stats may NOT be accurate."
             #                 else:
@@ -183,10 +183,9 @@ class GW2LastSession(commands.Cog):
 
                 if len(prof_names) > 0:
                     deaths_msg = f"{prof_names} [Total:{total_deaths}]"
-                    embed.add_field(name="Times you died", value=Formatting.inline(deaths_msg), inline=False)
-                # else:
-                #    deaths_msg = "0"
-                #    embed.add_field(name="Times you died", value=Formatting.inline(deaths_msg), inline=True)
+                    embed.add_field(name="Times you died", value=Formatting.inline(deaths_msg),
+                                    inline=False)  # else:  #    deaths_msg = "0"  #    embed.add_field(name="Times
+                    # you died", value=Formatting.inline(deaths_msg), inline=True)
 
             if updated_last_session[0]["start_karma"] != updated_last_session[0]["end_karma"]:
                 final_result = str(updated_last_session[0]["end_karma"] - updated_last_session[0]["start_karma"])
@@ -286,8 +285,13 @@ class GW2LastSession(commands.Cog):
                 await ctx.send(still_playing_msg)
             await BotUtils.send_embed(self, ctx, embed, False)
         else:
-            await BotUtils.send_error_msg(self, ctx,
-                                       "No records were found in your name.\n" \
-                                       "Make sure your status is not set to invisible in discord.\n" \
-                                       "Make sure \"Display current running game as a status message\" is ON.\n" \
-                                       "Make sure to start discord on your Desktop first before you start Guild Wars 2.")
+            await BotUtils.send_private_error_msg(self, ctx, "No records were found in your name.\n"
+                                                             "You are probably trying to execute this command without "
+                                                             "playing the game.\n"
+                                                             "Make sure your status is NOT set to invisible in "
+                                                             "discord.\n"
+                                                             "Make sure \"Display current running game as a status "
+                                                             "message\" "
+                                                             "is ON.\n"
+                                                             "Make sure to start discord on your Desktop FIRST before "
+                                                             "starting Guild Wars 2.")
