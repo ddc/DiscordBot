@@ -50,11 +50,11 @@ class GW2Misc(commands.Cog):
                 soup = BeautifulSoup(results, 'html.parser')
                 posts = soup.find_all("div", {"class": "mw-search-result-heading"})[:50]
                 totalPosts = len(posts)
+                color = self.bot.gw2_settings["EmbedColor"]
                 if not posts:
-                    await BotUtils.send_msg(ctx, "No results!")
+                    await BotUtils.send_msg(self, ctx, color, "No results!")
                     return
 
-                color = self.bot.gw2_settings["EmbedColor"]
                 embed = discord.Embed(title="Wiki Search Results", color=color)
 
                 if totalPosts > 0:

@@ -118,8 +118,9 @@ class GW2LastSession(commands.Cog):
             #                             m = "minutes"
             #                             if wait_time == "1":
             #                                 m = "minute"
-            #                             return await BotUtils.send_msg(self, ctx,f"{ctx.message.author.mention} Anet API still updating your stats!\n"\
-            #                                                  f"Please wait {wait_time} more {m} to try again.")                
+            #                             return await BotUtils.send_msg(self, ctx, color,
+            #                                   f"{ctx.message.author.mention} Anet API still updating your stats!\n"\
+            #                                   f"Please wait {wait_time} more {m} to try again.")
 
             # getting stats
             try:
@@ -282,7 +283,7 @@ class GW2LastSession(commands.Cog):
                                     inline=True)
 
             if still_playing_msg is not None:
-                await ctx.send(Formatting.inline(still_playing_msg))
+                await ctx.send(still_playing_msg)
             await BotUtils.send_embed(self, ctx, embed, False)
         else:
             await BotUtils.send_error_msg(self, ctx,

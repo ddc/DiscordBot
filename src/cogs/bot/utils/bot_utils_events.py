@@ -293,8 +293,7 @@ async def _send_custom_message(message, send_msg: str):
     desc = f":rage: :middle_finger:\n{Formatting.inline(send_msg)}"
     if not (isinstance(message.channel, discord.DMChannel)):
         desc = f"{desc}\n{message.author.mention}"
-    embed = discord.Embed(color=discord.Color.red(),
-                          description=desc)
+    embed = discord.Embed(color=discord.Color.red(), description=desc)
     await message.channel.send(embed=embed)
 
 

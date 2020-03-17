@@ -26,7 +26,7 @@ class GW2Key(commands.Cog):
 
     ################################################################################
     async def gw2_key(self, ctx, cmd_api_key: str):
-        await Gw2Utils.delete_api_key_message(self, ctx)
+        await Gw2Utils.delete_api_key(self, ctx)
         command = str(cmd_api_key.replace(f"{ctx.prefix}gw2 key ", "")).split(' ', 1)[0]
 
         if command == "info":
@@ -53,7 +53,7 @@ class GW2Key(commands.Cog):
 async def _info_key(self, ctx, sub_command=None):
     discord_user_id = ctx.message.author.id
     discord_server_id = ctx.message.guild.id
-    author_icon_url = ctx.message.author.avatar_url.replace('webp?size=1024', 'png')
+    author_icon_url = ctx.message.author.avatar_url
     color = self.bot.gw2_settings["EmbedColor"]
     gw2KeySql = Gw2KeySql(self.bot)
     gw2Api = Gw2Api(self.bot)
@@ -62,9 +62,10 @@ async def _info_key(self, ctx, sub_command=None):
     if sub_command is not None and sub_command.lower() == "all":
         rs_all = await gw2KeySql.get_all_user_api_key(discord_user_id)
         if len(rs_all) == 0:
-            await BotUtils.send_private_error_msg(self, ctx, "You dont have an API key registered in this server.\n" \
-                                                          f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
-                                                          f"To check your API key use: `{ctx.prefix}gw2 key info`")
+            await BotUtils.send_private_error_msg(self, ctx,
+                                                  "You dont have an API key registered in this server.\n"
+                                                  f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
+                                                  f"To check your API key use: `{ctx.prefix}gw2 key info`")
         else:
             for x in range(0, len(rs_all)):
                 rs_guild_info = await serversSql.get_server_by_id(rs_all[x]["discord_server_id"])
@@ -99,13 +100,14 @@ async def _info_key(self, ctx, sub_command=None):
                 await BotUtils.send_embed(self, ctx, _embed, True)
     elif sub_command is None:
         footer_guild_name = str(ctx.message.guild)
-        footer_icon_url = ctx.message.guild.icon_url.replace('webp?size=1024', 'png')
+        footer_icon_url = ctx.message.guild.icon_url
 
         rs = await gw2KeySql.get_server_user_api_key(discord_server_id, discord_user_id)
         if len(rs) == 0:
-            await BotUtils.send_private_error_msg(self, ctx, "You dont have an API key registered in this server.\n" \
-                                                          f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
-                                                          f"To check your API key use: `{ctx.prefix}gw2 key info`")
+            await BotUtils.send_private_error_msg(self, ctx,
+                                                  "You dont have an API key registered in this server.\n"
+                                                  f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
+                                                  f"To check your API key use: `{ctx.prefix}gw2 key info`")
         else:
             try:
                 api_key = rs[0]["key"]
@@ -183,7 +185,6 @@ async def _add_key(self, ctx, api_key: str):
         if len(rs) > 0:
             # update key
             updateObject = BotUtils.Object()
-            updateObject = BotUtils.Object()
             updateObject.discord_user_id = discord_user_id
             updateObject.discord_server_id = discord_server_id
             updateObject.key_name = key_name
@@ -195,7 +196,8 @@ async def _add_key(self, ctx, api_key: str):
             msg = "Your API key was **replaced**.\n" \
                   f"Server: `{gw2_server_name}`\n" \
                   f"To get info about your new api key use: `{ctx.prefix}gw2 key info`"
-            await BotUtils.send_private_msg(self, ctx, msg)
+            color = self.bot.gw2_settings["EmbedColor"]
+            await BotUtils.send_private_msg(self, ctx, color, msg)
         else:
             # insert key
             insertObject = BotUtils.Object()
@@ -210,7 +212,8 @@ async def _add_key(self, ctx, api_key: str):
             msg = "Your key was verified and was **added** to your discord account.\n" \
                   f"Server: `{gw2_server_name}`\n" \
                   f"To get info about your api key use: `{ctx.prefix}gw2 key info`"
-            await BotUtils.send_private_msg(self, ctx, msg)
+            color = self.bot.gw2_settings["EmbedColor"]
+            await BotUtils.send_private_msg(self, ctx, color, msg)
 
         # checking if the bot needs to assign gw2 server roles to user
         gw2Roles = Gw2RolesSql(self.bot)
@@ -245,8 +248,9 @@ async def _remove_key(self, ctx):
                                                       f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
                                                       f"To check your API key use: `{ctx.prefix}gw2 key info`")
     else:
+        color = self.bot.gw2_settings["EmbedColor"]
         await gw2KeySql.delete_server_user_api_key(discord_server_id, discord_user_id)
-        await BotUtils.send_private_msg(self, ctx, "Your GW2 API Key has been deleted successfully.")
+        await BotUtils.send_private_msg(self, ctx, color, "Your GW2 API Key has been deleted successfully.")
 
         # checking if the bot needs to assign gw2 server roles to user
         gw2Roles = Gw2RolesSql(self.bot)

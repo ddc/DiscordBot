@@ -175,8 +175,9 @@ class Admin(commands.Cog):
         if len(banned_list) > 0:
             for banned_user in banned_list:
                 if banned_user.user == user:
+                    color = self.bot.settings["EmbedColor"]
                     await ctx.guild.unban(banned_user.user)
-                    await BotUtils.send_msg(self, ctx, f"User `{user}` is no longer banned.")
+                    await BotUtils.send_msg(self, ctx, color, f"User `{user}` is no longer banned.")
                 else:
                     await BotUtils.send_error_msg(self, ctx, f"User: `{user}` not found.\n"
                                                           "Please use full user name with numbers: user#1234\n"
@@ -286,7 +287,8 @@ class Admin(commands.Cog):
                   "Cannot execute any Bot commands anymore."
             if reason is not None:
                 msg += f"\nReason: {reason}"
-            await BotUtils.send_msg(self, ctx, Formatting.inline(msg))
+            color = self.bot.settings["EmbedColor"]
+            await BotUtils.send_msg(self, ctx, color, Formatting.inline(msg))
         else:
             msg = f"{member} is already blacklisted."
             if rs[0]["reason"] is not None:
@@ -309,7 +311,8 @@ class Admin(commands.Cog):
             if len(rs) > 0:
                 await blacklistsSql.delete_blacklisted_user(member)
                 msg = f"Successfully removed {member} from the blacklist."
-                await BotUtils.send_msg(self, ctx, Formatting.inline(msg))
+                color = self.bot.settings["EmbedColor"]
+                await BotUtils.send_msg(self, ctx, color, Formatting.inline(msg))
                 await ctx.send(f"{member.mention}")
             else:
                 msg = f"{member} is not blacklisted."
@@ -331,8 +334,9 @@ class Admin(commands.Cog):
         blacklistsSql = BlacklistsSql(self.bot)
         rs = await blacklistsSql.get_all_server_blacklisted_users(ctx.guild.id)
         if len(rs) > 0:
+            color = self.bot.settings["EmbedColor"]
             await blacklistsSql.delete_all_blacklisted_users(ctx.guild.id)
-            await BotUtils.send_msg(self, ctx, "Successfully removed all members from the blacklist.")
+            await BotUtils.send_msg(self, ctx, color, "Successfully removed all members from the blacklist.")
         else:
             await BotUtils.send_error_msg(self, ctx, "There are no blacklisted members in this server.")
 
@@ -458,9 +462,10 @@ class Admin(commands.Cog):
         if len(rs) == 0:
             await mutesSql.insert_mute_user(member, ctx.message.author, reason)
             msg = f"Successfully muted {member}"
+            color = self.bot.settings["EmbedColor"]
             if reason is not None:
                 msg += f"\nReason: {reason}"
-            await BotUtils.send_msg(self, ctx, Formatting.inline(msg))
+            await BotUtils.send_msg(self, ctx, color, Formatting.inline(msg))
         else:
             msg = f"{member} is already muted."
             if rs[0]["reason"] is not None:
@@ -481,9 +486,10 @@ class Admin(commands.Cog):
             mutesSql = MutesSql(self.bot)
             rs = await mutesSql.get_server_mute_user(member)
             if len(rs) > 0:
-                await mutesSql.delete_mute_user(member)
                 msg = f"Successfully unmuted {member}."
-                await BotUtils.send_msg(self, ctx, Formatting.inline(msg))
+                color = self.bot.settings["EmbedColor"]
+                await mutesSql.delete_mute_user(member)
+                await BotUtils.send_msg(self, ctx, color, Formatting.inline(msg))
                 await ctx.send(f"{member.mention}")
             else:
                 msg = f"{member} is not muted."
@@ -505,8 +511,9 @@ class Admin(commands.Cog):
         mutesSql = MutesSql(self.bot)
         rs = await mutesSql.get_all_server_mute_users(ctx.guild.id)
         if len(rs) > 0:
+            color = self.bot.settings["EmbedColor"]
             await mutesSql.delete_all_mute_users(ctx.guild.id)
-            await BotUtils.send_msg(self, ctx, "Successfully unmuted all members.")
+            await BotUtils.send_msg(self, ctx, color, "Successfully unmuted all members.")
         else:
             await BotUtils.send_error_msg(self, ctx, "There are no muted members in this server.")
 
@@ -608,8 +615,9 @@ class Admin(commands.Cog):
         commandsSql = CommandsSql(self.bot)
         rs = await commandsSql.get_command(server.id, str(command_name))
         if len(rs) == 0:
+            color = self.bot.settings["EmbedColor"]
             await commandsSql.insert_command(ctx.author, str(command_name), str(text))
-            await BotUtils.send_msg(self, ctx, f"Custom command successfully added:\n`{ctx.prefix}{command_name}`")
+            await BotUtils.send_msg(self, ctx, color, f"Custom command successfully added:\n`{ctx.prefix}{command_name}`")
         else:
             await BotUtils.send_error_msg(self, ctx,
                                        f"Command already exists: `{ctx.prefix}{command_name}`\n"
@@ -638,8 +646,9 @@ class Admin(commands.Cog):
 
         rs = await commandsSql.get_command(server.id, str(command_name))
         if len(rs) > 0:
+            color = self.bot.settings["EmbedColor"]
             await commandsSql.delete_command(server.id, str(command_name))
-            await BotUtils.send_msg(self, ctx, f"Custom command successfully removed:\n`{ctx.prefix}{command_name}`")
+            await BotUtils.send_msg(self, ctx, color, f"Custom command successfully removed:\n`{ctx.prefix}{command_name}`")
         else:
             await BotUtils.send_error_msg(self, ctx, "That command doesn't exist.")
 
@@ -667,8 +676,9 @@ class Admin(commands.Cog):
 
         rs = await commandsSql.get_command(server.id, str(command_name))
         if len(rs) > 0:
+            color = self.bot.settings["EmbedColor"]
             await commandsSql.update_command(server.id, str(command_name), str(text))
-            await BotUtils.send_msg(self, ctx, f"Custom command successfully edited:\n`{ctx.prefix}{command_name}`")
+            await BotUtils.send_msg(self, ctx, color, f"Custom command successfully edited:\n`{ctx.prefix}{command_name}`")
         else:
             await BotUtils.send_error_msg(self, ctx,
                                        f"Command doesn't exist in this server:\n`{ctx.prefix}{command_name}`")
@@ -687,13 +697,14 @@ class Admin(commands.Cog):
 
         server = ctx.guild
         commandsSql = CommandsSql(self.bot)
+        color = self.bot.settings["EmbedColor"]
         rs = await commandsSql.get_all_commands(server.id)
         if len(rs) == 0:
             await BotUtils.send_error_msg(self, ctx, "There are no custom commands in this server.")
             return
 
         await commandsSql.delete_all_commands(server.id)
-        await BotUtils.send_msg(self, ctx, "All custom commands successfully removed.")
+        await BotUtils.send_msg(self, ctx, color, "All custom commands successfully removed.")
 
     ################################################################################
     @customcom.command(name="list")

@@ -36,9 +36,7 @@ class Misc(commands.Cog):
     # async def test(self, ctx):
     #     """(test)"""
     #
-    #     member = ctx.guild.get_member(int(195615080665055232))
-    #     msg = f"testing {member.mention}"
-    #     await ctx.send(msg)
+    #     await BotUtils.delete_last_channel_message(self, ctx, warning=True)
 
     ################################################################################
     @commands.command()
@@ -254,9 +252,10 @@ class Misc(commands.Cog):
         """
 
         diceRollsSql = DiceRollsSql(self.bot)
+        color = self.bot.settings["EmbedColor"]
         await ctx.message.channel.trigger_typing()
         await diceRollsSql.delete_all_server_dice_rolls(ctx.guild.id)
-        await BotUtils.send_msg(self, ctx, "Dice rolls from all members in this server have been deleted.")
+        await BotUtils.send_msg(self, ctx, color, "Dice rolls from all members in this server have been deleted.")
 
     ################################################################################
     @commands.command()
@@ -449,8 +448,9 @@ class Misc(commands.Cog):
         echo <msg>
         """
 
+        color = self.bot.settings["EmbedColor"]
         await ctx.message.channel.trigger_typing()
-        await BotUtils.send_msg(self, ctx, Formatting.inline(msg))
+        await BotUtils.send_msg(self, ctx, color, msg)
 
     ################################################################################
     @commands.command()
@@ -530,7 +530,7 @@ class Misc(commands.Cog):
         if len(unlimited_invites) > 0 or len(limited_invites) > 0 or len(revoked_invites) > 0:
             await BotUtils.send_embed(self, ctx, embed, False)
         else:
-            await BotUtils.send_msg(self, ctx, Formatting.inline("No current invites on any channel."))
+            await BotUtils.send_msg(self, ctx, color, Formatting.inline("No current invites on any channel."))
 
     ################################################################################
     @commands.command()

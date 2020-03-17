@@ -124,17 +124,20 @@ async def get_world_name(self, wids: str):
 
 
 ################################################################################
-async def delete_api_key_message(self, ctx):
+async def delete_api_key(self, ctx, message=False):
     if hasattr(self, 'bot'):
         self = self.bot
 
     if not isinstance(ctx.channel, discord.DMChannel):
         try:
             await ctx.message.delete()
-            await BotUtils.send_msg(self, ctx, "Your message with your API Key was removed for privacy.")
+            if message:
+                color = self.gw2_settings["EmbedColor"]
+                await BotUtils.send_msg(self, ctx, color, "Your message with your API Key was removed for privacy.")
         except:
-            await BotUtils.send_msg(self, ctx, "Bot does not have permission to delete the message with your API key.\n" \
-                                            "Missing permission: `Manage Messages`")
+            await BotUtils.send_error_msg(self, ctx,
+                                    "Bot does not have permission to delete the message with your API key.\n"
+                                    "Missing bot permission: `Manage Messages`")
 
 
 ################################################################################

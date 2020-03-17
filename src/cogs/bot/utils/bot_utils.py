@@ -90,17 +90,15 @@ async def send_error_msg(self, ctx, msg):
 
 
 ################################################################################
-async def send_msg(self, ctx, msg):
+async def send_msg(self, ctx, color, msg):
     await ctx.message.channel.trigger_typing()
-    color = get_color_settings(constants.SETTINGS_FILENAME, "EmbedColors", "EmbedColor")
     embed = discord.Embed(color=color, description=msg)
     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
     await send_embed(self, ctx, embed, False, msg)
 
 
 ################################################################################
-async def send_private_msg(self, ctx, msg):
-    color = get_color_settings(constants.SETTINGS_FILENAME, "EmbedColors", "EmbedColor")
+async def send_private_msg(self, ctx, color, msg):
     embed = discord.Embed(color=color, description=msg)
     # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
     await send_embed(self, ctx, embed, True, msg)
@@ -189,10 +187,11 @@ async def delete_last_channel_message(self, ctx, warning=False):
         try:
             await ctx.message.delete()
             if warning:
-                await send_msg(self, ctx, Formatting.inline("Your message was removed for privacy."))
+                color = self.bot.settings["EmbedColor"]
+                await send_msg(self, ctx, color, "Your message was removed for privacy.")
         except:
-            # await send_msg(self, ctx, "Bot does not have permission to delete messages.\n"\
-            #                        "Missing permission: `Manage Messages`")
+            # await send_error_msg(self, ctx, "Bot does not have permission to delete messages.\n"\
+            #                                   "Missing permission: `Manage Messages`")
             return
 
 
