@@ -16,24 +16,20 @@ class Gw2KeySql:
 
     ################################################################################
     async def get_api_key(self, discord_server_id: int, key: str):
-        sql = f"""SELECT * FROM gw2_Keys WHERE
-                discord_server_id = {discord_server_id}
-                and key = '{key}';"""
+        sql = f"SELECT * FROM gw2_Keys WHERE discord_server_id = {discord_server_id} and key = '{key}';"
         databases = Databases(self.bot)
         return await databases.select(sql)
 
     ################################################################################
     async def get_server_user_api_key(self, discord_server_id: int, discord_user_id: int):
-        sql = f"""SELECT * FROM gw2_Keys WHERE
-                discord_server_id = {discord_server_id}
-                and discord_user_id = {discord_user_id};"""
+        sql = f"SELECT * FROM gw2_Keys WHERE discord_server_id = {discord_server_id} " \
+              f"and discord_user_id = {discord_user_id};"
         databases = Databases(self.bot)
         return await databases.select(sql)
 
     ################################################################################
     async def get_all_user_api_key(self, discord_user_id: int):
-        sql = f"""SELECT * FROM gw2_Keys WHERE
-                discord_user_id = {discord_user_id};"""
+        sql = f"SELECT * FROM gw2_Keys WHERE discord_user_id = {discord_user_id};"
         databases = Databases(self.bot)
         return await databases.select(sql)
 

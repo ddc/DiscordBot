@@ -146,39 +146,51 @@ def is_private_message(self, ctx):
 
 
 ################################################################################
-async def last_session_gw2_event_after(bot, after: discord.Member):
-    if str(after.activity.name) == "Guild Wars 2":
-        gw2Configs = Gw2ConfigsSql(bot)
-        rs_gw2_sc = await gw2Configs.get_gw2_server_configs(after.guild.id)
-        if len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"] == "Y":
-            gw2KeySql = Gw2KeySql(bot)
-            rs_api_key = await gw2KeySql.get_server_user_api_key(after.guild.id, after.id)
-            if len(rs_api_key) > 0:
-                api_key = rs_api_key[0]["key"]
-                object_start = await get_last_session_user_stats(bot, None, api_key)
-                object_start.discord_user_id = after.id
-                object_start.date = BotUtils.get_todays_date_time()
-                gw2LastSessionSql = Gw2LastSessionSql(bot)
-                await gw2LastSessionSql.insert_last_session_start(object_start)
-                await insert_characters(bot, after, api_key, "start")
+async def last_session_gw2_event(bot, before: discord.Member, after: discord.Member):
+    # insert when game starts
+    if after.activity is not None and before.activity is None and after.activity.type == discord.ActivityType.playing\
+            and str(
+        after.activity.name) == "Guild Wars 2":
+        await last_session_gw2_event_starts(bot, after)
+    # insert when game ends
+    elif before.activity is not None and after.activity is None and before.activity.type == \
+            discord.ActivityType.playing and str(
+        before.activity.name) == "Guild Wars 2":
+        await last_session_gw2_event_ends(bot, before)
 
 
 ################################################################################
-async def last_session_gw2_event_before(bot, before: discord.Member):
-    if str(before.activity.name) == "Guild Wars 2":
-        gw2Configs = Gw2ConfigsSql(bot)
-        rs_gw2_sc = await gw2Configs.get_gw2_server_configs(before.guild.id)
-        if len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"] == "Y":
+async def last_session_gw2_event_starts(bot, after: discord.Member):
+    gw2Configs = Gw2ConfigsSql(bot)
+    rs_gw2_sc = await gw2Configs.get_gw2_server_configs(after.guild.id)
+    if len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"] == "Y":
+        gw2KeySql = Gw2KeySql(bot)
+        rs_api_key = await gw2KeySql.get_server_user_api_key(after.guild.id, after.id)
+        if len(rs_api_key) > 0:
+            api_key = rs_api_key[0]["key"]
+            object_start = await get_last_session_user_stats(bot, None, api_key)
+            object_start.discord_user_id = after.id
+            object_start.date = BotUtils.get_todays_date_time()
             gw2LastSessionSql = Gw2LastSessionSql(bot)
-            rs_ls = await gw2LastSessionSql.get_user_last_session(before.id)
-            if len(rs_ls) > 0:
-                object_end = BotUtils.Object()
-                object_end.discord_user_id = before.id
-                object_end.date = BotUtils.get_todays_date_time()
-                await gw2LastSessionSql.update_last_session_end_date(object_end)
+            await gw2LastSessionSql.insert_last_session_start(object_start)
+            await insert_characters(bot, after, api_key, "start")
 
 
 ################################################################################
+async def last_session_gw2_event_ends(bot, before: discord.Member):
+    gw2Configs = Gw2ConfigsSql(bot)
+    rs_gw2_sc = await gw2Configs.get_gw2_server_configs(before.guild.id)
+    if len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"] == "Y":
+        gw2LastSessionSql = Gw2LastSessionSql(bot)
+        rs_ls = await gw2LastSessionSql.get_user_last_session(before.id)
+        if len(rs_ls) > 0:
+            object_end = BotUtils.Object()
+            object_end.discord_user_id = before.id
+            object_end.date = BotUtils.get_todays_date_time()
+            await gw2LastSessionSql.update_last_session_end_date(object_end)
+
+
+###############################################################################
 async def get_last_session_user_stats(self, ctx, api_key):
     if not (hasattr(self, "bot")):
         self.bot = self
@@ -275,8 +287,7 @@ async def insert_characters(self, member: discord.Member, api_key, type_session:
             await gw2CharsEndSql.insert_character(insert_obj, api_req_characters)
 
     except Exception as e:
-        # await BotUtils.send_error_msg(self, ctx, e)
-        return self.bot.log.error(ctx, e)
+        return self.bot.log.error(e)
 
 
 ################################################################################

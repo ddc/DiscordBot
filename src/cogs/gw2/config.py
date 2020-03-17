@@ -108,11 +108,11 @@ async def _lastsession(self, ctx, new_status: str):
     if new_status.lower() == "on":
         new_status = "Y"
         color = discord.Color.green()
-        msg = f"Last session `ACTIVATED`\nBot will now record users last sessions."
+        msg = f"Last session `ACTIVATED`\nBot will now record Gw2 users last sessions."
     elif new_status.lower() == "off":
         new_status = "N"
         color = discord.Color.red()
-        msg = f"Last session `DEACTIVATED`\nBot will `NOT` record users last sessions."
+        msg = f"Last session `DEACTIVATED`\nBot will `NOT` record Gw2 users last sessions."
     else:
         raise commands.BadArgument(message="BadArgument")
 
@@ -120,7 +120,8 @@ async def _lastsession(self, ctx, new_status: str):
     gw2Configs = Gw2ConfigsSql(self.bot)
     rs = await gw2Configs.get_gw2_server_configs(ctx.message.channel.guild.id)
     if len(rs) == 0:
-        await gw2Configs.insert_gw2_last_session(ctx.message.channel.guild.id, new_status)
+        role_timer = self.bot.gw2_settings["BGRoleTimer"]
+        await gw2Configs.insert_gw2_last_session(ctx.message.channel.guild.id, new_status, role_timer)
     elif rs[0]["last_session"] != new_status:
         await gw2Configs.update_gw2_last_session(ctx.message.channel.guild.id, new_status)
 
@@ -137,14 +138,15 @@ async def _roletimer(self, ctx, role_timer: int):
 
     await ctx.message.channel.trigger_typing()
     err_msg_number = "Wrong option!!!\n" \
-                     "Timer must be in seconds and higher than 3600 secs (1hour)."
+                     "Timer must be in seconds and higher than 3600 secs (1hour).\n" \
+                     f"Using default timer: {self.bot.gw2_settings['BGRoleTimer']}"
 
     try:
         role_timer = int(role_timer)
         if not math.isnan(role_timer):
             if role_timer < 3600:
                 await BotUtils.send_error_msg(self, ctx, err_msg_number)
-                return
+                role_timer = self.bot.gw2_settings["BGRoleTimer"]
     except Exception:
         await BotUtils.send_error_msg(self, ctx, err_msg_number)
         return

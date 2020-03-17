@@ -18,6 +18,7 @@ from src.cogs.gw2.utils import gw2_utils as Gw2Utils
 from src.cogs.bot.utils import bot_utils as BotUtils
 from src.cogs.bot.utils import constants
 from src.cogs.bot.utils import chat_formatting as Formatting
+from src.sql.gw2.gw2_configs_sql import Gw2ConfigsSql
 
 
 class GW2LastSession(commands.Cog):
@@ -45,10 +46,15 @@ class GW2LastSession(commands.Cog):
         """
 
         await ctx.message.channel.trigger_typing()
+        gw2Configs = Gw2ConfigsSql(self.bot)
+        rs_gw2_sc = await gw2Configs.get_gw2_server_configs(ctx.guild.id)
+        if len(rs_gw2_sc) == 0 or (len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"] == "N"):
+            return await BotUtils.send_error_msg(self, ctx, "Last session command is not active on this server.\n"
+                                                            f"To activate use: `{ctx.prefix}gw2 config lastsession on`")
+
         discord_user_id = ctx.message.author.id
         gw2KeySql = Gw2KeySql(self.bot)
         rs_api_key = await gw2KeySql.get_server_user_api_key(ctx.guild.id, discord_user_id)
-
         if len(rs_api_key) == 0:
             return await BotUtils.send_error_msg(self, ctx, "You dont have an API key registered in this server.\n"
                                                             f"To add or replace an API key use: `{ctx.prefix}gw2 key "
@@ -138,7 +144,7 @@ class GW2LastSession(commands.Cog):
                 await BotUtils.send_error_msg(self, ctx, e)
                 return self.bot.log.error(ctx, e)
 
-                # update stats
+            # update stats
             await ctx.message.channel.trigger_typing()
             object_end.discord_user_id = discord_user_id
             await gw2LastSessionSql.update_last_session_end(object_end)
@@ -147,7 +153,7 @@ class GW2LastSession(commands.Cog):
             await ctx.message.channel.trigger_typing()
             updated_last_session = await gw2LastSessionSql.get_user_last_session(discord_user_id)
 
-            FMT = constants.time_formatter
+            FMT = constants.TIME_FORMATTER
             total_played_time = datetime.strptime(ed_time, FMT) - datetime.strptime(st_time, FMT)
             if total_played_time.days < 0:
                 total_played_time = str(total_played_time).split(",")[1].strip()

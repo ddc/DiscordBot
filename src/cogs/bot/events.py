@@ -199,18 +199,17 @@ class Events(commands.Cog):
         ################################################################################
         @bot.event
         async def on_member_update(before: discord.Guild, after: discord.Guild):
+            # do nothing if its a bot
             if after.bot:
                 return
-
-            if before.activity != after.activity:
-                if after.activity is not None and after.activity.type == discord.ActivityType.playing:
-                    await Gw2Utils.last_session_gw2_event_after(bot, after)
-                elif before.activity is not None and before.activity.type == discord.ActivityType.playing:
-                    await Gw2Utils.last_session_gw2_event_before(bot, before)
 
             # do nothing if changed status
             if str(before.status) != str(after.status):
                 return
+
+            # check for gw2 gama activity
+            if before.activity != after.activity:
+                await Gw2Utils.last_session_gw2_event(bot, before, after)
 
             usersSql = UsersSql(self.bot)
             serverConfigsSql = ServerConfigsSql(self.bot)

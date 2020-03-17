@@ -21,9 +21,9 @@ class Gw2ConfigsSql:
         return await databases.select(sql)
 
     ################################################################################
-    async def insert_gw2_last_session(self, discord_server_id: int, new_status: str):
-        sql = f"""INSERT INTO gw2_configs (discord_server_id, last_session)
-                VALUES ({discord_server_id}, '{new_status}');"""
+    async def insert_gw2_last_session(self, discord_server_id: int, new_status: str, role_timer: int):
+        sql = f"""INSERT INTO gw2_configs (discord_server_id, last_session, role_timer)
+                VALUES ({discord_server_id}, '{new_status}', {role_timer});"""
         databases = Databases(self.bot)
         await databases.execute(sql)
 
