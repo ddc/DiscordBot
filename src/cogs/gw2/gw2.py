@@ -69,7 +69,7 @@ class GuildWars2(commands.Cog):
     ################################################################################
     @gw2Group.command()
     @commands.cooldown(1, GW2CoolDowns.ApiKeysCooldown.value, BucketType.user)
-    #@Checks.check_is_admin()
+    @Checks.check_is_admin()
     async def config(self, ctx, *, sub_command: str = None):
         """(Guild Wars 2 configurations commands - Admin)
         

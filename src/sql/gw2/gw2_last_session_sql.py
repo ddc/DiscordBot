@@ -71,6 +71,7 @@ class Gw2LastSessionSql:
     ################################################################################
     async def update_last_session_end(self, user_stats: object):
         sql = f"""UPDATE gw2_sessions SET
+                    end_date =                  '{user_stats.date}',
                     end_wvw_rank =               {user_stats.wvw_rank},
                     end_gold =                   {user_stats.gold},
                     end_karma =                  {user_stats.karma},
@@ -92,9 +93,3 @@ class Gw2LastSessionSql:
         await databases.execute(sql)
 
     ################################################################################
-    async def update_last_session_end_date(self, user_stats: object):
-        sql = f"""UPDATE gw2_sessions SET
-                    end_date = '{user_stats.date}'
-                    WHERE discord_user_id = {user_stats.discord_user_id};"""
-        databases = Databases(self.bot)
-        await databases.execute(sql)
