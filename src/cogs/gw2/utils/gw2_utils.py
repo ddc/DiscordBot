@@ -147,8 +147,10 @@ def is_private_message(self, ctx):
 
 ################################################################################
 async def last_session_gw2_event(bot, before: discord.Member, after: discord.Member):
-    if (after.activity is not None and "guild wars 2" in str(after.activity.name).lower()) \
-    or (before.activity is not None and "guild wars 2" in str(before.activity.name).lower()):
+    if (after.activity is not None and "guild wars 2" in str(after.activity.name).lower())\
+    and (after.activity.type == discord.ActivityType.playing or after.activity.type == discord.ActivityType.streaming)\
+    or (before.activity is not None and "guild wars 2" in str(before.activity.name).lower())\
+    and (before.activity.type == discord.ActivityType.playing or before.activity.type == discord.ActivityType.streaming):
         gw2Configs = Gw2ConfigsSql(bot)
         rs_gw2_sc = await gw2Configs.get_gw2_server_configs(after.guild.id)
         if len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"] == "Y":

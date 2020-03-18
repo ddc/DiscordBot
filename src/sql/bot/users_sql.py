@@ -40,16 +40,14 @@ class UsersSql:
             await databases.execute(sql)
         ################################################################################
 
-    async def update_user_changes(self, before: discord.Member, user: discord.Member):
-        if str(before.name) != str(user.name) \
-                or str(before.avatar_url) != str(user.avatar_url):
-            avatar_url = str(user.avatar_url)
-            sql = f"""UPDATE users SET
-                user_name = '{user}',
-                avatar_url = '{avatar_url}'
-                WHERE discord_user_id = {user.id};"""
-            databases = Databases(self.bot)
-            await databases.execute(sql)
+    async def update_user_changes(self, before: discord.Member, after: discord.Member):
+        avatar_url = str(after.avatar_url)
+        sql = f"""UPDATE users SET
+            user_name = '{str(after)}',
+            avatar_url = '{avatar_url}'
+            WHERE discord_user_id = {after.id};"""
+        databases = Databases(self.bot)
+        await databases.execute(sql)
 
     ################################################################################
     async def delete_user(self, user: discord.User):

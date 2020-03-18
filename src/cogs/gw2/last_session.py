@@ -45,7 +45,6 @@ class GW2LastSession(commands.Cog):
         gw2 lastsession
         """
 
-        await ctx.message.channel.trigger_typing()
         gw2Configs = Gw2ConfigsSql(self.bot)
         rs_gw2_sc = await gw2Configs.get_gw2_server_configs(ctx.guild.id)
         if len(rs_gw2_sc) == 0 or (len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"] == "N"):
@@ -91,7 +90,6 @@ class GW2LastSession(commands.Cog):
                          f"To check your API key use: `{ctx.prefix}gw2 key info`"
             return await BotUtils.send_error_msg(self, ctx, error_msg)
 
-        await ctx.message.channel.trigger_typing()
         still_playing_msg = None
         if not (isinstance(ctx.channel, discord.DMChannel)) \
         and hasattr(ctx.message.author, "activity") \
@@ -100,16 +98,18 @@ class GW2LastSession(commands.Cog):
             still_playing_msg = f"{ctx.message.author.mention}\n "\
                                 "You are playing Guild Wars 2 at the moment.\n" \
                                 "Your stats may NOT be accurate."
+            await ctx.message.channel.trigger_typing()
             await Gw2Utils.update_gw2_session_ends(self.bot, ctx.message.author, api_key)
 
         gw2LastSessionSql = Gw2LastSessionSql(self.bot)
         rs_session = await gw2LastSessionSql.get_user_last_session(discord_user_id)
         if len(rs_session) > 0:
             if rs_session[0]["end_date"] is None:
-                await BotUtils.send_private_error_msg(self, ctx,
+                return await BotUtils.send_private_error_msg(self, ctx,
                                                   "There was a problem trying to record your last finished session.\n"
                                                   "Please, do not close discord when the game is running.")
 
+            await ctx.message.channel.trigger_typing()
             st_date = rs_session[0]["start_date"].split()[0]
             acc_name = rs_session[0]["acc_name"]
             color = self.bot.gw2_settings["EmbedColor"]

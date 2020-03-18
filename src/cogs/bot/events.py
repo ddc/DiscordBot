@@ -49,7 +49,7 @@ class Events(commands.Cog):
 
         ################################################################################
         @bot.event
-        async def on_message(message: discord.Message):
+        async def on_message(message):
             if len(message.content) == 0:
                 return
 
@@ -66,7 +66,7 @@ class Events(commands.Cog):
 
         ################################################################################
         @bot.event
-        async def on_guild_join(guild: discord.Guild):
+        async def on_guild_join(guild):
             await UtilsEvents.insert_default_initial_configs(bot)
             botConfigsSql = BotConfigsSql(self.bot)
             configs = await botConfigsSql.get_bot_configs()
@@ -103,13 +103,13 @@ class Events(commands.Cog):
 
         ################################################################################
         @bot.event
-        async def on_guild_remove(guild: discord.Guild):
+        async def on_guild_remove(guild):
             serversSql = ServersSql(self.bot)
             await serversSql.delete_server(guild.id)
 
         ################################################################################
         @bot.event
-        async def on_member_join(member: discord.Member):
+        async def on_member_join(member):
             usersSql = UsersSql(self.bot)
             serverConfigsSql = ServerConfigsSql(self.bot)
             await usersSql.insert_user(member)
@@ -129,7 +129,7 @@ class Events(commands.Cog):
 
         ################################################################################
         @bot.event
-        async def on_member_remove(member: discord.Member):
+        async def on_member_remove(member):
             if bot.user.id == member.id: return
             usersSql = UsersSql(self.bot)
             serverConfigsSql = ServerConfigsSql(self.bot)
@@ -150,7 +150,7 @@ class Events(commands.Cog):
 
         ################################################################################
         @bot.event
-        async def on_guild_update(before: discord.Guild, after: discord.Guild):
+        async def on_guild_update(before, after):
             serversSql = ServersSql(self.bot)
             serverConfigsSql = ServerConfigsSql(self.bot)
             await serversSql.update_server_changes(before, after)
@@ -198,7 +198,54 @@ class Events(commands.Cog):
 
         ################################################################################
         @bot.event
-        async def on_member_update(before: discord.Guild, after: discord.Guild):
+        async def on_user_update(before, after):
+            if str(before.name) != str(after.name) \
+            or str(before.avatar_url) != str(after.avatar_url) \
+            or str(before.discriminator) != str(after.discriminator):
+                # update user in database
+                usersSql = UsersSql(self.bot)
+                await usersSql.update_user_changes(before, after)
+
+                msg = "Profile Changes:\n\n"
+                now = datetime.datetime.now()
+                color = self.bot.settings["EmbedColor"]
+                embed = discord.Embed(color=color)
+                embed.set_author(name=after.display_name, icon_url=after.avatar_url)
+                embed.set_footer(text=f"{now.strftime('%c')}")
+
+                if str(before.avatar_url) != str(after.avatar_url):
+                    embed.set_thumbnail(url=after.avatar_url)
+                    embed.add_field(name="New Avatar", value="-->", inline=True)
+                    msg += f"New Avatar: \n{after.avatar_url}\n"
+
+                if str(before.name) != str(after.name):
+                    if before.name is not None:
+                        embed.add_field(name="Previous Name", value=str(before.name))
+                    embed.add_field(name="New Name", value=str(after.name))
+                    msg += f"New Name: `{after.name}`\n"
+
+                if str(before.discriminator) != str(after.discriminator):
+                    if before.name is not None:
+                        embed.add_field(name="Previous Discriminator", value=str(before.discriminator))
+                    embed.add_field(name="New Discriminator", value=str(after.discriminator))
+                    msg += f"New Discriminator: `{after.discriminator}`\n"
+
+                serverConfigsSql = ServerConfigsSql(self.bot)
+                for guild in after._state.guilds:
+                    if after in guild.members:
+                        rs_sc = await serverConfigsSql.get_server_configs(guild.id)
+                        if len(rs_sc) > 0 and rs_sc[0]["msg_on_member_update"] == "Y":
+                            if len(embed.fields) > 0:
+                                channel_to_send_msg = await BotUtils.channel_to_send_msg(bot, guild)
+                                if channel_to_send_msg is not None:
+                                    try:
+                                        await channel_to_send_msg.send(embed=embed)
+                                    except discord.HTTPException:
+                                        await channel_to_send_msg.send(msg)
+
+        ################################################################################
+        @bot.event
+        async def on_member_update(before, after):
             # do nothing if its a bot
             if after.bot:
                 return
@@ -207,29 +254,21 @@ class Events(commands.Cog):
             if str(before.status) != str(after.status):
                 return
 
-            # check for gw2 gama activity
+            # check for gw2 game activity
             if before.activity != after.activity:
                 await Gw2Utils.last_session_gw2_event(bot, before, after)
 
-            usersSql = UsersSql(self.bot)
-            serverConfigsSql = ServerConfigsSql(self.bot)
-            await usersSql.update_user_changes(before, after)
-            rs_sc = await serverConfigsSql.get_server_configs(after.guild.id)
-            if len(rs_sc) > 0 and rs_sc[0]["msg_on_member_update"] == "Y":
-                msg = "Profile Changes:\n\n"
-                now = datetime.datetime.now()
-                color = self.bot.settings["EmbedColor"]
-                embed = discord.Embed(color=color)
-                embed.set_author(name=after.display_name, icon_url=after.avatar_url)
-                embed.set_footer(text=f"{now.strftime('%c')}")
+            if str(before.nick) != str(after.nick):
+                serverConfigsSql = ServerConfigsSql(self.bot)
+                rs_sc = await serverConfigsSql.get_server_configs(after.guild.id)
+                if len(rs_sc) > 0 and rs_sc[0]["msg_on_member_update"] == "Y":
+                    msg = "Profile Changes:\n\n"
+                    now = datetime.datetime.now()
+                    color = self.bot.settings["EmbedColor"]
+                    embed = discord.Embed(color=color)
+                    embed.set_author(name=after.display_name, icon_url=after.avatar_url)
+                    embed.set_footer(text=f"{now.strftime('%c')}")
 
-                if str(before.name) != str(after.name):
-                    if before.name is not None:
-                        embed.add_field(name="Previous Name", value=str(before.name))
-                    embed.add_field(name="New Name", value=str(after.name))
-                    msg += f"New Name: `{after.name}`\n"
-
-                if str(before.nick) != str(after.nick):
                     if before.nick is not None and after.nick is None:
                         embed.add_field(name="Previous Nickname", value=str(before.nick))
                     elif before.nick is not None:
@@ -237,18 +276,13 @@ class Events(commands.Cog):
                     embed.add_field(name="New Nickname", value=str(after.nick))
                     msg += f"New Nickname: `{after.nick}`\n"
 
-                if str(before.avatar_url) != str(after.avatar_url):
-                    embed.set_thumbnail(url=after.avatar_url)
-                    embed.add_field(name="New Avatar", value="-->", inline=True)
-                    msg += f"New Avatar: \n{after.avatar_url}\n"
-
-                if len(embed.fields) > 0:
-                    channel_to_send_msg = await BotUtils.channel_to_send_msg(bot, after.guild)
-                    if channel_to_send_msg is not None:
-                        try:
-                            await channel_to_send_msg.send(embed=embed)
-                        except discord.HTTPException:
-                            await channel_to_send_msg.send(msg)
+                    if len(embed.fields) > 0:
+                        channel_to_send_msg = await BotUtils.channel_to_send_msg(bot, after.guild)
+                        if channel_to_send_msg is not None:
+                            try:
+                                await channel_to_send_msg.send(embed=embed)
+                            except discord.HTTPException:
+                                await channel_to_send_msg.send(msg)
 
         ################################################################################
         @bot.event
