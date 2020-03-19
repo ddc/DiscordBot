@@ -16,6 +16,7 @@ from src.cogs.gw2.utils import gw2_utils as Gw2Utils
 from src.sql.bot.servers_sql import ServersSql
 from src.sql.gw2.gw2_roles_sql import Gw2RolesSql
 from src.sql.gw2.gw2_key_sql import Gw2KeySql
+from src.sql.gw2.gw2_configs_sql import Gw2ConfigsSql
 
 
 class GW2Key(commands.Cog):
@@ -146,6 +147,12 @@ async def _add_key(self, ctx, api_key: str):
     #         await BotUtils.send_private_error_msg(self, ctx, msg)
     #         return
 
+    gw2Configs = Gw2ConfigsSql(self.bot)
+    rs_gw2_sc = await gw2Configs.get_gw2_server_configs(ctx.guild.id)
+    if len(rs_gw2_sc) == 0 or (len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"] == "N"):
+        return await BotUtils.send_error_msg(self, ctx, "Unable to add api key.\n"
+                                                        "Last session is not active on this server.\n"
+                                                        f"To activate use: `{ctx.prefix}gw2 config lastsession on`")
     discord_user_id = ctx.message.author.id
     discord_server_id = ctx.message.guild.id
 

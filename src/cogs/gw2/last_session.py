@@ -48,7 +48,7 @@ class GW2LastSession(commands.Cog):
         gw2Configs = Gw2ConfigsSql(self.bot)
         rs_gw2_sc = await gw2Configs.get_gw2_server_configs(ctx.guild.id)
         if len(rs_gw2_sc) == 0 or (len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"] == "N"):
-            return await BotUtils.send_error_msg(self, ctx, "Last session command is not active on this server.\n"
+            return await BotUtils.send_error_msg(self, ctx, "Last session is not active on this server.\n"
                                                             f"To activate use: `{ctx.prefix}gw2 config lastsession on`")
 
         discord_user_id = ctx.message.author.id
