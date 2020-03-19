@@ -18,7 +18,7 @@ class MutesSql:
 
     ################################################################################
     async def insert_mute_user(self, user: discord.User, author: discord.user, reason: None):
-        todays_date = BotUtils.get_todays_date_time()
+        todays_date = BotUtils.get_current_date_time_str()
         sql = f"""INSERT INTO mutes 
                     (discord_server_id,
                     discord_user_id,

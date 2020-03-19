@@ -8,7 +8,7 @@
 # # -*- coding: utf-8 -*-
 
 import os
-import datetime
+import datetime as dt
 import discord
 from random import randint
 from discord.ext import commands
@@ -36,7 +36,9 @@ class Misc(commands.Cog):
     # async def test(self, ctx):
     #     """(test)"""
     #
-    #     await BotUtils.delete_last_channel_message(self, ctx, warning=True)
+    #     start_time = "Jan/01/2020 15:00:00"
+    #     end_time = BotUtils.get_current_date_time_str()
+    #     time_passed = BotUtils.get_time_passed(start_time, end_time)
 
     ################################################################################
     @commands.command()
@@ -464,7 +466,7 @@ class Misc(commands.Cog):
 
         msgtime = ctx.message.created_at.now()
         await (await self.bot.ws.ping())
-        now = datetime.datetime.now()
+        now = dt.datetime.now()
         ping = now - msgtime
         p = int(ping.microseconds / 1000.0)
         color = discord.Color.green()
@@ -543,7 +545,7 @@ class Misc(commands.Cog):
         """
 
         await ctx.message.channel.trigger_typing()
-        now = datetime.datetime.now()
+        now = dt.datetime.now()
         server = ctx.guild
         online = len([m.status for m in server.members
                       if m.status == discord.Status.online
@@ -562,7 +564,7 @@ class Misc(commands.Cog):
         text_channels = len(server.text_channels)
         voice_channels = len(server.voice_channels)
         flag = BotUtils.get_region_flag(str(server.region))
-        created = BotUtils.format_date_time(server.created_at)
+        created = BotUtils.convert_date_time_toStr(server.created_at)
         passed = (now - server.created_at).days
         created_at = (f"Since {created}. That's over {passed} days ago!")
 
@@ -597,7 +599,7 @@ class Misc(commands.Cog):
         """
 
         await ctx.message.channel.trigger_typing()
-        now = datetime.datetime.now()
+        now = dt.datetime.now()
         author = ctx.message.author
         server = ctx.guild
 

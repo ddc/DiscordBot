@@ -12,7 +12,7 @@ from discord.ext import commands
 from src.cogs.bot.utils import constants, chat_formatting as Formatting
 from src.databases.databases import Databases
 from src.sql.bot.server_configs_sql import ServerConfigsSql
-import datetime
+import datetime as dt
 from random import choice
 import discord
 from operator import attrgetter
@@ -29,7 +29,7 @@ import sys
 
 
 class Object:
-    created = str(datetime.datetime.now().strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
+    created = str(dt.datetime.now().strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
 
     def toJson(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
@@ -278,30 +278,42 @@ def is_private_message(self, ctx):
 
 
 ################################################################################
-def format_date_time(date: datetime):
+def convert_date_time_toStr(date: dt.datetime):
     new_date = date.strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
     return new_date
 
 
 ################################################################################
-def format_date(date: datetime):
+def convert_date_toStr(date: dt.datetime):
     new_date = date.strftime(constants.DATE_FORMATTER)
     return new_date
 
 
 ################################################################################
-def get_todays_date():
-    return str(datetime.datetime.now().strftime(constants.DATE_FORMATTER))
+def get_current_date_str():
+    return str(dt.datetime.now().strftime(constants.DATE_FORMATTER))
 
 
 ################################################################################
-def get_todays_date_time():
-    return str(datetime.datetime.now().strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
+def get_current_date_time():
+    str_date = str(dt.datetime.now().strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
+    return dt.datetime.strptime(str_date, f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
 
 
 ################################################################################
 def get_current_time():
-    return str(datetime.datetime.now().strftime(constants.TIME_FORMATTER))
+    str_time = str(dt.datetime.now().strftime(constants.TIME_FORMATTER))
+    return dt.datetime.strptime(str_time, f"{constants.TIME_FORMATTER}")
+
+
+################################################################################
+def get_current_date_time_str():
+    return str(dt.datetime.now().strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
+
+
+################################################################################
+def get_current_time_str():
+    return str(dt.datetime.now().strftime(constants.TIME_FORMATTER))
 
 
 ################################################################################
@@ -611,15 +623,30 @@ async def execute_all_sql_files(self):
 
 
 ################################################################################
-def get_time_passed(time_str):
-    FMT = constants.time_formatter
-    time_passed_delta = datetime.datetime.strptime(get_current_time(), FMT) - datetime.datetime.strptime(time_str, FMT)
-    if time_passed_delta.days < 0:
-        time_passed = str(time_passed_delta).split(",")[1].strip()
-        time_passed = datetime.datetime.strptime(str(time_passed), FMT)
+def convert_timedelta_toObj(time_delta: dt.timedelta):
+    obj = Object()
+    obj.timedelta = time_delta
+    if "," in str(time_delta):
+        obj.days = int(str(time_delta).split()[0].strip())
+        obj.hours = int(str(time_delta).split(":")[0].split(",")[1].strip())
+        obj.minutes = int(str(time_delta).split(":")[1].strip())
+        obj.seconds = int(str(time_delta).split(":")[2].strip())
     else:
-        time_passed = datetime.datetime.strptime(str(time_passed_delta), FMT)
-    return time_passed
+        obj.days = 0
+        obj.hours = int(str(time_delta).split(":")[0].strip())
+        obj.minutes = int(str(time_delta).split(":")[1].strip())
+        obj.seconds = int(str(time_delta).split(":")[2].strip())
+    return obj
+
+
+################################################################################
+def get_time_passed(start_time_str, end_time_str):
+    date_time_formatter = f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"
+    time_passed_delta = dt.datetime.strptime(end_time_str, date_time_formatter) - \
+                        dt.datetime.strptime(start_time_str, date_time_formatter)
+
+    time_passed_obj = convert_timedelta_toObj(time_passed_delta)
+    return time_passed_obj
 
 
 ################################################################################

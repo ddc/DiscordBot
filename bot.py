@@ -18,7 +18,7 @@ from src.cogs.bot.utils import constants
 from src.cogs.bot.utils import bot_utils as BotUtils
 import src.cogs.gw2.utils.gw2_constants as Gw2Constants
 from discord.ext import commands
-import datetime
+import datetime as dt
 
 
 class Bot:
@@ -61,7 +61,7 @@ def _insert_token():
 
 ################################################################################
 async def _set_bot_configs(bot):
-    bot.uptime = datetime.datetime.now()
+    bot.uptime = dt.datetime.now()
     bot.description = str(constants.DESCRIPTION)
     bot.help_command = commands.DefaultHelpCommand(dm_help=True)
     bot.settings = BotUtils.get_all_ini_file_settings(constants.SETTINGS_FILENAME)

@@ -38,7 +38,7 @@ class CommandsSql:
 
     ################################################################################
     async def insert_command(self, user: discord.User, command_name: str, text: str):
-        todays_date = BotUtils.get_todays_date_time()
+        todays_date = BotUtils.get_current_date_time_str()
         sql = f""" INSERT INTO commands (discord_server_id, discord_author_id, command_name, description, date)
             VALUES (
             {user.guild.id},

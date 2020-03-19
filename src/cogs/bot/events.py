@@ -16,7 +16,7 @@ from src.cogs.bot.utils import bot_utils as BotUtils
 from src.cogs.bot.utils import constants
 from src.cogs.bot.utils import bot_utils_events as UtilsEvents
 from discord.ext import commands
-import datetime
+import datetime as dt
 import discord
 import os
 
@@ -115,7 +115,7 @@ class Events(commands.Cog):
             await usersSql.insert_user(member)
             rs = await serverConfigsSql.get_server_configs(member.guild.id)
             if len(rs) > 0 and rs[0]["msg_on_join"] == "Y":
-                now = datetime.datetime.now()
+                now = dt.datetime.now()
                 embed = discord.Embed(color=discord.Color.green(), description=str(member))
                 embed.set_thumbnail(url=member.avatar_url)
                 embed.set_author(name="Joined the Server")
@@ -136,7 +136,7 @@ class Events(commands.Cog):
             await usersSql.delete_user(member)
             rs = await serverConfigsSql.get_server_configs(member.guild.id)
             if len(rs) > 0 and rs[0]["msg_on_leave"] == "Y":
-                now = datetime.datetime.now()
+                now = dt.datetime.now()
                 embed = discord.Embed(color=discord.Color.red(), description=str(member))
                 embed.set_thumbnail(url=member.avatar_url)
                 embed.set_author(name="Left the Server")
@@ -157,7 +157,7 @@ class Events(commands.Cog):
             rs = await serverConfigsSql.get_server_configs(after.id)
             if len(rs) > 0 and rs[0]["msg_on_server_update"] == "Y":
                 msg = "New Server Settings:\n"
-                now = datetime.datetime.now()
+                now = dt.datetime.now()
                 color = self.bot.settings["EmbedColor"]
                 embed = discord.Embed(color=color, description="New Server Settings")
                 embed.set_footer(text=f"{now.strftime('%c')}")
@@ -207,7 +207,7 @@ class Events(commands.Cog):
                 await usersSql.update_user_changes(before, after)
 
                 msg = "Profile Changes:\n\n"
-                now = datetime.datetime.now()
+                now = dt.datetime.now()
                 color = self.bot.settings["EmbedColor"]
                 embed = discord.Embed(color=color)
                 embed.set_author(name=after.display_name, icon_url=after.avatar_url)
@@ -263,7 +263,7 @@ class Events(commands.Cog):
                 rs_sc = await serverConfigsSql.get_server_configs(after.guild.id)
                 if len(rs_sc) > 0 and rs_sc[0]["msg_on_member_update"] == "Y":
                     msg = "Profile Changes:\n\n"
-                    now = datetime.datetime.now()
+                    now = dt.datetime.now()
                     color = self.bot.settings["EmbedColor"]
                     embed = discord.Embed(color=color)
                     embed.set_author(name=after.display_name, icon_url=after.avatar_url)

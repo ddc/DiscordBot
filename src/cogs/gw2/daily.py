@@ -8,7 +8,6 @@
 # # -*- coding: utf-8 -*-
 
 import discord
-import datetime
 from src.cogs.bot.utils import chat_formatting as Formatting
 from src.cogs.gw2.utils.gw2_api import Gw2Api
 from discord.ext import commands
@@ -38,9 +37,10 @@ class GW2Daily(commands.Cog):
 
 ################################################################################
 async def _daily_embed(self, ctx, daily_type: str):
+    import datetime as dt
     await ctx.message.channel.trigger_typing()
     achiev_id_lst = []
-    todays_date = BotUtils.format_date(datetime.datetime.now())
+    todays_date = BotUtils.convert_date_toStr(dt.datetime.now())
     gw2Api = Gw2Api(self.bot)
 
     try:

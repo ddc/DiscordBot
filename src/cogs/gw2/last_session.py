@@ -8,7 +8,6 @@
 # # -*- coding: utf-8 -*-
 
 import discord
-from datetime import datetime
 from discord.ext import commands
 from src.sql.gw2.gw2_last_session_sql import Gw2LastSessionSql
 from src.sql.gw2.gw2_chars_end_sql import Gw2CharsEndSql
@@ -16,7 +15,6 @@ from src.sql.gw2.gw2_chars_start_sql import Gw2CharsStartSql
 from src.sql.gw2.gw2_key_sql import Gw2KeySql
 from src.cogs.gw2.utils import gw2_utils as Gw2Utils
 from src.cogs.bot.utils import bot_utils as BotUtils
-from src.cogs.bot.utils import constants
 from src.cogs.bot.utils import chat_formatting as Formatting
 from src.sql.gw2.gw2_configs_sql import Gw2ConfigsSql
 
@@ -110,22 +108,32 @@ class GW2LastSession(commands.Cog):
                                                   "Please, do not close discord when the game is running.")
 
             await ctx.message.channel.trigger_typing()
+            color = self.bot.gw2_settings["EmbedColor"]
+            st_time = rs_session[0]["start_date"]
+            ed_time = rs_session[0]["end_date"]
+
+            time_passed = BotUtils.get_time_passed(ed_time, BotUtils.get_current_date_time_str())
+            player_wait_minutes = 1
+            if time_passed.hours == 0:
+                if time_passed.minutes < player_wait_minutes:
+                    wait_time = str(player_wait_minutes - time_passed.minutes)
+                    m = "minutes"
+                    if wait_time == "1":
+                        m = "minute"
+                    return await BotUtils.send_msg(self, ctx, color,
+                                                   f"{ctx.message.author.mention}\n Bot still updating your stats!\n"
+                                                   f"Please wait {wait_time} {m} and try again.")
+
             st_date = rs_session[0]["start_date"].split()[0]
             acc_name = rs_session[0]["acc_name"]
-            color = self.bot.gw2_settings["EmbedColor"]
             embed = discord.Embed(color=color)
             embed.set_author(name=f"{ctx.message.author.display_name}'s GW2 Last Session ({st_date})",
                              icon_url=ctx.message.author.avatar_url)
             embed.add_field(name="Account Name", value=Formatting.inline(acc_name), inline=True)
             embed.add_field(name="Server", value=Formatting.inline(gw2_server), inline=True)
 
-            time_formatter = constants.TIME_FORMATTER
-            st_time = rs_session[0]["start_date"].split()[1]
-            ed_time = rs_session[0]["end_date"].split()[1]
-            total_played_time = datetime.strptime(ed_time, time_formatter) - datetime.strptime(st_time, time_formatter)
-            if total_played_time.days < 0:
-                total_played_time = str(total_played_time).split(",")[1].strip()
-            embed.add_field(name="Total played time", value=Formatting.inline(total_played_time), inline=True)
+            total_played_time = BotUtils.get_time_passed(st_time, ed_time)
+            embed.add_field(name="Total played time", value=Formatting.inline(str(total_played_time.timedelta)), inline=True)
 
             if rs_session[0]["start_gold"] != rs_session[0]["end_gold"]:
                 full_gold = str(rs_session[0]["end_gold"] - rs_session[0]["start_gold"])
@@ -133,9 +141,10 @@ class GW2LastSession(commands.Cog):
                 if int(full_gold) > 0:
                     embed.add_field(name="Gained gold", value=Formatting.inline(f"+{formatted_gold}"), inline=False)
                 elif int(full_gold) < 0:
+                    final_result = f"{formatted_gold}"
                     if formatted_gold[0] != "-":
                         final_result = f"-{formatted_gold}"
-                    embed.add_field(name="Lost gold", value=Formatting.inline(str(formatted_gold)), inline=False)
+                    embed.add_field(name="Lost gold", value=Formatting.inline(str(final_result)), inline=False)
 
             gw2CharsStartSql = Gw2CharsStartSql(self.bot)
             rs_chars_start = await gw2CharsStartSql.get_all_start_characters(discord_user_id)
@@ -157,9 +166,10 @@ class GW2LastSession(commands.Cog):
 
                 if len(prof_names) > 0:
                     deaths_msg = f"{prof_names} [Total:{total_deaths}]"
-                    embed.add_field(name="Times you died", value=Formatting.inline(deaths_msg),
-                                    inline=False)  # else:  #    deaths_msg = "0"  #    embed.add_field(name="Times
-                    # you died", value=Formatting.inline(deaths_msg), inline=True)
+                    embed.add_field(name="Times you died", value=Formatting.inline(deaths_msg),inline=False)
+                # else:
+                #    deaths_msg = "0"
+                #    embed.add_field(name="Times you died", value=Formatting.inline(deaths_msg), inline=True)
 
             if rs_session[0]["start_karma"] != rs_session[0]["end_karma"]:
                 final_result = str(rs_session[0]["end_karma"] - rs_session[0]["start_karma"])
@@ -184,8 +194,7 @@ class GW2LastSession(commands.Cog):
                 embed.add_field(name="Yaks killed", value=Formatting.inline(str(final_result)), inline=True)
 
             if rs_session[0]["start_yaks_scorted"] != rs_session[0]["end_yaks_scorted"]:
-                final_result = str(
-                    rs_session[0]["end_yaks_scorted"] - rs_session[0]["start_yaks_scorted"])
+                final_result = str(rs_session[0]["end_yaks_scorted"] - rs_session[0]["start_yaks_scorted"])
                 embed.add_field(name="Yaks scorted", value=Formatting.inline(str(final_result)), inline=True)
 
             if rs_session[0]["start_players"] != rs_session[0]["end_players"]:
@@ -209,16 +218,14 @@ class GW2LastSession(commands.Cog):
                 embed.add_field(name="SMC captured", value=Formatting.inline(str(final_result)), inline=True)
 
             if rs_session[0]["start_wvw_tickets"] != rs_session[0]["end_wvw_tickets"]:
-                final_result = str(
-                    rs_session[0]["end_wvw_tickets"] - rs_session[0]["start_wvw_tickets"])
+                final_result = str(rs_session[0]["end_wvw_tickets"] - rs_session[0]["start_wvw_tickets"])
                 if int(final_result) > 0:
                     embed.add_field(name="Gained wvw tickets", value=Formatting.inline(f"+{final_result}"), inline=True)
                 elif int(final_result) < 0:
                     embed.add_field(name="Lost wvw tickets", value=Formatting.inline(str(final_result)), inline=True)
 
             if rs_session[0]["start_test_heroics"] != rs_session[0]["end_test_heroics"]:
-                final_result = str(
-                    rs_session[0]["end_test_heroics"] - rs_session[0]["start_test_heroics"])
+                final_result = str(rs_session[0]["end_test_heroics"] - rs_session[0]["start_test_heroics"])
                 if int(final_result) > 0:
                     embed.add_field(name="Gained test. heroics", value=Formatting.inline(f"+{final_result}"),
                                     inline=True)
@@ -226,8 +233,7 @@ class GW2LastSession(commands.Cog):
                     embed.add_field(name="Lost test. heroics", value=Formatting.inline(str(final_result)), inline=True)
 
             if rs_session[0]["start_proof_heroics"] != rs_session[0]["end_proof_heroics"]:
-                final_result = str(
-                    rs_session[0]["end_proof_heroics"] - rs_session[0]["start_proof_heroics"])
+                final_result = str(rs_session[0]["end_proof_heroics"] - rs_session[0]["start_proof_heroics"])
                 if int(final_result) > 0:
                     embed.add_field(name="Gained proof heroics", value=Formatting.inline(f"+{final_result}"),
                                     inline=True)
@@ -235,8 +241,7 @@ class GW2LastSession(commands.Cog):
                     embed.add_field(name="Lost proof heroics", value=Formatting.inline(str(final_result)), inline=True)
 
             if rs_session[0]["start_badges_honor"] != rs_session[0]["end_badges_honor"]:
-                final_result = str(
-                    rs_session[0]["end_badges_honor"] - rs_session[0]["start_badges_honor"])
+                final_result = str(rs_session[0]["end_badges_honor"] - rs_session[0]["start_badges_honor"])
                 if int(final_result) > 0:
                     embed.add_field(name="Gained badges of honor", value=Formatting.inline(f"+{final_result}"),
                                     inline=True)
@@ -244,10 +249,8 @@ class GW2LastSession(commands.Cog):
                     embed.add_field(name="Lost badges of honor", value=Formatting.inline(str(final_result)),
                                     inline=True)
 
-            if rs_session[0]["start_guild_commendations"] != rs_session[0][
-                "end_guild_commendations"]:
-                final_result = str(rs_session[0]["end_guild_commendations"] - rs_session[0][
-                    "start_guild_commendations"])
+            if rs_session[0]["start_guild_commendations"] != rs_session[0]["end_guild_commendations"]:
+                final_result = str(rs_session[0]["end_guild_commendations"]-rs_session[0]["start_guild_commendations"])
                 if int(final_result) > 0:
                     embed.add_field(name="Gained guild commendations", value=Formatting.inline(f"+{final_result}"),
                                     inline=True)

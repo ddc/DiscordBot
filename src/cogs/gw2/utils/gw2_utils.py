@@ -167,7 +167,7 @@ async def last_session_gw2_event(bot, before: discord.Member, after: discord.Mem
 async def insert_gw2_session_starts(bot, after: discord.Member, api_key):
     object_start = await get_last_session_user_stats(bot, None, api_key)
     object_start.discord_user_id = after.id
-    object_start.date = BotUtils.get_todays_date_time()
+    object_start.date = BotUtils.get_current_date_time_str()
     gw2LastSessionSql = Gw2LastSessionSql(bot)
     await gw2LastSessionSql.insert_last_session_start(object_start)
     await insert_characters(bot, after, api_key, "start")
@@ -177,7 +177,7 @@ async def insert_gw2_session_starts(bot, after: discord.Member, api_key):
 async def update_gw2_session_ends(bot, before: discord.Member, api_key):
     object_end = await get_last_session_user_stats(bot, None, api_key)
     object_end.discord_user_id = before.id
-    object_end.date = BotUtils.get_todays_date_time()
+    object_end.date = BotUtils.get_current_date_time_str()
     gw2LastSessionSql = Gw2LastSessionSql(bot)
     await gw2LastSessionSql.update_last_session_end(object_end)
     await insert_characters(bot, before, api_key, "end")
