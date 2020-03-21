@@ -193,21 +193,31 @@ class GW2Misc(commands.Cog):
             return self.bot.log.error(ctx, e)
 
         color = self.bot.gw2_settings["EmbedColor"]
-        description = "~~~~~ NA Servers ~~~~~"
-        embed = discord.Embed(color=color, description=Formatting.inline(description))
+        desc_na = "~~~~~ NA Servers ~~~~~"
+        embed_na = discord.Embed(color=color, description=Formatting.inline(desc_na))
+        desc_eu = "~~~~~ EU Servers ~~~~~"
+        embed_eu = discord.Embed(color=color, description=Formatting.inline(desc_eu))
+
         for world in results:
-            if world["id"] < 2001:
-                embed.add_field(name=world["name"], value=Formatting.inline(world["population"]), inline=True)
+            try:
+                await ctx.message.channel.trigger_typing()
+                wid = world["id"]
+                endpoint = f"wvw/matches?world={wid}"
+                matches = await gw2Api.call_api(endpoint)
+                if wid < 2001:
+                    tier_number = matches["id"].replace("1-", "")
+                    embed_na.add_field(name=world["name"],
+                                       value=Formatting.inline(f"T{tier_number} {world['population']}"), inline=True)
+                else:
+                    tier_number = matches["id"].replace("2-", "")
+                    embed_eu.add_field(name=world["name"],
+                                       value=Formatting.inline(f"T{tier_number} {world['population']}"), inline=True)
+            except Exception as e:
+                await BotUtils.send_error_msg(self, ctx, e)
+                return self.bot.log.error(ctx, e)
 
-        await ctx.send(embed=embed)
-
-        description = "~~~~~ EU Servers ~~~~~"
-        embed = discord.Embed(color=color, description=Formatting.inline(description))
-        for world in results:
-            if world["id"] >= 2001:
-                embed.add_field(name=world["name"], value=Formatting.inline(world["population"]), inline=True)
-
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed_na)
+        await ctx.send(embed=embed_eu)
 
     ################################################################################
     # async def api_test(self, ctx):
