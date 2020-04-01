@@ -379,30 +379,29 @@ async def channel_to_send_msg(bot, server: discord.Guild):
 ################################################################################
 def get_server_first_public_text_channel(server: discord.Guild):
     sorted_text_channels = sorted(server.text_channels, key=attrgetter('position'))
-    general_channel = discord.utils.get(sorted_text_channels, name="general")
-
-    if general_channel is not None:
-        if hasattr(general_channel, 'overwrites'):
-            if len(general_channel.overwrites) > 0:
-                for keys, values in general_channel.overwrites.items():
-                    if keys.name == "@everyone":
-                        for value in values:
-                            if value[0] == "read_messages":
-                                if value[1] is True or value[1] is None:
-                                    return general_channel
+    general_channel = None
+    public_channel = None
 
     for channel in sorted_text_channels:
-        if hasattr(channel, 'overwrites'):
-            if len(channel.overwrites) > 0:
-                for keys, values in channel.overwrites.items():
-                    if keys.name == "@everyone":
-                        for value in values:
-                            if value[0] == "read_messages":
-                                if value[1] is True or value[1] is None:
-                                    return channel
-            else:
-                return channel
-    return None
+            if hasattr(channel, 'overwrites'):
+                if len(channel.overwrites) > 0:
+                    for keys, values in channel.overwrites.items():
+                        if keys.name == "@everyone":
+                            for value in values:
+                                if value[0] == "read_messages":
+                                    if value[1] is True or value[1] is None:
+                                        if "general" in channel.name.lower():
+                                            general_channel = channel
+                                        else:
+                                            if public_channel is None:
+                                                public_channel = channel
+
+    if general_channel is not None:
+        return general_channel
+    elif public_channel is not None:
+        return public_channel
+    else:
+        return None
 
 
 ################################################################################

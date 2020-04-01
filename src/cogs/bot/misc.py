@@ -36,9 +36,20 @@ class Misc(commands.Cog):
     # async def test(self, ctx):
     #     """(test)"""
     #
-    #     start_time = "Jan/01/2020 15:00:00"
-    #     end_time = BotUtils.get_current_date_time_str()
-    #     time_passed = BotUtils.get_time_passed(start_time, end_time)
+    #     msg = "TEST\n"
+    #     now = dt.datetime.now()
+    #     author = ctx.message.author
+    #     color = self.bot.settings["EmbedColor"]
+    #     embed = discord.Embed(color=color)
+    #     embed.set_author(name=msg, icon_url=author.avatar_url)
+    #     embed.set_footer(text=f"{now.strftime('%c')}")
+    #
+    #     channel_to_send_msg = await BotUtils.channel_to_send_msg(self.bot, ctx.message.guild)
+    #     if channel_to_send_msg is not None:
+    #         try:
+    #             await channel_to_send_msg.send(embed=embed)
+    #         except discord.HTTPException:
+    #             await channel_to_send_msg.send(msg)
 
     ################################################################################
     @commands.command()
