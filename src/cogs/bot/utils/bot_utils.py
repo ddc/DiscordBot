@@ -511,12 +511,16 @@ def get_region_flag(region: str):
         flag = ":flag_eu:"
     elif "hong" in str(region).lower():
         flag = ":flag_hk:"
+    elif "india" in str(region).lower():
+        flag = ":flag_in:"
     elif "japan" in str(region).lower():
         flag = ":flag_jp:"
     elif "russia" in str(region).lower():
         flag = ":flag_ru:"
     elif "singapore" in str(region).lower():
         flag = ":flag_sg:"
+    elif "southafrica" in str(region).lower():
+        flag = ":flag_za:"
     elif "sydney" in str(region).lower():
         flag = ":flag_au:"
     elif "us" in str(region).lower():

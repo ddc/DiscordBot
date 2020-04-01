@@ -111,8 +111,9 @@ class Events(commands.Cog):
         @bot.event
         async def on_member_join(member):
             usersSql = UsersSql(self.bot)
-            serverConfigsSql = ServerConfigsSql(self.bot)
             await usersSql.insert_user(member)
+
+            serverConfigsSql = ServerConfigsSql(self.bot)
             rs = await serverConfigsSql.get_server_configs(member.guild.id)
             if len(rs) > 0 and rs[0]["msg_on_join"] == "Y":
                 now = dt.datetime.now()
@@ -130,10 +131,13 @@ class Events(commands.Cog):
         ################################################################################
         @bot.event
         async def on_member_remove(member):
-            if bot.user.id == member.id: return
+            if bot.user.id == member.id:
+                return
+
             usersSql = UsersSql(self.bot)
-            serverConfigsSql = ServerConfigsSql(self.bot)
             await usersSql.delete_user(member)
+
+            serverConfigsSql = ServerConfigsSql(self.bot)
             rs = await serverConfigsSql.get_server_configs(member.guild.id)
             if len(rs) > 0 and rs[0]["msg_on_leave"] == "Y":
                 now = dt.datetime.now()
@@ -151,22 +155,28 @@ class Events(commands.Cog):
         ################################################################################
         @bot.event
         async def on_guild_update(before, after):
+            author = None
+            async for entry in after.audit_logs(limit=1, action=discord.AuditLogAction.guild_update):
+                author = entry.user
+
             serversSql = ServersSql(self.bot)
-            serverConfigsSql = ServerConfigsSql(self.bot)
             await serversSql.update_server_changes(before, after)
+
+            serverConfigsSql = ServerConfigsSql(self.bot)
             rs = await serverConfigsSql.get_server_configs(after.id)
             if len(rs) > 0 and rs[0]["msg_on_server_update"] == "Y":
-                msg = "New Server Settings:\n"
+                msg = "New Server Settings\n"
                 now = dt.datetime.now()
                 color = self.bot.settings["EmbedColor"]
-                embed = discord.Embed(color=color, description="New Server Settings")
+                embed = discord.Embed(color=color)
+                embed.set_author(name=msg, icon_url=author.avatar_url)
                 embed.set_footer(text=f"{now.strftime('%c')}")
 
                 if str(before.name) != str(after.name):
                     if before.name is not None:
                         embed.add_field(name="Previous Name", value=str(before.name))
                     embed.add_field(name="New Name", value=str(after.name))
-                    msg += f"New Name: `{after.name}`\n"
+                    msg += f"New Server Name: `{after.name}`\n"
 
                 if str(before.region) != str(after.region):
                     before_flag = BotUtils.get_region_flag(str(before.region))
@@ -174,12 +184,12 @@ class Events(commands.Cog):
                     if before.region is not None:
                         embed.add_field(name="Previous Region", value=before_flag + " " + str(before.region))
                     embed.add_field(name="New Region", value=f"{after_flag} {after.region}")
-                    msg += f"New Region: {after_flag} `{after.region}`\n"
+                    msg += f"New Server Region: {after_flag} `{after.region}`\n"
 
                 if str(before.icon_url) != str(after.icon_url):
                     embed.set_thumbnail(url=after.icon_url)
-                    embed.add_field(name="New Icon", value="-->", inline=True)
-                    msg += f"New Icon: \n{after.icon_url}\n"
+                    embed.add_field(name="New Server Icon", value="-->", inline=True)
+                    msg += f"New Server Icon: \n{after.icon_url}\n"
 
                 if str(before.owner_id) != str(after.owner_id):
                     embed.set_thumbnail(url=after.icon_url)
