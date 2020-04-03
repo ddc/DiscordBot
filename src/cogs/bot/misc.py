@@ -10,7 +10,7 @@
 import os
 import datetime as dt
 import discord
-from random import randint
+import random
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from .utils import bot_utils as BotUtils
@@ -22,6 +22,8 @@ from src.sql.bot.dice_rolls_sql import DiceRollsSql
 from src.cogs.bot.utils.cooldowns import CoolDowns
 from gtts import gTTS
 from io import BytesIO
+from data.pepe import pepedatabase
+import aiohttp
 
 
 class Misc(commands.Cog):
@@ -35,21 +37,31 @@ class Misc(commands.Cog):
     # #@commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     # async def test(self, ctx):
     #     """(test)"""
-    #
-    #     msg = "TEST\n"
-    #     now = dt.datetime.now()
-    #     author = ctx.message.author
-    #     color = self.bot.settings["EmbedColor"]
-    #     embed = discord.Embed(color=color)
-    #     embed.set_author(name=msg, icon_url=author.avatar_url)
-    #     embed.set_footer(text=f"{now.strftime('%c')}")
-    #
-    #     channel_to_send_msg = await BotUtils.channel_to_send_msg(self.bot, ctx.message.guild)
-    #     if channel_to_send_msg is not None:
-    #         try:
-    #             await channel_to_send_msg.send(embed=embed)
-    #         except discord.HTTPException:
-    #             await channel_to_send_msg.send(msg)
+
+    ################################################################################
+    @commands.command()
+    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
+    async def pepe(self, ctx):
+        """Posts a random Pepe from imgur
+
+        Example:
+        pepe
+        """
+
+        if ctx.subcommand_passed is not None:
+            raise commands.BadArgument(message="BadArgument")
+
+        await ctx.message.channel.trigger_typing()
+        pepe_url = f"{random.choice(pepedatabase)[:-1]}.jpg"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(pepe_url) as resp:
+                if resp.status != 200:
+                    return await BotUtils.send_error_msg(self, ctx, "Could not download pepe file...")
+                data = BytesIO(await resp.read())
+                data.seek(0)
+                name = f"{ctx.message.id}.jpg"
+                await ctx.send(file=discord.File(data, name))
+                data.close()
 
     ################################################################################
     @commands.command()
@@ -127,7 +139,7 @@ class Misc(commands.Cog):
             if dice_size > 1:
                 serverHighestRoll = 0
                 userBestRoll = 0
-                roll = randint(1, dice_size)
+                roll = random.randint(1, dice_size)
                 serverHighestUser = ""
 
                 diceRollsSql = DiceRollsSql(self.bot)
@@ -475,6 +487,10 @@ class Misc(commands.Cog):
         ping
         """
 
+        if ctx.subcommand_passed is not None:
+            raise commands.BadArgument(message="BadArgument")
+
+        await ctx.message.channel.trigger_typing()
         msgtime = ctx.message.created_at.now()
         await (await self.bot.ws.ping())
         now = dt.datetime.now()
@@ -519,6 +535,10 @@ class Misc(commands.Cog):
         invites
         """
 
+        if ctx.subcommand_passed is not None:
+            raise commands.BadArgument(message="BadArgument")
+
+        await ctx.message.channel.trigger_typing()
         server = ctx.guild
         active_invites = await server.invites()
 
@@ -554,6 +574,9 @@ class Misc(commands.Cog):
         Example:
         serverinfo
         """
+
+        if ctx.subcommand_passed is not None:
+            raise commands.BadArgument(message="BadArgument")
 
         await ctx.message.channel.trigger_typing()
         now = dt.datetime.now()
@@ -688,6 +711,8 @@ class Misc(commands.Cog):
         Example:
         about
         """
+        if ctx.subcommand_passed is not None:
+            raise commands.BadArgument(message="BadArgument")
 
         await ctx.message.channel.trigger_typing()
         version = constants.VERSION
@@ -761,6 +786,8 @@ class Misc(commands.Cog):
         Example:
         lp
         """
+        if ctx.subcommand_passed is not None:
+            raise commands.BadArgument(message="BadArgument")
 
         python_version = "{}.{}".format(*os.sys.version_info[:2])
         field_value = "1) [For complete beginners to programming](https://automatetheboringstuff.com/)\n" \
