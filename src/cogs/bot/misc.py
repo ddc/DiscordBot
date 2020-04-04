@@ -59,7 +59,7 @@ class Misc(commands.Cog):
                     return await BotUtils.send_error_msg(self, ctx, "Could not download pepe file...")
                 data = BytesIO(await resp.read())
                 data.seek(0)
-                name = f"{ctx.message.id}.jpg"
+                name = pepe_url.split("/")[3]
                 await ctx.send(file=discord.File(data, name))
                 data.close()
 
