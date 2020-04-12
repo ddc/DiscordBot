@@ -265,8 +265,7 @@ class Events(commands.Cog):
                 return
 
             # check for gw2 game activity
-            if before.activity != after.activity:
-                await Gw2Utils.last_session_gw2_event(bot, before, after)
+            await Gw2Utils.last_session_gw2_event(bot, before, after)
 
             if str(before.nick) != str(after.nick):
                 serverConfigsSql = ServerConfigsSql(self.bot)

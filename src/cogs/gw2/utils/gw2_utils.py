@@ -147,17 +147,28 @@ def is_private_message(self, ctx):
 
 ################################################################################
 async def last_session_gw2_event(bot, before: discord.Member, after: discord.Member):
-    if (after.activity is not None and "guild wars 2" in str(after.activity.name).lower())\
-    and (after.activity.type == discord.ActivityType.playing or after.activity.type == discord.ActivityType.streaming)\
-    or (before.activity is not None and "guild wars 2" in str(before.activity.name).lower())\
-    and (before.activity.type == discord.ActivityType.playing or before.activity.type == discord.ActivityType.streaming):
+    before_activity = None
+    after_activity = None
+
+    for bact in before.activities:
+        if bact.type is not discord.ActivityType.custom:
+            before_activity = bact
+
+    for aact in after.activities:
+        if aact.type is not discord.ActivityType.custom:
+            after_activity = aact
+
+    if (after_activity is not None and "guild wars 2" in str(after_activity.name).lower())\
+    and (after_activity.type == discord.ActivityType.playing or after_activity.type == discord.ActivityType.streaming)\
+    or (before_activity is not None and "guild wars 2" in str(before_activity.name).lower())\
+    and (before_activity.type == discord.ActivityType.playing or before_activity.type == discord.ActivityType.streaming):
         gw2Configs = Gw2ConfigsSql(bot)
         rs_gw2_sc = await gw2Configs.get_gw2_server_configs(after.guild.id)
         if len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"] == "Y":
             gw2KeySql = Gw2KeySql(bot)
             rs_api_key = await gw2KeySql.get_server_user_api_key(after.guild.id, after.id)
             if len(rs_api_key) > 0:
-                if after.activity is not None:
+                if after_activity is not None:
                     await insert_gw2_session_starts(bot, after, rs_api_key[0]["key"])
                 else:
                     await update_gw2_session_ends(bot, before, rs_api_key[0]["key"])
