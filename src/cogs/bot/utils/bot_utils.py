@@ -8,7 +8,6 @@
 # # -*- coding: utf-8 -*-
 
 from _sqlite3 import Error
-from discord.ext import commands
 from src.cogs.bot.utils import constants, chat_formatting as Formatting
 from src.databases.databases import Databases
 from src.sql.bot.server_configs_sql import ServerConfigsSql
@@ -29,7 +28,8 @@ import sys
 
 
 class Object:
-    created = str(dt.datetime.now().strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
+    def __init__(self):
+        self._created = str(dt.datetime.now().strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
 
     def toJson(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
