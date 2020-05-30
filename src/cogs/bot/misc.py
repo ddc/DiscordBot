@@ -20,7 +20,7 @@ from .utils.checks import Checks
 from src.sql.bot.server_configs_sql import ServerConfigsSql
 from src.sql.bot.dice_rolls_sql import DiceRollsSql
 from src.cogs.bot.utils.cooldowns import CoolDowns
-from gtts import gTTS
+from gtts import gTTS, gTTSError
 from io import BytesIO
 from data.pepe import pepedatabase
 import aiohttp
@@ -35,7 +35,7 @@ class Misc(commands.Cog):
     ################################################################################
     # @commands.command()
     # #@commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
-    # async def test(self, ctx):
+    # async def test(self, ctx, *, tts_text: str):
     #     """(test)"""
 
     ################################################################################
@@ -65,7 +65,7 @@ class Misc(commands.Cog):
 
     ################################################################################
     @commands.command()
-    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
+    #@commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def tts(self, ctx, *, tts_text: str):
         """(Send TTS as .mp3 to current channel)
 
@@ -75,34 +75,36 @@ class Misc(commands.Cog):
 
         await ctx.message.channel.trigger_typing()
         display_filename = f"{BotUtils.get_member_name_by_id(self, ctx, ctx.message.author.id)}.mp3"
-        new_tts_msg = None
-        # new_msg = None
+        new_tts_msg = []
 
-        if "<@!" in tts_text:
-            mentions = tts_text.split(' ')
-            new_tts_msg = []
-            # new_msg = []
-            for msg in mentions:
-                if "<@!" in msg:
+        if "<@!" in tts_text or "<:" in tts_text:
+            msg_text = tts_text.split(' ')
+            for msg in msg_text:
+                if "<@!" == msg[0:3]:
                     member_id = msg.strip(' ').strip('<@!').strip('>')
                     member = ctx.guild.get_member(int(member_id))
                     new_tts_msg.append(f"@{member.display_name}")
-                    # new_msg.append(f"{member.mention}")
-                else:
+                elif "<:" == msg[0:2] and ">" == msg[-1]:
+                    emoji_id = msg.split(":")[2].strip('>')
+                    if len(emoji_id) >= 18:
+                        emoji_name = msg.split(":")[1]
+                        new_tts_msg.append(emoji_name)
+                elif len(msg) > 0:
                     new_tts_msg.append(msg)
-                    # new_msg.append(msg)
 
             new_tts_msg = ' '.join(new_tts_msg)
-            # new_msg = ' '.join(new_msg)
 
-        if new_tts_msg is None:
+        if len(new_tts_msg) == 0:
             new_tts_msg = tts_text
-        # if new_msg is None:
-        #    new_msg = tts_text
 
-        mp3_fp = BytesIO()
-        tts = gTTS(text=new_tts_msg)
-        tts.write_to_fp(mp3_fp)
+        try:
+            mp3_fp = BytesIO()
+            tts = gTTS(text=new_tts_msg, lang='en')
+            tts.write_to_fp(mp3_fp)
+        except AssertionError as e:
+            msg = "No text to send to TTS API"
+            raise commands.CommandInvokeError(msg)
+
         mp3_fp.seek(0)
         # await ctx.send(new_msg)
         await ctx.send(file=discord.File(mp3_fp, display_filename))

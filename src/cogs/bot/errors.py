@@ -248,6 +248,10 @@ async def _commandInvokeError(self, ctx, errorObj: object):
         msg = str(errorObj.errorMsg).split(',')[1].strip().split('?')[0]
         await BotUtils.send_error_msg(self, ctx, errorObj.errorMsg)
         _log_msg_error(self, ctx, f"GW2 API|ERROR: {msg}")
+    elif "No text to send to TTS API" in errorObj.errorMsg:
+        msg = "Invalid message."
+        await BotUtils.send_error_msg(self, ctx, msg)
+        _log_msg_error(self, ctx, f"CommandInvokeError|ERROR: {errorObj.errorMsg}|{msg}")
     else:
         msg = f"There was an internal error with command:\n`{errorObj.command}`"
         await BotUtils.send_error_msg(self, ctx, msg)
