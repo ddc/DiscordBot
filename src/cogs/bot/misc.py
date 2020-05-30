@@ -106,7 +106,6 @@ class Misc(commands.Cog):
             raise commands.CommandInvokeError(msg)
 
         mp3_fp.seek(0)
-        # await ctx.send(new_msg)
         await ctx.send(file=discord.File(mp3_fp, display_filename))
         mp3_fp.close()
 
