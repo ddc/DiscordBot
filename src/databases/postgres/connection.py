@@ -74,7 +74,9 @@ class PostgreSQL:
         if conn is not None:
             try:
                 await conn.execute(sql)
-                self.bot.log.info(f"Database: {db_name} created.")
+                msg = f"Database: {db_name} created"
+                self.bot.log.info(msg)
+                print(msg)
             except Exception as e:
                 self.bot.log.exception("PostgreSQL", exc_info=e)
                 self.bot.log.error(f"Sql:({sql})")
