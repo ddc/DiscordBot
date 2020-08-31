@@ -12,6 +12,9 @@ Choice of PostgreSQL or SQLite3 as database.
 + Install [Git](https://git-scm.com/download/win)
 + Python modules can be installed using the script "install_reqs", running as root or using pip:
     + pip install -r requirements.txt
++ Docker (replace "my-token" with your bot token
+    + git clone https://github.com/ddc/DiscordBot.git
+    + docker-compose up --build -d --build-arg token="my-token"
 
 ## Games Included
 + [Guild Wars 2](https://www.guildwars2.com)
