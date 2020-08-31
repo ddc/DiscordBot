@@ -9,6 +9,9 @@ services:
         volumes:
             - /opt/pgdata:/var/lib/postgresql/data
         environment:
+            #- POSTGRES_MULTIPLE_DATABASES=postgres,discordbot
+            - POSTGRES_DATABASE_NAME=discordbot
+            - POSTGRES_USER=postgres
             - POSTGRES_PASSWORD=postgres
     bot:
         build: .
