@@ -8,10 +8,6 @@
 Choice of PostgreSQL or SQLite3 as database.
 
 ### [Install Guide - Wiki](https://ddc.github.io/DiscordBot)
-+ Install [Python3.7](https://www.python.org/downloads/release)
-+ Install [Git](https://git-scm.com/download/win)
-+ Python modules can be installed using the script "install_reqs", running as root or using pip:
-    + pip install -r requirements.txt
 + Docker (replace "my-token" with your bot token)
     + git clone https://github.com/ddc/DiscordBot.git && cd DiscordBot
     + docker-compose build --build-arg token="my-token"
