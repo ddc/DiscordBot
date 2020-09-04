@@ -492,24 +492,13 @@ class Misc(commands.Cog):
             raise commands.BadArgument(message="BadArgument")
 
         await ctx.message.channel.trigger_typing()
-        msgtime = ctx.message.created_at.now()
-        await (await self.bot.ws.ping())
-        now = dt.datetime.now()
-        ping = now - msgtime
-        p = int(ping.microseconds / 1000.0)
+        p = int(self.bot.ws.latency * 1000)
         color = discord.Color.green()
-        if p >= 200:
+        if p > 200:
             color = discord.Color.red()
-        pong = discord.Embed(description=f"Ping: {p} ms", color=color)
-        await ctx.send(embed=pong)
+        embed = discord.Embed(title=None, description=f"Ping: {p} ms", color=color)
+        await ctx.send(embed=embed)
 
-    #         p=int(self.bot.latency * 1000)
-    #         color = discord.Color.green()
-    #         if p > 200:
-    #             color = discord.Color.red()
-    #         embed=discord.Embed(title=None, description=f"Ping: {p} ms", color=color)
-    #         await ctx.send(embed=embed)
-    #
     ################################################################################
     @commands.command()
     @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)

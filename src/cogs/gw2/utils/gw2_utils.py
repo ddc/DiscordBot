@@ -223,7 +223,7 @@ async def get_last_session_user_stats(self, ctx, api_key):
         api_req_achiev = await gw2Api.call_api("account/achievements", key=api_key)
     except Exception as e:
         if ctx is not None:
-            await BotUtils.send_error_msg(self, ctx, "GW2 API is currently down. Try again later...")
+            await BotUtils.send_info_msg(self, ctx, "GW2 API is currently down. Try again later...")
             return self.bot.log.error(e)
 
     user_obj.acc_name = api_req_acc["name"]

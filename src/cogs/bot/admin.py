@@ -217,7 +217,7 @@ class Admin(commands.Cog):
 
             await BotUtils.send_embed(self, ctx, embed, False)
         else:
-            await BotUtils.send_error_msg(self, ctx, "Theres no banned users in this server.")
+            await BotUtils.send_info_msg(self, ctx, "No banned users in this server.")
 
     ################################################################################
     @commands.group(aliases=["bl"])

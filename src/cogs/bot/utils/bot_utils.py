@@ -74,9 +74,25 @@ async def check_database_connection(bot):
 
 
 ################################################################################
+async def send_msg(self, ctx, color, msg):
+    await ctx.message.channel.trigger_typing()
+    embed = discord.Embed(color=color, description=msg)
+    embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
+    await send_embed(self, ctx, embed, False, msg)
+
+
+################################################################################
+async def send_warning_msg(self, ctx, msg):
+    await ctx.message.channel.trigger_typing()
+    embed = discord.Embed(color=discord.Color.orange(), description=Formatting.warning(msg))
+    embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
+    await send_embed(self, ctx, embed, False, msg)
+
+
+################################################################################
 async def send_info_msg(self, ctx, msg):
     await ctx.message.channel.trigger_typing()
-    embed = discord.Embed(color=discord.Color.red(), description=Formatting.info(msg))
+    embed = discord.Embed(color=discord.Color.blue(), description=Formatting.info(msg))
     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
     await send_embed(self, ctx, embed, False, msg)
 
@@ -90,14 +106,6 @@ async def send_error_msg(self, ctx, msg):
 
 
 ################################################################################
-async def send_msg(self, ctx, color, msg):
-    await ctx.message.channel.trigger_typing()
-    embed = discord.Embed(color=color, description=msg)
-    embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
-    await send_embed(self, ctx, embed, False, msg)
-
-
-################################################################################
 async def send_private_msg(self, ctx, color, msg):
     embed = discord.Embed(color=color, description=msg)
     # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
@@ -105,8 +113,15 @@ async def send_private_msg(self, ctx, color, msg):
 
 
 ################################################################################
+async def send_private_warning_msg(self, ctx, msg):
+    embed = discord.Embed(color=discord.Color.orange(), description=Formatting.warning(msg))
+    # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
+    await send_embed(self, ctx, embed, True, msg)
+
+
+################################################################################
 async def send_private_info_msg(self, ctx, msg):
-    embed = discord.Embed(color=discord.Color.red(), description=Formatting.info(msg))
+    embed = discord.Embed(color=discord.Color.blue(), description=Formatting.info(msg))
     # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
     await send_embed(self, ctx, embed, True, msg)
 
@@ -190,7 +205,7 @@ async def delete_last_channel_message(self, ctx, warning=False):
                 color = self.bot.settings["EmbedColor"]
                 await send_msg(self, ctx, color, "Your message was removed for privacy.")
         except:
-            # await send_error_msg(self, ctx, "Bot does not have permission to delete messages.\n"\
+            # await send_info_msg(self, ctx, "Bot does not have permission to delete messages.\n"\
             #                                   "Missing permission: `Manage Messages`")
             return
 
