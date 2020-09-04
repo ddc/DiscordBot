@@ -1,5 +1,15 @@
-version: '3'
+version: '3.7'
 services:
+    bot:
+        build: .
+        container_name: bot
+        restart: always
+        #env_file: .env
+        depends_on:
+            - "db"
+        volumes:
+            - ".:/opt/DiscordBot"
+
     db:
         image: postgres
         container_name: db
@@ -7,17 +17,8 @@ services:
         ports:
             - "5432:5432"
         volumes:
-            - /opt/pgdata:/var/lib/postgresql/data
+            - "/opt/pgdata:/var/lib/postgresql/data"
         environment:
             - POSTGRES_DB=discordbot
             - POSTGRES_USER=postgres
             - POSTGRES_PASSWORD=postgres
-    bot:
-        build: .
-        container_name: bot
-        restart: always
-        env_file: .env
-        depends_on:
-            - "db"
-        volumes:
-            - /opt/DiscordBot:/opt/DiscordBot
