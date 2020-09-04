@@ -10,5 +10,6 @@ ADD . /opt/DiscordBot
 RUN echo $token > ./config/token.txt
 RUN pip install --upgrade pip
 RUN pip install -r ./requirements.txt
+VOLUME ["/opt/DiscordBot"]
 #################
 CMD ["python", "/opt/DiscordBot/launcher.py", "--start"]

@@ -26,7 +26,7 @@ class ServersSql:
                       VALUES (
                       {server.id},
                       {server.owner_id},
-                      '{server.name}',
+                      '{server.name.replace("'","''")}',
                       '{server.region}',
                       '{icon_url}');
                       INSERT INTO server_configs (discord_server_id) VALUES ({server.id});"""
@@ -40,7 +40,7 @@ class ServersSql:
                 or str(before.owner_id) != str(after.owner_id):
             icon_url = str(after.icon_url)
             sql = f"""UPDATE servers SET
-                server_name = '{after.name}',
+                server_name = '{after.name.replace("'","''")}',
                 region = '{after.region}',
                 icon_url = '{icon_url}',
                 server_owner_id = {after.owner_id}

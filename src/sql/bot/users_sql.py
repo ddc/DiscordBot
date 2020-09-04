@@ -21,11 +21,11 @@ class UsersSql:
         for server in servers:
             for user in server.members:
                 # if user.bot is False:
-                avatar_url = str(user.avatar_url)
                 current_user = await self.get_user(user.id)
                 if len(current_user) == 0:
+                    full_name = f"{user.display_name}#{user.discriminator}".replace("'", "''")
                     sql = f"""INSERT INTO users (discord_user_id, user_name, avatar_url)
-                            VALUES ({user.id}, '{user}', '{avatar_url}');"""
+                            VALUES ({user.id}, '{full_name}', '{user.avatar_url}');"""
                     await databases.execute(sql)
 
     ################################################################################
@@ -33,18 +33,18 @@ class UsersSql:
         # if user.bot is False:
         current_user = await self.get_user(user.id)
         if len(current_user) == 0:
-            avatar_url = str(user.avatar_url)
+            full_name = f"{user.display_name}#{user.discriminator}".replace("'", "''")
             sql = f"""INSERT INTO users (discord_user_id, user_name, avatar_url)
-                    VALUES ({user.id}, '{user}', '{avatar_url}');"""
+                    VALUES ({user.id}, '{full_name}', '{user.avatar_url}');"""
             databases = Databases(self.bot)
             await databases.execute(sql)
         ################################################################################
 
-    async def update_user_changes(self, before: discord.Member, after: discord.Member):
-        avatar_url = str(after.avatar_url)
+    async def update_user_changes(self, after: discord.Member):
+        full_name = f"{after.display_name}#{after.discriminator}".replace("'", "''")
         sql = f"""UPDATE users SET
-            user_name = '{str(after)}',
-            avatar_url = '{avatar_url}'
+            user_name = '{full_name}',
+            avatar_url = '{after.avatar_url}'
             WHERE discord_user_id = {after.id};"""
         databases = Databases(self.bot)
         await databases.execute(sql)

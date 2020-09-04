@@ -214,7 +214,7 @@ class Events(commands.Cog):
             or str(before.discriminator) != str(after.discriminator):
                 # update user in database
                 usersSql = UsersSql(self.bot)
-                await usersSql.update_user_changes(before, after)
+                await usersSql.update_user_changes(after)
 
                 msg = "Profile Changes:\n\n"
                 now = dt.datetime.now()
