@@ -138,11 +138,11 @@ class Config(commands.Cog):
         if new_status.lower() == "on":
             new_status = "Y"
             color = discord.Color.green()
-            msg = "Display a message when someone joins the server: `ON`"
+            msg = "Display a message when someone joins the server is now: `ON`"
         elif new_status.lower() == "off":
             new_status = "N"
             color = discord.Color.red()
-            msg = "Display a message when someone joins the server: `OFF`"
+            msg = "Display a message when someone joins the server is now: `OFF`"
         else:
             raise commands.BadArgument(message="BadArgument")
 
@@ -168,11 +168,11 @@ class Config(commands.Cog):
         if new_status.lower() == "on":
             new_status = "Y"
             color = discord.Color.green()
-            msg = "Display a message when a member leaves the server: `ON`"
+            msg = "Display a message when a member leaves the server is now: `ON`"
         elif new_status.lower() == "off":
             new_status = "N"
             color = discord.Color.red()
-            msg = "Display a message when a member leaves the server: `OFF`"
+            msg = "Display a message when a member leaves the server is now: `OFF`"
         else:
             raise commands.BadArgument(message="BadArgument")
 
@@ -198,11 +198,11 @@ class Config(commands.Cog):
         if new_status.lower() == "on":
             new_status = "Y"
             color = discord.Color.green()
-            msg = "Display a message when server gets updated: `ON`"
+            msg = "Display a message when server gets updated is now: `ON`"
         elif new_status.lower() == "off":
             new_status = "N"
             color = discord.Color.red()
-            msg = "Display a message when server gets updated: `OFF`"
+            msg = "Display a message when server gets updated is now: `OFF`"
         else:
             raise commands.BadArgument(message="BadArgument")
 
@@ -228,11 +228,11 @@ class Config(commands.Cog):
         if new_status.lower() == "on":
             new_status = "Y"
             color = discord.Color.green()
-            msg = "Display a message when someone changes profile: `ON`"
+            msg = "Display a message when someone changes profile is now: `ON`"
         elif new_status.lower() == "off":
             new_status = "N"
             color = discord.Color.red()
-            msg = "Display a message when someone changes profile: `OFF`"
+            msg = "Display a message when someone changes profile is now: `OFF`"
         else:
             raise commands.BadArgument(message="BadArgument")
 
@@ -258,11 +258,11 @@ class Config(commands.Cog):
         if new_status.lower() == "on":
             new_status = "Y"
             color = discord.Color.green()
-            msg = "Block messages from invisible members: `ON`"
+            msg = "Block messages from invisible members is now: `ON`"
         elif new_status.lower() == "off":
             new_status = "N"
             color = discord.Color.red()
-            msg = "Block messages from invisible members: `OFF`"
+            msg = "Block messages from invisible members is now: `OFF`"
         else:
             raise commands.BadArgument(message="BadArgument")
 
@@ -288,11 +288,11 @@ class Config(commands.Cog):
         if new_status.lower() == "on":
             new_status = "Y"
             color = discord.Color.green()
-            msg = "Mention everyone when the pool command is used: `ON`"
+            msg = "Mention everyone when the pool command is used is now: `ON`"
         elif new_status.lower() == "off":
             new_status = "N"
             color = discord.Color.red()
-            msg = "Mention everyone when the pool command is used: `OFF`"
+            msg = "Mention everyone when the pool command is used is now: `OFF`"
         else:
             raise commands.BadArgument(message="BadArgument")
 
