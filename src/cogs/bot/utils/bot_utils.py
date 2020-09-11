@@ -48,12 +48,20 @@ def setup_logging():
     logger = logging.getLogger()
     logger.setLevel(constants.LOG_LEVEL)
 
-    file_hdlr = logging.handlers.RotatingFileHandler(
+    # file_hdlr = logging.handlers.RotatingFileHandler(
+    #     filename=constants.LOGS_FILENAME,
+    #     maxBytes=1 * 1024 * 1024,
+    #     encoding="utf-8",
+    #     backupCount=14,
+    #     mode='a')
+
+    file_hdlr = logging.handlers.TimedRotatingFileHandler(
         filename=constants.LOGS_FILENAME,
-        maxBytes=10 * 1024 * 1024,
+        when="midnight",
+        interval=1,
         encoding="utf-8",
-        backupCount=5,
-        mode='a')
+        backupCount=14)
+
     file_hdlr.setFormatter(formatter)
     logger.addHandler(file_hdlr)
 
