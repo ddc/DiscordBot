@@ -5,10 +5,10 @@
 [![Python](https://img.shields.io/badge/python-3.7-blue.svg?style=plastic)](https://www.python.org/downloads/release)
 [![GitHub release](https://img.shields.io/github/release/ddc/DiscordBot.svg?style=plastic)](https://github.com/ddc/DiscordBot/releases/latest)
 
-Choice of PostgreSQL or SQLite3 as database.
+PostgreSQL(default) or SQLite3 as database
 
 ### [Install Guide - Wiki](https://ddc.github.io/DiscordBot)
-+ Docker (replace "my-token" with your bot token)
++ Docker (replace "MY_TOKEN_HERE" with your bot token)
     + git clone https://github.com/ddc/DiscordBot.git && cd DiscordBot
     + echo MY_TOKEN_HERE > ./config/token.txt
     + docker-compose up --build -d
