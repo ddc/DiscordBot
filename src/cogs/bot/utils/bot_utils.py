@@ -63,6 +63,7 @@ def setup_logging():
         backupCount=14)
 
     file_hdlr.setFormatter(formatter)
+    file_hdlr.suffix = str(dt.datetime.now().strftime("%Y-%m-%d"))
     logger.addHandler(file_hdlr)
 
     stderr_hdlr = logging.StreamHandler()
@@ -446,23 +447,27 @@ def get_server_everyone_role(server: discord.Guild):
 def get_all_ini_file_settings(file_name: str):
     # self.bot.log.info(f"Accessing file: {file_name}")
     dictionary = {}
-    parser = configparser.ConfigParser(delimiters='=', allow_no_value=True)
-    parser.optionxform = str  # this wont change all values to lowercase
+    parser = configparser.ConfigParser(delimiters='=')
+    parser.optionxform = str
     parser._interpolation = configparser.ExtendedInterpolation()
-    parser.read(file_name)
-    for section in parser.sections():
-        # dictionary[section] = {}
-        for option in parser.options(section):
-            try:
-                value = parser.get(section, option).replace("\"", "")
-            except Exception:
-                value = None
-            if value is not None and len(value) == 0:
-                value = None
+    try:
+        parser.read(file_name)
+        for section in parser.sections():
+            # dictionary[section] = {}
+            for option in parser.options(section):
+                try:
+                    value = parser.get(section, option).replace("\"", "")
+                except Exception:
+                    value = None
+                if value is not None and len(value) == 0:
+                    value = None
 
-            # dictionary[section][option] = value
-            dictionary[option] = value
-    return dictionary
+                # dictionary[section][option] = value
+                dictionary[option] = value
+        return dictionary
+    except Exception as e:
+        sys.stderr.write(str(e))
+        #sys.exit(1)
 
 
 ################################################################################
