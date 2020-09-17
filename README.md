@@ -10,8 +10,8 @@ Choice of PostgreSQL or SQLite3 as database.
 ### [Install Guide - Wiki](https://ddc.github.io/DiscordBot)
 + Docker (replace "my-token" with your bot token)
     + git clone https://github.com/ddc/DiscordBot.git && cd DiscordBot
-    + docker-compose build --build-arg token="my-token"
-    + docker-compose up -d
+    + echo MY_TOKEN_HERE > ./config/token.txt
+    + docker-compose up --build -d
 
 ## Games Included
 + [Guild Wars 2](https://www.guildwars2.com)
