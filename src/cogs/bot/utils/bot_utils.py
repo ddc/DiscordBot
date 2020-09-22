@@ -58,12 +58,10 @@ def setup_logging():
     file_hdlr = logging.handlers.TimedRotatingFileHandler(
         filename=constants.LOGS_FILENAME,
         when="midnight",
-        interval=1,
-        encoding="utf-8",
-        backupCount=14)
+        encoding="utf-8")
 
     file_hdlr.setFormatter(formatter)
-    file_hdlr.suffix = str(dt.datetime.now().strftime("%Y-%m-%d"))
+    file_hdlr.suffix = "%Y-%m-%d"
     logger.addHandler(file_hdlr)
 
     stderr_hdlr = logging.StreamHandler()
