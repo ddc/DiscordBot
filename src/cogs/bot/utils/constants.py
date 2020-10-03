@@ -8,17 +8,18 @@
 # # -*- coding: utf-8 -*-
 import os
 import sys
-import platform
+#import platform
 import logging
 from pathlib import Path
 
+
 TIME_BEFORE_START = 5
-IS_WINDOWS = os.name == "nt"
-IS_MAC = sys.platform == "darwin"
-IS_64BIT = platform.machine().endswith("64")
 INTERACTIVE_MODE = not len(sys.argv) > 1
 PYTHON_OK = sys.version_info >= (3, 6)
-# paths
+IS_WINDOWS = os.name == "nt"
+#IS_MAC = sys.platform == "darwin"
+#IS_64BIT = platform.machine().endswith("64")
+################################################################################
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
 SETTINGS_FILENAME = os.path.join(BASE_DIR, "config", "settings.ini")
 TOKEN_FILENAME = os.path.join(BASE_DIR, "config", "token.txt")
@@ -26,11 +27,11 @@ SWEAR_WORDS_FILENAME = os.path.join(BASE_DIR, "data", "swear_words")
 DATABASE_FILENAME = os.path.join(BASE_DIR, "data", "database.db")
 LOGS_FILENAME = os.path.join(BASE_DIR, "logs", "bot.log")
 SQL_DIRPATH = os.path.join(BASE_DIR, "data", "sql")
-#
+################################################################################
 _versionFile = open(os.path.join(BASE_DIR, "VERSION"), encoding="utf-8", mode="r")
 VERSION = _versionFile.read().split('\n', 1)[0].strip('\n')
 _versionFile.close()
-INTRO = (f"====================\nDiscord Bot v{VERSION}\n====================")
+INTRO = f"{20*'='}\nDiscord Bot v{VERSION}\n{20*'='}"
 ################################################################################
 DESCRIPTION = "A Multifunction Bot for Discord"
 DEFAULT_PREFIX = "?"
