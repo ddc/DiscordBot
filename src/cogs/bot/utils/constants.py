@@ -6,11 +6,11 @@
 # * Python            : 3.6
 # |*****************************************************
 # # -*- coding: utf-8 -*-
-
 import os
 import sys
 import platform
 import logging
+from pathlib import Path
 
 TIME_BEFORE_START = 5
 IS_WINDOWS = os.name == "nt"
@@ -18,25 +18,16 @@ IS_MAC = sys.platform == "darwin"
 IS_64BIT = platform.machine().endswith("64")
 INTERACTIVE_MODE = not len(sys.argv) > 1
 PYTHON_OK = sys.version_info >= (3, 6)
-abspath = os.path.abspath(__file__)
-if IS_WINDOWS:
-        root_path = os.path.dirname(abspath).replace("\\src\\cogs\\bot\\utils", "")
-        _versionFile = open(f"{root_path}\\VERSION", encoding="utf-8", mode="r")
-        SETTINGS_FILENAME = f"{root_path}\\config\\settings.ini"
-        TOKEN_FILENAME = f"{root_path}\\config\\token.txt"
-        SWEAR_WORDS_FILENAME = f"{root_path}\\data\\swear_words"
-        DATABASE_FILENAME = f"{root_path}\\data\\database.db"
-        LOGS_FILENAME = f"{root_path}\\logs\\bot.log"
-        SQL_DIRPATH = f"{root_path}\\data\\sql"
-else:
-        root_path = os.path.dirname(abspath).replace("/src/cogs/bot/utils", "")
-        _versionFile = open(f"{root_path}/VERSION", encoding="utf-8", mode="r")
-        SETTINGS_FILENAME = f"{root_path}/config/settings.ini"
-        TOKEN_FILENAME = f"{root_path}/config/token.txt"
-        SWEAR_WORDS_FILENAME = f"{root_path}/data/swear_words"
-        DATABASE_FILENAME = f"{root_path}/data/database.db"
-        LOGS_FILENAME = f"{root_path}/logs/bot.log"
-        SQL_DIRPATH = f"{root_path}/data/sql"
+# paths
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
+SETTINGS_FILENAME = os.path.join(BASE_DIR, "config", "settings.ini")
+TOKEN_FILENAME = os.path.join(BASE_DIR, "config", "token.txt")
+SWEAR_WORDS_FILENAME = os.path.join(BASE_DIR, "data", "swear_words")
+DATABASE_FILENAME = os.path.join(BASE_DIR, "data", "database.db")
+LOGS_FILENAME = os.path.join(BASE_DIR, "logs", "bot.log")
+SQL_DIRPATH = os.path.join(BASE_DIR, "data", "sql")
+#
+_versionFile = open(f"{BASE_DIR}\\VERSION", encoding="utf-8", mode="r")
 VERSION = _versionFile.read().split('\n', 1)[0].strip('\n')
 _versionFile.close()
 INTRO = (f"====================\nDiscord Bot v{VERSION}\n====================")
@@ -57,7 +48,7 @@ POSTGRESQL_URL = "https://www.postgresql.org"
 ################################################################################
 DATE_FORMATTER = "%b/%d/%Y"
 TIME_FORMATTER = "%H:%M:%S"
-LOG_LEVEL = logging.INFO  # INFO or DEBUG
+LOG_LEVEL = logging.INFO
 LOG_FORMATTER = logging.Formatter('%(asctime)s:[%(levelname)s]:[%(filename)s:%(funcName)s:%(lineno)d]:%(message)s',
                                   datefmt=f"[{DATE_FORMATTER} {TIME_FORMATTER}]")
 ################################################################################
