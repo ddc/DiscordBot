@@ -336,7 +336,7 @@ class Events(commands.Cog):
             users = bot_stats["users"]
             channels = bot_stats["channels"]
 
-            conn_msg = "====> Bot is online and connected to Discord <===="
+            conn_msg = f"====> {bot.user} IS ONLINE AND CONNECTED TO DISCORD <===="
             print(f"{constants.INTRO}")
             print("Python v{}.{}.{}".format(*os.sys.version_info[:3]))
             print(f"Discord API v{discord.__version__}")
