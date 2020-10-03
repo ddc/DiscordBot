@@ -7,13 +7,12 @@
 # |*****************************************************
 # # -*- coding: utf-8 -*-
 
-from src.cogs.bot.utils import constants
+from pathlib import Path
+import os
 
-if constants.IS_WINDOWS:
-    GW2_SETTINGS_FILENAME = f"{constants.root_path}\\config\\gw2_settings.ini"
-else:
-    GW2_SETTINGS_FILENAME = f"{constants.root_path}/config/gw2_settings.ini"
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent
+GW2_SETTINGS_FILENAME = os.path.join(BASE_DIR, "config", "gw2_settings.ini")
 WIKI_URL = "https://wiki.guildwars2.com"
 GW2_WIKI_ICON_URL = "https://wiki.guildwars.com/images/b/bf/Normal_gw2logo.jpg"
 GW2_SETTINGS_URL_FILE = "https://raw.githubusercontent.com/ddc/DiscordBot/master/config/gw2_settings.ini"
