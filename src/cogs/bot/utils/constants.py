@@ -27,7 +27,7 @@ DATABASE_FILENAME = os.path.join(BASE_DIR, "data", "database.db")
 LOGS_FILENAME = os.path.join(BASE_DIR, "logs", "bot.log")
 SQL_DIRPATH = os.path.join(BASE_DIR, "data", "sql")
 #
-_versionFile = open(f"{BASE_DIR}\\VERSION", encoding="utf-8", mode="r")
+_versionFile = open(os.path.join(BASE_DIR, "VERSION"), encoding="utf-8", mode="r")
 VERSION = _versionFile.read().split('\n', 1)[0].strip('\n')
 _versionFile.close()
 INTRO = (f"====================\nDiscord Bot v{VERSION}\n====================")
