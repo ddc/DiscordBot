@@ -1,11 +1,11 @@
-FROM python:3.8.5
+FROM python:3.9.0
 #################
 LABEL Description="DiscordBot"
 #################
 RUN mkdir -p /opt/DiscordBot
 WORKDIR /opt/DiscordBot
 ADD . /opt/DiscordBot
-RUN pip install --upgrade pip
-RUN pip install -r ./requirements.txt
+RUN python -m pip install --upgrade pip \
+    && python -m pip install --no-cache-dir -r ./requirements.txt  --use-feature=2020-resolver
 #################
 CMD ["python", "launcher.py", "--start"]

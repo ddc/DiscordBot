@@ -42,7 +42,8 @@ async def _init_bot(log):
         token = tokenFile.read().split('\n', 1)[0].strip('\n')
         tokenFile.close()
 
-    bot = commands.Bot(command_prefix=constants.DEFAULT_PREFIX)
+    default_prefix = BotUtils.get_ini_settings(constants.SETTINGS_FILENAME, "Bot", "DefaultPrefix")
+    bot = commands.Bot(command_prefix=default_prefix)
     bot.log = log
     bot.token = token
     return bot

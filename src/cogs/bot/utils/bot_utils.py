@@ -469,18 +469,19 @@ def get_all_ini_file_settings(file_name: str):
 
 
 ################################################################################
-# def get_ini_settings(file_name: str, section: str, config_name: str):
-#     # self.bot.log.info(f"Accessing: {file_name}: {section}-{config_name}")
-#     parser = configparser.ConfigParser(delimiters=('='), allow_no_value=True)
-#     parser._interpolation = configparser.ExtendedInterpolation()
-#     parser.read(file_name)
-#     try:
-#         value = parser.get(section, config_name).replace("\"", "")
-#     except Exception:
-#         value = None
-#     if value is not None and len(value) == 0:
-#         value = None
-#     return value
+def get_ini_settings(file_name: str, section: str, config_name: str):
+    # self.bot.log.info(f"Accessing: {file_name}: {section}-{config_name}")
+    parser = configparser.ConfigParser(delimiters='=', allow_no_value=True)
+    parser.optionxform = str
+    parser._interpolation = configparser.ExtendedInterpolation()
+    try:
+        parser.read(file_name)
+        value = parser.get(section, config_name).replace("\"", "")
+    except Exception:
+        value = None
+    if value is not None and len(value) == 0:
+        value = None
+    return value
 
 
 ################################################################################

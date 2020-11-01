@@ -8,7 +8,6 @@
 # # -*- coding: utf-8 -*-
 
 import sqlite3
-# from _sqlite3 import Error
 from src.cogs.bot.utils import constants
 
 

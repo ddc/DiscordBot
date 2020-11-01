@@ -8,9 +8,9 @@
 # # -*- coding: utf-8 -*-
 import os
 import sys
-#import platform
 import logging
 from pathlib import Path
+#import platform
 
 
 TIME_BEFORE_START = 5
@@ -34,7 +34,6 @@ _versionFile.close()
 INTRO = f"{20*'='}\nDiscord Bot v{VERSION}\n{20*'='}"
 ################################################################################
 DESCRIPTION = "A Multifunction Bot for Discord"
-DEFAULT_PREFIX = "?"
 AUTHOR_ID = 195615080665055232
 PAYPAL_URL = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=38E66BHC4623Y"
 BOT_WEBPAGE_URL = "https://ddc.github.io/DiscordBot"
