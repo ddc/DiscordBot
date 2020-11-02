@@ -1,11 +1,10 @@
 # A Multifunction Bot for Discord
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=plastic)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=38E66BHC4623Y)
-[<img src="https://img.shields.io/github/license/ddc/DiscordBot.svg?style=plastic">](https://github.com/ddc/DiscordBot/blob/master/LICENSE) 
-[![Python](https://img.shields.io/badge/python-3.7-blue.svg?style=plastic)](https://www.python.org/downloads/release)
-[![GitHub release](https://img.shields.io/github/release/ddc/DiscordBot.svg?style=plastic)](https://github.com/ddc/DiscordBot/releases/latest)
-
-PostgreSQL(default) or SQLite3 as database
+[![license](https://img.shields.io/github/license/ddc/DiscordBot.svg?style=plastic)](https://github.com/ddc/DiscordBot/blob/master/LICENSE) 
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13-yellow.svg?style=plastic)](https://www.postgresql.org)
+[![python](https://img.shields.io/badge/python-3.9-blue.svg?style=plastic)](https://www.python.org/downloads/release)
+[![Release](https://img.shields.io/github/release/ddc/DiscordBot.svg?style=plastic)](https://github.com/ddc/DiscordBot/releases/latest)
 
 ### Invitation Link 
 + Use the link bellow to invite this bot into your server, or install your own using the install guide
