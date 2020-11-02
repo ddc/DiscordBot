@@ -80,7 +80,7 @@ class Events(commands.Cog):
                     games_included = ""
                     for games in constants.GAMES_INCLUDED:
                         games_included += f"({games}) "
-            msg = f"Thanks for using *{self.bot.user.name}!*\n" \
+            msg = f"Thanks for using *{self.bot.user.name}*\n" \
                   f"To learn more about this bot: `{prefix}about`\n" \
                   f"Games included so far: `{games_included}`\n\n"
 

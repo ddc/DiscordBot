@@ -7,6 +7,10 @@
 
 PostgreSQL(default) or SQLite3 as database
 
+### Invitation Link 
++ Use the link bellow to invite this bot into your server, or install your own using the install guide
+    + [Invitation Link](https://discordapp.com/api/oauth2/authorize?client_id=427992048088383518&permissions=8&scope=bot)
+
 ### [Install Guide - Wiki](https://ddc.github.io/DiscordBot)
 + Docker (replace "MY_TOKEN_HERE" with your bot token)
     + git clone https://github.com/ddc/DiscordBot.git && cd DiscordBot
