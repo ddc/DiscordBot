@@ -46,11 +46,9 @@ GIT_URL = "https://git-scm.com"
 SQLITE3_URL = "https://sqlite.org"
 POSTGRESQL_URL = "https://www.postgresql.org"
 ################################################################################
-DATE_FORMATTER = "%b/%d/%Y"
+DATE_FORMATTER = "%Y/%m/%d"
 TIME_FORMATTER = "%H:%M:%S"
 LOG_LEVEL = logging.INFO
-LOG_FORMATTER = logging.Formatter('%(asctime)s:[%(levelname)s]:[%(filename)s:%(funcName)s:%(lineno)d]:%(message)s',
-                                  datefmt=f"[{DATE_FORMATTER} {TIME_FORMATTER}]")
 ################################################################################
 PROFANITY_FILTER_MSG = "Your message was removed.\nPlease don't say offensive words in this channel."
 ###############################################################################

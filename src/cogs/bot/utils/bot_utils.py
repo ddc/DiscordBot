@@ -23,7 +23,6 @@ import subprocess
 import json
 import os
 import sys
-import gzip
 # import asyncio
 # from bs4 import BeautifulSoup
 
@@ -45,6 +44,7 @@ class Object:
 def setup_logging():
     class GZipRotator:
         def __call__(self, source, dest):
+            import gzip
             os.rename(source, dest)
             f_in = open(dest, 'rb')
             f_out = gzip.open(f"{dest}.gz", 'wb')
@@ -53,7 +53,10 @@ def setup_logging():
             f_in.close()
             os.remove(dest)
 
-    formatter = constants.LOG_FORMATTER
+    formatt = "'%(asctime)s:[%(levelname)s]:[%(filename)s:%(funcName)s:%(lineno)d]:%(message)s'"
+    log_formatter = logging.Formatter(formatt, datefmt=f"[{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}]")
+    formatter = log_formatter
+
     logging.getLogger("discord").setLevel(constants.LOG_LEVEL)
     logging.getLogger("discord.http").setLevel(constants.LOG_LEVEL)
     logger = logging.getLogger()
