@@ -15,7 +15,7 @@
 ### [Install Guide - Wiki](https://ddc.github.io/DiscordBot)
 + Using Docker (replace "MY_TOKEN_HERE" with your bot token)
     + git clone https://github.com/ddc/DiscordBot.git && cd DiscordBot
-    + echo Mzk4NTE4MTg1NDY2Mzk2Njcy.Dtb98A.3k-JJ-I2s5fo6fbA_1R9TkzsI6g > ./config/token.txt
+    + echo MY_TOKEN_HERE > ./config/token.txt
     + docker-compose up --build -d
 
 ## Games Included
