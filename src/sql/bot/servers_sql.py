@@ -15,7 +15,6 @@ class ServersSql:
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
     async def insert_default_initial_server_configs(self, servers: discord.Guild):
         databases = Databases(self.bot)
         for server in servers:
@@ -32,7 +31,7 @@ class ServersSql:
                       INSERT INTO server_configs (discord_server_id) VALUES ({server.id});"""
                 await databases.execute(sql)
 
-    ################################################################################
+
     async def update_server_changes(self, before: discord.Guild, after: discord.Guild):
         if str(before.name) != str(after.name) \
                 or str(before.region) != str(after.region) \
@@ -48,13 +47,13 @@ class ServersSql:
             databases = Databases(self.bot)
             await databases.execute(sql)
 
-    ################################################################################
+
     async def delete_server(self, discord_server_id: int):
         sql = f"DELETE from servers where discord_server_id = {discord_server_id};"
         databases = Databases(self.bot)
         await databases.execute(sql)
 
-    ################################################################################
+
     async def get_all_servers(self):
         sql = """ SELECT servers.*,
                         users.user_name as owner_name
@@ -65,7 +64,7 @@ class ServersSql:
         databases = Databases(self.bot)
         return await databases.select(sql)
 
-    ################################################################################
+
     async def get_server(self, server: discord.Guild):
         sql = f""" SELECT servers.*,
                     users.user_name as owner_name
@@ -77,7 +76,7 @@ class ServersSql:
         databases = Databases(self.bot)
         return await databases.select(sql)
 
-    ################################################################################
+
     async def get_server_by_id(self, discord_server_id: int):
         sql = f""" SELECT servers.*,
                     users.user_name as owner_name

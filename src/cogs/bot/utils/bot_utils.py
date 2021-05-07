@@ -23,6 +23,7 @@ import subprocess
 import json
 import os
 import sys
+import gzip
 # import asyncio
 # from bs4 import BeautifulSoup
 
@@ -42,25 +43,54 @@ class Object:
 
 ################################################################################
 def setup_logging():
+    backup_days = 30
+    logs_dir = os.path.dirname(constants.LOGS_FILENAME)
+
     class GZipRotator:
         def __call__(self, source, dest):
-            import gzip
-            os.rename(source, dest)
-            f_in = open(dest, 'rb')
-            f_out = gzip.open(f"{dest}.gz", 'wb')
-            f_out.writelines(f_in)
-            f_out.close()
-            f_in.close()
-            os.remove(dest)
+            try:
+                sfname, sext = os.path.splitext(source)
+                dfname, dext = os.path.splitext(dest)
+                renamed_dst = f"{sfname}_{dext.replace('.', '')}{sext}"
+                os.rename(source, renamed_dst)
+                with open(renamed_dst, "rb") as fin:
+                    with gzip.open(f"{renamed_dst}.gz", "wb") as fout:
+                        fout.writelines(fin)
+                os.remove(renamed_dst)
+            except Exception as ex:
+                sys.stderr.write(f"[ERROR]:Unable to compress log file:[{str(ex)}]: {source}\n")
 
-    formatt = "'%(asctime)s:[%(levelname)s]:[%(filename)s:%(funcName)s:%(lineno)d]:%(message)s'"
-    log_formatter = logging.Formatter(formatt, datefmt=f"[{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}]")
+    if not os.path.isdir(logs_dir):
+        try:
+            os.makedirs(logs_dir, exist_ok=True)
+        except Exception as e:
+            sys.stderr.write(f"[ERROR]:[{str(e)}]:"
+                             f"Unable to create logs dir: {logs_dir}")
+            sys.exit(1)
+
+    script_name, script_ext = os.path.splitext(sys.argv[0])
+    log_filename = f"{os.path.basename(script_name)}.log"
+    log_file_path = os.path.join(logs_dir, log_filename)
+
+    try:
+        open(log_file_path, "a+").close()
+    except IOError as e:
+        sys.stderr.write(f"[ERROR]:[{str(e)}]:"
+                         f"Unable to open log file for writing: {log_file_path}\n")
+        sys.exit(1)
+
+    formatt = "%(asctime)s.%(msecs)03d]:[%(levelname)s]:%(message)s"
+    log_formatter = logging.Formatter(formatt, datefmt=f"[{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
     formatter = log_formatter
 
     logging.getLogger("discord").setLevel(constants.LOG_LEVEL)
     logging.getLogger("discord.http").setLevel(constants.LOG_LEVEL)
     logger = logging.getLogger()
     logger.setLevel(constants.LOG_LEVEL)
+    file_hdlr = logging.handlers.TimedRotatingFileHandler(filename=log_file_path,
+                                                          encoding="UTF-8",
+                                                          when="midnight",
+                                                          backupCount=backup_days)
 
     # file_hdlr = logging.handlers.RotatingFileHandler(
     #     filename=constants.LOGS_FILENAME,
@@ -69,21 +99,15 @@ def setup_logging():
     #     backupCount=30,
     #     mode='a')
 
-    file_hdlr = logging.handlers.TimedRotatingFileHandler(
-        filename=constants.LOGS_FILENAME,
-        when="midnight",
-        encoding="utf-8",
-        backupCount=30)
-
     file_hdlr.setFormatter(formatter)
-    file_hdlr.suffix = "%Y-%m-%d"
+    file_hdlr.suffix = "%Y%m%d"
     file_hdlr.rotator = GZipRotator()
     logger.addHandler(file_hdlr)
 
-    stderr_hdlr = logging.StreamHandler()
-    stderr_hdlr.setFormatter(formatter)
-    stderr_hdlr.setLevel(constants.LOG_LEVEL)
-    logger.addHandler(stderr_hdlr)
+    stream_hdlr = logging.StreamHandler()
+    stream_hdlr.setFormatter(formatter)
+    stream_hdlr.setLevel(constants.LOG_LEVEL)
+    logger.addHandler(stream_hdlr)
 
     sys.excepthook = log_uncaught_exceptions
     return logger
@@ -774,16 +798,16 @@ def check_user_has_role(self, member: discord.Member, role_name: str):
 #     description = None
 #     if "description" in skill:
 #         description = skill["description"]
-#         
+#
 #     url = f"https://wiki.guildwars2.com/wiki/{skill}"
 #     async with self.bot.aiosession.head(url) as r:
 #         if not r.status == 200:
 #             url = None
-#             
+#
 #     data = discord.Embed(title=skill["name"], description=description, url=url)
 #     if "icon" in skill:
 #         data.set_thumbnail(url=skill["icon"])
-#         
+#
 #     if "professions" in skill:
 #         if skill["professions"]:
 #             professions = skill["professions"]
@@ -793,7 +817,7 @@ def check_user_has_role(self, member: discord.Member, role_name: str):
 #                 data.add_field(name="Professions", value="All")
 #             else:
 #                 data.add_field(name="Profession", value=", ".join(professions))
-# 
+#
 #     if "facts" in skill:
 #         for fact in skill["facts"]:
 #             try:
@@ -805,5 +829,5 @@ def check_user_has_role(self, member: discord.Member, role_name: str):
 #                     data.add_field(name=fact["text"], value=fact["field_type"])
 #             except:
 #                 pass
-# 
+#
 #     return data

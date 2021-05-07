@@ -10,13 +10,13 @@ import os
 import sys
 import logging
 from pathlib import Path
-#import platform
 
 
 TIME_BEFORE_START = 5
 INTERACTIVE_MODE = not len(sys.argv) > 1
 PYTHON_OK = sys.version_info >= (3, 6)
 IS_WINDOWS = os.name == "nt"
+#import platform
 #IS_MAC = sys.platform == "darwin"
 #IS_64BIT = platform.machine().endswith("64")
 ################################################################################
@@ -46,7 +46,7 @@ GIT_URL = "https://git-scm.com"
 SQLITE3_URL = "https://sqlite.org"
 POSTGRESQL_URL = "https://www.postgresql.org"
 ################################################################################
-DATE_FORMATTER = "%Y/%m/%d"
+DATE_FORMATTER = "%Y-%m-%d"
 TIME_FORMATTER = "%H:%M:%S"
 LOG_LEVEL = logging.INFO
 ################################################################################
@@ -62,5 +62,4 @@ COGS = ["src.cogs.bot.admin",
         "src.cogs.bot.events",
         "src.cogs.bot.misc",
         "src.cogs.bot.owner",
-        "src.cogs.gw2.gw2"
-        ]
+        "src.cogs.gw2.gw2"]
