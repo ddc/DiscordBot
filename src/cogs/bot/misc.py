@@ -33,7 +33,7 @@ class Misc(commands.Cog):
         self.bot = bot
 
     ################################################################################
-    @commands.command()
+    #@commands.command()
     #@commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     # async def test(self, ctx):
     #     """(test)"""
