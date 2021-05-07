@@ -33,10 +33,18 @@ class Misc(commands.Cog):
         self.bot = bot
 
     ################################################################################
-    # @commands.command()
-    # #@commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
-    # async def test(self, ctx, *, tts_text: str):
+    @commands.command()
+    #@commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
+    # async def test(self, ctx):
     #     """(test)"""
+    #
+    #     temp_names = ["aaa#1234"]
+    #     await ctx.message.channel.trigger_typing()
+    #     for name in temp_names:
+    #         msg = "test"
+    #         user = BotUtils.get_object_member_by_str(self, ctx, name)
+    #         embed = discord.Embed(color=discord.Color.blue(), description=Formatting.info(msg))
+    #         await user.send(embed=embed)
 
     ################################################################################
     @commands.command()
