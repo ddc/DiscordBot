@@ -6,12 +6,14 @@
 [![python](https://img.shields.io/badge/python-3.9-lightgrey.svg?style=plastic)](https://www.python.org/downloads/release)
 [![Release](https://img.shields.io/github/release/ddc/DiscordBot.svg?style=plastic)](https://github.com/ddc/DiscordBot/releases/latest)
 
+<!--
 ### [Invitation Link](https://discordapp.com/api/oauth2/authorize?client_id=427992048088383518&permissions=8&scope=bot)
 + Use the link bellow to invite this bot into your server, or install your own using the install guide
     + [Invitation Link](https://discordapp.com/api/oauth2/authorize?client_id=427992048088383518&permissions=8&scope=bot)
+-->
 
 ### [Install Guide - Wiki](https://ddc.github.io/DiscordBot)
-+ Docker (replace "MY_TOKEN_HERE" with your bot token)
++ Using Docker (replace "MY_TOKEN_HERE" with your bot token)
     + git clone https://github.com/ddc/DiscordBot.git && cd DiscordBot
     + echo MY_TOKEN_HERE > ./config/token.txt
     + docker-compose up --build -d
