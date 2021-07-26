@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -14,7 +13,7 @@ class PostgreSQL:
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def create_connection(self):
         try:
             conn = await self._get_connection()
@@ -28,10 +27,9 @@ class PostgreSQL:
             # print(msg)
             # self.bot.log.exception("postgres",exc_info=e)
             # raise asyncpg.ConnectionFailureError(e)
-
         return conn
 
-    ################################################################################
+
     async def execute(self, sql: str):
         conn = await self.create_connection()
         if conn is not None:
@@ -51,7 +49,7 @@ class PostgreSQL:
             finally:
                 await conn.close()
 
-    ################################################################################
+
     async def select(self, sql: str):
         final_data = {}
         conn = await self.create_connection()
@@ -67,7 +65,7 @@ class PostgreSQL:
                 await conn.close()
                 return final_data
 
-    ################################################################################
+
     async def create_database(self, db_name: str):
         conn = await self._get_connection(db_name=False)
         sql = f"CREATE DATABASE \"{db_name}\""
@@ -84,7 +82,7 @@ class PostgreSQL:
             finally:
                 await conn.close()
 
-    ################################################################################
+
     async def _get_connection(self, db_name=True):
         if db_name:
             conn = await asyncpg.connect(user=self.bot.settings["DBUsername"],

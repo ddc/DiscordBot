@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -20,19 +19,17 @@ from .utils.checks import Checks
 from src.sql.bot.server_configs_sql import ServerConfigsSql
 from src.sql.bot.dice_rolls_sql import DiceRollsSql
 from src.cogs.bot.utils.cooldowns import CoolDowns
-from gtts import gTTS, gTTSError
+from gtts import gTTS
 from io import BytesIO
 from data.pepe import pepedatabase
 import aiohttp
 
-
 class Misc(commands.Cog):
     """(Bot misc commands)"""
-
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     #@commands.command()
     #@commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     # async def test(self, ctx):
@@ -46,7 +43,7 @@ class Misc(commands.Cog):
     #         embed = discord.Embed(color=discord.Color.blue(), description=Formatting.info(msg))
     #         await user.send(embed=embed)
 
-    ################################################################################
+
     @commands.command()
     @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def pepe(self, ctx):
@@ -71,7 +68,7 @@ class Misc(commands.Cog):
                 await ctx.send(file=discord.File(data, name))
                 data.close()
 
-    ################################################################################
+
     @commands.command()
     @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def tts(self, ctx, *, tts_text: str):
@@ -117,7 +114,7 @@ class Misc(commands.Cog):
         await ctx.send(file=discord.File(mp3_fp, display_filename))
         mp3_fp.close()
 
-    ################################################################################
+
     @commands.group()
     @commands.cooldown(1, CoolDowns.RollDiceCooldown.value, BucketType.user)
     async def roll(self, ctx):
@@ -192,7 +189,7 @@ class Misc(commands.Cog):
 
         ctx.invoked_subcommand
 
-    ################################################################################
+
     @roll.command(name="results")
     async def roll_results(self, ctx):
         """(Show all rolls from current server or user)
@@ -275,7 +272,7 @@ class Misc(commands.Cog):
             embed.add_field(name="Roll", value=Formatting.inline(rolls), inline=True)
             await BotUtils.send_embed(self, ctx, embed, False)
 
-    ################################################################################
+
     @roll.command(name="reset")
     @Checks.check_is_admin()
     async def roll_reset(self, ctx):
@@ -291,7 +288,7 @@ class Misc(commands.Cog):
         await diceRollsSql.delete_all_server_dice_rolls(ctx.guild.id)
         await BotUtils.send_msg(self, ctx, color, "Dice rolls from all members in this server have been deleted.")
 
-    ################################################################################
+
     @commands.command()
     @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def pool(self, ctx, *, questions: str):
@@ -370,7 +367,7 @@ class Misc(commands.Cog):
         if (mention_everyone):
             m = await ctx.send("@everyone")
             m.mention_everyone = True
-        ################################################################################
+
 
     @commands.command()
     @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
@@ -472,7 +469,7 @@ class Misc(commands.Cog):
             m = await ctx.send("@everyone")
             m.mention_everyone = True
 
-    ################################################################################
+
     @commands.command()
     @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def echo(self, ctx, *, msg: str):
@@ -486,7 +483,7 @@ class Misc(commands.Cog):
         await ctx.message.channel.trigger_typing()
         await BotUtils.send_msg(self, ctx, color, msg)
 
-    ################################################################################
+
     @commands.command()
     @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def ping(self, ctx):
@@ -507,7 +504,7 @@ class Misc(commands.Cog):
         embed = discord.Embed(title=None, description=f"Ping: {p} ms", color=color)
         await ctx.send(embed=embed)
 
-    ################################################################################
+
     @commands.command()
     @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def lmgtfy(self, ctx, *, search_terms: str):
@@ -523,7 +520,7 @@ class Misc(commands.Cog):
         search_terms = Formatting.escape_mass_mentions(search_terms.replace(" ", "+"))
         await ctx.send(f"https://lmgtfy.com/?q={search_terms}")
 
-    ################################################################################
+
     @commands.command()
     @commands.cooldown(1, CoolDowns.AdminCooldown.value, BucketType.user)
     async def invites(self, ctx):
@@ -563,7 +560,7 @@ class Misc(commands.Cog):
         else:
             await BotUtils.send_msg(self, ctx, color, Formatting.inline("No current invites on any channel."))
 
-    ################################################################################
+
     @commands.command()
     @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def serverinfo(self, ctx):
@@ -620,7 +617,7 @@ class Misc(commands.Cog):
 
         await BotUtils.send_embed(self, ctx, data, False)
 
-    ################################################################################
+
     @commands.command()
     @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def userinfo(self, ctx, *, member_str: str):
@@ -700,7 +697,7 @@ class Misc(commands.Cog):
 
         await BotUtils.send_embed(self, ctx, data, False)
 
-    ################################################################################
+
     @commands.command()
     @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def about(self, ctx):
@@ -775,7 +772,7 @@ class Misc(commands.Cog):
 
         await BotUtils.send_embed(self, ctx, embed, False)
 
-    ################################################################################
+
     @commands.command()
     @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
     async def lp(self, ctx):
@@ -801,6 +798,5 @@ class Misc(commands.Cog):
         await BotUtils.send_embed(self, ctx, embed, False)
 
 
-################################################################################
 def setup(bot):
     bot.add_cog(Misc(bot))

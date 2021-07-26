@@ -23,6 +23,7 @@ import urllib.request
 from src.cogs.bot.utils import constants
 from src.cogs.bot.utils import bot_utils as BotUtils
 from src.cogs.gw2.utils import gw2_constants as Gw2Constants
+from src.cogs.bot.utils.log import Log
 
 
 def main():
@@ -45,7 +46,6 @@ def main():
         BotUtils.clear_screen()
 
 
-################################################################################
 def _update_menu():
     has_git = BotUtils.is_git_installed()
     BotUtils.clear_screen()
@@ -74,7 +74,6 @@ def _update_menu():
         BotUtils.clear_screen()
 
 
-################################################################################
 def _update_requirements():
     interpreter = sys.executable
     if interpreter is None:
@@ -106,7 +105,6 @@ def _update_requirements():
     log.info("\nAll requirements are up tp date.\n")
 
 
-################################################################################
 def _parse_cli_arguments():
     parser = argparse.ArgumentParser(description="Discord Bot's launcher")
     parser.add_argument("--start", "-s",
@@ -118,7 +116,6 @@ def _parse_cli_arguments():
     return parser.parse_args()
 
 
-################################################################################
 def _update():
     has_git = BotUtils.is_git_installed()
     if has_git:
@@ -135,7 +132,6 @@ def _update():
                   f"{constants.GIT_URL}\n")
 
 
-################################################################################
 def _run(auto_restart):
     interpreter = sys.executable
     if interpreter is None:  # This should never happen
@@ -169,7 +165,6 @@ def _run(auto_restart):
         BotUtils.wait_return()
 
 
-################################################################################
 def _check_new_version():
     version_url_file = constants.VERSION_URL_FILE
     req = requests.get(version_url_file)
@@ -187,7 +182,6 @@ def _check_new_version():
         log.error("ERROR: VERSION file was not found.\n")
 
 
-################################################################################
 def _check_config_files():
     if not os.path.exists("logs"):
         os.makedirs("logs")
@@ -217,9 +211,8 @@ def _check_config_files():
             return
 
 
-################################################################################
 if __name__ == '__main__':
-    log = BotUtils.setup_logging()
+    log = Log(constants.LOGS_DIR, constants.DEBUG).setup_logging()
     args = _parse_cli_arguments()
     _check_config_files()
     abspath = os.path.abspath(__file__)

@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -15,7 +14,7 @@ class DiceRollsSql:
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def get_user_dice_rolls(self, user: discord.User, dice_size: int):
         sql = f"""SELECT * FROM dice_rolls where
             discord_server_id= {user.guild.id}
@@ -24,7 +23,7 @@ class DiceRollsSql:
         databases = Databases(self.bot)
         return await databases.select(sql)
 
-    ################################################################################
+
     async def get_all_user_dice_rolls(self, discord_server_id: int, discord_user_id: int):
         sql = f"""SELECT * FROM dice_rolls where
             discord_server_id= {discord_server_id}
@@ -33,7 +32,7 @@ class DiceRollsSql:
         databases = Databases(self.bot)
         return await databases.select(sql)
 
-    ################################################################################
+
     async def get_all_server_dice_rolls(self, discord_server_id: int, dice_size: int):
         sql = f"""SELECT dice_rolls.*,
                     users.user_name
@@ -46,7 +45,7 @@ class DiceRollsSql:
         databases = Databases(self.bot)
         return await databases.select(sql)
 
-    ################################################################################
+
     async def get_server_max_dice_roll(self, discord_server_id: int, dice_size: int):
         sql = f"""SELECT
                    dice_rolls.roll as max_roll
@@ -63,7 +62,7 @@ class DiceRollsSql:
         databases = Databases(self.bot)
         return await databases.select(sql)
 
-    ################################################################################
+
     async def insert_user_dice_roll(self, user: discord.User, dice_size: int, roll: int):
         sql = f"""INSERT INTO dice_rolls (discord_server_id, discord_user_id, dice_size, roll)
             VALUES (
@@ -74,7 +73,7 @@ class DiceRollsSql:
         databases = Databases(self.bot)
         await databases.execute(sql)
 
-    ################################################################################
+
     async def update_user_dice_roll(self, user: discord.User, dice_size: int, roll: int):
         sql = f"""UPDATE dice_rolls
             SET roll = {roll}
@@ -84,7 +83,7 @@ class DiceRollsSql:
         databases = Databases(self.bot)
         await databases.execute(sql)
 
-    ################################################################################
+
     async def delete_all_server_dice_rolls(self, discord_server_id: int):
         sql = f"""DELETE from dice_rolls where 
             discord_server_id = {discord_server_id};"""

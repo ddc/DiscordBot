@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -15,7 +14,7 @@ class Triggers:
         self.bot = bot
         self.database_in_use = self.bot.settings["DatabaseInUse"]
 
-    ################################################################################
+
     async def create_triggers(self):
         if self.database_in_use.lower() == "sqlite":
             sql = """CREATE TRIGGER IF NOT EXISTS before_insert_bot_configs

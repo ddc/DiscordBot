@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -14,6 +13,7 @@ from src.databases.databases import Databases
 class ServersSql:
     def __init__(self, bot):
         self.bot = bot
+
 
     async def insert_default_initial_server_configs(self, servers: discord.Guild):
         databases = Databases(self.bot)

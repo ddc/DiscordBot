@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -14,13 +13,13 @@ class Gw2LastSessionSql:
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def get_user_last_session(self, discord_user_id: int):
         sql = f"SELECT * FROM gw2_sessions WHERE discord_user_id = {discord_user_id};"
         databases = Databases(self.bot)
         return await databases.select(sql)
 
-    ################################################################################
+
     async def insert_last_session_start(self, user_stats: object):
         sql = f"""DELETE FROM gw2_sessions WHERE discord_user_id = {user_stats.discord_user_id};
         DELETE FROM gw2_chars_start WHERE discord_user_id = {user_stats.discord_user_id};
@@ -68,7 +67,7 @@ class Gw2LastSessionSql:
         databases = Databases(self.bot)
         await databases.execute(sql)
 
-    ################################################################################
+
     async def update_last_session_end(self, user_stats: object):
         sql = f"""UPDATE gw2_sessions SET
                     end_date =                  '{user_stats.date}',
@@ -91,5 +90,3 @@ class Gw2LastSessionSql:
                     WHERE discord_user_id =      {user_stats.discord_user_id};"""
         databases = Databases(self.bot)
         await databases.execute(sql)
-
-    ################################################################################

@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -15,7 +14,7 @@ class InitialTablesSql:
         self.bot = bot
         self.database_in_use = self.bot.settings["DatabaseInUse"]
 
-    ################################################################################
+
     async def create_initial_sqlite_bot_tables(self):
         databases = Databases(self.bot)
         primary_key_type = await databases.set_primary_key_type()

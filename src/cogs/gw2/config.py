@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -20,11 +19,10 @@ from src.sql.gw2.gw2_key_sql import Gw2KeySql
 
 class GW2Config(commands.Cog):
     """(GW2 configuration commands - Admin)"""
-
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def gw2_config(self, ctx, sub_command: str):
         err_missing_arg = "Missing required argument!!!\n" \
                           f"For more info on this command use: {ctx.prefix}help {ctx.command}"
@@ -60,10 +58,9 @@ class GW2Config(commands.Cog):
             await BotUtils.send_error_msg(self, ctx, msg)
 
 
-################################################################################
 async def _list(self, ctx):
     """(List all gw2 configurations in the current server)
-    
+
     Example:
     gw2 config list
     """
@@ -95,10 +92,9 @@ async def _list(self, ctx):
     await BotUtils.send_embed(self, ctx, embed, True)
 
 
-################################################################################
 async def _lastsession(self, ctx, new_status: str):
     """(Configure if the bot should record users last sessions)
-    
+
     Example:
     gw2 config lastsession on
     gw2 config lastsession off
@@ -128,10 +124,9 @@ async def _lastsession(self, ctx, new_status: str):
     await BotUtils.send_embed(self, ctx, embed, False, msg)
 
 
-################################################################################
 async def _roletimer(self, ctx, role_timer: int):
     """(Configure the timer the bot should check for api roles in seconds)
-         
+
     Example:
     gw2 config roletimer 3600
     """
@@ -160,17 +155,16 @@ async def _roletimer(self, ctx, role_timer: int):
     await BotUtils.send_embed(self, ctx, embed, False, msg)
 
 
-################################################################################
 async def _apirole(self, ctx, stats_sever: str):
     """(Configure if the bot should add role that matches gw2 servers)
-    
+
     Categories with "Public" names in it wont be affect it.
-    
+
     Example:
     Public Chat
     Public Raids
     Public Informations
-    
+
     Example:
     gw2 config apirole on Blackgate
     gw2 config apirole off Blackgate

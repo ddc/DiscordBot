@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -11,7 +10,7 @@ from _sqlite3 import Error
 from src.cogs.bot.utils import constants, chat_formatting as Formatting
 from src.databases.databases import Databases
 from src.sql.bot.server_configs_sql import ServerConfigsSql
-import datetime as dt
+import datetime
 from random import choice
 import discord
 from operator import attrgetter
@@ -23,104 +22,27 @@ import subprocess
 import json
 import os
 import sys
-import gzip
-# import asyncio
-# from bs4 import BeautifulSoup
 
 
 class Object:
     def __init__(self):
-        self._created = str(dt.datetime.now().strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
+        self._created = datetime.datetime.now().isoformat()
 
     def toJson(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
     def toDict(self):
-        jsonString = json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-        jsonDict = json.loads(jsonString)
-        return jsonDict
+        json_string = json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+        json_dict = json.loads(json_string)
+        return json_dict
 
 
-################################################################################
-def setup_logging():
-    backup_days = 30
-    logs_dir = os.path.dirname(constants.LOGS_FILENAME)
-
-    class GZipRotator:
-        def __call__(self, source, dest):
-            try:
-                sfname, sext = os.path.splitext(source)
-                dfname, dext = os.path.splitext(dest)
-                renamed_dst = f"{sfname}_{dext.replace('.', '')}{sext}"
-                os.rename(source, renamed_dst)
-                with open(renamed_dst, "rb") as fin:
-                    with gzip.open(f"{renamed_dst}.gz", "wb") as fout:
-                        fout.writelines(fin)
-                os.remove(renamed_dst)
-            except Exception as ex:
-                sys.stderr.write(f"[ERROR]:Unable to compress log file:[{str(ex)}]: {source}\n")
-
-    if not os.path.isdir(logs_dir):
-        try:
-            os.makedirs(logs_dir, exist_ok=True)
-        except Exception as e:
-            sys.stderr.write(f"[ERROR]:[{str(e)}]:"
-                             f"Unable to create logs dir: {logs_dir}")
-            sys.exit(1)
-
-    script_name, script_ext = os.path.splitext(sys.argv[0])
-    log_filename = f"{os.path.basename(script_name)}.log"
-    log_file_path = os.path.join(logs_dir, log_filename)
-
-    try:
-        open(log_file_path, "a+").close()
-    except IOError as e:
-        sys.stderr.write(f"[ERROR]:[{str(e)}]:"
-                         f"Unable to open log file for writing: {log_file_path}\n")
-        sys.exit(1)
-
-    formatt = "%(asctime)s.%(msecs)03d]:[%(levelname)s]:%(message)s"
-    log_formatter = logging.Formatter(formatt, datefmt=f"[{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
-    formatter = log_formatter
-
-    logging.getLogger("discord").setLevel(constants.LOG_LEVEL)
-    logging.getLogger("discord.http").setLevel(constants.LOG_LEVEL)
-    logger = logging.getLogger()
-    logger.setLevel(constants.LOG_LEVEL)
-    file_hdlr = logging.handlers.TimedRotatingFileHandler(filename=log_file_path,
-                                                          encoding="UTF-8",
-                                                          when="midnight",
-                                                          backupCount=backup_days)
-
-    # file_hdlr = logging.handlers.RotatingFileHandler(
-    #     filename=constants.LOGS_FILENAME,
-    #     maxBytes=1 * 1024 * 1024,
-    #     encoding="utf-8",
-    #     backupCount=30,
-    #     mode='a')
-
-    file_hdlr.setFormatter(formatter)
-    file_hdlr.suffix = "%Y%m%d"
-    file_hdlr.rotator = GZipRotator()
-    logger.addHandler(file_hdlr)
-
-    stream_hdlr = logging.StreamHandler()
-    stream_hdlr.setFormatter(formatter)
-    stream_hdlr.setLevel(constants.LOG_LEVEL)
-    logger.addHandler(stream_hdlr)
-
-    sys.excepthook = log_uncaught_exceptions
-    return logger
-
-
-################################################################################
 async def check_database_connection(bot):
     databases = Databases(bot)
     conn = await databases.check_database_connection()
     return conn
 
 
-################################################################################
 async def send_msg(self, ctx, color, msg):
     await ctx.message.channel.trigger_typing()
     embed = discord.Embed(color=color, description=msg)
@@ -128,7 +50,6 @@ async def send_msg(self, ctx, color, msg):
     await send_embed(self, ctx, embed, False, msg)
 
 
-################################################################################
 async def send_warning_msg(self, ctx, msg):
     await ctx.message.channel.trigger_typing()
     embed = discord.Embed(color=discord.Color.orange(), description=Formatting.warning(msg))
@@ -136,7 +57,6 @@ async def send_warning_msg(self, ctx, msg):
     await send_embed(self, ctx, embed, False, msg)
 
 
-################################################################################
 async def send_info_msg(self, ctx, msg):
     await ctx.message.channel.trigger_typing()
     embed = discord.Embed(color=discord.Color.blue(), description=Formatting.info(msg))
@@ -144,7 +64,6 @@ async def send_info_msg(self, ctx, msg):
     await send_embed(self, ctx, embed, False, msg)
 
 
-################################################################################
 async def send_error_msg(self, ctx, msg):
     await ctx.message.channel.trigger_typing()
     embed = discord.Embed(color=discord.Color.red(), description=Formatting.error(msg))
@@ -152,35 +71,30 @@ async def send_error_msg(self, ctx, msg):
     await send_embed(self, ctx, embed, False, msg)
 
 
-################################################################################
 async def send_private_msg(self, ctx, color, msg):
     embed = discord.Embed(color=color, description=msg)
     # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
     await send_embed(self, ctx, embed, True, msg)
 
 
-################################################################################
 async def send_private_warning_msg(self, ctx, msg):
     embed = discord.Embed(color=discord.Color.orange(), description=Formatting.warning(msg))
     # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
     await send_embed(self, ctx, embed, True, msg)
 
 
-################################################################################
 async def send_private_info_msg(self, ctx, msg):
     embed = discord.Embed(color=discord.Color.blue(), description=Formatting.info(msg))
     # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
     await send_embed(self, ctx, embed, True, msg)
 
 
-################################################################################
 async def send_private_error_msg(self, ctx, msg):
     embed = discord.Embed(color=discord.Color.red(), description=Formatting.error(msg))
     # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url)
     await send_embed(self, ctx, embed, True, msg)
 
 
-################################################################################
 async def send_help_msg(self, ctx, cmd):
     if self.bot.help_command.dm_help:
         await ctx.author.send(Formatting.box(cmd.help))
@@ -188,13 +102,14 @@ async def send_help_msg(self, ctx, cmd):
         await ctx.send(Formatting.box(cmd.help))
 
 
-################################################################################
 def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
     # logger = logging.getLogger(__name__)
     logger = logging.getLogger()
     stderr_hdlr = logging.StreamHandler(stream=sys.stdout)
-    stderr_hdlr.setLevel(constants.LOG_LEVEL)
-    stderr_hdlr.setFormatter(constants.LOG_FORMATTER)
+    stderr_hdlr.setLevel(logging.INFO)
+    fmt = "[%(asctime)s.%(msecs)03d]:[%(levelname)s]:%(message)s"
+    formatter = logging.Formatter(fmt, datefmt="%Y-%m-%dT%H:%M:%S")
+    stderr_hdlr.setFormatter(formatter)
     logger.addHandler(stderr_hdlr)
     if issubclass(exc_type, KeyboardInterrupt) \
             or issubclass(exc_type, EOFError):
@@ -203,7 +118,6 @@ def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
     logger.exception("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
 
-################################################################################
 async def send_embed(self, ctx, embed, dm, msg=None):
     try:
         if dm:
@@ -230,7 +144,6 @@ async def send_embed(self, ctx, embed, dm, msg=None):
                 await ctx.send(f"{Formatting.green_text(msg)}")
 
 
-################################################################################
 def get_full_db_name(bot):
     database_name = None
     database = bot.settings["DatabaseInUse"]
@@ -243,7 +156,6 @@ def get_full_db_name(bot):
     return database_name
 
 
-################################################################################
 async def delete_last_channel_message(self, ctx, warning=False):
     if not is_private_message(self, ctx):
         try:
@@ -257,7 +169,6 @@ async def delete_last_channel_message(self, ctx, warning=False):
             return
 
 
-################################################################################
 async def load_cogs(self):
     #self.bot.log.info("Loading Bot Extensions...")
     for ext in constants.COGS:
@@ -272,7 +183,6 @@ async def load_cogs(self):
             self.bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
 
 
-################################################################################
 async def reload_cogs(self):
     self.bot.log.info("RE-Loading Bot Extensions...")
     for ext in constants.COGS:
@@ -287,7 +197,6 @@ async def reload_cogs(self):
             self.bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
 
 
-################################################################################
 def read_token():
     try:
         return input("Insert your BOT token here:> ").strip()
@@ -295,7 +204,6 @@ def read_token():
         pass
 
 
-################################################################################
 def insert_spaces(number_spaces: int):
     spaces = ""
     for x in range(0, number_spaces):
@@ -303,7 +211,6 @@ def insert_spaces(number_spaces: int):
     return spaces
 
 
-################################################################################
 def get_msg_prefix(self, message):
     for prefix in self.bot.command_prefix:
         if message.content.startswith(prefix):
@@ -311,7 +218,6 @@ def get_msg_prefix(self, message):
     return None
 
 
-################################################################################
 def is_member_admin(member: discord.Member):
     if member is not None \
             and hasattr(member, "guild_permissions") \
@@ -320,65 +226,54 @@ def is_member_admin(member: discord.Member):
     return False
 
 
-################################################################################
 def is_bot_owner(ctx, member: discord.Member):
     if ctx.bot.owner.id == member.id:
         return True
     return False
 
 
-################################################################################
 def is_server_owner(ctx, member: discord.Member):
     if member.id == ctx.guild.owner_id:
         return True
     return False
 
 
-################################################################################
 def is_private_message(self, ctx):
     return True if isinstance(ctx.channel, discord.DMChannel) else False
 
 
-################################################################################
-def convert_date_time_toStr(date: dt.datetime):
+def convert_date_time_toStr(date: datetime.datetime):
     new_date = date.strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
     return new_date
 
 
-################################################################################
-def convert_date_toStr(date: dt.datetime):
+def convert_date_toStr(date: datetime.datetime):
     new_date = date.strftime(constants.DATE_FORMATTER)
     return new_date
 
 
-################################################################################
 def get_current_date_str():
-    return str(dt.datetime.now().strftime(constants.DATE_FORMATTER))
+    return str(datetime.datetime.now().strftime(constants.DATE_FORMATTER))
 
 
-################################################################################
 def get_current_date_time():
-    str_date = str(dt.datetime.now().strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
-    return dt.datetime.strptime(str_date, f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
+    str_date = str(datetime.datetime.now().strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
+    return datetime.datetime.strptime(str_date, f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
 
 
-################################################################################
 def get_current_time():
-    str_time = str(dt.datetime.now().strftime(constants.TIME_FORMATTER))
-    return dt.datetime.strptime(str_time, f"{constants.TIME_FORMATTER}")
+    str_time = str(datetime.datetime.now().strftime(constants.TIME_FORMATTER))
+    return datetime.datetime.strptime(str_time, f"{constants.TIME_FORMATTER}")
 
 
-################################################################################
 def get_current_date_time_str():
-    return str(dt.datetime.now().strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
+    return str(datetime.datetime.now().strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
 
 
-################################################################################
 def get_current_time_str():
-    return str(dt.datetime.now().strftime(constants.TIME_FORMATTER))
+    return str(datetime.datetime.now().strftime(constants.TIME_FORMATTER))
 
 
-################################################################################
 def get_object_member_by_str(self, ctx, member_str: str):
     if not is_private_message(self, ctx):
         try:
@@ -389,9 +284,8 @@ def get_object_member_by_str(self, ctx, member_str: str):
         current_member_name = member_str.split('#', 1)[0].lower()
         # checking if string matches a member nickname
         for member in ctx.guild.members:
-            if member.nick is not None:
-                if str(member.nick.lower()) == str(member_str.lower()):
-                    return member
+            if member.nick is not None and str(member.nick.lower()) == str(member_str.lower()):
+                return member
             # checking if string matches a member name
             if current_member_name.split()[0].lower() == member.display_name.split()[0].lower() \
                     and int(current_member_discriminator) == int(member.discriminator):
@@ -399,10 +293,8 @@ def get_object_member_by_str(self, ctx, member_str: str):
     return None
 
 
-################################################################################
 def get_member_name_by_id(self, ctx, discord_author_id: int):
     member = ctx.guild.get_member(discord_author_id)
-    member_name = ""
     if member is not None:
         if member.nick is not None:
             temp_name = str(member.nick)
@@ -416,14 +308,12 @@ def get_member_name_by_id(self, ctx, discord_author_id: int):
         return None
 
 
-################################################################################
 def get_object_channel(self, ctx, channel_str: str):
     for channel in ctx.guild.text_channels:
         if str(channel.name).lower() == channel_str.lower():
             return channel
 
 
-################################################################################
 async def channel_to_send_msg(bot, server: discord.Guild):
     serverConfigsSql = ServerConfigsSql(bot)
     rs = await serverConfigsSql.get_server_configs(server.id)
@@ -438,25 +328,22 @@ async def channel_to_send_msg(bot, server: discord.Guild):
     return None
 
 
-################################################################################
 def get_server_first_public_text_channel(server: discord.Guild):
     sorted_text_channels = sorted(server.text_channels, key=attrgetter('position'))
     general_channel = None
     public_channel = None
 
     for channel in sorted_text_channels:
-            if hasattr(channel, 'overwrites'):
-                if len(channel.overwrites) > 0:
-                    for keys, values in channel.overwrites.items():
-                        if keys.name == "@everyone":
-                            for value in values:
-                                if value[0] == "read_messages":
-                                    if value[1] is True or value[1] is None:
-                                        if "general" in channel.name.lower():
-                                            general_channel = channel
-                                        else:
-                                            if public_channel is None:
-                                                public_channel = channel
+        if hasattr(channel, 'overwrites') and len(channel.overwrites) > 0:
+            for keys, values in channel.overwrites.items():
+                if keys.name == "@everyone":
+                    for value in values:
+                        if value[0] == "read_messages" and value[1] is True or value[1] is None:
+                            if "general" in channel.name.lower():
+                                general_channel = channel
+                            else:
+                                if public_channel is None:
+                                    public_channel = channel
 
     if general_channel is not None:
         return general_channel
@@ -466,7 +353,6 @@ def get_server_first_public_text_channel(server: discord.Guild):
         return None
 
 
-################################################################################
 def get_member_first_public_text_channel(member: discord.Member):
     sorted_channels = sorted(member.guild.text_channels, key=attrgetter('position'))
     for channel in sorted_channels:
@@ -475,13 +361,11 @@ def get_member_first_public_text_channel(member: discord.Member):
     return None
 
 
-################################################################################
 def get_server_everyone_role(server: discord.Guild):
     return server.default_role
     # return discord.utils.get(server.roles, name="@everyone")
 
 
-################################################################################
 def get_all_ini_file_settings(file_name: str):
     # self.bot.log.info(f"Accessing file: {file_name}")
     dictionary = {}
@@ -508,7 +392,6 @@ def get_all_ini_file_settings(file_name: str):
         #sys.exit(1)
 
 
-################################################################################
 def get_ini_settings(file_name: str, section: str, config_name: str):
     # self.bot.log.info(f"Accessing: {file_name}: {section}-{config_name}")
     parser = configparser.ConfigParser(delimiters='=', allow_no_value=True)
@@ -524,7 +407,6 @@ def get_ini_settings(file_name: str, section: str, config_name: str):
     return value
 
 
-################################################################################
 def get_color_settings(color: str):
     if str(color).lower() == "random":
         return discord.Color(value=get_random_color())
@@ -534,7 +416,6 @@ def get_color_settings(color: str):
             return cor.value
 
 
-################################################################################
 def get_random_color():
     # color = discord.Color(value=get_random_color())
     color = ''.join([choice('0123456789ABCDEF') for x in range(6)])
@@ -542,7 +423,6 @@ def get_random_color():
     return color
 
 
-################################################################################
 class Colors(Enum):
     teal = discord.Color.teal()
     dark_teal = discord.Color.dark_teal()
@@ -568,7 +448,6 @@ class Colors(Enum):
     greyple = discord.Color.greyple()
 
 
-################################################################################
 def get_region_flag(region: str):
     flag = ""
     if "brazil" in str(region).lower():
@@ -594,7 +473,6 @@ def get_region_flag(region: str):
     return flag
 
 
-###############################################################################
 def clear_screen():
     if constants.IS_WINDOWS:
         os.system("cls")
@@ -602,7 +480,6 @@ def clear_screen():
         os.system("clear")
 
 
-################################################################################
 def is_git_installed():
     try:
         subprocess.call(["git", "--version"], stdout=subprocess.DEVNULL,
@@ -614,7 +491,6 @@ def is_git_installed():
         return True
 
 
-################################################################################
 # def is_nping_installed():
 #     try:
 #         subprocess.call(["nping", "--version"], stdout=subprocess.DEVNULL,
@@ -624,7 +500,8 @@ def is_git_installed():
 #         return False
 #     else:
 #         return True
-################################################################################
+
+
 def wait_return():
     try:
         input("Press enter to continue...").strip()
@@ -632,7 +509,6 @@ def wait_return():
         pass
 
 
-################################################################################
 def user_choice():
     try:
         return input(">>> ").lower().strip()
@@ -640,7 +516,6 @@ def user_choice():
         pass
 
 
-################################################################################
 def recursive_overwrite(src, dest, ignore=None):
     if os.path.isdir(src):
         if not os.path.isdir(dest):
@@ -659,7 +534,6 @@ def recursive_overwrite(src, dest, ignore=None):
         shutil.copyfile(src, dest)
 
 
-################################################################################
 async def execute_all_sql_files(self):
     dirpath = constants.SQL_DIRPATH + "/"
     if not os.path.isdir(dirpath):
@@ -692,8 +566,7 @@ async def execute_all_sql_files(self):
     del self.bot.temp
 
 
-################################################################################
-def convert_timedelta_toObj(time_delta: dt.timedelta):
+def convert_timedelta_toObj(time_delta: datetime.timedelta):
     obj = Object()
     obj.timedelta = time_delta
     if "," in str(time_delta):
@@ -709,17 +582,15 @@ def convert_timedelta_toObj(time_delta: dt.timedelta):
     return obj
 
 
-################################################################################
 def get_time_passed(start_time_str, end_time_str):
     date_time_formatter = f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"
-    time_passed_delta = dt.datetime.strptime(end_time_str, date_time_formatter) - \
-                        dt.datetime.strptime(start_time_str, date_time_formatter)
+    time_passed_delta = datetime.datetime.strptime(end_time_str, date_time_formatter) - \
+                        datetime.datetime.strptime(start_time_str, date_time_formatter)
 
     time_passed_obj = convert_timedelta_toObj(time_passed_delta)
     return time_passed_obj
 
 
-################################################################################
 async def create_admin_commands_channel(self, guild: discord.Guild):
     for chan in guild.text_channels:
         if chan.name == 'bot-commands':
@@ -745,7 +616,6 @@ async def create_admin_commands_channel(self, guild: discord.Guild):
         self.bot.log.info(f"(Server:{guild.name})({err.text})")
 
 
-################################################################################
 def get_bot_stats(bot):
     result = {}
     unique_users = 0
@@ -778,7 +648,6 @@ def get_bot_stats(bot):
     return result
 
 
-################################################################################
 def check_server_has_role(self, server: discord.Guild, role_name: str):
     for rol in server.roles:
         if rol.name.lower() == role_name.lower():
@@ -786,14 +655,13 @@ def check_server_has_role(self, server: discord.Guild, role_name: str):
     return None
 
 
-################################################################################
 def check_user_has_role(self, member: discord.Member, role_name: str):
     for rol in member.roles:
         if rol.name.lower() == role_name.lower():
             return rol
     return None
 
-################################################################################
+
 # async def skill_embed(self, skill):
 #     description = None
 #     if "description" in skill:

@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -23,31 +22,25 @@ import os
 
 class Events(commands.Cog):
     """(Bot events)"""
-
     def __init__(self, bot):
         self.bot = bot
 
-        ################################################################################
         @bot.event
         async def on_command(ctx):
             pass
 
-        ################################################################################
         @bot.event
         async def on_guild_channel_create(channel):
             pass
 
-        ################################################################################
         @bot.event
         async def on_guild_channel_delete(channel):
             pass
 
-        ################################################################################
         @bot.event
         async def on_guild_channel_update(before, after):
             pass
 
-        ################################################################################
         @bot.event
         async def on_message(message):
             if len(message.content) == 0:
@@ -64,7 +57,7 @@ class Events(commands.Cog):
             else:
                 await UtilsEvents.execute_server_msg(self, ctx)
 
-        ################################################################################
+
         @bot.event
         async def on_guild_join(guild):
             await UtilsEvents.insert_default_initial_configs(bot)
@@ -101,13 +94,13 @@ class Events(commands.Cog):
                     await channel_to_send_msg.send(msg)
             await BotUtils.create_admin_commands_channel(self, guild)
 
-        ################################################################################
+
         @bot.event
         async def on_guild_remove(guild):
             serversSql = ServersSql(self.bot)
             await serversSql.delete_server(guild.id)
 
-        ################################################################################
+
         @bot.event
         async def on_member_join(member):
             usersSql = UsersSql(self.bot)
@@ -128,7 +121,7 @@ class Events(commands.Cog):
                     except discord.HTTPException:
                         await channel_to_send_msg.send(f"{member.name} Joined the Server\n{now.strftime('%c')}")
 
-        ################################################################################
+
         @bot.event
         async def on_member_remove(member):
             if bot.user.id == member.id:
@@ -152,7 +145,7 @@ class Events(commands.Cog):
                     except discord.HTTPException:
                         await channel_to_send_msg.send(f"{member.name} Left the Server\n{now.strftime('%c')}")
 
-        ################################################################################
+
         @bot.event
         async def on_guild_update(before, after):
             author = None
@@ -206,7 +199,7 @@ class Events(commands.Cog):
                         except discord.HTTPException:
                             await channel_to_send_msg.send(msg)
 
-        ################################################################################
+
         @bot.event
         async def on_user_update(before, after):
             if str(before.name) != str(after.name) \
@@ -253,7 +246,7 @@ class Events(commands.Cog):
                                     except discord.HTTPException:
                                         await channel_to_send_msg.send(msg)
 
-        ################################################################################
+
         @bot.event
         async def on_member_update(before, after):
             # do nothing if its a bot
@@ -293,7 +286,7 @@ class Events(commands.Cog):
                             except discord.HTTPException:
                                 await channel_to_send_msg.send(msg)
 
-        ################################################################################
+
         @bot.event
         async def on_ready():
             author = bot.get_user(constants.AUTHOR_ID)
@@ -351,6 +344,5 @@ class Events(commands.Cog):
             bot.log.info(conn_msg)
 
 
-################################################################################
 def setup(bot):
     bot.add_cog(Events(bot))

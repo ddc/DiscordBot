@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -15,7 +14,7 @@ class Checks:
     def __init__(self):
         pass
 
-    ################################################################################
+
     def check_is_admin():
         def predicate(ctx):
             if BotUtils.is_member_admin(ctx.message.author):
@@ -24,7 +23,7 @@ class Checks:
                 raise commands.CheckFailure(message="not admin")
         return commands.check(predicate)
 
-    ################################################################################
+
     def check_is_bot_owner():
         def predicate(ctx):
             if BotUtils.is_bot_owner(ctx, ctx.message.author):
@@ -33,7 +32,7 @@ class Checks:
                 raise commands.CheckFailure(message="not owner")
         return commands.check(predicate)
 
-    ###############################################################################
+
     # def check_is_music_user():
     #     async def predicate(ctx):
     #         musicUsersSql = MusicUsersSql(ctx.bot.log)

@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -16,11 +15,10 @@ from src.cogs.bot.utils import bot_utils as BotUtils
 
 class GW2Daily(commands.Cog):
     """(Commands related to GW2 Dailies)"""
-
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def gw2_daily(self, ctx, daily_type: str):
         if daily_type == "pve":
             await _daily_embed(self, ctx, "pve")
@@ -35,7 +33,6 @@ class GW2Daily(commands.Cog):
             await BotUtils.send_error_msg(self, ctx, msg)
 
 
-################################################################################
 async def _daily_embed(self, ctx, daily_type: str):
     import datetime as dt
     await ctx.message.channel.trigger_typing()

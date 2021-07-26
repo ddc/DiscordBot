@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -15,92 +14,74 @@ QUESTION_MARK = "\u2753"
 ROBOT = "\U0001F916"
 
 
-###############################################################################
 def error_inline(text):
     return f"`{NO_ENTRY} {text}`"
 
 
-################################################################################
 def error(text):
     return f"{NO_ENTRY} {text}"
 
 
-################################################################################
 def warning_inline(text):
     return f"`{WARNING_SIGN} {text}`"
 
 
-################################################################################
 def warning(text):
     return f"{WARNING_SIGN} {text}"
 
 
-################################################################################
 def info_inline(text):
     return f"`{INFORMATION_SOURCE} {text}`"
 
 
-################################################################################
 def info(text):
     return f"{INFORMATION_SOURCE} {text}"
 
 
-################################################################################
 def question_inline(text):
     return f"`{QUESTION_MARK} {text}`"
 
 
-################################################################################
 def question(text):
     return f"`{QUESTION_MARK}` {text}"
 
 
-################################################################################
 def bold(text):
     return f"**{text}**"
 
 
-################################################################################
 def box(text):
     return f"```{text}```"
 
 
-################################################################################
 def inline(text):
     return f"`{text}`"
 
 
-################################################################################
 def italics(text):
     return f"*{text}*"
 
 
-################################################################################
 def strikethrough(text):
     return f"~~{text}~~"
 
 
-################################################################################
 def underline(text):
     return f"__{text}__"
 
 
-################################################################################
 def green_text(text):
     return f"```css\n{text}\n```"
 
 
-################################################################################
 def red_text(text):
     return f"```prolog\n{text}\n```"
 
 
-################################################################################
 def orange_text(text):
     return f"```fix\n{text}\n```"
 
 
-################################################################################
 def pagify(text, delims=["\n"], *, escape=True, shorten_by=8,
            page_length=2000):
     """DOES NOT RESPECT MARKDOWN BOXES OR INLINE CODE"""
@@ -126,7 +107,6 @@ def pagify(text, delims=["\n"], *, escape=True, shorten_by=8,
         yield in_text
 
 
-################################################################################
 def escape(text, *, mass_mentions=False, formatting=False):
     if mass_mentions:
         text = text.replace("@everyone", "@\u200beveryone")
@@ -139,6 +119,5 @@ def escape(text, *, mass_mentions=False, formatting=False):
     return text
 
 
-################################################################################
 def escape_mass_mentions(text):
     return escape(text, mass_mentions=True)

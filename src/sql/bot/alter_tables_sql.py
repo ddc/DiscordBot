@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -13,7 +12,7 @@ class AlterTablesSql:
         self.bot = bot
         self.database_in_use = self.bot.settings["DatabaseInUse"]
 
-    ################################################################################
+
     async def alter_sqlite_tables(self):
         if self.database_in_use.lower() == "sqlite":
             pass

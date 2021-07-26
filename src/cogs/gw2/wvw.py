@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -19,11 +18,10 @@ from src.cogs.bot.utils import chat_formatting as Formatting
 
 class GW2WvW(commands.Cog):
     """(Commands related to GW2 World versus World)"""
-
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def gw2_wvwinfo(self, ctx, world: str = None):
         discord_user_id = ctx.message.author.id
         await ctx.message.channel.trigger_typing()
@@ -126,10 +124,10 @@ class GW2WvW(commands.Cog):
         embed.add_field(name="Population", value=Formatting.inline(population), inline=False)
         await BotUtils.send_embed(self, ctx, embed, False)
 
-    ################################################################################
+
     async def gw2_match(self, ctx, world: str = None):
         """(Info about a wvw match. Defaults to account's world)
-        
+
         Example:
         gw2 match
         gw2 match world_name
@@ -197,10 +195,10 @@ class GW2WvW(commands.Cog):
         embed.add_field(name="--------------------", value=red_values, inline=True)
         await BotUtils.send_embed(self, ctx, embed, False)
 
-    ################################################################################
+
     async def gw2_kdr(self, ctx, world: str = None):
         """(Info about a wvw kdr match. Defaults to account's world)
-        
+
         Example:
         gw2 kdr
         gw2 kdr world_name
@@ -268,7 +266,6 @@ class GW2WvW(commands.Cog):
         await BotUtils.send_embed(self, ctx, embed, False)
 
 
-################################################################################
 async def _get_map_names_embed_values(self, map_color: str, matches):
     primary_server_id = []
     all_ids = matches["all_worlds"][map_color]
@@ -285,7 +282,6 @@ async def _get_map_names_embed_values(self, map_color: str, matches):
     return worlds_names
 
 
-################################################################################
 async def _get_kdr_embed_values(self, map_color: str, matches):
     kills = matches["kills"][map_color]
     deaths = matches["deaths"][map_color]
@@ -304,7 +300,6 @@ async def _get_kdr_embed_values(self, map_color: str, matches):
     return values
 
 
-################################################################################
 async def _get_match_embed_values(self, map_color: str, matches):
     skirmish_now = len(matches["skirmishes"]) - 1
     ppt = 0

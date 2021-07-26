@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -22,11 +21,10 @@ from src.cogs.bot.utils.cooldowns import CoolDowns
 
 class Owner(commands.Cog):
     """(Bot owner commands)"""
-
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     @commands.group()
     @Checks.check_is_bot_owner()
     async def owner(self, ctx):
@@ -53,12 +51,12 @@ class Owner(commands.Cog):
 
         ctx.invoked_subcommand
 
-    ################################################################################
+
     @owner.command(name="prefix")
     @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_prefix(self, ctx, *, new_prefix: str):
         """(Change bot prefix for commands)
-        
+
         Possible prefixes: ! $ % ^ & ? > < . ;
 
         Example:
@@ -87,12 +85,12 @@ class Owner(commands.Cog):
         embed = discord.Embed(description=msg, color=color)
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @owner.command(name="botdescription")
     @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_description(self, ctx, *, desc: str):
         """(Change bot description)
-        
+
         Example:
         owner botdescription <new_description>
         """
@@ -108,14 +106,14 @@ class Owner(commands.Cog):
         embed = discord.Embed(description=msg, color=color)
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @owner.command(name="bgtaskgame")
     @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_bg_task_change_game(self, ctx, *, new_status: str):
         """(Background task to update the game bot is playing from time to time)
-        
+
         ===> Need to restart the bot
-        
+
         Example:
         owner bgtaskgame [on | off]
         """
@@ -146,13 +144,13 @@ class Owner(commands.Cog):
             self.bot.loop.close()
             self.bot.loop = asyncio.set_event_loop(asyncio.new_event_loop())
             init_loop()
-        ################################################################################
+
 
     @owner.command(name="botgame")
     @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_botgame(self, ctx, *, game: str):
         """(Change game that bot is playing)
-         
+
         Example:
         owner botgame <game>
         """
@@ -175,12 +173,12 @@ class Owner(commands.Cog):
         embed.description = f"```I'm now playing: {game}```"
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @owner.command(name="reloadcog")
     @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_reload_cog(self, ctx, *, name: str):
         """(Command to reload a module)
-        
+
         Example:
         owner reloadcog <cog_name>
         """
@@ -200,7 +198,7 @@ class Owner(commands.Cog):
         embed = discord.Embed(description=msg, color=color)
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @owner.command(name="servers")
     @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_servers(self, ctx):
@@ -238,12 +236,12 @@ class Owner(commands.Cog):
         msg = f"Servers:\n`{names}`"
         await BotUtils.send_embed(self, ctx, embed, True, msg)
 
-    ################################################################################
+
     @owner.command(name="reloadallcogs")
     @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_reload(self, ctx):
         """(Command to reload all bot cogs)
-         
+
         Example:
         owner reloadallcogs
         """
@@ -256,12 +254,12 @@ class Owner(commands.Cog):
         embed = discord.Embed(description=msg, color=color)
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @owner.command(name="executesql")
     @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
     async def owner_execute_sql(self, ctx):
         """(Command to execute all sql files inside data/sql directory)
-         
+
         Example:
         owner executesql
         """
@@ -276,6 +274,5 @@ class Owner(commands.Cog):
         await BotUtils.send_embed(self, ctx, embed, True, msg)
 
 
-################################################################################
 def setup(bot):
     bot.add_cog(Owner(bot))

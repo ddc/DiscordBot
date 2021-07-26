@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -19,19 +18,18 @@ from src.cogs.gw2.utils import gw2_utils as Gw2Utils
 
 class GW2Account(commands.Cog):
     """(Commands related to users account)"""
-
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def gw2_account(self, ctx):
         """(General information about your GW2 account)
 
         Required API permissions: account
-        
+
         Example:
         gw2 account
-        
+
         """
 
         await ctx.message.channel.trigger_typing()

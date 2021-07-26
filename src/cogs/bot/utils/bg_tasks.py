@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -20,7 +19,7 @@ class BgTasks:
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def bgtask_change_presence(self, task_timer: int):
         await self.bot.wait_until_ready()
         while not self.bot.is_closed():
@@ -30,7 +29,7 @@ class BgTasks:
             await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(name=bot_game_desc))
             await asyncio.sleep(int(task_timer))
 
-    ################################################################################
+
     async def bgtask_check_gw2_roles(self, server: discord.Guild, role: discord.Guild.roles, task_timer: int):
         await self.bot.wait_until_ready()
         while not self.bot.is_closed():

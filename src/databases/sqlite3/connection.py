@@ -16,7 +16,7 @@ class Sqlite3:
         self.bot = bot
         self.db_file = constants.DATABASE_FILENAME
 
-    ################################################################################
+    
     async def create_connection(self):
         try:
             conn = sqlite3.connect(self.db_file)
@@ -30,7 +30,7 @@ class Sqlite3:
 
         return conn
 
-    ################################################################################
+    
     async def executescript(self, sql):
         conn = await self.create_connection()
         if conn is not None:
@@ -49,7 +49,7 @@ class Sqlite3:
                 conn.commit()
                 conn.close()
 
-    ################################################################################
+    
     async def select(self, sql):
         final_data = {}
         conn = await self.create_connection()
