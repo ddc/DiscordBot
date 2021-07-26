@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -21,24 +20,23 @@ from src.sql.gw2.gw2_configs_sql import Gw2ConfigsSql
 
 class GW2LastSession(commands.Cog):
     """(Commands related to GW2 player last session)"""
-
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def gw2_lastSession(self, ctx):
         """(Info about the gw2 player last game session)
-        
+
         Your API Key needs to have the following permissions:
-        Account, Characters, Progression, Wallet 
+        Account, Characters, Progression, Wallet
         60 secs default cooldown
-        
+
         Requirements:
         1) Start discord, make sure you are not set to invisible
         1) Add GW2 API Key (gw2 key add api_key)
         2) Need to show, on discord, that you are playing Guild Wars 2, change this on options
         3) Start gw2
-        
+
         Example:
         gw2 lastsession
         """

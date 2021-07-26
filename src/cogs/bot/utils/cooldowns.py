@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -13,7 +12,6 @@ from src.cogs.bot.utils import constants
 
 file_values = BotUtils.get_all_ini_file_settings(constants.SETTINGS_FILENAME)
 
-
 class CoolDowns(Enum):
     AdminCooldown = int(file_values["AdminCooldown"])
     BlacklistCooldown = int(file_values["BlacklistCooldown"])
@@ -23,4 +21,3 @@ class CoolDowns(Enum):
     MuteCooldown = int(file_values["MuteCooldown"])
     OwnerCooldown = int(file_values["OwnerCooldown"])
     RollDiceCooldown = int(file_values["RollDiceCooldown"])
-

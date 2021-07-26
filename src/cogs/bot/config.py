@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -20,23 +19,22 @@ from src.cogs.bot.utils.cooldowns import CoolDowns
 
 class Config(commands.Cog):
     """(Server configuration commands - Admin)"""
-
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     @commands.group()
     @Checks.check_is_admin()
     async def config(self, ctx):
         """(Server configurations commands - Admin)
-        
+
         Examples:
-        
+
         config list
         config bladmin         [on | off] (Only Bot Owner can execute this command)
         config muteadmin       [on | off] (Only Bot Owner can execute this command)
         config joinmessage     [on | off]
-        config leavemessage    [on | off]        
+        config leavemessage    [on | off]
         config servermessage   [on | off]
         config membermessage   [on | off]
         config blockinvisible  [on | off]
@@ -55,18 +53,17 @@ class Config(commands.Cog):
 
             await BotUtils.send_help_msg(self, ctx, cmd)
             return
-
         ctx.invoked_subcommand
 
-    ################################################################################
+
     @config.command(name="bladmin")
     @Checks.check_is_bot_owner()
     @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_blacklist_admins(self, ctx, *, new_status: str):
         """(Able to blacklist server's admins)
-        
+
         Only the Bot Owner can execute this command.
-        
+
         Example:
         config bladmin [on | off]
         """
@@ -87,19 +84,19 @@ class Config(commands.Cog):
         serverConfigsSql = ServerConfigsSql(self.bot)
         rs = await serverConfigsSql.get_server_configs(ctx.guild.id)
         if rs[0]["blacklist_admins"] != str(new_status):
-            await  serverConfigsSql.update_blacklist_admins(ctx.guild.id, str(new_status))
+            await serverConfigsSql.update_blacklist_admins(ctx.guild.id, str(new_status))
 
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @config.command(name="muteadmin")
     @Checks.check_is_bot_owner()
     @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_mute_admins(self, ctx, *, new_status: str):
         """(Able to mute server's admins)
-        
+
         Only the Bot Owner can execute this command.
-        
+
         Example:
         config muteadmin [on | off]
         """
@@ -124,7 +121,7 @@ class Config(commands.Cog):
 
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @config.command(name="joinmessage")
     @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_join_message(self, ctx, *, new_status: str):
@@ -154,12 +151,12 @@ class Config(commands.Cog):
 
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @config.command(name="leavemessage")
     @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_leave_message(self, ctx, *, new_status: str):
         """(Show message when a user leaves the server)
-         
+
         Example:
         config leavemessage [on | off]
         """
@@ -184,12 +181,12 @@ class Config(commands.Cog):
 
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @config.command(name="servermessage")
     @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_server_message(self, ctx, *, new_status: str):
         """(Show message when a server gets updated)
-         
+
         Example:
         config servermessage [on | off]
         """
@@ -214,12 +211,12 @@ class Config(commands.Cog):
 
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @config.command(name="membermessage")
     @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_member_message(self, ctx, *, new_status: str):
         """(Show message when a member make changes on his/her profile)
-         
+
         Example:
         config membermessage [on | off]
         """
@@ -244,12 +241,12 @@ class Config(commands.Cog):
 
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @config.command(name="blockinvisible")
     @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_block_invis_members(self, ctx, *, new_status: str):
         """(Block messages from invisible members)
-         
+
         Example:
         config blockinvisible [on | off]
         """
@@ -274,12 +271,12 @@ class Config(commands.Cog):
 
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @config.command(name="mentionpool")
     @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_mention_everyone_pool_cmd(self, ctx, *, new_status: str):
         """(Mention everyone when the pool command is used)
-         
+
         Example:
         config mentionpool [on | off]
         """
@@ -304,12 +301,12 @@ class Config(commands.Cog):
 
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @config.command(name="anonymouspool")
     @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_anonymous_pool(self, ctx, *, new_status: str):
         """(Hide the author's name from the pool command)
-         
+
         Example:
         config anonymouspool [on | off]
         """
@@ -334,12 +331,12 @@ class Config(commands.Cog):
 
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @config.command(name="botreactions")
     @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_bot_word_reactions(self, ctx, *, new_status: str):
         """(Bot will react to member words)
-         
+
         Example:
         config botreactions [on | off]
         """
@@ -364,14 +361,14 @@ class Config(commands.Cog):
 
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @config.command(name="defaultchannel")
     @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_default_text_channel(self, ctx, *, text_channel: str):
         """(Set default text channel to be used for bot messages)
-        
+
         Use "none" to use first public available channel
-        
+
         Example:
         config defaultchannel <channel_name>
         config defaultchannel <none>
@@ -404,14 +401,14 @@ class Config(commands.Cog):
 
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @config.command(name="pfilter")
     @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_pfilter(self, ctx, *, stats_channel: str):
         """(Block offensive words by users)
-         
+
         Example:
-        config pfilter [on | off] <channel_name> 
+        config pfilter [on | off] <channel_name>
         """
 
         await ctx.message.channel.trigger_typing()
@@ -459,12 +456,12 @@ class Config(commands.Cog):
 
         await BotUtils.send_embed(self, ctx, embed, False, msg)
 
-    ################################################################################
+
     @config.command(name="list")
     @commands.cooldown(1, CoolDowns.ConfigCooldown.value, BucketType.user)
     async def config_config_list(self, ctx):
         """(List all bot configurations)
-        
+
         Example:
         config list
         """
@@ -535,6 +532,5 @@ class Config(commands.Cog):
         await BotUtils.send_embed(self, ctx, embed, True)
 
 
-################################################################################
 def setup(bot):
     bot.add_cog(Config(bot))

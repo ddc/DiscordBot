@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -15,7 +14,7 @@ class UsersSql:
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def insert_all_server_users(self, servers: discord.Guild):
         databases = Databases(self.bot)
         for server in servers:
@@ -28,7 +27,7 @@ class UsersSql:
                             VALUES ({user.id}, '{full_name}', '{user.avatar_url}');"""
                     await databases.execute(sql)
 
-    ################################################################################
+
     async def insert_user(self, user: discord.User):
         # if user.bot is False:
         current_user = await self.get_user(user.id)
@@ -38,7 +37,7 @@ class UsersSql:
                     VALUES ({user.id}, '{full_name}', '{user.avatar_url}');"""
             databases = Databases(self.bot)
             await databases.execute(sql)
-        ################################################################################
+
 
     async def update_user_changes(self, after: discord.Member):
         full_name = f"{after.display_name}#{after.discriminator}".replace("'", "''")
@@ -49,13 +48,13 @@ class UsersSql:
         databases = Databases(self.bot)
         await databases.execute(sql)
 
-    ################################################################################
+
     async def delete_user(self, user: discord.User):
         sql = f"DELETE from users where discord_user_id = {user.id};"
         databases = Databases(self.bot)
         await databases.execute(sql)
 
-    ################################################################################
+
     async def get_user(self, discord_user_id: int):
         sql = f"SELECT * from users where discord_user_id = {discord_user_id};"
         databases = Databases(self.bot)

@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -9,10 +8,8 @@
 
 import discord
 from enum import Enum
-import configparser
 from src.cogs.bot.utils import bot_utils as BotUtils
 from src.cogs.gw2.utils.gw2_api import Gw2Api
-import src.cogs.gw2.utils.gw2_constants as Gw2Constants
 from src.sql.gw2.gw2_last_session_sql import Gw2LastSessionSql
 from src.sql.gw2.gw2_chars_end_sql import Gw2CharsEndSql
 from src.sql.gw2.gw2_chars_start_sql import Gw2CharsStartSql
@@ -46,7 +43,6 @@ async def calculate_user_achiev_points(self, api_req_acc_achiev, api_req_acc):
     return total
 
 
-################################################################################
 def earned_ap(ach, res):
     earned = 0
     repeats = res["repeated"] if "repeated" in res else 0
@@ -63,7 +59,6 @@ def earned_ap(ach, res):
     return earned
 
 
-################################################################################
 def max_ap(ach, repeatable=False):
     if ach is None:
         return 0
@@ -74,7 +69,6 @@ def max_ap(ach, repeatable=False):
     return sum([t["points"] for t in ach["tiers"]])
 
 
-################################################################################
 async def get_world_id(self, world):
     if world is None:
         return None
@@ -88,7 +82,6 @@ async def get_world_id(self, world):
     return None
 
 
-################################################################################
 async def get_world_name_population(self, wids: str):
     try:
         name = []
@@ -107,7 +100,6 @@ async def get_world_name_population(self, wids: str):
     return name
 
 
-################################################################################
 async def get_world_name(self, wids: str):
     try:
         endpoint = f"worlds?ids={wids}"
@@ -123,7 +115,6 @@ async def get_world_name(self, wids: str):
     return name
 
 
-################################################################################
 async def delete_api_key(self, ctx, message=False):
     if hasattr(self, 'bot'):
         self = self.bot
@@ -140,12 +131,10 @@ async def delete_api_key(self, ctx, message=False):
                                     "Missing bot permission: `Manage Messages`")
 
 
-################################################################################
 def is_private_message(self, ctx):
     return True if isinstance(ctx.channel, discord.DMChannel) else False
 
 
-################################################################################
 async def last_session_gw2_event(bot, before: discord.Member, after: discord.Member):
     before_activity = None
     after_activity = None
@@ -174,7 +163,6 @@ async def last_session_gw2_event(bot, before: discord.Member, after: discord.Mem
                     await update_gw2_session_ends(bot, before, rs_api_key[0]["key"])
 
 
-################################################################################
 async def insert_gw2_session_starts(bot, after: discord.Member, api_key):
     object_start = await get_last_session_user_stats(bot, None, api_key)
     object_start.discord_user_id = after.id
@@ -184,7 +172,6 @@ async def insert_gw2_session_starts(bot, after: discord.Member, api_key):
     await insert_characters(bot, after, api_key, "start")
 
 
-################################################################################
 async def update_gw2_session_ends(bot, before: discord.Member, api_key):
     object_end = await get_last_session_user_stats(bot, None, api_key)
     object_end.discord_user_id = before.id
@@ -194,7 +181,6 @@ async def update_gw2_session_ends(bot, before: discord.Member, api_key):
     await insert_characters(bot, before, api_key, "end")
 
 
-###############################################################################
 async def get_last_session_user_stats(self, ctx, api_key):
     if not (hasattr(self, "bot")):
         self.bot = self
@@ -268,7 +254,6 @@ async def get_last_session_user_stats(self, ctx, api_key):
     return user_obj
 
 
-################################################################################
 async def insert_characters(self, member: discord.Member, api_key, type_session: str, ctx=None):
     if not (hasattr(self, "bot")):
         self.bot = self
@@ -294,7 +279,6 @@ async def insert_characters(self, member: discord.Member, api_key, type_session:
         return self.bot.log.error(e)
 
 
-################################################################################
 def get_wvw_rank_title(rank: int):
     prefix = ""
     title = ""
@@ -375,10 +359,8 @@ def get_wvw_rank_title(rank: int):
     return f"{prefix} {title}"
 
 
-################################################################################
 def get_pvp_rank_title(rank: int):
     title = ""
-
     if (rank >= 1 and rank < 10):
         title = "Rabbit"
     elif (rank >= 10 and rank < 20):
@@ -397,11 +379,9 @@ def get_pvp_rank_title(rank: int):
         title = "Phoenix"
     elif (rank >= 80):
         title = "Dragon"
-
     return f"{title}"
 
 
-################################################################################
 def check_gw2_server_name_role(role_name: str):
     for gw2_roles in Gw2_server_roles:
         if gw2_roles.value.lower() == role_name.lower():
@@ -409,7 +389,6 @@ def check_gw2_server_name_role(role_name: str):
     return False
 
 
-################################################################################
 class Gw2_server_roles(Enum):
     # name               = "value"
     Anvil_Rock = "Anvil Rock"
@@ -463,7 +442,6 @@ class Gw2_server_roles(Enum):
     Millers_Sound = "Miller's Sound [DE]"
 
 
-################################################################################
 async def assignGw2GuildRoles(self, ctx, member: discord.Member, new_server_role: discord.Guild.roles, api_key: str):
     gw2Api = Gw2Api(self.bot)
     if not member.bot:
@@ -498,14 +476,12 @@ async def assignGw2GuildRoles(self, ctx, member: discord.Member, new_server_role
                     await member.add_roles(new_server_role)
 
 
-################################################################################
 async def removeGw2RoleFromServer(self, server: discord.Guild, removed_role: discord.Guild.roles):
     for rol in server.roles:
         if rol.name.lower() == removed_role.name.lower():
             await rol.delete()
 
 
-################################################################################
 async def removeAllGw2RolesFromUser(self, member: discord.Member):
     for member_rol in member.roles:
         if member_rol.name.lower() != "@everyone":
@@ -514,13 +490,11 @@ async def removeAllGw2RolesFromUser(self, member: discord.Member):
                     await member_rol.delete()
 
 
-################################################################################
 async def removeGw2RoleFromUser(self, member: discord.Member, removed_role: discord.Guild.roles):
     if removed_role in member.roles:
         await member.remove_roles(removed_role)
 
 
-################################################################################
 async def check_gw2_roles(self, server: discord.Guild):
     gw2Api = Gw2Api(self.bot)
     gw2KeySql = Gw2KeySql(self.bot)
@@ -564,12 +538,11 @@ async def check_gw2_roles(self, server: discord.Guild):
                         await removeAllGw2RolesFromUser(self, member)
 
 
-################################################################################
 def format_gold(currency: str):
     """
     Returns gold in string format
      20 Gold 35 Silver 15 Copper
-    
+
     """
 
     formatted_gold = ""

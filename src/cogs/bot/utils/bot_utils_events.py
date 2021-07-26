@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -28,7 +27,6 @@ import random
 import os
 
 
-################################################################################
 async def set_initial_sql_tables(bot):
     initialTablesSql = InitialTablesSql(bot)
     await initialTablesSql.create_initial_sqlite_bot_tables()
@@ -38,7 +36,6 @@ async def set_initial_sql_tables(bot):
     await initialConfigsSql.insert_initial_bot_configs(bot)
 
 
-################################################################################
 async def insert_default_initial_configs(bot):
     serversSql = ServersSql(bot)
     await serversSql.insert_default_initial_server_configs(bot.guilds)
@@ -48,7 +45,6 @@ async def insert_default_initial_configs(bot):
     await gw2Configs.insert_default_initial_gw2_server_configs(bot.guilds, bot.gw2_settings["BGRoleTimer"])
 
 
-################################################################################
 async def set_others_sql_configs(bot):
     alterTablesSql = AlterTablesSql(bot)
     await alterTablesSql.alter_sqlite_tables()
@@ -56,13 +52,11 @@ async def set_others_sql_configs(bot):
     await triggers.create_triggers()
 
 
-################################################################################
 async def run_bg_tasks(bot):
     await set_presence(bot)
     await set_gw2_roles(bot)
 
 
-################################################################################
 async def set_presence(bot):
     prefix = bot.command_prefix[0]
 
@@ -78,7 +72,6 @@ async def set_presence(bot):
         await bot.change_presence(status=discord.Status.online, activity=discord.Game(name=bot_game_desc))
 
 
-################################################################################
 async def set_gw2_roles(bot):
     if bot.gw2_settings["BGCheckRoleTimer"].lower() == "yes":
         gw2Configs = Gw2ConfigsSql(bot)
@@ -101,7 +94,6 @@ async def set_gw2_roles(bot):
                             bot.loop.create_task(bgTasks.bgtask_check_gw2_roles(g, rol, role_timer))
 
 
-################################################################################
 async def execute_private_msg(self, ctx):
     is_command = True if ctx.prefix is not None else False
     if is_command is False:
@@ -179,7 +171,6 @@ async def execute_private_msg(self, ctx):
         await ctx.message.author.send(embed=embed)
 
 
-################################################################################
 async def execute_server_msg(self, ctx):
     is_command = True if ctx.prefix is not None else False
     serverConfigsSql = ServerConfigsSql(self.bot)
@@ -281,7 +272,6 @@ async def execute_server_msg(self, ctx):
         await self.bot.process_commands(ctx.message)
 
 
-################################################################################
 async def _check_prefixes_characteres(self, message):
     # ignore 2 sequence of characters ?_? ???
     second_char = message.content[1:2]
@@ -289,7 +279,6 @@ async def _check_prefixes_characteres(self, message):
         return True
 
 
-################################################################################
 async def _send_custom_message(message, send_msg: str):
     await message.channel.trigger_typing()
     desc = f":rage: :middle_finger:\n{Formatting.inline(send_msg)}"
@@ -299,7 +288,6 @@ async def _send_custom_message(message, send_msg: str):
     await message.channel.send(embed=embed)
 
 
-################################################################################
 def _check_bad_words_file(self):
     if not os.path.isfile(constants.SWEAR_WORDS_FILENAME):
         self.bot.log.error(f"File \"{constants.SWEAR_WORDS_FILENAME}\" was not found.")
@@ -307,7 +295,6 @@ def _check_bad_words_file(self):
     return True
 
 
-################################################################################
 async def _check_custom_messages(self, message):
     msg = message.system_content.lower()
     cwords = "🖕," + self.bot.settings["BotReactWords"]
@@ -336,7 +323,6 @@ async def _check_custom_messages(self, message):
     return False
 
 
-################################################################################
 async def _check_profanity_filter_words(self, message):
     if _check_bad_words_file(self):
         f = open(constants.SWEAR_WORDS_FILENAME)
@@ -378,14 +364,12 @@ async def _check_profanity_filter_words(self, message):
     return False
 
 
-################################################################################
 def _check_member_invisible(self, ctx):
     if ctx.author.status.name == "offline":
         return True
     return False
 
 
-################################################################################
 async def _check_exclusive_users(self, ctx):
     exclusive_users_id = self.bot.settings["ExclusiveUsers"]
     user_found = False

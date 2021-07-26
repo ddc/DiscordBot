@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -16,16 +15,14 @@ from src.cogs.bot.utils import bot_utils as BotUtils
 from src.cogs.gw2.utils import gw2_utils as Gw2Utils
 from src.cogs.bot.utils import chat_formatting as Formatting
 import src.cogs.gw2.utils.gw2_constants as Gw2Constants
-# import subprocess
 
 
 class GW2Misc(commands.Cog):
     """(Commands related to GW2)"""
-
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def gw2_wiki(self, ctx, search):
         if len(search) > 300:
             await ctx.send("Search too long")
@@ -97,7 +94,7 @@ class GW2Misc(commands.Cog):
             embed.set_thumbnail(url=Gw2Constants.GW2_WIKI_ICON_URL)
             await BotUtils.send_embed(self, ctx, embed, False)
 
-    ################################################################################
+
     async def gw2_info(self, ctx, skill):
         wiki_url = Gw2Constants.WIKI_URL
         skill = skill.replace(" ", "_")
@@ -175,10 +172,10 @@ class GW2Misc(commands.Cog):
             embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar_url)
             await BotUtils.send_embed(self, ctx, embed, False)
 
-    ################################################################################
+
     async def gw2_worlds(self, ctx):
         """ (List all worlds)
-        
+
         Example:
         gw2 worlds
         """
@@ -219,7 +216,7 @@ class GW2Misc(commands.Cog):
         await ctx.send(embed=embed_na)
         await ctx.send(embed=embed_eu)
 
-    ################################################################################
+
     # async def api_test(self, ctx):
     #     from src.sql.gw2.gw2_key_sql import Gw2KeySql
     #     discord_user_id = ctx.message.author.id
@@ -233,7 +230,7 @@ class GW2Misc(commands.Cog):
     #
     #     return api_req
 
-    ################################################################################
+
     # async def praise_joko(self, ctx):
     #     """To defy his Eminence is to defy life itself"""
     #     praise_art = (
@@ -241,7 +238,7 @@ class GW2Misc(commands.Cog):
     #         "A\nS J     O R\nE S I A R P```")
     #     await ctx.send(random.choice([praise_art, "Praise joko " * 40]))
 
-    ################################################################################
+
     # async def gw2_ping(self, ctx, *,world_name:str):
     #     """ (Ping a world)
     #

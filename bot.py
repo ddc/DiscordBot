@@ -18,7 +18,8 @@ from src.cogs.bot.utils import constants
 from src.cogs.bot.utils import bot_utils as BotUtils
 import src.cogs.gw2.utils.gw2_constants as Gw2Constants
 from discord.ext import commands
-import datetime as dt
+import datetime
+from src.cogs.bot.utils.log import Log
 
 
 class Bot:
@@ -26,7 +27,6 @@ class Bot:
         pass
 
 
-################################################################################
 async def _initialize_bot(log):
     bot = await _init_bot(log)
     if bot.token is None or len(bot.token) == 0:
@@ -34,7 +34,6 @@ async def _initialize_bot(log):
     return bot
 
 
-################################################################################
 async def _init_bot(log):
     token = None
     if os.path.isfile(constants.TOKEN_FILENAME):
@@ -49,7 +48,6 @@ async def _init_bot(log):
     return bot
 
 
-################################################################################
 def _insert_token():
     BotUtils.clear_screen()
     tokenFile = open(constants.TOKEN_FILENAME, encoding="utf-8", mode="w")
@@ -60,9 +58,8 @@ def _insert_token():
     return token
 
 
-################################################################################
 async def _set_bot_configs(bot):
-    bot.uptime = dt.datetime.now()
+    bot.uptime = datetime.datetime.now()
     bot.description = str(constants.DESCRIPTION)
     bot.help_command = commands.DefaultHelpCommand(dm_help=True)
     bot.settings = BotUtils.get_all_ini_file_settings(constants.SETTINGS_FILENAME)
@@ -73,15 +70,13 @@ async def _set_bot_configs(bot):
     bot.settings["EmbedColor"] = BotUtils.get_color_settings(bot.settings["EmbedColor"])
 
 
-################################################################################
 async def _set_other_cogs_configs(bot):
     bot.gw2_settings = BotUtils.get_all_ini_file_settings(Gw2Constants.GW2_SETTINGS_FILENAME)
     bot.gw2_settings["EmbedColor"] = BotUtils.get_color_settings(bot.gw2_settings["EmbedColor"])
 
 
-################################################################################
 async def init():
-    log = BotUtils.setup_logging()
+    log = Log(constants.LOGS_DIR, constants.DEBUG).setup_logging()
     bot = await _initialize_bot(log)
     bot.aiosession = aiohttp.ClientSession(loop=bot.loop)
     await _set_bot_configs(bot)
@@ -108,7 +103,6 @@ async def init():
         #loop.run_until_complete(bot.logout())
 
 
-################################################################################
 def init_loop():
     print(f"Starting Bot in {constants.TIME_BEFORE_START} secs...")
     time.sleep(constants.TIME_BEFORE_START)
@@ -125,7 +119,6 @@ def init_loop():
         loop.close()
 
 
-################################################################################
 if __name__ == '__main__':
     loop = None
     init_loop()

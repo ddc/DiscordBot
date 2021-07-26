@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -15,7 +14,7 @@ class Gw2Api:
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def check_api_key(self, api_key):
         """checks if apy key is valid"""
 
@@ -29,7 +28,7 @@ class Gw2Api:
             api_req_key_info["permissions"] = sorted(api_req_key_info["permissions"])
         return api_req_key_info
 
-    ################################################################################
+
     async def call_api(self, endpoint: str, version="2", key=None):
         """api languages can be ('en','es','de','fr','ko','zh')"""
 

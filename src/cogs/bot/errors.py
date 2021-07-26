@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -13,11 +12,10 @@ from .utils import bot_utils as BotUtils
 
 class Errors(commands.Cog):
     """(Commands error handler)"""
-
     def __init__(self, bot):
         self.bot = bot
 
-        ################################################################################
+
         @bot.event
         async def on_command_error(ctx, error):
             if ctx.subcommand_passed is None:
@@ -67,7 +65,6 @@ class Errors(commands.Cog):
                 _log_msg_error(self, ctx, errorMsg)
 
 
-################################################################################
 async def _forbidden(self, ctx, errorObj: object):
     if "Cannot execute action on a DM channel" in errorObj.errorMsg:
         await BotUtils.send_error_msg(self, ctx, "Cannot execute that command on a DM channel")
@@ -76,13 +73,11 @@ async def _forbidden(self, ctx, errorObj: object):
     _log_msg_error(self, ctx, errorObj.errorMsg)
 
 
-################################################################################
 async def _noPrivateMessage(self, ctx, errorObj: object):
     await BotUtils.send_error_msg(self, ctx, errorObj.errorMsg)
     _log_msg_error(self, ctx, errorObj.errorMsg)
 
 
-################################################################################
 async def _commandNotFound(self, ctx, errorObj: object):
     await BotUtils.send_error_msg(self, ctx, f"Command not found:\n`{errorObj.command}`")
     # errorMsg = errorObj.errorMsg.replace("is ","")
@@ -90,7 +85,6 @@ async def _commandNotFound(self, ctx, errorObj: object):
     _log_msg_error(self, ctx, errorMsg)
 
 
-################################################################################
 async def _missingRequiredArgument(self, ctx, errorObj: object):
     msg = f"Missing required argument!!!\nFor more info on this command use: `{ctx.prefix}help {ctx.command}`"
     await BotUtils.send_error_msg(self, ctx, msg)
@@ -99,7 +93,6 @@ async def _missingRequiredArgument(self, ctx, errorObj: object):
     _log_msg_error(self, ctx, errorObj.errorMsg)
 
 
-################################################################################
 async def _checkFailure(self, ctx, errorObj: object):
     if "not admin" in errorObj.errorMsg:
         user_msg = f"You are not an Admin to use this command:\n`{errorObj.command}`"
@@ -122,9 +115,6 @@ async def _checkFailure(self, ctx, errorObj: object):
         _log_msg_error(self, ctx, errorObj.errorMsg)
 
 
-################################################################################
-# raise commands.BadArgument(message="BadArgument")
-################################################################################
 async def _badArgument(self, ctx, errorObj: object):
     if "Member" in errorObj.errorMsg and "not found" in errorObj.errorMsg:
         await BotUtils.send_error_msg(self, ctx, errorObj.errorMsg)
@@ -156,7 +146,6 @@ async def _badArgument(self, ctx, errorObj: object):
         _log_msg_error(self, ctx, errorObj.errorMsg)
 
 
-################################################################################
 async def _commandOnCooldown(self, ctx, errorObj: object):
     if "gw2 key add" in ctx.message.content.lower() \
             or "gw2 key remove" in ctx.message.content.lower() \
@@ -172,15 +161,11 @@ async def _commandOnCooldown(self, ctx, errorObj: object):
     # _log_msg_error(self, ctx,"COOLDOWN")
 
 
-################################################################################
 async def _tooManyArguments(self, ctx, errorObj: object):
     await BotUtils.send_error_msg(self, ctx, f"Command ERROR!\nFor more info type: `{errorObj.help_command}`")
     _log_msg_error(self, ctx, errorObj.errorMsg)
 
 
-################################################################################
-# raise commands.CommandInvokeError(e="Missing Permissions")
-################################################################################
 async def _commandInvokeError(self, ctx, errorObj: object):
     if "Missing Permissions" in errorObj.errorMsg:
         msg = f"Bot does not have permission to execute this command.\nCommand: `{errorObj.command}`"
@@ -258,13 +243,11 @@ async def _commandInvokeError(self, ctx, errorObj: object):
         _log_msg_error(self, ctx, f"CommandInvokeError|ERROR: {errorObj.errorMsg}")
 
 
-################################################################################
 async def _commandError(self, ctx, errorObj: object):
     await BotUtils.send_error_msg(self, ctx, str(errorObj.errorMsg))
     _log_msg_error(self, ctx, f"CommandError: {errorObj.errorMsg}")
 
 
-################################################################################
 def _get_error_msg(error):
     if hasattr(error, "args"):
         if len(error.args) > 0:
@@ -279,7 +262,6 @@ def _get_error_msg(error):
     return errorMsg
 
 
-################################################################################
 def _log_msg_error(self, ctx, errorMsg: str):
     msg = f"({errorMsg})" \
           f"({ctx.message.content})" \
@@ -290,6 +272,5 @@ def _log_msg_error(self, ctx, errorMsg: str):
     self.bot.log.error(msg)
 
 
-################################################################################
 def setup(bot):
     bot.add_cog(Errors(bot))

@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -14,7 +13,7 @@ class Gw2InitialTablesSql:
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def create_gw2_sqlite_tables(self):
         databases = Databases(self.bot)
         primary_key_type = await databases.set_primary_key_type()

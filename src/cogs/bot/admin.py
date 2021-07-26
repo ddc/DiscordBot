@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -22,17 +21,16 @@ from src.cogs.bot.utils.cooldowns import CoolDowns
 
 class Admin(commands.Cog):
     """(Admin commands)"""
-
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     @commands.command()
     @Checks.check_is_admin()
     @commands.cooldown(1, CoolDowns.AdminCooldown.value, BucketType.user)
     async def kick(self, ctx, member: discord.Member, *, reason=None):
         """(Kick member from the server)
-        
+
         Example:
         kick member#1234
         kick member#1234 reason
@@ -93,7 +91,7 @@ class Admin(commands.Cog):
         msg_channel = f"{channel_msg}: {kicked_member}"
         await BotUtils.send_embed(self, ctx, embed_channel, False, msg_channel)
 
-    ###############################################################################
+
     @commands.command()
     @Checks.check_is_admin()
     @commands.cooldown(1, CoolDowns.AdminCooldown.value, BucketType.user)
@@ -160,7 +158,7 @@ class Admin(commands.Cog):
         msg_channel = f"{channel_msg}: {banned_member}"
         await BotUtils.send_embed(self, ctx, embed_channel, False, msg_channel)
 
-    ###############################################################################
+
     @commands.command()
     @Checks.check_is_admin()
     @commands.cooldown(1, CoolDowns.AdminCooldown.value, BucketType.user)
@@ -185,13 +183,13 @@ class Admin(commands.Cog):
         else:
             await BotUtils.send_error_msg(self, ctx, "There are no banned users in this server.")
 
-    ###############################################################################
+
     @commands.command()
     @Checks.check_is_admin()
     @commands.cooldown(1, CoolDowns.AdminCooldown.value, BucketType.user)
     async def banlist(self, ctx):
         """(List all members that have been banned from the server)
-        
+
         Example:
         banlist
         """
@@ -219,13 +217,13 @@ class Admin(commands.Cog):
         else:
             await BotUtils.send_info_msg(self, ctx, "No banned users in this server.")
 
-    ################################################################################
+
     @commands.group(aliases=["bl"])
     @Checks.check_is_admin()
     async def blacklist(self, ctx):
         """(Add, remove, list users from the blacklist)
 
-        Blacklisted users cannot use any bot commands. 
+        Blacklisted users cannot use any bot commands.
 
         blacklist or bl
 
@@ -246,7 +244,7 @@ class Admin(commands.Cog):
 
         ctx.invoked_subcommand
 
-    ################################################################################
+
     @blacklist.command(name="add")
     @commands.cooldown(1, CoolDowns.BlacklistCooldown.value, BucketType.user)
     async def blacklist_add(self, ctx, member: discord.Member, *, reason=None):
@@ -295,12 +293,12 @@ class Admin(commands.Cog):
                 msg += f"\nReason: {reason}"
             await BotUtils.send_error_msg(self, ctx, msg)
 
-    #################################################################################
+
     @blacklist.command(name="remove")
     @commands.cooldown(1, CoolDowns.BlacklistCooldown.value, BucketType.user)
     async def blacklist_remove_user(self, ctx, *, member: discord.Member):
         """(Remove blacklisted user)
-         
+
         Example:
         blacklist remove member#1234
         """
@@ -321,12 +319,12 @@ class Admin(commands.Cog):
             msg = f"Member {member} not found"
             await BotUtils.send_error_msg(self, ctx, msg)
 
-    #################################################################################
+
     @blacklist.command(name="removeall")
     @commands.cooldown(1, CoolDowns.BlacklistCooldown.value, BucketType.user)
     async def blacklist_remove_all_users(self, ctx):
         """(Remove all blacklisted users)
-         
+
         Example:
         blacklist removeall
         """
@@ -340,12 +338,12 @@ class Admin(commands.Cog):
         else:
             await BotUtils.send_error_msg(self, ctx, "There are no blacklisted members in this server.")
 
-    #################################################################################
+
     @blacklist.command(name="list")
     @commands.cooldown(1, CoolDowns.BlacklistCooldown.value, BucketType.user)
     async def blacklist_list(self, ctx):
         """(List all blacklisted users)
-         
+
         Example:
         blacklist list
         """
@@ -385,7 +383,7 @@ class Admin(commands.Cog):
         else:
             await BotUtils.send_error_msg(self, ctx, "There are no blacklisted members in this server.")
 
-    ################################################################################
+
     @commands.group()
     @Checks.check_is_admin()
     async def mute(self, ctx):
@@ -424,7 +422,7 @@ class Admin(commands.Cog):
                 await ctx.channel.send(f"{msg}")
             return
 
-    ################################################################################
+
     @mute.command(name="add")
     @commands.cooldown(1, CoolDowns.MuteCooldown.value, BucketType.user)
     async def mute_add(self, ctx, member: discord.Member, *, reason=None):
@@ -472,12 +470,12 @@ class Admin(commands.Cog):
                 msg += f"\nReason: {reason}"
             await BotUtils.send_error_msg(self, ctx, msg)
 
-    #################################################################################
+
     @mute.command(name="remove")
     @commands.cooldown(1, CoolDowns.MuteCooldown.value, BucketType.user)
     async def mute_remove_user(self, ctx, *, member: discord.Member):
         """(Remove muted user)
-         
+
         Example:
         mute remove member#1234
         """
@@ -498,12 +496,12 @@ class Admin(commands.Cog):
             msg = f"Member {member} not found"
             await BotUtils.send_error_msg(self, ctx, msg)
 
-    #################################################################################
+
     @mute.command(name="removeall")
     @commands.cooldown(1, CoolDowns.MuteCooldown.value, BucketType.user)
     async def mute_remove_all_users(self, ctx):
         """(Remove all muted users)
-         
+
         Example:
         mute removeall
         """
@@ -517,12 +515,12 @@ class Admin(commands.Cog):
         else:
             await BotUtils.send_error_msg(self, ctx, "There are no muted members in this server.")
 
-    #################################################################################
+
     @mute.command(name="list")
     @commands.cooldown(1, CoolDowns.MuteCooldown.value, BucketType.user)
     async def mute_list(self, ctx):
         """(List all muted users)
-         
+
         Example:
         mute list
         """
@@ -561,14 +559,14 @@ class Admin(commands.Cog):
         else:
             await BotUtils.send_error_msg(self, ctx, "There are no muted members in this server.")
 
-    ################################################################################
+
     @commands.group(aliases=["cc"])
     @Checks.check_is_admin()
     async def customcom(self, ctx):
         """(Add, remove, edit, list custom commands)
-        
+
         customcom or cc
-        
+
         Example:
         customcom [add | edit] <command> <text/url>
         customcom remove <command>
@@ -587,14 +585,14 @@ class Admin(commands.Cog):
 
         ctx.invoked_subcommand
 
-    ################################################################################
+
     @customcom.command(name="add")
     @commands.cooldown(1, CoolDowns.CustomCmdCooldown.value, BucketType.user)
     async def cc_add(self, ctx, command_name: str, *, text: str):
         """(Adds a custom command)
 
         customcom or cc
-        
+
         Example:
         customcom add <command> <text/url>
         """
@@ -623,14 +621,14 @@ class Admin(commands.Cog):
                                        f"Command already exists: `{ctx.prefix}{command_name}`\n"
                                        f"To edit use: `{ctx.prefix}customcom edit {command_name} <text/url>`")
 
-    ################################################################################
+
     @customcom.command(name="remove")
     @commands.cooldown(1, CoolDowns.CustomCmdCooldown.value, BucketType.user)
     async def cc_remove(self, ctx, command_name: str):
         """(Removes a custom command)
 
         customcom or cc
-        
+
         Example:
         customcom remove <command>
         """
@@ -652,14 +650,14 @@ class Admin(commands.Cog):
         else:
             await BotUtils.send_error_msg(self, ctx, "That command doesn't exist.")
 
-    ################################################################################
+
     @customcom.command(name="edit")
     @commands.cooldown(1, CoolDowns.CustomCmdCooldown.value, BucketType.user)
     async def cc_edit(self, ctx, command_name: str, *, text: str):
         """(Edits a custom command)
 
         customcom or cc
-        
+
         Example:
         customcom edit <command> <text/url>
         """
@@ -683,14 +681,14 @@ class Admin(commands.Cog):
             await BotUtils.send_error_msg(self, ctx,
                                        f"Command doesn't exist in this server:\n`{ctx.prefix}{command_name}`")
 
-    ################################################################################
+
     @customcom.command(name="removeall")
     @commands.cooldown(1, CoolDowns.CustomCmdCooldown.value, BucketType.user)
     async def cc_remove_all(self, ctx):
         """(Removes all custom commands)
 
         customcom or cc
-        
+
         Example:
         customcom removeall
         """
@@ -706,14 +704,14 @@ class Admin(commands.Cog):
         await commandsSql.delete_all_commands(server.id)
         await BotUtils.send_msg(self, ctx, color, "All custom commands successfully removed.")
 
-    ################################################################################
+
     @customcom.command(name="list")
     @commands.cooldown(1, CoolDowns.CustomCmdCooldown.value, BucketType.user)
     async def cc_list(self, ctx):
         """(Shows custom commands list)
 
         customcom or cc
-        
+
         Example:
         customcom list
         """
@@ -752,6 +750,5 @@ class Admin(commands.Cog):
         await BotUtils.send_embed(self, ctx, embed, False)
 
 
-###############################################################################
 def setup(bot):
     bot.add_cog(Admin(bot))

@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -16,7 +15,7 @@ class MutesSql:
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def insert_mute_user(self, user: discord.User, author: discord.user, reason: None):
         todays_date = BotUtils.get_current_date_time_str()
         sql = f"""INSERT INTO mutes 
@@ -37,7 +36,7 @@ class MutesSql:
         databases = Databases(self.bot)
         await databases.execute(sql)
 
-    ################################################################################
+
     async def delete_mute_user(self, user: discord.User):
         sql = f"""DELETE from mutes where
              discord_user_id = {user.id}
@@ -45,7 +44,7 @@ class MutesSql:
         databases = Databases(self.bot)
         await databases.execute(sql)
 
-    ################################################################################
+
     async def get_all_server_mute_users(self, discord_server_id: int):
         sql = f"""SELECT servers.discord_server_id,
                         users.discord_user_id,
@@ -66,7 +65,7 @@ class MutesSql:
         databases = Databases(self.bot)
         return await databases.select(sql)
 
-    ################################################################################
+
     async def get_server_mute_user(self, user: discord.User):
         sql = f"""SELECT * FROM mutes where
             discord_server_id = {user.guild.id}
@@ -74,13 +73,13 @@ class MutesSql:
         databases = Databases(self.bot)
         return await databases.select(sql)
 
-    ################################################################################
+
     async def delete_all_mute_users(self, discord_server_id: int):
         sql = f"""DELETE from mutes where discord_server_id = {discord_server_id};"""
         databases = Databases(self.bot)
         await databases.execute(sql)
 
-    ################################################################################
+
     async def get_mute_user(self, discord_user_id: int):
         sql = f"""SELECT mutes.*,
                 users.user_name,

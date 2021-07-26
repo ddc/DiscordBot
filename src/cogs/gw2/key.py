@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -21,11 +20,10 @@ from src.sql.gw2.gw2_configs_sql import Gw2ConfigsSql
 
 class GW2Key(commands.Cog):
     """(Commands related to GW2 API keys)"""
-
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def gw2_key(self, ctx, cmd_api_key: str):
         await Gw2Utils.delete_api_key(self, ctx)
         command = str(cmd_api_key.replace(f"{ctx.prefix}gw2 key ", "")).split(' ', 1)[0]
@@ -50,7 +48,6 @@ class GW2Key(commands.Cog):
             await BotUtils.send_error_msg(self, ctx, msg)
 
 
-################################################################################
 async def _info_key(self, ctx, sub_command=None):
     discord_user_id = ctx.message.author.id
     discord_server_id = ctx.message.guild.id
@@ -140,7 +137,6 @@ async def _info_key(self, ctx, sub_command=None):
         raise commands.BadArgument(message="BadArgument")
 
 
-################################################################################
 async def _add_key(self, ctx, api_key: str):
     #     if (isinstance(ctx.channel, discord.DMChannel)):
     #         msg = "GW2 add api command needs to be used in a server channel for proper roles to be assign!!!"
@@ -240,7 +236,6 @@ async def _add_key(self, ctx, api_key: str):
         await BotUtils.send_private_error_msg(self, ctx, "That API key is already in use by someone else.")
 
 
-################################################################################
 async def _remove_key(self, ctx):
     discord_user_id = ctx.message.author.id
     discord_server_id = ctx.message.guild.id

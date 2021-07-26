@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -9,7 +8,6 @@
 
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-from src.cogs.gw2.utils import gw2_utils as Gw2Utils
 from src.cogs.bot.utils.checks import Checks
 from src.cogs.gw2.account import GW2Account
 from src.cogs.gw2.config import GW2Config
@@ -24,11 +22,10 @@ from src.cogs.gw2.utils.gw2_cooldowns import GW2CoolDowns
 
 class GuildWars2(commands.Cog):
     """(Commands related to Guild Wars 2)"""
-
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     @commands.group(name="gw2")
     async def gw2Group(self, ctx):
         """(Commands related to Guild Wars 2)
@@ -57,22 +54,21 @@ class GuildWars2(commands.Cog):
 
             await BotUtils.send_help_msg(self, ctx, cmd)
             return
-
         ctx.invoked_subcommand
 
-    ################################################################################
+
     @gw2Group.command()
     @commands.cooldown(1, GW2CoolDowns.AccountCooldown.value, BucketType.user)
     async def account(self, ctx):
         await GW2Account.gw2_account(self, ctx)
 
-    ################################################################################
+
     @gw2Group.command()
     @commands.cooldown(1, GW2CoolDowns.ApiKeysCooldown.value, BucketType.user)
     @Checks.check_is_admin()
     async def config(self, ctx, *, sub_command: str = None):
         """(Guild Wars 2 configurations commands - Admin)
-        
+
         ------------------------------------------------------
         List all gw2 configurations in the current server:
             gw2 config list
@@ -84,13 +80,13 @@ class GuildWars2(commands.Cog):
             gw2 config roletimer 3600
         ------------------------------------------------------
         Configure if the bot should add role that matches gw2 servers:
-        
+
             * Categories with "Public" names in it wont be affect it. *
             Examples that wont be affected it:
             Public Chat
             Public Raids
             Public Informations
-            
+
             Example:
             gw2 config apirole [on | off] Blackgate
         ------------------------------------------------------
@@ -102,18 +98,18 @@ class GuildWars2(commands.Cog):
             cmd = self.bot.get_command("gw2 config")
             await BotUtils.send_help_msg(self, ctx, cmd)
 
-    ################################################################################
+
     @gw2Group.command()
     @commands.cooldown(1, GW2CoolDowns.DailyCooldown.value, BucketType.user)
     async def daily(self, ctx, *, daily_type: str = None):
         """(Show today's Dailies)
-        
+
         Example:
         gw2 daily pve
         gw2 daily pvp
         gw2 daily wvw
         gw2 daily fractals
-        
+
         """
         if daily_type is not None:
             await GW2Daily.gw2_daily(self, ctx, daily_type)
@@ -121,7 +117,7 @@ class GuildWars2(commands.Cog):
             cmd = self.bot.get_command("gw2 daily")
             await BotUtils.send_help_msg(self, ctx, cmd)
 
-    ################################################################################
+
     @gw2Group.command()
     @commands.cooldown(1, GW2CoolDowns.ApiKeysCooldown.value, BucketType.user)
     async def key(self, ctx, *, cmd_api_key: str = None):
@@ -130,7 +126,7 @@ class GuildWars2(commands.Cog):
         To generate an API key, head to https://account.arena.net, and log in.
         In the "Applications" tab, generate a new key, with all permissions.
         Required API permissions: account
-            
+
         Example:
         gw2 key add api_key   (Adds a key and associates it with your discord account)
         gw2 key remove        (Removes your GW2 API key from the bot)
@@ -143,36 +139,36 @@ class GuildWars2(commands.Cog):
             cmd = self.bot.get_command("gw2 key")
             await BotUtils.send_help_msg(self, ctx, cmd)
 
-    ################################################################################
+
     @gw2Group.command(name="lastsession")
     @commands.cooldown(1, GW2CoolDowns.LastSessionCooldown.value, BucketType.user)
     async def lastSession(self, ctx):
         await GW2LastSession.gw2_lastSession(self, ctx)
 
-    ################################################################################ WVW
+
     @gw2Group.command()
     @commands.cooldown(1, GW2CoolDowns.WvwCooldown.value, BucketType.user)
     async def wvwinfo(self, ctx, *, world: str = None):
         await GW2WvW.gw2_wvwinfo(self, ctx, world)
 
-    ################################################################################
+
     @gw2Group.command()
     @commands.cooldown(1, GW2CoolDowns.WvwCooldown.value, BucketType.user)
     async def match(self, ctx, *, world: str = None):
         await GW2WvW.gw2_match(self, ctx, world)
 
-    ################################################################################
+
     @gw2Group.command()
     @commands.cooldown(1, GW2CoolDowns.WvwCooldown.value, BucketType.user)
     async def kdr(self, ctx, *, world: str = None):
         await GW2WvW.gw2_kdr(self, ctx, world)
 
-    ################################################################################ MISC
+
     @gw2Group.command()
     @commands.cooldown(1, GW2CoolDowns.MiscCooldown.value, BucketType.user)
     async def wiki(self, ctx, *, search: str = None):
         """ (Search the Guild wars 2 wiki)
-        
+
         Example:
         gw2 wiki name_to_search
         """
@@ -183,12 +179,12 @@ class GuildWars2(commands.Cog):
             cmd = self.bot.get_command("gw2 wiki")
             await BotUtils.send_help_msg(self, ctx, cmd)
 
-    ################################################################################
+
     @gw2Group.command()
     @commands.cooldown(1, GW2CoolDowns.MiscCooldown.value, BucketType.user)
     async def info(self, ctx, *, skill: str = None):
         """ (Information about a given name/skill/rune)
-        
+
         Example:
         gw2 info info_to_search
         """
@@ -199,13 +195,12 @@ class GuildWars2(commands.Cog):
             cmd = self.bot.get_command("gw2 info")
             await BotUtils.send_help_msg(self, ctx, cmd)
 
-    ################################################################################
+
     @gw2Group.command()
     @commands.cooldown(1, GW2CoolDowns.MiscCooldown.value, BucketType.user)
     async def worlds(self, ctx):
         await GW2Misc.gw2_worlds(self, ctx)
 
 
-################################################################################
 def setup(bot):
     bot.add_cog(GuildWars2(bot))

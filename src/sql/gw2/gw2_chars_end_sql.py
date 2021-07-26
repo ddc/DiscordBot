@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -14,7 +13,7 @@ class Gw2CharsEndSql:
     def __init__(self, bot):
         self.bot = bot
 
-    ################################################################################
+
     async def insert_character(self, insert_obj: object, api_req_characters):
         sql = ""
         discord_user_id = insert_obj.discord_user_id
@@ -39,7 +38,7 @@ class Gw2CharsEndSql:
         databases = Databases(self.bot)
         await databases.execute(sql)
 
-    ################################################################################
+
     async def get_all_end_characters(self, discord_user_id: int):
         sql = f"SELECT * FROM gw2_chars_end WHERE discord_user_id = {discord_user_id};\n"
         databases = Databases(self.bot)
