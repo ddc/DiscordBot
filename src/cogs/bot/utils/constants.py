@@ -33,7 +33,7 @@ _versionFile.close()
 INTRO = f"{20*'='}\nDiscord Bot v{VERSION}\n{20*'='}"
 ###############################################################################
 DESCRIPTION = "A Multifunction Bot for Discord"
-AUTHOR_ID = 195615080665055232
+AUTHOR_ID = "195615080665055232"
 PAYPAL_URL = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=38E66BHC4623Y"
 BOT_WEBPAGE_URL = "https://ddc.github.io/DiscordBot"
 BOT_REMOTE_GIT_URL = "https://github.com/ddc/DiscordBot.git"
@@ -54,10 +54,12 @@ GAMES_INCLUDED = ["Guild Wars 2"]
 ###############################################################################
 APIS_INCLUDED = []
 ###############################################################################
-COGS = ["src.cogs.bot.admin",
-        "src.cogs.bot.config",
-        "src.cogs.bot.errors",
-        "src.cogs.bot.events",
-        "src.cogs.bot.misc",
-        "src.cogs.bot.owner",
-        "src.cogs.gw2.gw2"]
+COGS = [
+    "src.cogs.bot.admin",
+    "src.cogs.bot.config",
+    "src.cogs.bot.errors",
+    "src.cogs.bot.events",
+    "src.cogs.bot.misc",
+    "src.cogs.bot.owner",
+    "src.cogs.gw2.gw2"
+]

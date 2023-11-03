@@ -56,14 +56,14 @@ class PostgreSQL:
         if conn is not None:
             try:
                 result_set = await conn.fetch(sql)
-                for lineNumber, data in enumerate(result_set):
-                    final_data[lineNumber] = dict(data)
+                for line_number, data in enumerate(result_set):
+                    final_data[line_number] = dict(data)
             except Exception as e:
                 self.bot.log.exception("PostgreSQL", exc_info=e)
                 self.bot.log.error(f"Sql:({sql})")
             finally:
                 await conn.close()
-                return final_data
+        return final_data
 
 
     async def create_database(self, db_name: str):

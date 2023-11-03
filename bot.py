@@ -37,9 +37,9 @@ async def _initialize_bot(log):
 async def _init_bot(log):
     token = None
     if os.path.isfile(constants.TOKEN_FILENAME):
-        tokenFile = open(constants.TOKEN_FILENAME, encoding="utf-8", mode="r")
-        token = tokenFile.read().split('\n', 1)[0].strip('\n')
-        tokenFile.close()
+        token_file = open(constants.TOKEN_FILENAME, encoding="UTF-8", mode="r")
+        token = token_file.read().split('\n', 1)[0].strip('\n')
+        token_file.close()
 
     default_prefix = BotUtils.get_ini_settings(constants.SETTINGS_FILENAME, "Bot", "DefaultPrefix")
     bot = commands.Bot(command_prefix=default_prefix)
@@ -50,11 +50,11 @@ async def _init_bot(log):
 
 def _insert_token():
     BotUtils.clear_screen()
-    tokenFile = open(constants.TOKEN_FILENAME, encoding="utf-8", mode="w")
+    token_file = open(constants.TOKEN_FILENAME, encoding="UTF-8", mode="w")
     print("Please insert your BOT TOKEN bellow:")
     token = BotUtils.read_token()
-    tokenFile.write(token)
-    tokenFile.close()
+    token_file.write(token)
+    token_file.close()
     return token
 
 
@@ -90,14 +90,14 @@ async def init():
         del bot.token
         await bot.connect()
     except discord.LoginFailure as e:
-        for errorMsg in e.args:
-            if "Improper token has been passed" in errorMsg:
+        for error_msg in e.args:
+            if "Improper token has been passed" in error_msg:
                 open(constants.TOKEN_FILENAME, 'w').close()
                 formatted_lines = traceback.format_exc().splitlines()
                 for err in formatted_lines:
                     if "discord." in err:
                         log.error(err)
-                log.error(f"\n===> ERROR: Unable to login. {errorMsg}:{str(bot.token)}\n")
+                log.error(f"\n===> ERROR: Unable to login. {error_msg}:{str(bot.token)}\n")
     except Exception as e:
         log.error(f"Bot has been terminated. {e}]")
         #loop.run_until_complete(bot.logout())

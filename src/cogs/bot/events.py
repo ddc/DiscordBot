@@ -289,6 +289,7 @@ class Events(commands.Cog):
 
         @bot.event
         async def on_ready():
+            conn = await BotUtils.check_database_connection(bot)
             author = bot.get_user(constants.AUTHOR_ID)
             bot.owner = (await bot.application_info()).owner
             bot.owner_id = bot.owner.id
@@ -297,7 +298,6 @@ class Events(commands.Cog):
             bot.settings["author"] = f"{author.name}#{author.discriminator}"
             full_db_name = bot.settings["full_db_name"]
 
-            conn = await BotUtils.check_database_connection(bot)
             if conn is None:
                 msg = "Cannot Create Database Connection." \
                       f"Check if the server is up and try again ({full_db_name})."

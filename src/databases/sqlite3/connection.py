@@ -1,4 +1,3 @@
-#! /usr/bin/env python3
 # |*****************************************************
 # * Copyright         : Copyright (C) 2019
 # * Author            : ddc
@@ -16,7 +15,7 @@ class Sqlite3:
         self.bot = bot
         self.db_file = constants.DATABASE_FILENAME
 
-    
+
     async def create_connection(self):
         try:
             conn = sqlite3.connect(self.db_file)
@@ -27,10 +26,9 @@ class Sqlite3:
             # self.bot.log.exception("sqlite3",exc_info=e)
             self.bot.log.error(msg)
             raise sqlite3.OperationalError(e)
-
         return conn
 
-    
+
     async def executescript(self, sql):
         conn = await self.create_connection()
         if conn is not None:
@@ -49,7 +47,7 @@ class Sqlite3:
                 conn.commit()
                 conn.close()
 
-    
+
     async def select(self, sql):
         final_data = {}
         conn = await self.create_connection()
@@ -70,4 +68,4 @@ class Sqlite3:
             finally:
                 conn.commit()
                 conn.close()
-                return final_data
+        return final_data

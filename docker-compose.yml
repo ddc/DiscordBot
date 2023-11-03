@@ -5,11 +5,11 @@ x-common-variables: &common-variables
 
 services:
     db:
-        image: postgres:13
+        image: postgres:latest
         container_name: postgres_bot
         restart: always
         ports:
-            - 5432:5432
+            - "5432:5432"
         expose:
             - 5432/tcp
         volumes:

@@ -206,7 +206,7 @@ def read_token():
 
 def insert_spaces(number_spaces: int):
     spaces = ""
-    for x in range(0, number_spaces):
+    for _ in range(0, number_spaces):
         spaces += " "
     return spaces
 
@@ -356,7 +356,7 @@ def get_server_first_public_text_channel(server: discord.Guild):
 def get_member_first_public_text_channel(member: discord.Member):
     sorted_channels = sorted(member.guild.text_channels, key=attrgetter('position'))
     for channel in sorted_channels:
-        if (member.permissions_in(channel).read_messages is True):
+        if member.permissions_in(channel).read_messages is True:
             return channel
     return None
 
@@ -418,7 +418,7 @@ def get_color_settings(color: str):
 
 def get_random_color():
     # color = discord.Color(value=get_random_color())
-    color = ''.join([choice('0123456789ABCDEF') for x in range(6)])
+    color = ''.join([choice('0123456789ABCDEF') for _ in range(6)])
     color = int(color, 16)
     return color
 

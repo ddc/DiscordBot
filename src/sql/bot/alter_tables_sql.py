@@ -14,7 +14,5 @@ class AlterTablesSql:
 
 
     async def alter_sqlite_tables(self):
-        if self.database_in_use.lower() == "sqlite":
-            pass
-        elif self.database_in_use.lower() == "postgres":
+        if self.database_in_use.lower() in ("sqlite", "postgres"):
             pass

@@ -102,7 +102,7 @@ def _update_requirements():
                 return log.error(f"\nAn error occurred trying to update: {module}\n")
 
     log.info("PIP should be manually upgraded: python -m pip install --upgrade pip\n")
-    log.info("\nAll requirements are up tp date.\n")
+    log.info("\nAll requirements are up to date.\n")
 
 
 def _parse_cli_arguments():
@@ -171,7 +171,7 @@ def _check_new_version():
     client_version = constants.VERSION
     if req.status_code == 200:
         remote_version = req.text
-        if remote_version[-2:] == "\\n" or remote_version[-2:] == "\n":
+        if remote_version[-2:] in ("\\n", "\n"):
             remote_version = remote_version[:-2]  # getting rid of \n at the end of line
 
         if float(remote_version) > float(client_version):
@@ -191,7 +191,7 @@ def _check_config_files():
         dst = constants.SETTINGS_FILENAME
         try:
             urllib.request.urlretrieve(src_url, dst)
-        except urllib.request.HTTPError as e:
+        except Exception as e:
             log.error("ERROR: Could not download settings file.\n"
                       f"{e}.\n{src_url}\n"
                       "Exiting...")
@@ -203,7 +203,7 @@ def _check_config_files():
         dst = Gw2Constants.GW2_SETTINGS_FILENAME
         try:
             urllib.request.urlretrieve(src_url, dst)
-        except urllib.request.HTTPError as e:
+        except Exception as e:
             log.error("ERROR: Could not download GW2 settings file.\n"
                       f"{e}.\n{src_url}\n"
                       "Exiting...")
@@ -211,7 +211,7 @@ def _check_config_files():
             return
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     log = Log(constants.LOGS_DIR, constants.DEBUG).setup_logging()
     args = _parse_cli_arguments()
     _check_config_files()
