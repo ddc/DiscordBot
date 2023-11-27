@@ -13,4 +13,4 @@ RUN apt-get update \
 RUN python -m pip install --upgrade pip \
 && python -m pip install --no-cache-dir -r ./requirements.txt
 
-CMD ["python", "launcher.py", "--start"]
+CMD ["python", "bot.py"]

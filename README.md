@@ -14,8 +14,9 @@
 
 ### [Install Guide - Wiki](https://ddc.github.io/DiscordBot)
 + Using Docker (replace "MY_TOKEN_HERE" with your bot token)
-    + git clone https://github.com/ddc/DiscordBot.git && cd DiscordBot
-    + echo MY_TOKEN_HERE > ./config/token.txt
+    + git clone https://github.com/ddc/DiscordBot.git
+    + cd DiscordBot
+    + echo MY_TOKEN_HERE > ./config/token
     + docker-compose up --build -d
 
 ## Games Included
@@ -41,8 +42,6 @@
 | config muteadmins		 [on , off]				| Able to mute server's admins			 	 |
 | config servermessage   [on , off]				| Show message when a server gets updated	 |
 | config membermessage   [on , off]				| Message when someone changes the profile 	 |
-| config mentionpool     [on , off]				| Mention everyone when using pool command   |
-| config anonymouspool   [on , off]				| Hide the author's name from the pool cmd   |
 | config joinmessage     [on , off]				| Show message when a user joins the server	 |
 | config leavemessage    [on , off]				| Show message when a user leaves the server |
 | config blockinvisible  [on , off]				| Block messages from invisible members		 |
@@ -80,25 +79,23 @@
 | serverinfo									| Shows server's informations				 |
 | userinfo <_member#1234_>						| Shows discord user informations			 |
 | lmgtfy <_link_>								| Creates a lmgtfy link						 |
-| simplepool <_question_> <_emoji_>             | Create a simple yes,no pool                |
-| pool <_Question;Choice1;Choice2_>				| Creates a numeric list of choices pool	 |
+
 
 ## Bot Owner Commands
-| Command                                       | Description                                |
-|:----------------------------------------------|:-------------------------------------------|
-| owner executesql                              | Execute all sql files inside data/sql dir  |
-| owner reload                                  | Command to reload all extensions           |
-| owner servers									| Display all servers in database			 |
-| owner prefix <_new prefix_>					| Change bot prefix for commands			 |
-| owner reloadcog <_src.cogs.bot.name_>			| Command to reload a module				 |
-| owner botdescription <_new description_>		| Change bot description					 |
-| owner botgame <_new game_>					| Change game that bot is playing			 |
+| Command                                      | Description                                |
+|:---------------------------------------------|:-------------------------------------------|
+| owner executesql                             | Execute all sql files inside data/sql dir  |
+| owner reload                                 | Command to reload all extensions           |
+| owner servers									                       | Display all servers in database			 |
+| owner prefix <_new prefix_>					             | Change bot prefix for commands			 |
+| owner reloadcog <_src.bot.name_>			          | Command to reload a module				 |
+| owner botdescription <_new description_>		   | Change bot description					 |
+| owner botgame <_new game_>					              | Change game that bot is playing			 |
 
 ## Acknowledgements
 + [Guild Wars 2 API](https://wiki.guildwars2.com/wiki/API:2)
-+ [PostgreSQL](https://www.postgresql.org)
 + [Discord Bot Api](https://discordapp.com/developers/applications/me)
-+ [SQLite3](https://sqlite.org)
++ [PostgreSQL](https://www.postgresql.org)
 + [Git](https://git-scm.com/download)
 
 ## License

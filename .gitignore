@@ -1,14 +1,10 @@
-__pycache__/
+**/__pycache__/
+ *.pyc
 .git/
 Pipfile*
-
-# PyInstaller
 *.manifest
 build/
 dist/
-
-# Eclipse
-.settings/
-
-# Pycharm
 .idea/
+/config/token
+/config/token.txt

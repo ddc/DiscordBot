@@ -1,0 +1,6 @@
+Single-database configuration
+
+Specifying the revision number
+    cd DiscordBot
+    alembic -c './config/alembic.ini' revision --autogenerate -m "initial tables" --rev-id=1
+    alembic -c './config/alembic.ini' upgrade head

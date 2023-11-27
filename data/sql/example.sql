@@ -1,2 +1,0 @@
---UPDATE server_configs SET block_invis_members = 'Y' WHERE discord_server_id = '389578199375282178';
---UPDATE server_configs SET block_invis_members = 'Y' WHERE discord_server_id = '397550462523408386';
