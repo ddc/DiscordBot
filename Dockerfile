@@ -28,7 +28,7 @@ RUN set -ex \
     && apt-get purge --auto-remove -y build-essential
 
 COPY pyproject.toml poetry.lock /opt/DiscordBot/
-RUN poetry install --no-interaction --no-ansi
+RUN poetry install --no-interaction --no-ansi --no-dev
 
 COPY src /opt/DiscordBot/src
 
