@@ -1,10 +1,10 @@
 version: '3.8'
 
 x-common-variables: &common-variables
-    TZ: "America/Los_Angeles"
+    TZ: "UTC"
 
 services:
-    db:
+    database:
         image: postgres:latest
         container_name: postgres_bot
         restart: always
@@ -20,20 +20,23 @@ services:
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: postgres
         networks:
-            - bot_network
+            - network
     bot:
         build: .
         container_name: discord_bot
         restart: always
+        env_file:
+          - .env
         volumes:
             - .:/opt/DiscordBot
         environment:
             <<: *common-variables
         depends_on:
-            - db
+            - database
         networks:
-            - bot_network
+            - network
+        command: "python bot.py"
 
 networks:
-    bot_network:
+    network:
         driver: bridge
