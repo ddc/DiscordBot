@@ -40,10 +40,24 @@ GAMES_INCLUDED = ("Guild Wars 2",)
 ###############################################################################
 APIS_INCLUDED = ()
 ###############################################################################
-BOT_COGS = glob.glob(os.path.join("src", "bot", "*.py"))
-EVENTS_COGS = glob.glob(os.path.join("src", "bot", "events", "*.py"))
+BOT_COGS = [
+    x for x in glob.glob(os.path.join("src", "bot", "*.py")) if not (os.path.basename(x).startswith("__"))
+]
+BOT_COGS.sort(key=lambda x: x.split("/")[2])
+
+EVENTS_COGS = [
+    x for x in glob.glob(os.path.join("src", "bot", "events", "*.py")) if not (os.path.basename(x).startswith("__"))
+]
+EVENTS_COGS.sort(key=lambda x: x.split("/")[3])
+
+ADMIN_COGS = [
+    x for x in glob.glob(os.path.join("src", "bot", "admin", "*.py")) if not (os.path.basename(x).startswith("__"))
+]
+ADMIN_COGS.sort(key=lambda x: x.split("/")[3])
+
 OTHER_COGS = [
     os.path.join("src", "gw2", "gw2.py"),
 ]
-ALL_COGS = BOT_COGS + EVENTS_COGS + OTHER_COGS
+###############################################################################
+ALL_COGS = BOT_COGS + EVENTS_COGS + ADMIN_COGS + OTHER_COGS
 ###############################################################################

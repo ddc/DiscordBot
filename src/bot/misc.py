@@ -20,7 +20,7 @@ class Misc(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def test(self, ctx):
         """(test)"""
 
@@ -31,7 +31,7 @@ class Misc(commands.Cog):
         await bot_utils.send_embed(self, ctx, embed)
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def pepe(self, ctx):
         """Posts a random Pepe from imgur
 
@@ -55,7 +55,7 @@ class Misc(commands.Cog):
                 data.close()
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def tts(self, ctx, *, tts_text: str):
         """(Send TTS as .mp3 to current channel)
 
@@ -100,7 +100,7 @@ class Misc(commands.Cog):
         mp3_fp.close()
 
     @commands.group()
-    @commands.cooldown(1, CoolDowns.RollDiceCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.RollDice.value, BucketType.user)
     async def roll(self, ctx):
         """(Rolls random number [between 1 and user choice])
 
@@ -247,7 +247,7 @@ class Misc(commands.Cog):
         await bot_utils.send_msg(self, ctx, color, "Rolls from all members in this server have been deleted.")
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def echo(self, ctx, *, msg: str):
         """(Show your msg again)
 
@@ -260,7 +260,7 @@ class Misc(commands.Cog):
         await bot_utils.send_msg(self, ctx, color, msg)
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def ping(self, ctx):
         """(Test latency)
 
@@ -280,7 +280,7 @@ class Misc(commands.Cog):
         await bot_utils.send_embed(self, ctx, embed)
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def lmgtfy(self, ctx, *, user_msg: str):
         """(Creates a lmgtfy link)
 
@@ -298,7 +298,7 @@ class Misc(commands.Cog):
         await bot_utils.send_msg(self, ctx, color, msg)
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.AdminCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Admin.value, BucketType.user)
     async def invites(self, ctx):
         """(List active invites link for the current server)
 
@@ -337,7 +337,7 @@ class Misc(commands.Cog):
             await bot_utils.send_msg(self, ctx, color, chat_formatting.inline("No current invites on any channel."))
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def serverinfo(self, ctx):
         """(Shows server's information)
 
@@ -385,7 +385,7 @@ class Misc(commands.Cog):
         await bot_utils.send_embed(self, ctx, data)
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def userinfo(self, ctx, *, member_str: str = None):
         """(Shows users's information)
 
@@ -450,7 +450,7 @@ class Misc(commands.Cog):
         await bot_utils.send_embed(self, ctx, data)
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.MiscCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def about(self, ctx):
         """(Information about this bot)
 

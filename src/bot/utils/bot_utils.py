@@ -51,6 +51,33 @@ async def init_background_tasks(bot):
         bot.loop.create_task(bg_tasks.bgtask_change_presence(bot.settings["BGActivityTimer"]))
 
 
+async def load_cogs(bot):
+    bot.log.debug("Loading Bot Extensions...")
+    for ext in constants.ALL_COGS:
+        cog_name = ".".join(ext.split("/")[-4:])[:-3]
+        try:
+            await bot.load_extension(cog_name)
+            bot.log.debug(f"\t {cog_name}")
+        except Exception as e:
+            bot.log.error(f"ERROR: FAILED to load extension: {cog_name}")
+            bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
+
+
+async def reload_cogs(self):
+    self.bot.log.info("RE-Loading Bot Extensions...")
+    for ext in constants.ALL_COGS:
+        cog_name = ".".join(ext.split("/")[-4:])[:-3]
+        try:
+            if hasattr(self, "bot"):
+                self.bot.reload_extension(cog_name)
+            else:
+                self.reload_extension(cog_name)
+                self.log.debug(f"\t {cog_name}")
+        except Exception as e:
+            self.bot.log.error(f"ERROR: FAILED to load extension: {cog_name}")
+            self.bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
+
+
 async def send_msg(self, ctx, color, msg):
     await ctx.message.channel.typing()
     embed = discord.Embed(color=color, description=msg)
@@ -164,33 +191,6 @@ async def delete_channel_message(self, ctx, warning=False):
             return
 
 
-async def load_cogs(bot):
-    bot.log.debug("Loading Bot Extensions...")
-    for ext in constants.ALL_COGS:
-        cog_name = ".".join(ext.split("/")[-4:])[:-3]
-        try:
-            await bot.load_extension(cog_name)
-            bot.log.debug(f"\t {cog_name}")
-        except Exception as e:
-            bot.log.error(f"ERROR: FAILED to load extension: {cog_name}")
-            bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
-
-
-async def reload_cogs(self):
-    self.bot.log.info("RE-Loading Bot Extensions...")
-    for ext in constants.ALL_COGS:
-        cog_name = ".".join(ext.split("/")[-4:])[:-3]
-        try:
-            if hasattr(self, "bot"):
-                self.bot.reload_extension(cog_name)
-            else:
-                self.reload_extension(cog_name)
-                self.log.debug(f"\t {cog_name}")
-        except Exception as e:
-            self.bot.log.error(f"ERROR: FAILED to load extension: {cog_name}")
-            self.bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
-
-
 def is_member_admin(member: discord.Member):
     if member is not None \
             and hasattr(member, "guild_permissions") \
@@ -200,7 +200,7 @@ def is_member_admin(member: discord.Member):
 
 
 def is_bot_owner(ctx, member: discord.Member):
-    if ctx.bot.owner.id == member.id:
+    if ctx.bot.owner_id == member.id:
         return True
     return False
 

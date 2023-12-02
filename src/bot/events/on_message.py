@@ -29,7 +29,7 @@ class OnMessage(commands.Cog):
 
     async def execute_private_msg(self, ctx):
         is_command = True if ctx.prefix is not None else False
-        if is_command is False:
+        if not is_command:
             custom_messages = await self._check_custom_messages(ctx.message)
             if custom_messages:
                 return

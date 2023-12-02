@@ -8,9 +8,9 @@ file_values = bot_utils.get_all_ini_file_settings(gw2_constants.GW2_SETTINGS_FIL
 
 
 class GW2CoolDowns(Enum):
-    AccountCooldown = 1 if constants.IS_DEBUG else int(file_values["AccountCooldown"])
-    ApiKeysCooldown = 1 if constants.IS_DEBUG else int(file_values["ApiKeysCooldown"])
-    DailyCooldown = 1 if constants.IS_DEBUG else int(file_values["DailyCooldown"])
-    LastSessionCooldown = 1 if constants.IS_DEBUG else int(file_values["LastSessionCooldown"])
-    MiscCooldown = 1 if constants.IS_DEBUG else int(file_values["MiscCooldown"])
-    WvwCooldown = 1 if constants.IS_DEBUG else int(file_values["WvwCooldown"])
+    Account = 1 if constants.IS_DEBUG else int(file_values["Account"])
+    ApiKeys = 1 if constants.IS_DEBUG else int(file_values["ApiKeys"])
+    Daily = 1 if constants.IS_DEBUG else int(file_values["Daily"])
+    LastSession = 1 if constants.IS_DEBUG else int(file_values["LastSession"])
+    Misc = 1 if constants.IS_DEBUG else int(file_values["Misc"])
+    Wvw = 1 if constants.IS_DEBUG else int(file_values["Wvw"])

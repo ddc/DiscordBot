@@ -36,7 +36,7 @@ class Owner(commands.Cog):
             await bot_utils.send_help_msg(self, ctx, cmd)
 
     @owner.command(name="prefix")
-    @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
     async def owner_change_prefix(self, ctx, *, new_prefix: str):
         """(Change bot prefix for commands)
 
@@ -67,7 +67,7 @@ class Owner(commands.Cog):
         await bot_utils.send_embed(self, ctx, embed, False, msg)
 
     @owner.command(name="botdescription")
-    @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
     async def owner_description(self, ctx, *, desc: str):
         """(Change bot description)
 
@@ -87,7 +87,7 @@ class Owner(commands.Cog):
         await bot_utils.send_embed(self, ctx, embed, False, msg)
 
     @owner.command(name="servers")
-    @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
     async def owner_servers(self, ctx):
         """(Display all servers in database)
 
@@ -117,7 +117,7 @@ class Owner(commands.Cog):
         await bot_utils.send_embed(self, ctx, embed, True, msg)
 
     @owner.command(name="reloadallcogs")
-    @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
     async def owner_reload(self, ctx):
         """(Command to reload all bot cogs)
 
@@ -134,7 +134,7 @@ class Owner(commands.Cog):
         await bot_utils.send_embed(self, ctx, embed, False, msg)
 
     @owner.command(name="reloadcog")
-    @commands.cooldown(1, CoolDowns.OwnerCooldown.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
     async def owner_reload_cog(self, ctx, *, name: str):
         """(Command to reload a module)
 
