@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import discord
 from discord.ext import commands
-from src.database.dal.bot.blacklist_dal import BlacklistDal
 from src.database.dal.bot.custom_commands_dal import CustomCommandsDal
 from src.database.dal.bot.servers_dal import ServersDal
 from src.bot.utils import bot_utils, chat_formatting
@@ -49,39 +48,9 @@ class OnMessage(commands.Cog):
             if not await self._check_exclusive_users(ctx):
                 return
 
-            blacklists_dal = BlacklistDal(self.bot.db_session, self.bot.log)
-            bl = await blacklists_dal.get_blacklisted_user(ctx.message.author.id)
-
-            servers_lst = []
-            reason_lst = []
-            if len(bl) > 0:
-                if ctx.message.content.startswith(ctx.prefix):
-                    for key, value in bl.items():
-                        servers_lst.append(value["server_name"])
-                        if value["reason"] is None:
-                            reason_lst.append("---")
-                        else:
-                            reason_lst.append(value["reason"])
-
-                reason = None
-                servers = '\n'.join(servers_lst)
-                if len(reason_lst) > 0:
-                    reason = '\n'.join(reason_lst)
-                msg = "You are blacklisted.\n" \
-                      "You cannot execute any Bot commands until your are removed from all servers."
-                embed = discord.Embed(title="", color=discord.Color.red(), description=chat_formatting.error_inline(msg))
-                embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
-                embed.add_field(name="You are blacklisted on following servers:",
-                                value=chat_formatting.inline(servers),
-                                inline=True)
-                if reason:
-                    embed.add_field(name="Reason", value=chat_formatting.inline(reason), inline=True)
-                await ctx.message.channel.send(embed=embed)
-                return
-
             allowed_dm_commands = self.bot.settings["DMCommands"]
             if allowed_dm_commands is not None:
-                user_cmd = ctx.message.content.split(' ', 1)[0][1:]
+                user_cmd = ctx.message.content.split(" ", 1)[0][1:]
 
                 if isinstance(allowed_dm_commands, (list, tuple)):
                     sorted_allowed_cmds = sorted(allowed_dm_commands)
@@ -109,13 +78,12 @@ class OnMessage(commands.Cog):
         is_command = True if ctx.prefix is not None else False
 
         server_configs_dal = ServersDal(self.bot.db_session, self.bot.log)
-        configs = await server_configs_dal.get_user_channel_configs(
+        configs = await server_configs_dal.get_server(
             ctx.message.guild.id,
-            ctx.message.author.id,
             ctx.message.channel.id
         )
         if not configs:
-            self.bot.log.warning("error with serverConfigsSql.get_user_channel_configs")
+            self.bot.log.warning("Error getting server configs")
             if is_command:
                 await self.bot.process_commands(ctx.message)
             return
@@ -147,38 +115,11 @@ class OnMessage(commands.Cog):
             if bad_word:
                 return
 
-        # check for custom messages
+        # check for bot reactions
         if configs["bot_word_reactions"] == "Y":
             custom_messages = await self._check_custom_messages(ctx.message)
             if custom_messages:
                 return
-
-        # checking if member is muted in the current server
-        if configs["muted"] is not None and configs["muted"] == 'Y':
-            try:
-                await ctx.message.delete()
-            except:
-                msg = "`Bot does not have permission to delete messages.\n Missing permission: \"Manage Messages\"`"
-                embed = discord.Embed(title="", color=discord.Color.red(), description=msg)
-                try:
-                    await ctx.channel.send(embed=embed)
-                except discord.HTTPException:
-                    await ctx.channel.send(f"{msg}")
-                return
-
-            msg = ("You are muted.\n"
-                   f"Server: {ctx.guild}\n"
-                   "You cannot type anything.\n"
-                   "Please do not insist.\n")
-            if configs['muted_reason'] is not None:
-                msg += f"\nReason: {configs['muted_reason']}"
-            embed = discord.Embed(title="", color=discord.Color.red(), description=chat_formatting.error_inline(msg))
-            embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
-            try:
-                await ctx.message.author.send(embed=embed)
-            except:
-                await ctx.send(f"{ctx.message.author.mention}\n{msg}")
-            return
 
         if is_command:
             ignore_prefixes_characteres = await self._check_prefixes_characteres(ctx.message)
@@ -187,22 +128,6 @@ class OnMessage(commands.Cog):
 
             if not (await self._check_exclusive_users(ctx)):
                 return
-
-            # checking if member is blacklisted
-            if configs["blacklisted"] is not None and configs["blacklisted"] == 'Y':
-                if ctx.message.content.startswith(ctx.prefix):
-                    msg = "You are blacklisted.\n" \
-                          "You cannot execute any Bot commands.\n" \
-                          "Please do not insist.\n"
-                    if configs['blacklisted_reason'] is not None:
-                        msg += f"\nReason: {configs['blacklisted_reason']}"
-                    embed = discord.Embed(title="", color=discord.Color.red(), description=chat_formatting.error_inline(msg))
-                    embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
-                    try:
-                        await ctx.message.channel.send(embed=embed)
-                    except discord.HTTPException:
-                        await ctx.send(f"{ctx.message.author.mention}\n{msg}")
-                    return
 
             # execute custom commands
             commands_dal = CustomCommandsDal(self.bot.db_session, self.bot.log)

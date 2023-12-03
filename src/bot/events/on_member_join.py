@@ -13,7 +13,7 @@ class OnMemberJoin(commands.Cog):
         @self.bot.event
         async def on_member_join(member):
             server_configs_sql = ServersDal(self.bot.db_session, self.bot.log)
-            rs = await server_configs_sql.get_server_by_id(member.guild.id)
+            rs = await server_configs_sql.get_server(member.guild.id)
             if len(rs) > 0 and rs[0]["msg_on_join"] == "Y":
                 now = datetime.now()
                 embed = discord.Embed(color=discord.Color.green(), description=str(member))

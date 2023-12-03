@@ -8,7 +8,7 @@ class Errors(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        @bot.event
+        @self.bot.event
         async def on_command_error(ctx, error):
             # cmd = str(ctx.command.full_parent_name)
             # command = f"{ctx.prefix}{cmd} {ctx.invoked_with}"

@@ -43,7 +43,7 @@ class OnUserUpdate(commands.Cog):
                 server_configs_sql = ServersDal(self.bot.db_session, self.bot.log)
                 for guild in after._state.guilds:
                     if after in guild.members:
-                        rs_sc = await server_configs_sql.get_server_by_id(guild.id)
+                        rs_sc = await server_configs_sql.get_server(guild.id)
                         if len(rs_sc) > 0 and rs_sc[0]["msg_on_member_update"] == "Y":
                             if len(embed.fields) > 0:
                                 channel_to_send_msg = await bot_utils.channel_to_send_msg(bot, guild)

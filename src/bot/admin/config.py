@@ -22,15 +22,11 @@ async def config(self, ctx):
     Examples:
 
     admin config list
-    admin config bladmin         [on | off] (Only Bot Owner can execute this command)
-    admin config muteadmin       [on | off] (Only Bot Owner can execute this command)
     admin config joinmessage     [on | off]
     admin config leavemessage    [on | off]
     admin config servermessage   [on | off]
     admin config membermessage   [on | off]
     admin config blockinvisible  [on | off]
-    admin config mentionpool     [on | off]
-    admin config anonymouspool   [on | off]
     admin config botreactions    [on | off]
     admin config pfilter         [on | off] <channel_name>
     admin config defaultchannel  <channel_name>
@@ -44,70 +40,6 @@ async def config(self, ctx):
         else:
             cmd = self.bot.get_command("admin config")
         await bot_utils.send_help_msg(self, ctx, cmd)
-
-
-@config.command(name="bladmin")
-@commands.cooldown(1, CoolDowns.Config.value, BucketType.user)
-async def config_blacklist_admins(self, ctx, *, new_status: str):
-    """(Able to blacklist server's admins)
-
-    Only the Bot Owner can execute this command.
-
-    Example:
-    config bladmin [on | off]
-    """
-
-    await ctx.message.channel.typing()
-    if new_status.lower() == "on":
-        new_status = "Y"
-        color = discord.Color.green()
-        msg = "Admins can now be blacklisted: `ON`"
-    elif new_status.lower() == "off":
-        new_status = "N"
-        color = discord.Color.red()
-        msg = "Admins can no longer be blacklisted: `OFF`"
-    else:
-        raise commands.BadArgument(message="BadArgument")
-
-    embed = discord.Embed(description=msg, color=color)
-    server_configs_dal = ServersDal(self.bot.db_session, self.bot.log)
-    rs = await server_configs_dal.get_server_by_id(ctx.guild.id)
-    if rs[0]["blacklist_admins"] != str(new_status):
-        await server_configs_dal.update_blacklist_admins(ctx.guild.id, str(new_status))
-
-    await bot_utils.send_embed(self, ctx, embed, False, msg)
-
-
-@config.command(name="muteadmin")
-@commands.cooldown(1, CoolDowns.Config.value, BucketType.user)
-async def config_mute_admins(self, ctx, *, new_status: str):
-    """(Able to mute server's admins)
-
-    Only the Bot Owner can execute this command.
-
-    Example:
-    config muteadmin [on | off]
-    """
-
-    await ctx.message.channel.typing()
-    if new_status.lower() == "on":
-        new_status = "Y"
-        color = discord.Color.green()
-        msg = "Admins can now be muted: `ON`"
-    elif new_status.lower() == "off":
-        new_status = "N"
-        color = discord.Color.red()
-        msg = "Admins can no longer be muted: `OFF`"
-    else:
-        raise commands.BadArgument(message="BadArgument")
-
-    embed = discord.Embed(description=msg, color=color)
-    server_configs_dal = ServersDal(self.bot.db_session, self.bot.log)
-    rs = await server_configs_dal.get_server_by_id(ctx.guild.id)
-    if rs[0]["mute_admins"] != str(new_status):
-        await server_configs_dal.update_mute_admins(ctx.guild.id, str(new_status))
-
-    await bot_utils.send_embed(self, ctx, embed, False, msg)
 
 
 @config.command(name="joinmessage")
@@ -133,7 +65,7 @@ async def config_join_message(self, ctx, *, new_status: str):
 
     embed = discord.Embed(description=msg, color=color)
     server_configs_dal = ServersDal(self.bot.db_session, self.bot.log)
-    rs = await server_configs_dal.get_server_by_id(ctx.guild.id)
+    rs = await server_configs_dal.get_server(ctx.guild.id)
     if rs[0]["msg_on_join"] != str(new_status):
         await server_configs_dal.update_msg_on_join(ctx.guild.id, str(new_status))
 
@@ -163,7 +95,7 @@ async def config_leave_message(self, ctx, *, new_status: str):
 
     embed = discord.Embed(description=msg, color=color)
     server_configs_dal = ServersDal(self.bot.db_session, self.bot.log)
-    rs = await server_configs_dal.get_server_by_id(ctx.guild.id)
+    rs = await server_configs_dal.get_server(ctx.guild.id)
     if rs[0]["msg_on_leave"] != str(new_status):
         await server_configs_dal.update_msg_on_leave(ctx.guild.id, str(new_status))
 
@@ -193,7 +125,7 @@ async def config_server_message(self, ctx, *, new_status: str):
 
     embed = discord.Embed(description=msg, color=color)
     server_configs_dal = ServersDal(self.bot.db_session, self.bot.log)
-    rs = await server_configs_dal.get_server_by_id(ctx.guild.id)
+    rs = await server_configs_dal.get_server(ctx.guild.id)
     if rs[0]["msg_on_server_update"] != str(new_status):
         await server_configs_dal.update_msg_on_server_update(ctx.guild.id, str(new_status))
 
@@ -223,7 +155,7 @@ async def config_member_message(self, ctx, *, new_status: str):
 
     embed = discord.Embed(description=msg, color=color)
     server_configs_dal = ServersDal(self.bot.db_session, self.bot.log)
-    rs = await server_configs_dal.get_server_by_id(ctx.guild.id)
+    rs = await server_configs_dal.get_server(ctx.guild.id)
     if rs[0]["msg_on_member_update"] != str(new_status):
         await server_configs_dal.update_msg_on_member_update(ctx.guild.id, str(new_status))
 
@@ -253,7 +185,7 @@ async def config_block_invis_members(self, ctx, *, new_status: str):
 
     embed = discord.Embed(description=msg, color=color)
     server_configs_dal = ServersDal(self.bot.db_session, self.bot.log)
-    rs = await server_configs_dal.get_server_by_id(ctx.guild.id)
+    rs = await server_configs_dal.get_server(ctx.guild.id)
     if rs[0]["block_invis_members"] != str(new_status):
         await server_configs_dal.update_block_invis_members(ctx.guild.id, str(new_status))
 
@@ -283,7 +215,7 @@ async def config_bot_word_reactions(self, ctx, *, new_status: str):
 
     embed = discord.Embed(description=msg, color=color)
     server_configs_dal = ServersDal(self.bot.db_session, self.bot.log)
-    rs = await server_configs_dal.get_server_by_id(ctx.guild.id)
+    rs = await server_configs_dal.get_server(ctx.guild.id)
     if rs[0]["bot_word_reactions"] != str(new_status):
         await server_configs_dal.update_bot_word_reactions(ctx.guild.id, str(new_status))
 
@@ -323,7 +255,7 @@ async def config_default_text_channel(self, ctx, *, text_channel: str):
     color = discord.Color.green()
     embed = discord.Embed(description=msg, color=color)
     server_configs_dal = ServersDal(self.bot.db_session, self.bot.log)
-    rs = await server_configs_dal.get_server_by_id(ctx.guild.id)
+    rs = await server_configs_dal.get_server(ctx.guild.id)
     if rs[0]["default_text_channel"] != str(text_channel):
         await server_configs_dal.update_default_text_channel(ctx.guild.id, str(text_channel))
 
@@ -387,7 +319,7 @@ async def config_pfilter(self, ctx, *, stats_channel: str):
 
 @config.command(name="list")
 @commands.cooldown(1, CoolDowns.Config.value, BucketType.user)
-async def config_config_list(self, ctx):
+async def config_list(self, ctx):
     """(List all bot configurations)
 
     Example:
@@ -397,7 +329,7 @@ async def config_config_list(self, ctx):
     server_configs_dal = ServersDal(self.bot.db_session, self.bot.log)
     profanity_filter_dal = ProfanityFilterDal(self.bot.db_session, self.bot.log)
 
-    sc = await server_configs_dal.get_server_by_id(ctx.guild.id)
+    sc = await server_configs_dal.get_server(ctx.guild.id)
     pf = await profanity_filter_dal.get_all_server_profanity_filter_channels(ctx.guild.id)
 
     if len(pf) > 0:
@@ -417,11 +349,6 @@ async def config_config_list(self, ctx):
     embed.set_author(name=f"Configurations for {ctx.guild.name}", icon_url=f"{ctx.guild.icon.url}")
 
     embed.add_field(
-        name=f"Admins can be blacklisted (cannot use any commands)\n*`{ctx.prefix}config bladmin [on | off]`*",
-        value=f"{on}" if sc[0]["blacklist_admins"] == 'Y' else f"{off}", inline=False)
-    embed.add_field(name=f"Admins can be muted (cannot type anything)\n*`{ctx.prefix}config muteadmin [on | off]`*",
-                    value=f"{on}" if sc[0]["mute_admins"] == 'Y' else f"{off}", inline=False)
-    embed.add_field(
         name=f"Display a message when someone joins the server\n*`{ctx.prefix}config joinmessage [on | off]`*",
         value=f"{on}" if sc[0]["msg_on_join"] == 'Y' else f"{off}", inline=False)
     embed.add_field(
@@ -435,14 +362,6 @@ async def config_config_list(self, ctx):
         value=f"{on}" if sc[0]["msg_on_member_update"] == 'Y' else f"{off}", inline=False)
     embed.add_field(name=f"Block messages from invisible members\n*`{ctx.prefix}config blockinvisible [on | off]`*",
                     value=f"{on}" if sc[0]["block_invis_members"] == 'Y' else f"{off}", inline=False)
-    embed.add_field(
-        name=f"Mention everyone when pool commands are used\n*`{ctx.prefix}config mentionpool [on | off]`*",
-        value=f"{on}" if sc[0]["mention_everyone_pool_cmd"] == 'Y' else f"{off}", inline=False)
-    embed.add_field(
-        name="Anonymous pools\n"
-             "(hide the author's name from the pool command)\n"
-             f"*`{ctx.prefix}config anonymouspool [on | off]`*",
-        value=f"{on}" if sc[0]["anonymous_pool"] == 'Y' else f"{off}", inline=False)
     embed.add_field(
         name=f"Bot will react to member words\n*`{ctx.prefix}config botreactions [on | off] <channel_name>`*",
         value=f"{on}" if sc[0]["bot_word_reactions"] == 'Y' else f"{off}", inline=False)

@@ -1,7 +1,7 @@
 """create_gw2_sessions
 
-Revision ID: 15
-Revises: 14
+Revision ID: 13
+Revises: 12
 Create Date: 2023-11-13 18:22:23.282929
 
 """
@@ -11,8 +11,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '15'
-down_revision: Union[str, None] = '14'
+revision: str = '13'
+down_revision: Union[str, None] = '12'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

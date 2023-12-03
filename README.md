@@ -25,30 +25,42 @@
 ## Admin/Mod Commands
 | Command                                          | Description                               |
 |:-------------------------------------------------|:------------------------------------------|
-| admin invites                                      | List active invites link for the server |
-| admin banlist                                      | List all members that have been banned  |
-| admin unban <_member#1234_>                        | UnBan member from the channel           |
-| admin ban <_member#1234_> <_reason_>               | Ban member from the channel             |
-| admin kick <_member#1234_> <_reason_>              | Kick member from the channel            |
-| admin blacklist [add,remove] <_member#1234_>       | Add or remove users from the blacklist  |
-| admin mute [add,remove] <_member#1234_> <_reason_> | Mute or unmute an user                  |
 | admin customcom [add,remove] <_command_>           | Add or remove Custom commands           |
 | admin botgame <_new game_>                         | Change game that bot is playing         |
 
 ## Config Commands
-| Command                                       | Description                                        |
-|:----------------------------------------------|:---------------------------------------------------|
-| admin config list									| List all bot configurations                 |
-| admin config bladmin         [on , off]				| Able to blacklist server's admins			  |
-| admin config muteadmins		[on , off]				| Able to mute server's admins			 	  |
-| admin config servermessage   [on , off]				| Show message when a server gets updated	  |
-| admin config membermessage   [on , off]				| Message when someone changes the profile 	  |
-| admin config joinmessage     [on , off]				| Show message when a user joins the server	  |
-| admin config leavemessage    [on , off]				| Show message when a user leaves the server  |
-| admin config blockinvisible  [on , off]				| Block messages from invisible members		  |
-| admin config botreactions    [on , off]				| Bot will react to member words			  |
-| admin config defaultchannel <_channel name_>		| Default text channel for bot messages		      |
-| admin config pfilter [on , off]	<_channel name_>	| Profanity Filter (block swear/bad words)	  |
+| Command                                       | Description                                          |
+|:----------------------------------------------|:-----------------------------------------------------|
+| admin config list									| List all bot configurations                   |
+| admin config servermessage   [on , off]				| Show message when a server gets updated	    |
+| admin config membermessage   [on , off]				| Show message when someone updates the profile |
+| admin config joinmessage     [on , off]				| Show message when a user joins the server	    |
+| admin config leavemessage    [on , off]				| Show message when a user leaves the server    |
+| admin config blockinvisible  [on , off]				| Block messages from invisible members		    |
+| admin config botreactions    [on , off]				| Bot will react to member words			    |
+| admin config pfilter [on , off]	<_channel name_>	| Profanity Filter (block swear/bad words)	    |
+| admin config defaultchannel <_channel name_>		| Default text channel for bot messages		        |
+
+## Misc Commands
+| Command                                      | Description                               |
+|:---------------------------------------------|:------------------------------------------|
+| about										| Display bot info                          |
+| echo											| Show your msg again                       |
+| ping											| Test latency by receiving a ping message  |
+| roll 										| Rolls random number                       |
+| pepe 										| Posts a random Pepe from imgur            |
+| tts <_message_>				                | Send TTS as .mp3 to channel               |
+| serverinfo									| Shows server's informations               |
+| userinfo <_member#1234_>						| Shows discord user informations           |
+| lmgtfy <_link_>								| Creates a lmgtfy link	                    |
+| invites                                      | List active invites link for the server   |
+
+## Bot Owner Commands
+| Command                                      | Description                                |
+|:---------------------------------------------|:-------------------------------------------|
+| owner servers								| Display all servers in database			 |
+| owner prefix <_new prefix_>					| Change bot prefix for commands			 |
+| owner botdescription <_new description_>		| Change bot description					 |
 
 ## GW2 Commands
 | Command                                       | Description                                    |
@@ -67,30 +79,6 @@
 | gw2 config roletimer <_time secs_>			| Timer to check for api roles in seconds         |
 | gw2 config lastsession [on , off]				| Bot should record users last sessions	      |
 | gw2 config apirole [on , off] <_server name_>	| Bot should add role that matches gw2 server |
-
-## Misc Commands
-| Command                                      | Description                              |
-|:---------------------------------------------|:-----------------------------------------|
-| about										| Display bot info                         |
-| echo											| Show your msg again                      |
-| ping											| Test latency by receiving a ping message |
-| roll 										| Rolls random number                      |
-| pepe 										| Posts a random Pepe from imgur           |
-| tts <_message_>				                | Send TTS as .mp3 to channel              |
-| serverinfo									| Shows server's informations              |
-| userinfo <_member#1234_>						| Shows discord user informations          |
-| lmgtfy <_link_>								| Creates a lmgtfy link	                   |
-
-
-## Bot Owner Commands
-| Command                                      | Description                                |
-|:---------------------------------------------|:-------------------------------------------|
-| owner executesql                             | Execute all sql files inside data/sql dir  |
-| owner reload                                 | Command to reload all extensions           |
-| owner servers								| Display all servers in database			 |
-| owner prefix <_new prefix_>					| Change bot prefix for commands			 |
-| owner reloadcog <_src.bot.name_>			    | Command to reload a module				 |
-| owner botdescription <_new description_>		| Change bot description					 |
 
 ## Acknowledgements
 + [Guild Wars 2 API](https://wiki.guildwars2.com/wiki/API:2)

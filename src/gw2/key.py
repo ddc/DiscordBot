@@ -57,7 +57,7 @@ async def _info_key(self, ctx, sub_command=None):
                                                   f"To check your API key use: `{ctx.prefix}gw2 key info`")
         else:
             for x in range(0, len(rs_all)):
-                rs_guild_info = await serversSql.get_server_by_id(rs_all[x]["server_id"])
+                rs_guild_info = await serversSql.get_server(rs_all[x]["server_id"])
                 footer_guild_name = rs_guild_info[0]["server_name"]
                 footer_icon_url = rs_guild_info[0]["icon_url"]
 

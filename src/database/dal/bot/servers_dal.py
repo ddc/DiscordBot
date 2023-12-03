@@ -3,7 +3,7 @@ import discord
 import sqlalchemy as sa
 from sqlalchemy.future import select
 from src.database.db_utils import DBUtils
-from src.database.models.bot_models import Servers
+from src.database.models.bot_models import Servers, ProfanityFilters
 
 
 class ServersDal:
@@ -27,52 +27,11 @@ class ServersDal:
             await self.db_utils.execute(stmt)
 
     async def delete_server(self, server_id: str):
-        stmt = sa.delete(Servers).where(Servers.id == server_id)
+        stmt = (
+            sa.delete(Servers)
+            .where(Servers.id == server_id)
+        )
         await self.db_utils.execute(stmt)
-
-    async def get_all_servers(self):
-        stmt = select(
-            Servers.id,
-            Servers.name,
-            Servers.msg_on_join,
-            Servers.msg_on_leave,
-            Servers.msg_on_server_update,
-            Servers.msg_on_member_update,
-            Servers.blacklist_admins,
-            Servers.mute_admins,
-            Servers.block_invis_members,
-            Servers.bot_word_reactions,
-            Servers.default_text_channel,
-            Servers.created_at,
-            Servers.updated_at,
-        ).order_by(
-            Servers.name.asc()
-        )
-        results = await self.db_utils.fetchall(stmt)
-        return results
-
-    async def get_server_by_id(self, server_id: int):
-        stmt = select(
-            Servers.id,
-            Servers.name,
-            Servers.msg_on_join,
-            Servers.msg_on_leave,
-            Servers.msg_on_server_update,
-            Servers.msg_on_member_update,
-            Servers.blacklist_admins,
-            Servers.mute_admins,
-            Servers.block_invis_members,
-            Servers.bot_word_reactions,
-            Servers.default_text_channel,
-            Servers.created_at,
-            Servers.updated_at,
-        ).where(
-            Servers.id == server_id
-        ).order_by(
-            Servers.name.asc()
-        )
-        results = await self.db_utils.fetchall(stmt)
-        return results
 
     async def update_msg_on_join(self, server_id: int, new_status: str):
         stmt = sa.update(Servers).where(Servers.id == server_id).values(
@@ -98,18 +57,6 @@ class ServersDal:
         )
         await self.db_utils.execute(stmt)
 
-    async def update_blacklist_admins(self, server_id: int, new_status: str):
-        stmt = sa.update(Servers).where(Servers.id == server_id).values(
-            blacklist_admins=new_status
-        )
-        await self.db_utils.execute(stmt)
-
-    async def update_mute_admins(self, server_id: int, new_status: str):
-        stmt = sa.update(Servers).where(Servers.id == server_id).values(
-            mute_admins=new_status
-        )
-        await self.db_utils.execute(stmt)
-
     async def update_block_invis_members(self, server_id: int, new_status: str):
         stmt = sa.update(Servers).where(Servers.id == server_id).values(
             block_invis_members=new_status
@@ -128,22 +75,18 @@ class ServersDal:
         )
         await self.db_utils.execute(stmt)
 
-    async def get_user_channel_configs(self, server_id: int, user_id: int, channel_id: int):
-        stmt = f"""SELECT servers.msg_on_join,
-                          servers.msg_on_leave,
-                          servers.msg_on_server_update,
-                          servers.msg_on_member_update,
-                          servers.blacklist_admins,
-                          servers.block_invis_members,
-                          servers.bot_word_reactions,
-                          profanity_filters.channel_name,
-                          (SELECT 'Y' FROM blacklist WHERE user_id = {user_id} and server_id = {server_id}) as blacklisted,
-                          (SELECT reason FROM blacklist WHERE user_id = {user_id} and server_id = {server_id}) as blacklisted_reason,
-                          (SELECT 'Y' FROM muted WHERE user_id = {user_id} and server_id = {server_id}) as muted,
-                          (SELECT reason FROM muted WHERE user_id = {user_id} and server_id = {server_id}) as muted_reason,
-                          (SELECT 'Y' FROM profanity_filters where channel_id = {channel_id}) as profanity_filter
-                    FROM servers
-                    LEFT JOIN profanity_filters on profanity_filters.channel_id = {channel_id}
-                    WHERE servers.id = {server_id};"""
-        results = await self.db_utils.fetchall(sa.text(stmt))
+    async def get_server(self, server_id=None, channel_id=None):
+        columns = [x for x in Servers.__table__.columns]
+
+        if channel_id:
+            stmt = (select(*columns, ProfanityFilters.id.label("profanity_filter"))
+                    .join(ProfanityFilters, ProfanityFilters.channel_id == channel_id, isouter=True))
+        else:
+            stmt = select(*columns)
+
+        if server_id:
+            stmt = stmt.where(Servers.id == server_id)
+
+        stmt = stmt.order_by(Servers.name.asc())
+        results = await self.db_utils.fetchall(stmt)
         return results

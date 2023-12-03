@@ -20,9 +20,7 @@ class Owner(commands.Cog):
         """(Bot Owner Commands)
 
         owner servers
-        owner reloadallcogs
         owner prefix <new_prefix>
-        owner reloadcog <cog_name>
         owner botdescription <new_description>
         """
 
@@ -98,7 +96,7 @@ class Owner(commands.Cog):
         # bot_utils.delete_channel_message(self, ctx)
         await ctx.message.channel.typing()
         servers_sql = ServersDal(self.bot.db_session, self.bot.log)
-        rs = await servers_sql.get_all_servers()
+        rs = await servers_sql.get_server()
         color = self.bot.settings["EmbedOwnerColor"]
         embed = discord.Embed(description="Displaying all servers using the bot", color=color)
         embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar.url)
@@ -115,47 +113,6 @@ class Owner(commands.Cog):
         embed.add_field(name="Owner", value=chat_formatting.inline(owners), inline=True)
         msg = f"Servers:\n`{names}`"
         await bot_utils.send_embed(self, ctx, embed, True, msg)
-
-    @owner.command(name="reloadallcogs")
-    @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
-    async def owner_reload(self, ctx):
-        """(Command to reload all bot cogs)
-
-        Example:
-        owner reloadallcogs
-        """
-
-        # bot_utils.delete_channel_message(self, ctx)
-        await bot_utils.reload_cogs(self)
-
-        color = self.bot.settings["EmbedOwnerColor"]
-        msg = "All cogs have been loaded successfully"
-        embed = discord.Embed(description=msg, color=color)
-        await bot_utils.send_embed(self, ctx, embed, False, msg)
-
-    @owner.command(name="reloadcog")
-    @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
-    async def owner_reload_cog(self, ctx, *, name: str):
-        """(Command to reload a module)
-
-        Example:
-        owner reloadcog <cog_name>
-        """
-
-        # bot_utils.delete_channel_message(self, ctx)
-        await ctx.message.channel.typing()
-        color = self.bot.settings["EmbedOwnerColor"]
-        full_cog_name = f"src.bot.{name}"
-
-        try:
-            self.bot.reload_extension(full_cog_name)
-        except Exception as e:
-            msg = e.msg
-        else:
-            msg = f'**`RELOAD SUCCESS`**\nCog: {name}'
-
-        embed = discord.Embed(description=msg, color=color)
-        await bot_utils.send_embed(self, ctx, embed, False, msg)
 
 
 async def setup(bot):

@@ -20,7 +20,7 @@ class OnGuildUpdate(commands.Cog):
             await servers_sql.update_server(before, after)
 
             server_configs_sql = ServersDal(self.bot.db_session, self.bot.log)
-            rs = await server_configs_sql.get_server_by_id(after.id)
+            rs = await server_configs_sql.get_server(after.id)
             if len(rs) > 0 and rs[0]["msg_on_server_update"] == "Y":
                 msg = "New Server Settings\n"
                 now = datetime.now()

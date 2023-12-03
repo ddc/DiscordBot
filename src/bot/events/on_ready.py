@@ -15,7 +15,7 @@ class OnReady(commands.Cog):
         async def on_ready():
             # check for any missing server in database
             servers_dal = ServersDal(self.bot.db_session, self.bot.log)
-            db_servers = await servers_dal.get_all_servers()
+            db_servers = await servers_dal.get_server()
             db_server_ids = tuple(x["id"] for x in db_servers)
             for server in self.bot.guilds:
                 if server.id not in db_server_ids:

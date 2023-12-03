@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import sqlalchemy as sa
 from sqlalchemy.future import select
-from src.bot.utils import bot_utils
 from src.database.db_utils import DBUtils
 from src.database.models.bot_models import DiceRolls
 
@@ -32,21 +31,12 @@ class DiceRollsDal:
         await self.db_utils.execute(stmt)
 
     async def delete_all_server_rolls(self, server_id: int):
-        stmt = sa.delete(DiceRolls).where(
-            DiceRolls.server_id == server_id
-        )
+        stmt = sa.delete(DiceRolls).where(DiceRolls.server_id == server_id)
         await self.db_utils.execute(stmt)
 
     async def get_user_rolls_by_dice_size(self, server_id: int, user_id: int, dice_size: int):
-        stmt = select(
-            DiceRolls.id,
-            DiceRolls.server_id,
-            DiceRolls.user_id,
-            DiceRolls.roll,
-            DiceRolls.dice_size,
-            DiceRolls.created_at,
-            DiceRolls.updated_at,
-        ).where(
+        columns = [x for x in DiceRolls.__table__.columns]
+        stmt = select(*columns).where(
             DiceRolls.server_id == server_id,
             DiceRolls.user_id == user_id,
             DiceRolls.dice_size == dice_size,
@@ -55,38 +45,20 @@ class DiceRollsDal:
         return results
 
     async def get_user_rolls(self, server_id: int, user_id: int):
-        stmt = select(
-            DiceRolls.id,
-            DiceRolls.server_id,
-            DiceRolls.user_id,
-            DiceRolls.roll,
-            DiceRolls.dice_size,
-            DiceRolls.created_at,
-            DiceRolls.updated_at,
-        ).where(
+        columns = [x for x in DiceRolls.__table__.columns]
+        stmt = select(*columns).where(
             DiceRolls.server_id == server_id,
             DiceRolls.user_id == user_id,
-        ).order_by(
-            DiceRolls.dice_size.asc()
-        )
+        ).order_by(DiceRolls.dice_size.asc())
         results = await self.db_utils.fetchall(stmt)
         return results
 
     async def get_all_server_rolls(self, server_id: int, dice_size: int):
-        stmt = select(
-            DiceRolls.id,
-            DiceRolls.server_id,
-            DiceRolls.user_id,
-            DiceRolls.roll,
-            DiceRolls.dice_size,
-            DiceRolls.created_at,
-            DiceRolls.updated_at,
-        ).where(
+        columns = [x for x in DiceRolls.__table__.columns]
+        stmt = select(*columns).where(
             DiceRolls.server_id == server_id,
             DiceRolls.dice_size == dice_size,
-        ).order_by(
-            DiceRolls.roll.desc()
-        )
+        ).order_by(DiceRolls.roll.desc())
         results = await self.db_utils.fetchall(stmt)
         return results
 

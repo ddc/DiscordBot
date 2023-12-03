@@ -26,7 +26,7 @@ class OnMemberUpdate(commands.Cog):
 
             if str(before.nick) != str(after.nick):
                 server_configs_sql = ServersDal(self.bot.db_session, self.bot.log)
-                rs_sc = await server_configs_sql.get_server_by_id(after.guild.id)
+                rs_sc = await server_configs_sql.get_server(after.guild.id)
                 if len(rs_sc) > 0 and rs_sc[0]["msg_on_member_update"] == "Y":
                     msg = "Profile Changes:\n\n"
                     now = datetime.now()

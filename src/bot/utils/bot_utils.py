@@ -282,8 +282,8 @@ def get_object_channel(self, ctx, channel_str: str):
 
 
 async def channel_to_send_msg(bot, server: discord.Guild):
-    serverConfigsSql = ServersDal(bot.db_session, bot.log)
-    rs = await serverConfigsSql.get_server_by_id(server.id)
+    server_configs_dal = ServersDal(bot.db_session, bot.log)
+    rs = await server_configs_dal.get_server(server.id)
     default_text_channel = rs[0]["default_text_channel"]
     sorted_channels = sorted(server.text_channels, key=attrgetter('position'))
     if default_text_channel is None or default_text_channel == "" or len(default_text_channel) == 0:
@@ -434,31 +434,6 @@ class Colors(Enum):
     greyple = discord.Color.greyple()
 
 
-# def get_region_flag(region: str):
-#     flag = ""
-#     if "brazil" in str(region).lower():
-#         flag = ":flag_br:"
-#     elif "eu" in str(region).lower():
-#         flag = ":flag_eu:"
-#     elif "hong" in str(region).lower():
-#         flag = ":flag_hk:"
-#     elif "india" in str(region).lower():
-#         flag = ":flag_in:"
-#     elif "japan" in str(region).lower():
-#         flag = ":flag_jp:"
-#     elif "russia" in str(region).lower():
-#         flag = ":flag_ru:"
-#     elif "singapore" in str(region).lower():
-#         flag = ":flag_sg:"
-#     elif "southafrica" in str(region).lower():
-#         flag = ":flag_za:"
-#     elif "sydney" in str(region).lower():
-#         flag = ":flag_au:"
-#     elif "us" in str(region).lower():
-#         flag = ":flag_us:"
-#     return flag
-
-
 def clear_screen():
     if constants.IS_WINDOWS:
         os.system("cls")
@@ -475,17 +450,6 @@ def is_git_installed():
         return False
     else:
         return True
-
-
-# def is_nping_installed():
-#     try:
-#         subprocess.call(["nping", "--version"], stdout=subprocess.DEVNULL,
-#                                               stdin =subprocess.DEVNULL,
-#                                               stderr=subprocess.DEVNULL)
-#     except FileNotFoundError:
-#         return False
-#     else:
-#         return True
 
 
 def wait_return():
@@ -614,42 +578,3 @@ def check_user_has_role(self, member: discord.Member, role_name: str):
         if rol.name.lower() == role_name.lower():
             return rol
     return None
-
-
-# async def skill_embed(self, skill):
-#     description = None
-#     if "description" in skill:
-#         description = skill["description"]
-#
-#     url = f"https://wiki.guildwars2.com/wiki/{skill}"
-#     async with self.bot.aiosession.head(url) as r:
-#         if not r.status == 200:
-#             url = None
-#
-#     data = discord.Embed(title=skill["name"], description=description, url=url)
-#     if "icon" in skill:
-#         data.set_thumbnail(url=skill["icon"])
-#
-#     if "professions" in skill:
-#         if skill["professions"]:
-#             professions = skill["professions"]
-#             if len(professions) != 1:
-#                 data.add_field(name="Professions", value=", ".join(professions))
-#             elif len(professions) == 9:
-#                 data.add_field(name="Professions", value="All")
-#             else:
-#                 data.add_field(name="Profession", value=", ".join(professions))
-#
-#     if "facts" in skill:
-#         for fact in skill["facts"]:
-#             try:
-#                 if fact["type"] == "Recharge":
-#                     data.add_field(name="Cooldown", value=fact["value"])
-#                 if fact["type"] == "Distance" or fact["type"] == "Number":
-#                     data.add_field(name=fact["text"], value=fact["value"])
-#                 if fact["type"] == "ComboField":
-#                     data.add_field(name=fact["text"], value=fact["field_type"])
-#             except:
-#                 pass
-#
-#     return data

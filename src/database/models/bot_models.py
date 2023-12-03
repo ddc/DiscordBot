@@ -30,8 +30,6 @@ class Servers(BotBase):
     msg_on_leave: Mapped[CHAR] = mapped_column(CHAR(1), server_default="Y")
     msg_on_server_update: Mapped[CHAR] = mapped_column(CHAR(1), server_default="Y")
     msg_on_member_update: Mapped[CHAR] = mapped_column(CHAR(1), server_default="Y")
-    blacklist_admins: Mapped[CHAR] = mapped_column(CHAR(1), server_default="N")
-    mute_admins: Mapped[CHAR] = mapped_column(CHAR(1), server_default="N")
     block_invis_members: Mapped[CHAR] = mapped_column(CHAR(1), server_default="N")
     bot_word_reactions: Mapped[CHAR] = mapped_column(CHAR(1), server_default="Y")
     default_text_channel: Mapped[str] = mapped_column(nullable=True)
@@ -40,8 +38,6 @@ class Servers(BotBase):
     CheckConstraint("msg_on_leave IN ('Y','N')", name="check_msg_on_leave_y_n")
     CheckConstraint("msg_on_server_update IN ('Y','N')", name="check_msg_on_server_update_y_n")
     CheckConstraint("msg_on_member_update IN ('Y','N')", name="check_msg_on_member_update_y_n")
-    CheckConstraint("blacklist_admins IN ('Y','N')", name="check_blacklist_admins_y_n")
-    CheckConstraint("mute_admins IN ('Y','N')", name="check_mute_admins_y_n")
     CheckConstraint("block_invis_members IN ('Y','N')", name="check_block_invis_members_y_n")
     CheckConstraint("bot_word_reactions IN ('Y','N')", name="check_bot_word_reactions_y_n")
 
