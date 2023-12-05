@@ -1,13 +1,68 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime, timedelta
 from enum import Enum
 import discord
+from src.bot.utils import bot_utils
+from src.bot.utils import constants
+from src.bot.utils.bot_utils import Object
 from src.database.dal.gw2.gw2_chars_end_dal import Gw2CharsEndDal
 from src.database.dal.gw2.gw2_chars_start_dal import Gw2CharsStartDal
 from src.database.dal.gw2.gw2_configs_dal import Gw2ConfigsDal
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
-from src.bot.utils import bot_utils
 from src.gw2.utils.gw2_api import Gw2Api
+
+
+class Gw2ServerRoles(Enum):
+    Anvil_Rock = "Anvil Rock"
+    Borlis_Pass = "Borlis Pass"
+    Yaks_Bend = "Yak's Bend"
+    Henge_of_Denravi = "Henge of Denravi"
+    Maguuma = "Maguuma"
+    Sorrows_Furnace = "Sorrow's Furnace"
+    Gate_of_Madness = "Gate of Madness"
+    Jade_Quarry = "Jade Quarry"
+    Fort_Aspenwood = "Fort Aspenwood"
+    Ehmry_Bay = "Ehmry Bay"
+    Stormbluff_Isle = "Stormbluff Isle"
+    Darkhaven = "Darkhaven"
+    Sanctum_of_Rall = "Sanctum of Rall"
+    Crystal_Desert = "Crystal Desert"
+    Isle_of_Janthir = "Isle of Janthir"
+    Sea_of_Sorrows = "Sea of Sorrows"
+    Tarnished_Coast = "Tarnished Coast"
+    Northern_Shiverpeaks = "Northern Shiverpeaks"
+    Blackgate = "Blackgate"
+    Fergusons_Crossing = "Ferguson's Crossing"
+    Dragonbrand = "Dragonbrand"
+    Kaineng = "Kaineng"
+    Devonas_Rest = "Devona's Rest"
+    Eredon_Terrace = "Eredon Terrace"
+    Fissure_of_Woe = "Fissure of Woe"
+    Desolation = "Desolation"
+    Gandara = "Gandara"
+    Blacktide = "Blacktide"
+    Ring_of_Fire = "Ring of Fire"
+    Underworld = "Underworld"
+    Far_Shiverpeaks = "Far Shiverpeaks"
+    Whiteside_Ridge = "Whiteside Ridge"
+    Ruins_of_Surmia = "Ruins of Surmia"
+    Seafarers_Rest = "Seafarer's Rest"
+    Vabbi = "Vabbi"
+    Piken_Square = "Piken Square"
+    Aurora_Glade = "Aurora Glade"
+    Gunnars_Hold = "Gunnar's Hold"
+    Jade_Sea = "Jade Sea [FR]"
+    Fort_Ranik = "Fort Ranik [FR]"
+    Augury_Rock = "Augury Rock [FR]"
+    Vizunah_Square = "Vizunah Square [FR]"
+    Arborstone = "Arborstone [FR]"
+    Kodash = "Kodash [DE]"
+    Riverside = "Riverside [DE]"
+    Elona_Reach = "Elona Reach [DE]"
+    Abaddons_Mouth = "Abaddon's Mouth [DE]"
+    Drakkar_Lake = "Drakkar Lake [DE]"
+    Millers_Sound = "Miller's Sound [DE]"
 
 
 async def send_msg(ctx, msg):
@@ -378,62 +433,10 @@ def get_pvp_rank_title(rank: int):
 
 
 def check_gw2_server_name_role(role_name: str):
-    for gw2_roles in Gw2_server_roles:
+    for gw2_roles in Gw2ServerRoles:
         if gw2_roles.value.lower() == role_name.lower():
             return True
     return False
-
-
-class Gw2_server_roles(Enum):
-    Anvil_Rock = "Anvil Rock"
-    Borlis_Pass = "Borlis Pass"
-    Yaks_Bend = "Yak's Bend"
-    Henge_of_Denravi = "Henge of Denravi"
-    Maguuma = "Maguuma"
-    Sorrows_Furnace = "Sorrow's Furnace"
-    Gate_of_Madness = "Gate of Madness"
-    Jade_Quarry = "Jade Quarry"
-    Fort_Aspenwood = "Fort Aspenwood"
-    Ehmry_Bay = "Ehmry Bay"
-    Stormbluff_Isle = "Stormbluff Isle"
-    Darkhaven = "Darkhaven"
-    Sanctum_of_Rall = "Sanctum of Rall"
-    Crystal_Desert = "Crystal Desert"
-    Isle_of_Janthir = "Isle of Janthir"
-    Sea_of_Sorrows = "Sea of Sorrows"
-    Tarnished_Coast = "Tarnished Coast"
-    Northern_Shiverpeaks = "Northern Shiverpeaks"
-    Blackgate = "Blackgate"
-    Fergusons_Crossing = "Ferguson's Crossing"
-    Dragonbrand = "Dragonbrand"
-    Kaineng = "Kaineng"
-    Devonas_Rest = "Devona's Rest"
-    Eredon_Terrace = "Eredon Terrace"
-    Fissure_of_Woe = "Fissure of Woe"
-    Desolation = "Desolation"
-    Gandara = "Gandara"
-    Blacktide = "Blacktide"
-    Ring_of_Fire = "Ring of Fire"
-    Underworld = "Underworld"
-    Far_Shiverpeaks = "Far Shiverpeaks"
-    Whiteside_Ridge = "Whiteside Ridge"
-    Ruins_of_Surmia = "Ruins of Surmia"
-    Seafarers_Rest = "Seafarer's Rest"
-    Vabbi = "Vabbi"
-    Piken_Square = "Piken Square"
-    Aurora_Glade = "Aurora Glade"
-    Gunnars_Hold = "Gunnar's Hold"
-    Jade_Sea = "Jade Sea [FR]"
-    Fort_Ranik = "Fort Ranik [FR]"
-    Augury_Rock = "Augury Rock [FR]"
-    Vizunah_Square = "Vizunah Square [FR]"
-    Arborstone = "Arborstone [FR]"
-    Kodash = "Kodash [DE]"
-    Riverside = "Riverside [DE]"
-    Elona_Reach = "Elona Reach [DE]"
-    Abaddons_Mouth = "Abaddon's Mouth [DE]"
-    Drakkar_Lake = "Drakkar Lake [DE]"
-    Millers_Sound = "Miller's Sound [DE]"
 
 
 def format_gold(currency: str):
@@ -456,3 +459,28 @@ def format_gold(currency: str):
         formatted_gold += f"{copper} Copper"
 
     return formatted_gold
+
+
+def get_time_passed(start_time_str, end_time_str):
+    date_time_formatter = f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"
+    time_passed_delta = (datetime.strptime(end_time_str, date_time_formatter) -
+                         datetime.strptime(start_time_str, date_time_formatter))
+
+    time_passed_obj = convert_timedelta_to_obj(time_passed_delta)
+    return time_passed_obj
+
+
+def convert_timedelta_to_obj(time_delta: timedelta):
+    obj = Object()
+    obj.timedelta = time_delta
+    if "," in str(time_delta):
+        obj.days = int(str(time_delta).split()[0].strip())
+        obj.hours = int(str(time_delta).split(":")[0].split(",")[1].strip())
+        obj.minutes = int(str(time_delta).split(":")[1].strip())
+        obj.seconds = int(str(time_delta).split(":")[2].strip())
+    else:
+        obj.days = 0
+        obj.hours = int(str(time_delta).split(":")[0].strip())
+        obj.minutes = int(str(time_delta).split(":")[1].strip())
+        obj.seconds = int(str(time_delta).split(":")[2].strip())
+    return obj

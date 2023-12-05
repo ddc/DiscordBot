@@ -101,7 +101,7 @@ class GW2Session(commands.Cog):
             st_time = rs_session[0]["start_date"]
             ed_time = rs_session[0]["end_date"]
 
-            time_passed = bot_utils.get_time_passed(ed_time, bot_utils.get_current_date_time_str())
+            time_passed = gw2_utils.get_time_passed(ed_time, bot_utils.get_current_date_time_str())
             player_wait_minutes = 1
             if time_passed.hours == 0:
                 if time_passed.minutes < player_wait_minutes:
@@ -121,7 +121,7 @@ class GW2Session(commands.Cog):
             embed.add_field(name="Account Name", value=chat_formatting.inline(acc_name), inline=True)
             embed.add_field(name="Server", value=chat_formatting.inline(gw2_server), inline=True)
 
-            total_played_time = bot_utils.get_time_passed(st_time, ed_time)
+            total_played_time = gw2_utils.get_time_passed(st_time, ed_time)
             embed.add_field(name="Total played time", value=chat_formatting.inline(str(total_played_time.timedelta)), inline=True)
 
             if rs_session[0]["start_gold"] != rs_session[0]["end_gold"]:

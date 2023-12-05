@@ -23,10 +23,10 @@
 + [Guild Wars 2](https://www.guildwars2.com)
 
 ## Admin/Mod Commands
-| Command                                          | Description                               |
-|:-------------------------------------------------|:------------------------------------------|
-| admin customcom [add,remove] <_command_>           | Add or remove Custom commands           |
-| admin botgame <_new game_>                         | Change game that bot is playing         |
+| Command                                | Description                         |
+|:---------------------------------------|:------------------------------------|
+| admin cc [add,edit,remove] <_command_> | Add, edit or remove custom commands |
+| admin botgame <_new game_>             | Change game that bot is playing     |
 
 ## Config Commands
 | Command                                       | Description                                          |

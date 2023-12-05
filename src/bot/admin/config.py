@@ -258,19 +258,19 @@ async def config_pfilter(ctx):
     """
 
     new_status = ctx.subcommand_passed
-    text_channel = ctx.message.content.split()[-1]
+    channel_name = " ".join(ctx.message.content.split()[4:])
 
-    if not text_channel:
-        return await bot_utils.send_error_msg(ctx, "Missing required channel!!!\n"
+    if not new_status or len(channel_name) == 0:
+        return await bot_utils.send_error_msg(ctx, "Missing required argument!!!\n"
                                                    "For more info on this command use: "
                                                    f"{chat_formatting.inline('?help admin config pfilter')}")
-    if text_channel not in [x.name for x in ctx.guild.text_channels]:
-        return await bot_utils.send_error_msg(ctx, f"Channel not found: {chat_formatting.inline(text_channel)}")
+    if channel_name not in [x.name for x in ctx.guild.text_channels]:
+        return await bot_utils.send_error_msg(ctx, f"Channel not found: {chat_formatting.inline(channel_name)}")
 
     # get object channel from string
-    channel = bot_utils.get_object_channel(ctx, text_channel)
+    channel = bot_utils.get_object_channel(ctx, channel_name)
     if channel is None:
-        raise commands.BadArgument(message=f"Channel not found: `{text_channel}`")
+        raise commands.BadArgument(message=f"Channel not found: `{channel_name}`")
 
     embed = discord.Embed()
     profanity_filter_dal = ProfanityFilterDal(ctx.bot.db_session, ctx.bot.log)
@@ -285,11 +285,11 @@ async def config_pfilter(ctx):
                 return await bot_utils.send_error_msg(ctx, msg)
 
             embed.color = discord.Color.green()
-            embed.description = f"Profanity Filter `ACTIVATED`\nChannel: `{text_channel}`"
+            embed.description = f"Profanity Filter `ACTIVATED`\nChannel: `{channel_name}`"
             await profanity_filter_dal.insert_profanity_filter_channel(ctx.guild.id, channel.id, channel.name, ctx.author.id)
         case "off" | "OFF":
             embed.color = discord.Color.green()
-            embed.description = f"Profanity Filter `DEACTIVATED`\nChannel: `{text_channel}`"
+            embed.description = f"Profanity Filter `DEACTIVATED`\nChannel: `{channel_name}`"
             await profanity_filter_dal.delete_profanity_filter_channel(channel.id)
         case _:
             raise commands.BadArgument(message="BadArgument")

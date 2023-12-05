@@ -14,18 +14,19 @@ class CustomCommandsDal:
     async def insert_command(self, server_id: int, user_id: int, cmd_name: str, description: str):
         stmt = CustomCommands(
            server_id=server_id,
-           user_id=user_id,
+           created_by=user_id,
            name=cmd_name,
            description=description,
         )
         await self.db_utils.add(stmt)
 
-    async def update_command_description(self, server_id: int, cmd_name: str, description: str):
+    async def update_command_description(self, server_id: int, user_id: int, cmd_name: str, description: str):
         stmt = sa.update(CustomCommands).where(
             CustomCommands.server_id == server_id,
             CustomCommands.name == cmd_name,
         ).values(
-            description=description
+            description=description,
+            updated_by=user_id
         )
         await self.db_utils.execute(stmt)
 

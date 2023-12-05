@@ -5,7 +5,7 @@ import logging.handlers
 import os
 import shutil
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from enum import Enum
 from operator import attrgetter
 from random import choice
@@ -416,31 +416,6 @@ def recursive_overwrite(src, dest, ignore=None):
         shutil.copyfile(src, dest)
 
 
-def convert_timedelta_toObj(time_delta: timedelta):
-    obj = Object()
-    obj.timedelta = time_delta
-    if "," in str(time_delta):
-        obj.days = int(str(time_delta).split()[0].strip())
-        obj.hours = int(str(time_delta).split(":")[0].split(",")[1].strip())
-        obj.minutes = int(str(time_delta).split(":")[1].strip())
-        obj.seconds = int(str(time_delta).split(":")[2].strip())
-    else:
-        obj.days = 0
-        obj.hours = int(str(time_delta).split(":")[0].strip())
-        obj.minutes = int(str(time_delta).split(":")[1].strip())
-        obj.seconds = int(str(time_delta).split(":")[2].strip())
-    return obj
-
-
-def get_time_passed(start_time_str, end_time_str):
-    date_time_formatter = f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"
-    time_passed_delta = (datetime.strptime(end_time_str, date_time_formatter) -
-                         datetime.strptime(start_time_str, date_time_formatter))
-
-    time_passed_obj = convert_timedelta_toObj(time_passed_delta)
-    return time_passed_obj
-
-
 async def create_admin_commands_channel(bot, guild: discord.Guild):
     for chan in guild.text_channels:
         if chan.name == 'bot-commands':
@@ -486,13 +461,8 @@ def get_bot_stats(bot):
             elif isinstance(c, discord.VoiceChannel):
                 voice_channels += 1
 
-    servers = f"{len(bot.guilds)} servers"
-    result['servers'] = servers
-
-    users = f"({unique_users} users)({bot_users} bots)[{len(bot.users)} total]"
-    result['users'] = users
-
-    channels = f"({text_channels} text)({voice_channels} voice)[{int(text_channels + voice_channels)} total]"
-    result['channels'] = channels
+    result['servers'] = f"{len(bot.guilds)} servers"
+    result['users'] = f"({unique_users} users)({bot_users} bots)[{len(bot.users)} total]"
+    result['channels'] = f"({text_channels} text)({voice_channels} voice)[{int(text_channels + voice_channels)} total]"
 
     return result

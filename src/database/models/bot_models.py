@@ -46,7 +46,6 @@ class CustomCommands(BotBase):
     __tablename__ = "custom_commands"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, unique=True)
     server_id: Mapped[int] = mapped_column(BigInteger, ForeignKey(Servers.id, ondelete="CASCADE"), index=True)
-    # author_id: Mapped[int] = mapped_column(BigInteger)
     name: Mapped[str] = mapped_column()
     description: Mapped[str] = mapped_column()
     created_by: Mapped[int] = mapped_column(BigInteger, nullable=True)
