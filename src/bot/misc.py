@@ -34,7 +34,7 @@ class Misc(commands.Cog):
         async with aiohttp.ClientSession() as session:
             async with session.get(pepe_url) as resp:
                 if resp.status != 200:
-                    return await bot_utils.send_error_msg(self, ctx, "Could not download pepe file...")
+                    return await bot_utils.send_error_msg(ctx, "Could not download pepe file...")
                 data = BytesIO(await resp.read())
                 data.seek(0)
                 name = pepe_url.split("/")[3]
@@ -51,7 +51,7 @@ class Misc(commands.Cog):
         """
 
         await ctx.message.channel.typing()
-        display_filename = f"{bot_utils.get_member_name_by_id(self, ctx, ctx.message.author.id)}.mp3"
+        display_filename = f"{bot_utils.get_member_name_by_id(ctx, ctx.message.author.id)}.mp3"
         new_tts_msg = []
 
         if "<@!" in tts_text or "<:" in tts_text:
@@ -95,9 +95,8 @@ class Misc(commands.Cog):
         echo <msg>
         """
 
-        color = self.bot.settings["EmbedColor"]
         await ctx.message.channel.typing()
-        await bot_utils.send_msg(self, ctx, color, msg)
+        await bot_utils.send_msg(ctx, msg)
 
     @commands.command()
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
@@ -117,7 +116,7 @@ class Misc(commands.Cog):
         if p > 200:
             color = discord.Color.red()
         embed = discord.Embed(title=None, description=f"Ping: {p} ms", color=color)
-        await bot_utils.send_embed(self, ctx, embed)
+        await bot_utils.send_embed(ctx, embed)
 
     @commands.command()
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
@@ -133,9 +132,8 @@ class Misc(commands.Cog):
         await ctx.message.channel.typing()
         search_terms = chat_formatting.escape_mass_mentions(user_msg.replace(" ", "+"))
         msg = f"https://lmgtfy.com/?q={search_terms}"
-        color = self.bot.settings["EmbedColor"]
         await ctx.message.channel.typing()
-        await bot_utils.send_msg(self, ctx, color, msg)
+        await bot_utils.send_msg(ctx, msg)
 
     @commands.command()
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
@@ -160,8 +158,7 @@ class Misc(commands.Cog):
         limited_invites = ['[`{0.code}`]({0.url}): `{0.channel}` created by `{0.inviter}`'.format(x) for x in
                            active_invites if x.max_age != 0 and x not in revoked_invites]
 
-        color = self.bot.settings["EmbedColor"]
-        embed = discord.Embed(title='Invite Links', color=color)
+        embed = discord.Embed(title='Invite Links')
         embed.set_thumbnail(url=server.icon.url)
 
         if unlimited_invites:
@@ -172,9 +169,9 @@ class Misc(commands.Cog):
         if revoked_invites:
             embed.add_field(name=f'Revoked Invites ({len(revoked_invites)})', value='\n'.join(revoked_invites))
         if len(unlimited_invites) > 0 or len(limited_invites) > 0 or len(revoked_invites) > 0:
-            await bot_utils.send_embed(self, ctx, embed)
+            await bot_utils.send_embed(ctx, embed)
         else:
-            await bot_utils.send_msg(self, ctx, color, chat_formatting.inline("No current invites on any channel."))
+            await bot_utils.send_msg(ctx, chat_formatting.inline("No current invites on any channel."))
 
     @commands.command()
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
@@ -203,26 +200,25 @@ class Misc(commands.Cog):
         passed = (now - server.created_at).days
         created_at = f"Since {created[:-7]}. That's over {passed} days ago!"
 
-        color = self.bot.settings["EmbedColor"]
-        data = discord.Embed(description=created_at, color=color)
-        data.add_field(name="Users", value=f"{total_users}")
-        data.add_field(name="Online", value=f"{online}")
-        data.add_field(name="Offline", value=f"{total_users - online}")
-        data.add_field(name="Bots", value=str(total_bots))
-        data.add_field(name="Text Channels", value=text_channels)
-        data.add_field(name="Voice Channels", value=voice_channels)
-        data.add_field(name="Roles", value=len(server.roles))
-        data.add_field(name="Owner", value=str(server.owner))
-        data.add_field(name='Emojis', value=len(server.emojis))
-        data.set_footer(text=f"Server ID: {server.id} | {now.strftime('%c')}")
+        embed = discord.Embed(description=created_at)
+        embed.add_field(name="Users", value=f"{total_users}")
+        embed.add_field(name="Online", value=f"{online}")
+        embed.add_field(name="Offline", value=f"{total_users - online}")
+        embed.add_field(name="Bots", value=str(total_bots))
+        embed.add_field(name="Text Channels", value=text_channels)
+        embed.add_field(name="Voice Channels", value=voice_channels)
+        embed.add_field(name="Roles", value=len(server.roles))
+        embed.add_field(name="Owner", value=str(server.owner))
+        embed.add_field(name='Emojis', value=len(server.emojis))
+        embed.set_footer(text=f"Server ID: {server.id} | {now.strftime('%c')}")
 
         if server.icon.url:
-            data.set_author(name=server.name, url=server.icon.url)
-            data.set_thumbnail(url=server.icon.url)
+            embed.set_author(name=server.name, url=server.icon.url)
+            embed.set_thumbnail(url=server.icon.url)
         else:
-            data.set_author(name=server.name)
+            embed.set_author(name=server.name)
 
-        await bot_utils.send_embed(self, ctx, data)
+        await bot_utils.send_embed(ctx, embed)
 
     @commands.command()
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
@@ -240,7 +236,7 @@ class Misc(commands.Cog):
 
         user = None
         if member_str:
-            user = bot_utils.get_object_member_by_str(self, ctx, member_str)
+            user = bot_utils.get_object_member_by_str(ctx, member_str)
 
         if not user:
             user = author
@@ -272,22 +268,22 @@ class Misc(commands.Cog):
         roles_lst = sorted([x.name for x in user.roles])
         roles_str = ",".join(roles_lst) if roles_lst else None
 
-        data = discord.Embed(description=description, color=user.color)
-        data.add_field(name="Joined Discord on", value=created_on)
-        data.add_field(name="Joined this server on", value=joined_on)
-        data.add_field(name="Roles", value=roles_str.replace("@", ""), inline=False)
-        data.set_footer(text=f"Member #{member_number} | User ID:{user.id} | {now.strftime('%c')}")
+        embed = discord.Embed(description=description, color=user.color)
+        embed.add_field(name="Joined Discord on", value=created_on)
+        embed.add_field(name="Joined this server on", value=joined_on)
+        embed.add_field(name="Roles", value=roles_str.replace("@", ""), inline=False)
+        embed.set_footer(text=f"Member #{member_number} | User ID:{user.id} | {now.strftime('%c')}")
 
         name = str(user)
         name = " ~ ".join((name, user.nick)) if user.nick else name
 
         if user.avatar.url:
-            data.set_author(name=name, url=user.avatar.url)
-            data.set_thumbnail(url=user.avatar.url)
+            embed.set_author(name=name, url=user.avatar.url)
+            embed.set_thumbnail(url=user.avatar.url)
         else:
-            data.set_author(name=name)
+            embed.set_author(name=name)
 
-        await bot_utils.send_embed(self, ctx, data)
+        await bot_utils.send_embed(ctx, embed)
 
     @commands.command()
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
@@ -332,8 +328,7 @@ class Misc(commands.Cog):
         users = bot_stats["users"]
         # channels = bot_stats["channels"]
 
-        color = self.bot.settings["EmbedColor"]
-        embed = discord.Embed(description=str(self.bot.description), color=color)
+        embed = discord.Embed(description=str(self.bot.description))
         embed.set_author(name=f"{self.bot.user.name} v{constants.VERSION}", icon_url=bot_avatar, url=bot_webpage_url)
         embed.set_thumbnail(url=bot_avatar)
         embed.set_footer(text=f"Developed by {str(author)} | {python_version}", icon_url=author.avatar.url)
@@ -349,18 +344,18 @@ class Misc(commands.Cog):
         embed.add_field(name="Download", value=f"[Version {constants.VERSION}]({bot_webpage_url})", inline=True)
         embed.add_field(name="Donations", value=f"[Paypal]({constants.PAYPAL_URL})", inline=True)
         embed.add_field(name="Help", value=f"For a list of command categories, type `{ctx.prefix}help`", inline=False)
-        await bot_utils.send_embed(self, ctx, embed)
+        await bot_utils.send_embed(ctx, embed)
 
     # @commands.command()
     # @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     # async def test(self, ctx):
     #     """(test)"""
     #
-    #     await ctx.message.channel.typing()
     #     msg = "test"
-    #     embed = discord.Embed(color=discord.Color.red(), description=msg)
+    #     color = discord.Color.red()
+    #     embed = discord.Embed(color=color, description=msg)
     #     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
-    #     await bot_utils.send_embed(self, ctx, embed)
+    #     await bot_utils.send_embed(ctx, embed, True)
 
 
 async def setup(bot):

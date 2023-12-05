@@ -48,7 +48,7 @@ class OnGuildUpdate(commands.Cog):
                     msg += f"New Server Owner: `{after.owner}`\n"
 
                 if len(embed.fields) > 0:
-                    channel_to_send_msg = await bot_utils.channel_to_send_msg(bot, after)
+                    channel_to_send_msg = await bot_utils.channel_to_send_msg(self.bot, after)
                     if channel_to_send_msg is not None:
                         try:
                             await channel_to_send_msg.send(embed=embed)

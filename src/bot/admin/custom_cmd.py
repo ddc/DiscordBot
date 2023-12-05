@@ -15,24 +15,34 @@ class CustomCommand(Admin):
 
 
 @CustomCommand.admin.group(aliases=["cc"])
-async def custom_command(self, ctx):
+async def custom_command(ctx, subcommand):
     """(Add, remove, edit, list custom commands)
 
     Example:
-    admin cc [add | edit] <command> <text/url>
-    admin cc remove <command>
+    admin cc add <command> <text/url>
+    admin cc edit <command> <text/url>
+    dmin cc remove <command>
     admin cc removeall
     admin cc list
     """
 
-    if ctx.invoked_subcommand:
-        return ctx.invoked_subcommand
-    else:
-        if ctx.command is not None:
-            cmd = ctx.command
-        else:
-            cmd = self.bot.get_command("admin cc")
-        await bot_utils.send_help_msg(self, ctx, cmd)
+    match subcommand:
+        case "add":
+            await add_custom_command()
+        case "edit":
+            await edit_custom_command()
+        case "remove":
+            await remove_custom_command()
+        case "removeall":
+            await remove_all_custom_commands()
+        case "list":
+            await list_custom_commands()
+        case _:
+            if ctx.command is not None:
+                cmd = ctx.command
+            else:
+                cmd = ctx.bot.get_command("admin config")
+            await bot_utils.send_help_msg(ctx, cmd)
 
 
 @custom_command.command(name="add")
@@ -44,27 +54,26 @@ async def add_custom_command(self, ctx, command_name: str, *, text: str):
     admin cc add <command> <text/url>
     """
 
-    await bot_utils.delete_channel_message(self, ctx.message)
+    await bot_utils.delete_channel_message(ctx)
     server = ctx.guild
     command_name = command_name.lower()
     for cmd in self.bot.commands:
         if str(command_name) == str(cmd.name).lower():
-            await bot_utils.send_error_msg(self, ctx, f"`{ctx.prefix}{command_name}` is already a standard command.")
+            await bot_utils.send_error_msg(ctx, f"`{ctx.prefix}{command_name}` is already a standard command.")
             return
 
     if len(command_name) > 20:
-        await bot_utils.send_error_msg(self, ctx, "Command names cannot exceed 20 characters.\n" \
+        await bot_utils.send_error_msg(ctx, "Command names cannot exceed 20 characters.\n" \
                                               "Please try again with another name.")
         return
 
     commands_dal = CustomCommandsDal(self.bot.db_session, self.bot.log)
     rs = await commands_dal.get_command(server.id, str(command_name))
     if len(rs) == 0:
-        color = self.bot.settings["EmbedColor"]
         await commands_dal.insert_command(ctx.author, str(command_name), str(text))
-        await bot_utils.send_msg(self, ctx, color, f"Custom command successfully added:\n`{ctx.prefix}{command_name}`")
+        await bot_utils.send_msg(ctx, f"Custom command successfully added:\n`{ctx.prefix}{command_name}`")
     else:
-        await bot_utils.send_error_msg(self, ctx,
+        await bot_utils.send_error_msg(ctx,
                                    f"Command already exists: `{ctx.prefix}{command_name}`\n"
                                    f"To edit use: `{ctx.prefix}admin cc edit {command_name} <text/url>`")
 
@@ -84,16 +93,15 @@ async def remove_custom_command(self, ctx, command_name: str):
     commands_dal = CustomCommandsDal(self.bot.db_session, self.bot.log)
     rs = await commands_dal.get_all_commands(server.id)
     if len(rs) == 0:
-        await bot_utils.send_error_msg(self, ctx, "There are no custom commands in this server.")
+        await bot_utils.send_error_msg(ctx, "There are no custom commands in this server.")
         return
 
     rs = await commands_dal.get_command(server.id, str(command_name))
     if len(rs) > 0:
-        color = self.bot.settings["EmbedColor"]
         await commands_dal.delete_command(server.id, str(command_name))
-        await bot_utils.send_msg(self, ctx, color, f"Custom command successfully removed:\n`{ctx.prefix}{command_name}`")
+        await bot_utils.send_msg(ctx, f"Custom command successfully removed:\n`{ctx.prefix}{command_name}`")
     else:
-        await bot_utils.send_error_msg(self, ctx, "That command doesn't exist.")
+        await bot_utils.send_error_msg(ctx, "That command doesn't exist.")
 
 
 @custom_command.command(name="edit")
@@ -105,24 +113,22 @@ async def edit_custom_command(self, ctx, command_name: str, *, text: str):
     admin cc edit <command> <text/url>
     """
 
-    await bot_utils.delete_channel_message(self, ctx)
+    await bot_utils.delete_channel_message(ctx)
     server = ctx.guild
     command_name = command_name.lower()
 
     commands_dal = CustomCommandsDal(self.bot.db_session, self.bot.log)
     rs = await commands_dal.get_all_commands(server.id)
     if len(rs) == 0:
-        await bot_utils.send_error_msg(self, ctx, "There are no custom commands in this server.")
+        await bot_utils.send_error_msg(ctx, "There are no custom commands in this server.")
         return
 
     rs = await commands_dal.get_command(server.id, str(command_name))
     if len(rs) > 0:
-        color = self.bot.settings["EmbedColor"]
         await commands_dal.update_command(server.id, str(command_name), str(text))
-        await bot_utils.send_msg(self, ctx, color, f"Custom command successfully edited:\n`{ctx.prefix}{command_name}`")
+        await bot_utils.send_msg(ctx, f"Custom command successfully edited:\n`{ctx.prefix}{command_name}`")
     else:
-        await bot_utils.send_error_msg(self, ctx,
-                                   f"Command doesn't exist in this server:\n`{ctx.prefix}{command_name}`")
+        await bot_utils.send_error_msg(ctx, f"Command doesn't exist in this server:\n`{ctx.prefix}{command_name}`")
 
 
 @custom_command.command(name="removeall")
@@ -136,14 +142,13 @@ async def remove_all_custom_commands(self, ctx):
 
     server = ctx.guild
     commands_dal = CustomCommandsDal(self.bot.db_session, self.bot.log)
-    color = self.bot.settings["EmbedColor"]
     rs = await commands_dal.get_all_commands(server.id)
     if len(rs) == 0:
-        await bot_utils.send_error_msg(self, ctx, "There are no custom commands in this server.")
+        await bot_utils.send_error_msg(ctx, "There are no custom commands in this server.")
         return
 
     await commands_dal.delete_all_commands(server.id)
-    await bot_utils.send_msg(self, ctx, color, "All custom commands successfully removed.")
+    await bot_utils.send_msg(ctx, "All custom commands successfully removed.")
 
 
 @custom_command.command(name="list")
@@ -159,7 +164,7 @@ async def list_custom_commands(self, ctx):
     commands_dal = CustomCommandsDal(self.bot.db_session, self.bot.log)
     rs = await commands_dal.get_all_commands(server.id)
     if len(rs) == 0:
-        await bot_utils.send_error_msg(self, ctx, "There are no custom commands in this server.")
+        await bot_utils.send_error_msg(ctx, "There are no custom commands in this server.")
         return
 
     command = []
@@ -167,7 +172,7 @@ async def list_custom_commands(self, ctx):
     date = []
     position = 1
     for key, value in rs.items():
-        author_name = bot_utils.get_member_name_by_id(self, ctx, value["discord_author_id"])
+        author_name = bot_utils.get_member_name_by_id(ctx, value["discord_author_id"])
         command.append(f"{position}) {value['command_name']}")
         author.append(str(author_name))
         date.append(str(f"{value['date'].split()[0]}"))
@@ -177,14 +182,13 @@ async def list_custom_commands(self, ctx):
     authors = '\n'.join(author)
     dates = '\n'.join(date)
 
-    color = self.bot.settings["EmbedColor"]
-    embed = discord.Embed(color=color)
+    embed = discord.Embed()
     embed.set_footer(text=f"For more info: {ctx.prefix}help cc")
     embed.set_author(name="Custom commands in this server", icon_url=f"{ctx.guild.icon.url}")
     embed.add_field(name="Command", value=chat_formatting.inline(cmd), inline=True)
     embed.add_field(name="Created by", value=chat_formatting.inline(authors), inline=True)
     embed.add_field(name="Date Created", value=chat_formatting.inline(dates), inline=True)
-    await bot_utils.send_embed(self, ctx, embed, False)
+    await bot_utils.send_embed(ctx, embed)
 
 
 async def setup(bot):

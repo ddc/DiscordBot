@@ -32,7 +32,7 @@ class Admin(commands.Cog):
                 cmd = ctx.command
             else:
                 cmd = self.bot.get_command("admin")
-            await bot_utils.send_help_msg(self, ctx, cmd)
+            await bot_utils.send_help_msg(ctx, cmd)
 
     @admin.command(name="botgame")
     @commands.cooldown(1, CoolDowns.Admin.value, BucketType.user)
@@ -43,25 +43,20 @@ class Admin(commands.Cog):
         admin botgame <game>
         """
 
-        # bot_utils.delete_channel_message(self, ctx)
-        await ctx.message.channel.typing()
         prefix = self.bot.command_prefix[0]
         bot_game_desc = f"{game} | {prefix}help"
-        color = self.bot.settings["EmbedOwnerColor"]
-        msg = f"```I'm now playing: {game}```"
         await self.bot.change_presence(activity=discord.Game(name=bot_game_desc))
 
-        embed = discord.Embed(color=color)
+        embed = discord.Embed(description=f"```I'm now playing: {game}```")
         embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar.url)
-        embed.description = f"```I'm now playing: {game}```"
-        await bot_utils.send_embed(self, ctx, embed, False, msg)
+        await bot_utils.send_embed(ctx, embed)
 
         if self.bot.settings["BGChangeGame"].lower() == "yes":
-            bg_task_warning = (f"Background task that update bot activity is ON\n"
+            bg_task_warning = (f"Background task running to update bot activity is ON\n"
                                f"Activity will change after "
                                f"{self.bot.settings['BGActivityTimer']} secs.")
             embed.description = bg_task_warning
-            await bot_utils.send_embed(self, ctx, embed, True, msg)
+            await bot_utils.send_embed(ctx, embed, True)
 
 
 async def setup(bot):

@@ -10,6 +10,13 @@ from src.bot.utils import bot_utils
 from src.gw2.utils.gw2_api import Gw2Api
 
 
+async def send_msg(ctx, msg):
+    color = ctx.bot.gw2_settings["EmbedColor"]
+    embed = discord.Embed(color=color, description=msg)
+    embed.set_author(name=bot_utils.get_member_name_by_id(ctx), icon_url=ctx.message.author.avatar.url)
+    await bot_utils.send_embed(ctx, embed)
+
+
 async def calculate_user_achiev_points(self, api_req_acc_achiev, api_req_acc):
     doc_user_achiev_id = []
     temp_achiv = []
@@ -109,23 +116,18 @@ async def get_world_name(self, wids: str):
 
 
 async def delete_api_key(self, ctx, message=False):
-    if hasattr(self, 'bot'):
-        self = self.bot
-
     if not isinstance(ctx.channel, discord.DMChannel):
         try:
             await ctx.message.delete()
             if message:
-                color = self.gw2_settings["EmbedColor"]
-                await bot_utils.send_msg(self, ctx, color, "Your message with your API Key was removed for privacy.")
+                await send_msg(ctx, "Your message with your API Key was removed for privacy.")
         except:
-            await bot_utils.send_error_msg(self,
-                                           ctx,
+            await bot_utils.send_error_msg(ctx,
                                            "Bot does not have permission to delete the message with your API key.\n"
                                            "Missing bot permission: `Manage Messages`")
 
 
-def is_private_message(self, ctx):
+def is_private_message(ctx):
     return True if isinstance(ctx.channel, discord.DMChannel) else False
 
 
@@ -203,7 +205,7 @@ async def get_last_session_user_stats(self, ctx, api_key):
         api_req_achiev = await gw2_api.call_api("account/achievements", key=api_key)
     except Exception as e:
         if ctx is not None:
-            await bot_utils.send_info_msg(self, ctx, "GW2 API is currently down. Try again later...")
+            await bot_utils.send_info_msg(ctx, "GW2 API is currently down. Try again later...")
             return self.bot.log.error(e)
 
     user_obj.acc_name = api_req_acc["name"]

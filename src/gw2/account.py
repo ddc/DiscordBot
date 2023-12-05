@@ -32,7 +32,7 @@ class GW2Account(commands.Cog):
         if len(rs) == 0:
             await ctx.message.channel.typing()
             await bot_utils.send_error_msg(
-                self, ctx,
+                ctx,
                 "You dont have an API key registered in this server.\n"
                 f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
                 f"To check your API key use: `{ctx.prefix}gw2 key info`"
@@ -43,7 +43,7 @@ class GW2Account(commands.Cog):
             is_valid_key = await gw2Api.check_api_key(api_key)
             if not isinstance(is_valid_key, dict):
                 return await bot_utils.send_error_msg(
-                    self, ctx,
+                    ctx,
                     is_valid_key.args[1] + "\n"
                     "This API Key is INVALID or no longer exists in gw2 api database.\n\n"
                     f"To add or replace an API key use: {ctx.prefix}gw2 key add <api_key>\n"
@@ -96,7 +96,7 @@ class GW2Account(commands.Cog):
                     #     api_req_acc_achiev = await gw2Api.call_api(endpoint, key=api_key)
                     #     achiev_points = await gw2_utils.calculate_user_achiev_points(self, api_req_acc_achiev, api_req_acc)
                 except Exception as e:
-                    await bot_utils.send_error_msg(self, ctx, e)
+                    await bot_utils.send_error_msg(ctx, e)
                     return self.bot.log.error(ctx, e)
 
                 await ctx.message.channel.typing()
@@ -128,7 +128,7 @@ class GW2Account(commands.Cog):
                                 endpoint = "guild/" + guild_id
                                 api_req_guild = await gw2Api.call_api(endpoint, key=api_key)
                             except Exception as e:
-                                await bot_utils.send_error_msg(self, ctx, e)
+                                await bot_utils.send_error_msg(ctx, e)
                                 return self.bot.log.error(ctx, e)
                             name = api_req_guild["name"]
                             tag = api_req_guild["tag"]
@@ -175,4 +175,4 @@ class GW2Account(commands.Cog):
                 embed.add_field(name="Created", value=chat_formatting.inline(f"{created} ({round(days)} days ago)"),
                                 inline=False)
 
-                await bot_utils.send_embed(self, ctx, embed, False)
+                await bot_utils.send_embed(ctx, embed)

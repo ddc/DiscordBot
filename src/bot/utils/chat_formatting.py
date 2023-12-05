@@ -8,35 +8,35 @@ ROBOT = "\U0001F916"
 
 
 def error_inline(text):
-    return f"`{NO_ENTRY} {text}`"
+    return f"`{NO_ENTRY}\n{text}`"
 
 
 def error(text):
-    return f"{NO_ENTRY} {text}"
+    return f"{NO_ENTRY}\n{text}"
 
 
 def warning_inline(text):
-    return f"`{WARNING_SIGN} {text}`"
+    return f"`{WARNING_SIGN}\n{text}`"
 
 
 def warning(text):
-    return f"{WARNING_SIGN} {text}"
+    return f"{WARNING_SIGN}\n{text}"
 
 
 def info_inline(text):
-    return f"`{INFORMATION_SOURCE} {text}`"
+    return f"`{INFORMATION_SOURCE}\n{text}`"
 
 
 def info(text):
-    return f"{INFORMATION_SOURCE} {text}"
+    return f"{INFORMATION_SOURCE}\n{text}"
 
 
 def question_inline(text):
-    return f"`{QUESTION_MARK} {text}`"
+    return f"`{QUESTION_MARK}\n{text}`"
 
 
 def question(text):
-    return f"`{QUESTION_MARK}` {text}"
+    return f"`{QUESTION_MARK}`\n{text}"
 
 
 def bold(text):

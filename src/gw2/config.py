@@ -23,7 +23,7 @@ class GW2Config(commands.Cog):
         elif command == "lastsession":
             new_status = ctx.message.clean_content.replace(f"{ctx.prefix}gw2 config lastsession ", "")
             if new_status == f"{ctx.prefix}gw2 config lastsession":
-                await bot_utils.send_error_msg(self, ctx, err_missing_arg)
+                await bot_utils.send_error_msg(ctx, err_missing_arg)
                 return
             if new_status.lower() != "on" and new_status.lower() != "off":
                 raise commands.BadArgument(message="BadArgument")
@@ -31,18 +31,18 @@ class GW2Config(commands.Cog):
         # elif command == "roletimer":
         #     role_timer = ctx.message.clean_content.replace(f"{ctx.prefix}gw2 config roletimer ", "")
         #     if role_timer == f"{ctx.prefix}gw2 config roletimer":
-        #         await bot_utils.send_error_msg(self, ctx, err_missing_arg)
+        #         await bot_utils.send_error_msg(ctx, err_missing_arg)
         #     else:
         #         await _roletimer(self, ctx, role_timer)
         # elif command == "apirole":
         #     stats_sever = ctx.message.clean_content.replace(f"{ctx.prefix}gw2 config apirole ", "")
         #     if stats_sever == f"{ctx.prefix}gw2 config apirole":
-        #         await bot_utils.send_error_msg(self, ctx, err_missing_arg)
+        #         await bot_utils.send_error_msg(ctx, err_missing_arg)
         #     else:
         #         await _apirole(self, ctx, stats_sever)
         else:
             msg = "Wrong command.\nCommand needs to be [list | lastsession | apiroles | serverprefix]\nPlease try again."
-            await bot_utils.send_error_msg(self, ctx, msg)
+            await bot_utils.send_error_msg(ctx, msg)
 
 
 async def _list(self, ctx):
@@ -75,7 +75,7 @@ async def _list(self, ctx):
                     value=f"{on}" if last_session == "Y" else f"{off}", inline=False)
     #embed.add_field(name="Timer the bot should check for api roles in seconds", value=f"{chat_formatting.box(role_timer)}", inline=False)
 
-    await bot_utils.send_embed(self, ctx, embed, True)
+    await bot_utils.send_embed(ctx, embed, True)
 
 
 async def _lastsession(self, ctx, new_status: str):
@@ -108,4 +108,4 @@ async def _lastsession(self, ctx, new_status: str):
     elif rs[0]["last_session"] != new_status:
         await gw2Configs.update_gw2_last_session(ctx.message.channel.guild.id, new_status)
 
-    await bot_utils.send_embed(self, ctx, embed, False, msg)
+    await bot_utils.send_embed(ctx, embed)

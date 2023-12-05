@@ -33,45 +33,52 @@ class ServersDal:
         )
         await self.db_utils.execute(stmt)
 
-    async def update_msg_on_join(self, server_id: int, new_status: str):
+    async def update_msg_on_join(self, server_id: int, new_status: str, updated_by: int):
         stmt = sa.update(Servers).where(Servers.id == server_id).values(
-            msg_on_join=new_status
+            msg_on_join=new_status,
+            updated_by=updated_by
         )
         await self.db_utils.execute(stmt)
 
-    async def update_msg_on_leave(self, server_id: int, new_status: str):
+    async def update_msg_on_leave(self, server_id: int, new_status: str, updated_by: int):
         stmt = sa.update(Servers).where(Servers.id == server_id).values(
-            msg_on_leave=new_status
+            msg_on_leave=new_status,
+            updated_by=updated_by
         )
         await self.db_utils.execute(stmt)
 
-    async def update_msg_on_server_update(self, server_id: int, new_status: str):
+    async def update_msg_on_server_update(self, server_id: int, new_status: str, updated_by: int):
         stmt = sa.update(Servers).where(Servers.id == server_id).values(
-            msg_on_server_update=new_status
+            msg_on_server_update=new_status,
+            updated_by=updated_by
         )
         await self.db_utils.execute(stmt)
 
-    async def update_msg_on_member_update(self, server_id: int, new_status: str):
+    async def update_msg_on_member_update(self, server_id: int, new_status: str, updated_by: int):
         stmt = sa.update(Servers).where(Servers.id == server_id).values(
-            msg_on_member_update=new_status
+            msg_on_member_update=new_status,
+            updated_by=updated_by
         )
         await self.db_utils.execute(stmt)
 
-    async def update_block_invis_members(self, server_id: int, new_status: str):
+    async def update_block_invis_members(self, server_id: int, new_status: str, updated_by: int):
         stmt = sa.update(Servers).where(Servers.id == server_id).values(
-            block_invis_members=new_status
+            block_invis_members=new_status,
+            updated_by=updated_by
         )
         await self.db_utils.execute(stmt)
 
-    async def update_default_text_channel(self, server_id: int, text_channel: str = None):
+    async def update_default_text_channel(self, server_id: int, text_channel: str, updated_by: int):
         stmt = sa.update(Servers).where(Servers.id == server_id).values(
-            default_text_channel=text_channel
+            default_text_channel=text_channel,
+            updated_by=updated_by
         )
         await self.db_utils.execute(stmt)
 
-    async def update_bot_word_reactions(self, server_id: int, new_status: str):
+    async def update_bot_word_reactions(self, server_id: int, new_status: str, updated_by: int):
         stmt = sa.update(Servers).where(Servers.id == server_id).values(
-            bot_word_reactions=new_status
+            bot_word_reactions=new_status,
+            updated_by=updated_by
         )
         await self.db_utils.execute(stmt)
 

@@ -11,11 +11,16 @@ class ProfanityFilterDal:
         self.log = log
         self.db_utils = DBUtils(self.db_session, self.log)
 
-    async def insert_profanity_filter_channel(self, server_id: int, channel_id: int, channel_name: str = None):
+    async def insert_profanity_filter_channel(self,
+                                              server_id: int,
+                                              channel_id: int,
+                                              channel_name: str,
+                                              created_by: int):
         stmt = ProfanityFilters(
            server_id=server_id,
            channel_id=channel_id,
            channel_name=channel_name,
+           created_by=created_by
         )
         await self.db_utils.add(stmt)
 

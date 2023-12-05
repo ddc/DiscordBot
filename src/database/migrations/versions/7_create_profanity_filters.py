@@ -25,7 +25,6 @@ def upgrade() -> None:
     sa.Column('channel_id', sa.BigInteger(), nullable=False),
     sa.Column('channel_name', sa.String(), nullable=False),
     sa.Column('created_by', sa.BigInteger(), nullable=True),
-    sa.Column('updated_by', sa.BigInteger(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text("(now() at time zone 'utc')"), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text("(now() at time zone 'utc')"), nullable=False),
     sa.ForeignKeyConstraint(['server_id'], ['servers.id'], ondelete='CASCADE'),

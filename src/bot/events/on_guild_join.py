@@ -37,13 +37,13 @@ class OnGuildJoin(commands.Cog):
                     f"To get a list of commands: `{prefix}help`")
             embed = discord.Embed(color=discord.Color.green(), description=msg)
             embed.set_author(name=guild.me.display_name, icon_url=guild.me.avatar.url)
-            channel_to_send_msg = await bot_utils.channel_to_send_msg(bot, guild)
+            channel_to_send_msg = await bot_utils.channel_to_send_msg(self.bot, guild)
             if channel_to_send_msg is not None:
                 try:
                     await channel_to_send_msg.send(embed=embed)
                 except discord.HTTPException:
                     await channel_to_send_msg.send(msg)
-            await bot_utils.create_admin_commands_channel(self, guild)
+            await bot_utils.create_admin_commands_channel(self.bot, guild)
 
 
 async def setup(bot):

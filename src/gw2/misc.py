@@ -37,12 +37,11 @@ class GW2Misc(commands.Cog):
                 soup = BeautifulSoup(results, 'html.parser')
                 posts = soup.find_all("div", {"class": "mw-search-result-heading"})[:50]
                 totalPosts = len(posts)
-                color = self.bot.gw2_settings["EmbedColor"]
                 if not posts:
-                    await bot_utils.send_msg(self, ctx, color, "No results!")
+                    await bot_utils.send_msg(ctx, "No results!")
                     return
 
-                embed = discord.Embed(title="Wiki Search Results", color=color)
+                embed = discord.Embed(title="Wiki Search Results", color=ctx.bot.gw2_settings["EmbedColor"])
 
                 if totalPosts > 0:
                     i = 0
@@ -82,7 +81,7 @@ class GW2Misc(commands.Cog):
                     embed.add_field(name="No results", value=f"[Click here]({full_wiki_url})")
 
             embed.set_thumbnail(url=gw2_constants.GW2_WIKI_ICON_URL)
-            await bot_utils.send_embed(self, ctx, embed, False)
+            await bot_utils.send_embed(ctx, embed)
 
     async def gw2_info(self, ctx, skill):
         wiki_url = gw2_constants.WIKI_URL
@@ -159,7 +158,7 @@ class GW2Misc(commands.Cog):
                 embed.set_thumbnail(url=skill_icon_url)
 
             embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
-            await bot_utils.send_embed(self, ctx, embed, False)
+            await bot_utils.send_embed(ctx, embed)
 
     async def gw2_worlds(self, ctx):
         """ (List all worlds)
@@ -174,7 +173,7 @@ class GW2Misc(commands.Cog):
             gw2Api = Gw2Api(self.bot)
             results = await gw2Api.call_api(endpoint)
         except Exception as e:
-            await bot_utils.send_error_msg(self, ctx, e)
+            await bot_utils.send_error_msg(ctx, e)
             return self.bot.log.error(ctx, e)
 
         color = self.bot.gw2_settings["EmbedColor"]
@@ -198,7 +197,7 @@ class GW2Misc(commands.Cog):
                     embed_eu.add_field(name=world["name"],
                                        value=chat_formatting.inline(f"T{tier_number} {world['population']}"), inline=True)
             except Exception as e:
-                await bot_utils.send_error_msg(self, ctx, e)
+                await bot_utils.send_error_msg(ctx, e)
                 return self.bot.log.error(ctx, e)
 
         await ctx.send(embed=embed_na)

@@ -23,7 +23,7 @@ class OnMemberRemove(commands.Cog):
                 embed.set_thumbnail(url=member.avatar.url)
                 embed.set_author(name="Left the Server")
                 embed.set_footer(text=f"{now.strftime('%c')}")
-                channel_to_send_msg = await bot_utils.channel_to_send_msg(bot, member.guild)
+                channel_to_send_msg = await bot_utils.channel_to_send_msg(self.bot, member.guild)
                 if channel_to_send_msg is not None:
                     try:
                         await channel_to_send_msg.send(embed=embed)

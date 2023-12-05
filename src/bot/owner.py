@@ -4,7 +4,7 @@ from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from src.database.dal.bot.bot_configs_dal import BotConfigsDal
 from src.database.dal.bot.servers_dal import ServersDal
-from src.bot.utils import bot_utils, constants, chat_formatting
+from src.bot.utils import bot_utils, constants
 from src.bot.utils.checks import Checks
 from src.bot.utils.cooldowns import CoolDowns
 
@@ -31,7 +31,7 @@ class Owner(commands.Cog):
                 cmd = ctx.command
             else:
                 cmd = self.bot.get_command("owner")
-            await bot_utils.send_help_msg(self, ctx, cmd)
+            await bot_utils.send_help_msg(ctx, cmd)
 
     @owner.command(name="prefix")
     @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
@@ -55,14 +55,14 @@ class Owner(commands.Cog):
                 bot_game_desc = f"{game} | {new_prefix}help"
                 await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(name=bot_game_desc))
 
-        bot_configs_sql = BotConfigsDal(self.bot.db_session, self.bot.logs)
-        await bot_configs_sql.update_bot_prefix(new_prefix)
+        bot_configs_sql = BotConfigsDal(self.bot.db_session, self.bot.log)
+        await bot_configs_sql.update_bot_prefix(new_prefix, ctx.message.author.id)
         self.bot.command_prefix = (new_prefix,)
 
         color = self.bot.settings["EmbedOwnerColor"]
         msg = f"Bot prefix has been changed to: `{new_prefix}`"
         embed = discord.Embed(description=msg, color=color)
-        await bot_utils.send_embed(self, ctx, embed, False, msg)
+        await bot_utils.send_embed(ctx, embed,)
 
     @owner.command(name="botdescription")
     @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
@@ -73,16 +73,16 @@ class Owner(commands.Cog):
         owner botdescription <new_description>
         """
 
-        # bot_utils.delete_channel_message(self, ctx)
+        await bot_utils.delete_channel_message(ctx)
         await ctx.message.channel.typing()
-        bot_configs_sql = BotConfigsDal(self.bot.db_session, self.bot.logs)
-        await bot_configs_sql.update_bot_description(desc)
+        bot_configs_sql = BotConfigsDal(self.bot.db_session, self.bot.log)
+        await bot_configs_sql.update_bot_description(desc, ctx.message.author.id)
         self.bot.description = desc
 
         color = self.bot.settings["EmbedOwnerColor"]
-        msg = f"Bot description changed to: \"`{desc}`\""
+        msg = f"Bot description changed to: `{desc}`"
         embed = discord.Embed(description=msg, color=color)
-        await bot_utils.send_embed(self, ctx, embed, False, msg)
+        await bot_utils.send_embed(ctx, embed)
 
     @owner.command(name="servers")
     @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
@@ -93,26 +93,24 @@ class Owner(commands.Cog):
         owner servers
         """
 
-        # bot_utils.delete_channel_message(self, ctx)
         await ctx.message.channel.typing()
         servers_sql = ServersDal(self.bot.db_session, self.bot.log)
         rs = await servers_sql.get_server()
         color = self.bot.settings["EmbedOwnerColor"]
-        embed = discord.Embed(description="Displaying all servers using the bot", color=color)
+        embed = discord.Embed(description="All servers in database", color=color)
         embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar.url)
 
+        id_list = []
         name_list = []
-        owner_list = []
         for value in rs:
-            name_list.append(value["server_name"])
-            owner_list.append(value["owner_name"])
+            id_list.append(str(value["id"]))
+            name_list.append(value["name"])
 
-        names = '\n'.join(name_list)
-        owners = '\n'.join(owner_list)
-        embed.add_field(name="Name", value=chat_formatting.inline(names), inline=True)
-        embed.add_field(name="Owner", value=chat_formatting.inline(owners), inline=True)
-        msg = f"Servers:\n`{names}`"
-        await bot_utils.send_embed(self, ctx, embed, True, msg)
+        ids = "\n".join(id_list)
+        names = "\n".join(name_list)
+        embed.add_field(name="ID", value=ids, inline=True)
+        embed.add_field(name="Name", value=names, inline=True)
+        await bot_utils.send_embed(ctx, embed, True)
 
 
 async def setup(bot):

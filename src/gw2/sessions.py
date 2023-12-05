@@ -35,17 +35,17 @@ class GW2Session(commands.Cog):
         gw2Configs = Gw2ConfigsDal(self.bot.db_session, self.bot.log)
         rs_gw2_sc = await gw2Configs.get_gw2_server_configs(ctx.guild.id)
         if len(rs_gw2_sc) == 0 or (len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"] == "N"):
-            return await bot_utils.send_error_msg(self, ctx, "Last session is not active on this server.\n"
-                                                            f"To activate use: `{ctx.prefix}gw2 config lastsession on`")
+            return await bot_utils.send_error_msg(ctx, "Last session is not active on this server.\n"
+                                                       f"To activate use: `{ctx.prefix}gw2 config lastsession on`")
 
         user_id = ctx.message.author.id
         gw2KeySql = Gw2KeyDal(self.bot.db_session, self.bot.log)
         rs_api_key = await gw2KeySql.get_server_user_api_key(ctx.guild.id, user_id)
         if len(rs_api_key) == 0:
-            return await bot_utils.send_error_msg(self, ctx, "You dont have an API key registered in this server.\n"
-                                                            f"To add or replace an API key use: `{ctx.prefix}gw2 key "
-                                                            "add`\n"
-                                                            f"To check your API key use: `{ctx.prefix}gw2 key info`")
+            return await bot_utils.send_error_msg(ctx, "You dont have an API key registered in this server.\n"
+                                                       f"To add or replace an API key use: `{ctx.prefix}gw2 key "
+                                                       "add`\n"
+                                                       f"To check your API key use: `{ctx.prefix}gw2 key info`")
 
         api_key = rs_api_key[0]["key"]
         gw2_server = rs_api_key[0]["server_name"]
@@ -75,7 +75,7 @@ class GW2Session(commands.Cog):
                          "command.\n" \
                          f"To add or replace an API key use: `{prefix}gw2 key add <api_key>`\n" \
                          f"To check your API key use: `{ctx.prefix}gw2 key info`"
-            return await bot_utils.send_error_msg(self, ctx, error_msg)
+            return await bot_utils.send_error_msg(ctx, error_msg)
 
         still_playing_msg = None
         if not (isinstance(ctx.channel, discord.DMChannel)) \
@@ -92,7 +92,7 @@ class GW2Session(commands.Cog):
         rs_session = await gw2LastSessionSql.get_user_last_session(user_id)
         if len(rs_session) > 0:
             if rs_session[0]["end_date"] is None:
-                return await bot_utils.send_private_error_msg(self, ctx,
+                return await bot_utils.send_private_error_msg(ctx,
                                                   "There was a problem trying to record your last finished session.\n"
                                                   "Please, do not close discord when the game is running.")
 
@@ -109,9 +109,9 @@ class GW2Session(commands.Cog):
                     m = "minutes"
                     if wait_time == "1":
                         m = "minute"
-                    return await bot_utils.send_msg(self, ctx, color,
-                                                   f"{ctx.message.author.mention}\n Bot still updating your stats!\n"
-                                                   f"Please wait {wait_time} {m} and try again.")
+                    return await gw2_utils.send_msg(ctx,
+                                                    f"{ctx.message.author.mention}\n Bot still updating your stats!\n"
+                                                    f"Please wait {wait_time} {m} and try again.")
 
             st_date = rs_session[0]["start_date"].split()[0]
             acc_name = rs_session[0]["acc_name"]
@@ -249,10 +249,10 @@ class GW2Session(commands.Cog):
 
             if still_playing_msg is not None:
                 await ctx.send(still_playing_msg)
-            await bot_utils.send_embed(self, ctx, embed, False)
+            await bot_utils.send_embed(ctx, embed)
         else:
-            await bot_utils.send_private_error_msg(
-                self, ctx, "No records were found in your name.\n"
+            await bot_utils.send_private_error_msg(ctx,
+                "No records were found in your name.\n"
                 "You are probably trying to execute this command without "
                 "playing the game.\n"
                 "Make sure your status is NOT set to invisible in "

@@ -4,7 +4,6 @@ import json
 import logging.handlers
 import os
 import shutil
-import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
 from enum import Enum
@@ -14,7 +13,7 @@ import discord
 from alembic import command
 from alembic.config import Config
 from src.bot.utils import chat_formatting, constants
-from src.bot.utils.bg_tasks import BackGroundTasks
+from src.bot.utils.background_tasks import BackGroundTasks
 from src.database.dal.bot.servers_dal import ServersDal
 from src.database.dal.gw2.gw2_configs_dal import Gw2ConfigsDal
 
@@ -30,6 +29,31 @@ class Object:
         json_string = json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
         json_dict = json.loads(json_string)
         return json_dict
+
+
+class Colors(Enum):
+    teal = discord.Color.teal()
+    dark_teal = discord.Color.dark_teal()
+    green = discord.Color.green()
+    dark_green = discord.Color.dark_green()
+    blue = discord.Color.blue()
+    dark_blue = discord.Color.dark_blue()
+    purple = discord.Color.purple()
+    dark_purple = discord.Color.dark_purple()
+    magenta = discord.Color.magenta()
+    dark_magenta = discord.Color.dark_magenta()
+    gold = discord.Color.gold()
+    dark_gold = discord.Color.dark_gold()
+    orange = discord.Color.orange()
+    dark_orange = discord.Color.dark_orange()
+    red = discord.Color.red()
+    dark_red = discord.Color.dark_red()
+    lighter_grey = discord.Color.lighter_grey()
+    dark_grey = discord.Color.dark_grey()
+    light_grey = discord.Color.light_grey()
+    darker_grey = discord.Color.darker_grey()
+    blurple = discord.Color.blurple()
+    greyple = discord.Color.greyple()
 
 
 async def run_alembic_migrations():
@@ -63,78 +87,74 @@ async def load_cogs(bot):
             bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
 
 
-async def reload_cogs(self):
-    self.bot.log.info("RE-Loading Bot Extensions...")
-    for ext in constants.ALL_COGS:
-        cog_name = ".".join(ext.split("/")[-4:])[:-3]
-        try:
-            if hasattr(self, "bot"):
-                self.bot.reload_extension(cog_name)
-            else:
-                self.reload_extension(cog_name)
-                self.log.debug(f"\t {cog_name}")
-        except Exception as e:
-            self.bot.log.error(f"ERROR: FAILED to load extension: {cog_name}")
-            self.bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
-
-
-async def send_msg(self, ctx, color, msg):
-    await ctx.message.channel.typing()
+async def send_msg(ctx, msg):
+    color = ctx.bot.settings["EmbedColor"]
     embed = discord.Embed(color=color, description=msg)
-    embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
-    await send_embed(self, ctx, embed, False, msg)
+    embed.set_author(name=get_member_name_by_id(ctx), icon_url=ctx.message.author.avatar.url)
+    await send_embed(ctx, embed)
 
 
-async def send_warning_msg(self, ctx, msg):
-    await ctx.message.channel.typing()
+async def send_warning_msg(ctx, msg):
     embed = discord.Embed(color=discord.Color.orange(), description=chat_formatting.warning(msg))
-    embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
-    await send_embed(self, ctx, embed, False, msg)
+    embed.set_author(name=get_member_name_by_id(ctx), icon_url=ctx.message.author.avatar.url)
+    await send_embed(ctx, embed)
 
 
-async def send_info_msg(self, ctx, msg):
-    await ctx.message.channel.typing()
+async def send_info_msg(ctx, msg):
     embed = discord.Embed(color=discord.Color.blue(), description=chat_formatting.info(msg))
-    embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
-    await send_embed(self, ctx, embed, False, msg)
+    embed.set_author(name=get_member_name_by_id(ctx), icon_url=ctx.message.author.avatar.url)
+    await send_embed(ctx, embed)
 
 
-async def send_error_msg(self, ctx, msg):
-    await ctx.message.channel.typing()
+async def send_error_msg(ctx, msg):
     embed = discord.Embed(color=discord.Color.red(), description=chat_formatting.error(msg))
-    embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
-    await send_embed(self, ctx, embed, False, msg)
+    embed.set_author(name=get_member_name_by_id(ctx), icon_url=ctx.message.author.avatar.url)
+    await send_embed(ctx, embed)
 
 
-async def send_private_msg(self, ctx, color, msg):
+async def send_private_msg(ctx, color, msg):
     embed = discord.Embed(color=color, description=msg)
-    # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar.url)
-    await send_embed(self, ctx, embed, True, msg)
+    await send_embed(ctx, embed, True)
 
 
-async def send_private_warning_msg(self, ctx, msg):
+async def send_private_warning_msg(ctx, msg):
     embed = discord.Embed(color=discord.Color.orange(), description=chat_formatting.warning(msg))
-    # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar.url)
-    await send_embed(self, ctx, embed, True, msg)
+    await send_embed(ctx, embed, True)
 
 
-async def send_private_info_msg(self, ctx, msg):
+async def send_private_info_msg(ctx, msg):
     embed = discord.Embed(color=discord.Color.blue(), description=chat_formatting.info(msg))
-    # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar.url)
-    await send_embed(self, ctx, embed, True, msg)
+    await send_embed(ctx, embed, True)
 
 
-async def send_private_error_msg(self, ctx, msg):
+async def send_private_error_msg(ctx, msg):
     embed = discord.Embed(color=discord.Color.red(), description=chat_formatting.error(msg))
-    # embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar.url)
-    await send_embed(self, ctx, embed, True, msg)
+    await send_embed(ctx, embed, True)
 
 
-async def send_help_msg(self, ctx, cmd):
-    if self.bot.help_command.dm_help:
+async def send_help_msg(ctx, cmd):
+    if ctx.bot.help_command.dm_help:
         await ctx.author.send(chat_formatting.box(cmd.help))
     else:
         await ctx.send(chat_formatting.box(cmd.help))
+
+
+async def send_embed(ctx, embed, dm=False):
+    try:
+        if not embed.color:
+            embed.color = ctx.bot.settings["EmbedColor"]
+
+        if dm:
+            await ctx.author.send(embed=embed)
+        else:
+            await ctx.message.channel.typing()
+            await ctx.send(embed=embed)
+    except (discord.Forbidden, discord.HTTPException):
+        msg = "Direct messages are disable in your configuration.\n" \
+              "If you want to receive messages from Bots, " \
+              "you need to enable this option under Privacy & Safety:\n" \
+              "\"Allow direct messages from server members.\"\n"
+        await send_error_msg(ctx, msg)
 
 
 def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
@@ -152,43 +172,14 @@ def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
     logger.exception("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
 
-async def send_embed(self, ctx, embed, dm=False, msg=None):
-    try:
-        if dm:
-            if is_private_message(self, ctx):
-                await ctx.send(embed=embed)
-            else:
-                await ctx.author.send(embed=embed)
-        else:
-            await ctx.send(embed=embed)
-    except discord.HTTPException as err:
-        # except discord.Forbidden as err:
-        if "Cannot send messages to this user" in err.text:
-            await ctx.send(f"{ctx.message.author.mention}\n")
-            err_msg = "Direct messages are disable in your configuration.\n" \
-                      "If you want to receive messages from Bots, " \
-                      "you need to enable this option under Privacy & Safety:\n" \
-                      "\"Allow direct messages from server members.\"\n"
-            await ctx.send(chat_formatting.red_text(err_msg))
-            if msg is not None:
-                await ctx.send(chat_formatting.green_text(msg))
-        else:
-            await ctx.send(f"{ctx.message.author.mention}\n")
-            if msg is not None:
-                await ctx.send(f"{chat_formatting.green_text(msg)}")
-
-
-async def delete_channel_message(self, ctx, warning=False):
-    if not is_private_message(self, ctx):
+async def delete_channel_message(ctx, warning=False):
+    if not is_private_message(ctx):
         try:
             await ctx.message.delete()
             if warning:
-                color = self.bot.settings["EmbedColor"]
-                await send_msg(self, ctx, color, "Your message was removed for privacy.")
-        except:
-            # await send_info_msg(self, ctx, "Bot does not have permission to delete messages.\n"\
-            #                                   "Missing permission: `Manage Messages`")
-            return
+                await send_msg(ctx, "Your message was removed for privacy.")
+        except Exception as e:
+            ctx.bot.log.error(str(e))
 
 
 def is_member_admin(member: discord.Member):
@@ -200,29 +191,23 @@ def is_member_admin(member: discord.Member):
 
 
 def is_bot_owner(ctx, member: discord.Member):
-    if ctx.bot.owner_id == member.id:
-        return True
-    return False
+    return True if ctx.bot.owner_id == member.id else False
 
 
 def is_server_owner(ctx, member: discord.Member):
-    if member.id == ctx.guild.owner_id:
-        return True
-    return False
+    return True if member.id == ctx.guild.owner_id else False
 
 
-def is_private_message(self, ctx):
+def is_private_message(ctx):
     return True if isinstance(ctx.channel, discord.DMChannel) else False
 
 
 def convert_datetime_to_str(date: datetime):
-    new_date = date.strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
-    return new_date
+    return date.strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
 
 
 def convert_date_to_str(date: datetime):
-    new_date = date.strftime(constants.DATE_FORMATTER)
-    return new_date
+    return date.strftime(constants.DATE_FORMATTER)
 
 
 def get_current_date_str():
@@ -246,8 +231,8 @@ def get_current_time_str():
     return str(datetime.now(timezone.utc).strftime(constants.TIME_FORMATTER))
 
 
-def get_object_member_by_str(self, ctx, member_str: str):
-    if not is_private_message(self, ctx):
+def get_object_member_by_str(ctx, member_str: str):
+    if not is_private_message(ctx):
         for member in ctx.guild.members:
             if (member_str in (member.name, member.display_name) or
                     (member.nick is not None and str(member.nick.lower()) == str(member_str.lower()))):
@@ -265,8 +250,12 @@ def get_member_by_id(guild, member_id: int):
     return member
 
 
-def get_member_name_by_id(self, ctx, user_id: int):
-    member = ctx.guild.get_member(int(user_id))
+def get_member_name_by_id(ctx, user_id: int = None):
+    if user_id:
+        member = ctx.guild.get_member(int(user_id))
+    else:
+        member = ctx.guild.get_member(int(ctx.message.author.id))
+
     if member is not None:
         member_name = str(member.nick) if member.nick is not None else member.display_name
         # member_name = (temp_name.encode('ascii', 'ignore')).decode("utf-8")
@@ -275,15 +264,15 @@ def get_member_name_by_id(self, ctx, user_id: int):
         return None
 
 
-def get_object_channel(self, ctx, channel_str: str):
+def get_object_channel(ctx, channel_str: str):
     for channel in ctx.guild.text_channels:
         if str(channel.name).lower() == channel_str.lower():
             return channel
 
 
 async def channel_to_send_msg(bot, server: discord.Guild):
-    server_configs_dal = ServersDal(bot.db_session, bot.log)
-    rs = await server_configs_dal.get_server(server.id)
+    servers_dal = ServersDal(bot.db_session, bot.log)
+    rs = await servers_dal.get_server(server.id)
     default_text_channel = rs[0]["default_text_channel"]
     sorted_channels = sorted(server.text_channels, key=attrgetter('position'))
     if default_text_channel is None or default_text_channel == "" or len(default_text_channel) == 0:
@@ -361,7 +350,7 @@ def get_all_ini_file_settings(file_name: str):
 
 def get_ini_section_settings(file_name, section):
     final_data = {}
-    parser = configparser.ConfigParser(delimiters='=')
+    parser = configparser.ConfigParser(delimiters="=")
     parser.optionxform = str
     parser._interpolation = configparser.ExtendedInterpolation()
     try:
@@ -380,7 +369,7 @@ def get_ini_section_settings(file_name, section):
 
 
 def get_ini_settings(file_name: str, section: str, config_name: str):
-    parser = configparser.ConfigParser(delimiters='=', allow_no_value=True)
+    parser = configparser.ConfigParser(delimiters="=", allow_no_value=True)
     parser.optionxform = str
     parser._interpolation = configparser.ExtendedInterpolation()
     try:
@@ -407,63 +396,6 @@ def get_random_color():
     color = ''.join([choice('0123456789ABCDEF') for _ in range(6)])
     color = int(color, 16)
     return color
-
-
-class Colors(Enum):
-    teal = discord.Color.teal()
-    dark_teal = discord.Color.dark_teal()
-    green = discord.Color.green()
-    dark_green = discord.Color.dark_green()
-    blue = discord.Color.blue()
-    dark_blue = discord.Color.dark_blue()
-    purple = discord.Color.purple()
-    dark_purple = discord.Color.dark_purple()
-    magenta = discord.Color.magenta()
-    dark_magenta = discord.Color.dark_magenta()
-    gold = discord.Color.gold()
-    dark_gold = discord.Color.dark_gold()
-    orange = discord.Color.orange()
-    dark_orange = discord.Color.dark_orange()
-    red = discord.Color.red()
-    dark_red = discord.Color.dark_red()
-    lighter_grey = discord.Color.lighter_grey()
-    dark_grey = discord.Color.dark_grey()
-    light_grey = discord.Color.light_grey()
-    darker_grey = discord.Color.darker_grey()
-    blurple = discord.Color.blurple()
-    greyple = discord.Color.greyple()
-
-
-def clear_screen():
-    if constants.IS_WINDOWS:
-        os.system("cls")
-    else:
-        os.system("clear")
-
-
-def is_git_installed():
-    try:
-        subprocess.call(["git", "--version"], stdout=subprocess.DEVNULL,
-                        stdin=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL)
-    except FileNotFoundError:
-        return False
-    else:
-        return True
-
-
-def wait_return():
-    try:
-        input("Press enter to continue...").strip()
-    except SyntaxError:
-        pass
-
-
-def user_choice():
-    try:
-        return input(">>> ").lower().strip()
-    except SyntaxError:
-        pass
 
 
 def recursive_overwrite(src, dest, ignore=None):
@@ -502,14 +434,14 @@ def convert_timedelta_toObj(time_delta: timedelta):
 
 def get_time_passed(start_time_str, end_time_str):
     date_time_formatter = f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"
-    time_passed_delta = datetime.strptime(end_time_str, date_time_formatter) - \
-                        datetime.strptime(start_time_str, date_time_formatter)
+    time_passed_delta = (datetime.strptime(end_time_str, date_time_formatter) -
+                         datetime.strptime(start_time_str, date_time_formatter))
 
     time_passed_obj = convert_timedelta_toObj(time_passed_delta)
     return time_passed_obj
 
 
-async def create_admin_commands_channel(self, guild: discord.Guild):
+async def create_admin_commands_channel(bot, guild: discord.Guild):
     for chan in guild.text_channels:
         if chan.name == 'bot-commands':
             return
@@ -519,7 +451,7 @@ async def create_admin_commands_channel(self, guild: discord.Guild):
         guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True)
     }
 
-    prefix = self.bot.command_prefix[0]
+    prefix = bot.command_prefix[0]
     msg = "Use this channel to type bot commands.\n" \
           f"If you are an admin and wish to list configurations: `{prefix}config list`\n" \
           f"To get a list of commands: `{prefix}help`"
@@ -529,9 +461,9 @@ async def create_admin_commands_channel(self, guild: discord.Guild):
         await channel.edit(name="Bot Commands")
         await channel.send(f"{msg}")
     except discord.Forbidden as err:
-        self.bot.log.info(f"(Server:{guild.name})(BOT IS NOT ADMIN)({err.text} to create channel: bot-commands)")
+        bot.log.info(f"(Server:{guild.name})(BOT IS NOT ADMIN)({err.text} to create channel: bot-commands)")
     except discord.HTTPException as err:
-        self.bot.log.info(f"(Server:{guild.name})({err.text})")
+        bot.log.info(f"(Server:{guild.name})({err.text})")
 
 
 def get_bot_stats(bot):
@@ -564,17 +496,3 @@ def get_bot_stats(bot):
     result['channels'] = channels
 
     return result
-
-
-def check_server_has_role(self, server: discord.Guild, role_name: str):
-    for rol in server.roles:
-        if rol.name.lower() == role_name.lower():
-            return rol
-    return None
-
-
-def check_user_has_role(self, member: discord.Member, role_name: str):
-    for rol in member.roles:
-        if rol.name.lower() == role_name.lower():
-            return rol
-    return None

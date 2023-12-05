@@ -77,8 +77,8 @@ class OnMessage(commands.Cog):
     async def execute_server_msg(self, ctx):
         is_command = True if ctx.prefix is not None else False
 
-        server_configs_dal = ServersDal(self.bot.db_session, self.bot.log)
-        configs = await server_configs_dal.get_server(
+        servers_dal = ServersDal(self.bot.db_session, self.bot.log)
+        configs = await servers_dal.get_server(
             ctx.message.guild.id,
             ctx.message.channel.id
         )
@@ -94,7 +94,7 @@ class OnMessage(commands.Cog):
         if configs["block_invis_members"] == "Y":
             is_member_invis = self._check_member_invisible(ctx)
             if is_member_invis:
-                await bot_utils.delete_channel_message(self, ctx)
+                await bot_utils.delete_channel_message(ctx)
                 msg = ("You are Invisible (offline)\n"
                        f"Server \"{ctx.guild.name}\" does not allow messages from invisible members.\n"
                        "Please change your status if you want to send messages to this server.")
@@ -219,7 +219,7 @@ class OnMessage(commands.Cog):
                               f"(Message:{user_msg})")
 
             try:
-                await bot_utils.delete_channel_message(self, ctx)
+                await bot_utils.delete_channel_message(ctx)
                 await ctx.message.channel.send(censored_text)
                 msg = ("Your message was censored.\n"
                        "Please don't say offensive words in this channel.")

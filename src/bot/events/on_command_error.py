@@ -63,19 +63,19 @@ class Errors(commands.Cog):
 
 async def _forbidden(self, ctx, errorObj: object):
     if "Cannot execute action on a DM channel" in errorObj.errorMsg:
-        await bot_utils.send_error_msg(self, ctx, "Cannot execute that command on a DM channel")
+        await bot_utils.send_error_msg(ctx, "Cannot execute that command on a DM channel")
     else:
-        await bot_utils.send_error_msg(self, ctx, "Your Privilege is too low.")
+        await bot_utils.send_error_msg(ctx, "Your Privilege is too low.")
     _log_msg_error(self, ctx, errorObj.errorMsg)
 
 
 async def _noPrivateMessage(self, ctx, errorObj: object):
-    await bot_utils.send_error_msg(self, ctx, errorObj.errorMsg)
+    await bot_utils.send_error_msg(ctx, errorObj.errorMsg)
     _log_msg_error(self, ctx, errorObj.errorMsg)
 
 
 async def _commandNotFound(self, ctx, errorObj: object):
-    await bot_utils.send_error_msg(self, ctx, f"Command not found:\n`{errorObj.command}`")
+    await bot_utils.send_error_msg(ctx, f"Command not found:\n`{errorObj.command}`")
     # errorMsg = errorObj.errorMsg.replace("is ","")
     errorMsg = "Command not found"
     _log_msg_error(self, ctx, errorMsg)
@@ -83,7 +83,7 @@ async def _commandNotFound(self, ctx, errorObj: object):
 
 async def _missingRequiredArgument(self, ctx, errorObj: object):
     msg = f"Missing required argument!!!\nFor more info on this command use: `{ctx.prefix}help {ctx.command}`"
-    await bot_utils.send_error_msg(self, ctx, msg)
+    await bot_utils.send_error_msg(ctx, msg)
     # await ctx.send(Formatting.error_inline(msg))
     # await ctx.send(Formatting.box(ctx.command.help))
     _log_msg_error(self, ctx, errorObj.errorMsg)
@@ -93,52 +93,52 @@ async def _checkFailure(self, ctx, errorObj: object):
     if "not admin" in errorObj.errorMsg:
         user_msg = f"You are not an Admin to use this command:\n`{errorObj.command}`"
         errorMsg = "CheckFailure: Not Admin"
-        await bot_utils.send_error_msg(self, ctx, user_msg)
+        await bot_utils.send_error_msg(ctx, user_msg)
         _log_msg_error(self, ctx, errorMsg)
     elif "not owner" in errorObj.errorMsg:
         user_msg = f"Only bot owners can use this command."
         errorMsg = "CheckFailure: Not Owner"
-        await bot_utils.send_error_msg(self, ctx, user_msg)
+        await bot_utils.send_error_msg(ctx, user_msg)
         _log_msg_error(self, ctx, errorMsg)
     elif "not music user" in errorObj.errorMsg:
         user_msg = "You are not allowed to use any music related commands.\n" \
                    "Please talk to an Admin to add you to the whitelist."
         errorMsg = "CheckFailure: Not a Music User"
-        await bot_utils.send_error_msg(self, ctx, user_msg)
+        await bot_utils.send_error_msg(ctx, user_msg)
         _log_msg_error(self, ctx, errorMsg)
     else:
-        await bot_utils.send_error_msg(self, ctx, errorObj.errorMsg)
+        await bot_utils.send_error_msg(ctx, errorObj.errorMsg)
         _log_msg_error(self, ctx, errorObj.errorMsg)
 
 
 async def _badArgument(self, ctx, errorObj: object):
     if "Member" in errorObj.errorMsg and "not found" in errorObj.errorMsg:
-        await bot_utils.send_error_msg(self, ctx, errorObj.errorMsg)
+        await bot_utils.send_error_msg(ctx, errorObj.errorMsg)
         _log_msg_error(self, ctx, errorObj.errorMsg)
     elif "Channel" in errorObj.errorMsg and "not found" in errorObj.errorMsg:
-        await bot_utils.send_error_msg(self, ctx, errorObj.errorMsg)
+        await bot_utils.send_error_msg(ctx, errorObj.errorMsg)
         _log_msg_error(self, ctx, errorObj.errorMsg)
     elif "BadArgument_bot_prefix" in errorObj.errorMsg:
         user_msg = "Prefixes can only be one of: ! $ % ^ & ? > < . ;"
-        await bot_utils.send_error_msg(self, ctx, user_msg)
+        await bot_utils.send_error_msg(ctx, user_msg)
         _log_msg_error(self, ctx, f"BadArgument:[{errorObj.errorMsg}][{errorObj.help_command}]")
     elif "BadArgument_default_text_channel" in errorObj.errorMsg:
         user_msg = f"Channel not found:\n`{errorObj.bad_argument}`"
-        await bot_utils.send_error_msg(self, ctx, user_msg)
+        await bot_utils.send_error_msg(ctx, user_msg)
         _log_msg_error(self, ctx, f"{errorObj.errorMsg} ({user_msg})")
     elif "BadArgument_Gw2ConfigServer" in errorObj.errorMsg:
         user_msg = f"Guild Wars 2 server not found: `{errorObj.bad_argument}`\n" \
                    f"For more info on gw2 server names use: `{ctx.prefix}gw2 worlds`"
-        await bot_utils.send_error_msg(self, ctx, user_msg)
+        await bot_utils.send_error_msg(ctx, user_msg)
         _log_msg_error(self, ctx, f"{errorObj.errorMsg} ({user_msg})")
     elif "BadArgument" in errorObj.errorMsg:
         # user_msg = f"BadArgument: {errorObj.bad_argument} \nType {errorObj.help_command} for more info."
         user_msg = f"Unknown option: `{errorObj.bad_argument}`\nFor more info on this command use: `{errorObj.help_command}`"
-        await bot_utils.send_error_msg(self, ctx, user_msg)
+        await bot_utils.send_error_msg(ctx, user_msg)
         _log_msg_error(self, ctx,
                        f"BadArgument:[{errorObj.bad_argument}][{errorObj.errorMsg}][{errorObj.help_command}]")
     else:
-        await bot_utils.send_error_msg(self, ctx, errorObj.errorMsg)
+        await bot_utils.send_error_msg(ctx, errorObj.errorMsg)
         _log_msg_error(self, ctx, errorObj.errorMsg)
 
 
@@ -152,20 +152,20 @@ async def _commandOnCooldown(self, ctx, errorObj: object):
             or "customcom add" in ctx.message.content.lower() \
             or "customcom edit" in ctx.message.content.lower() \
             or "pool" in ctx.message.content.lower():
-        await bot_utils.delete_channel_message(self, ctx)
-    await bot_utils.send_error_msg(self, ctx, f"{errorObj.errorMsg}\nCommand: `{errorObj.command}`")
+        await bot_utils.delete_channel_message(ctx)
+    await bot_utils.send_error_msg(ctx, f"{errorObj.errorMsg}\nCommand: `{errorObj.command}`")
     # _log_msg_error(self, ctx,"COOLDOWN")
 
 
 async def _tooManyArguments(self, ctx, errorObj: object):
-    await bot_utils.send_error_msg(self, ctx, f"Command ERROR!\nFor more info type: `{errorObj.help_command}`")
+    await bot_utils.send_error_msg(ctx, f"Command ERROR!\nFor more info type: `{errorObj.help_command}`")
     _log_msg_error(self, ctx, errorObj.errorMsg)
 
 
 async def _commandInvokeError(self, ctx, errorObj: object):
     if "Missing Permissions" in errorObj.errorMsg:
         msg = f"Bot does not have permission to execute this command.\nCommand: `{errorObj.command}`"
-        await bot_utils.send_error_msg(self, ctx, msg)
+        await bot_utils.send_error_msg(ctx, msg)
         _log_msg_error(self, ctx, errorObj.errorMsg)
     elif "Cannot send messages to this user" in errorObj.errorMsg \
             or "status code: 403" in errorObj.errorMsg:
@@ -173,19 +173,19 @@ async def _commandInvokeError(self, ctx, errorObj: object):
               "If you want to receive messages from Bots, " \
               "you need to enable this option under Privacy & Safety:" \
               "\"Allow direct messages from server members.\""
-        await bot_utils.send_error_msg(self, ctx, msg)
+        await bot_utils.send_error_msg(ctx, msg)
         _log_msg_error(self, ctx, errorObj.errorMsg)
     elif "object has no attribute" in errorObj.errorMsg:
         msg = f"There was an internal error with command:\n`{errorObj.command}`"
-        await bot_utils.send_error_msg(self, ctx, msg)
+        await bot_utils.send_error_msg(ctx, msg)
         _log_msg_error(self, ctx, "CommandInvokeError" + errorObj.errorMsg)
     elif "AttributeError" in errorObj.errorMsg:
-        await bot_utils.send_error_msg(self, ctx, f"Command error: `{errorObj.command}`\n" \
+        await bot_utils.send_error_msg(ctx, f"Command error: `{errorObj.command}`\n" \
                                               f"For more info type: `{errorObj.help_command}`")
         _log_msg_error(self, ctx, f"CommandInvokeError|AttributeError {errorObj.errorMsg}")
     elif "No such file or directory" in errorObj.errorMsg:
         msg = f"There was an internal error with command:\n`{errorObj.command}`"
-        await bot_utils.send_error_msg(self, ctx, msg)
+        await bot_utils.send_error_msg(ctx, msg)
         _log_msg_error(self, ctx, f"CommandInvokeError|FileNotFoundError: {errorObj.errorMsg}")
     elif "OperationalError" in errorObj.errorMsg:
         if "owner loadsql" in errorObj.command:
@@ -198,16 +198,16 @@ async def _commandInvokeError(self, ctx, errorObj: object):
             else:
                 msg = "Error while executing SQL query: "
                 sql = ""
-            await bot_utils.send_private_error_msg(self, ctx, f"{msg}\n{error_message}")
+            await bot_utils.send_private_error_msg(ctx, f"{msg}\n{error_message}")
             _log_msg_error(self, ctx, f"OperationalError|SQL error:({sql}){msg} {error_message}")
         else:
             msg = f"There was an internal error with command:\n`{errorObj.command}`"
-            await bot_utils.send_error_msg(self, ctx, msg)
+            await bot_utils.send_error_msg(ctx, msg)
             msg = f"OperationalError|SQL error: {errorObj.errorMsg}"
             _log_msg_error(self, ctx, msg)
     elif "IntegrityError" in errorObj.errorMsg:
         msg = f"There was an internal error with command:\n`{errorObj.command}`"
-        await bot_utils.send_error_msg(self, ctx, msg)
+        await bot_utils.send_error_msg(ctx, msg)
         msg = f"IntegrityError|SQL error: {errorObj.errorMsg}"
         _log_msg_error(self, ctx, msg)
     elif "NoOptionError" in errorObj.errorMsg:
@@ -215,32 +215,32 @@ async def _commandInvokeError(self, ctx, errorObj: object):
         msg = f"No option found: `{option_not_found}`\n" \
               "Please check the help section for this command and try again.\n" \
               f"To get help type: `{errorObj.help_command}`"
-        await bot_utils.send_error_msg(self, ctx, msg)
+        await bot_utils.send_error_msg(ctx, msg)
         _log_msg_error(self, ctx, f"CommandInvokeError|NoOptionError: {errorObj.errorMsg}")
     elif "IP Address not valid." in errorObj.errorMsg:
-        await bot_utils.send_error_msg(self, ctx, errorObj.errorMsg)
+        await bot_utils.send_error_msg(ctx, errorObj.errorMsg)
         temp = errorObj.errorMsg.strip("\n")
         _log_msg_error(self, ctx, f"CommandInvokeError|ERROR: {temp}")
     elif "Unable to ping GW2 servers" in errorObj.errorMsg:
         msg = "Unable to ping GW2 servers. Software Nping not found."
-        await bot_utils.send_error_msg(self, ctx, errorObj.errorMsg)
+        await bot_utils.send_error_msg(ctx, errorObj.errorMsg)
         _log_msg_error(self, ctx, f"CommandInvokeError|ERROR: {msg}")
     elif "GW2 API" in errorObj.errorMsg:
         msg = str(errorObj.errorMsg).split(',')[1].strip().split('?')[0]
-        await bot_utils.send_error_msg(self, ctx, errorObj.errorMsg)
+        await bot_utils.send_error_msg(ctx, errorObj.errorMsg)
         _log_msg_error(self, ctx, f"GW2 API|ERROR: {msg}")
     elif "No text to send to TTS API" in errorObj.errorMsg:
         msg = "Invalid message."
-        await bot_utils.send_error_msg(self, ctx, msg)
+        await bot_utils.send_error_msg(ctx, msg)
         _log_msg_error(self, ctx, f"CommandInvokeError|ERROR: {errorObj.errorMsg}|{msg}")
     else:
         msg = f"There was an internal error with command:\n`{errorObj.command}`"
-        await bot_utils.send_error_msg(self, ctx, msg)
+        await bot_utils.send_error_msg(ctx, msg)
         _log_msg_error(self, ctx, f"CommandInvokeError|ERROR: {errorObj.errorMsg}")
 
 
 async def _commandError(self, ctx, errorObj: object):
-    await bot_utils.send_error_msg(self, ctx, str(errorObj.errorMsg))
+    await bot_utils.send_error_msg(ctx, str(errorObj.errorMsg))
     _log_msg_error(self, ctx, f"CommandError: {errorObj.errorMsg}")
 
 

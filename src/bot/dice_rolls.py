@@ -43,21 +43,24 @@ class DiceRolls(commands.Cog):
                 dice_size = int(ctx.subcommand_passed)
             else:
                 msg = "Thats not a valid dice size.\nPlease try again."
-                embed = discord.Embed(title="", color=discord.Color.red(), description=msg)
-                embed.set_author(name=author.display_name, icon_url=author.avatar.url)
-                await bot_utils.send_embed(self, ctx, embed)
+                await bot_utils.send_error_msg(ctx, msg)
                 return
 
         if dice_size > 1:
             server_highest_roll = 0
-            user_best_roll = 0
             roll = random.randint(1, dice_size)
+            user_best_roll = 0
             server_highest_user = None
+            msg = ""
 
             dice_rolls_dal = DiceRollsDal(self.bot.db_session, self.bot.log)
             rs_user = await dice_rolls_dal.get_user_rolls_by_dice_size(server.id, author.id, dice_size)
-            rs_server_max_roll = await dice_rolls_dal.get_server_max_roll(ctx.guild.id, dice_size)
+            if len(rs_user) == 0:
+                await dice_rolls_dal.insert_user_roll(server.id, author.id, dice_size, roll)
+            else:
+                user_best_roll = rs_user[0]["roll"]
 
+            rs_server_max_roll = await dice_rolls_dal.get_server_max_roll(ctx.guild.id, dice_size)
             if len(rs_server_max_roll) > 0:
                 user = bot_utils.get_member_by_id(ctx.guild, rs_server_max_roll[0]["user_id"])
                 if rs_server_max_roll[0]["max_roll"] is not None:
@@ -65,33 +68,31 @@ class DiceRolls(commands.Cog):
                 if user is not None:
                     server_highest_user = user
 
-            if len(rs_user) == 0:
-                await dice_rolls_dal.insert_user_roll(server.id, author.id, dice_size, roll)
-            else:
-                user_best_roll = rs_user[0]["roll"]
-
             if roll > server_highest_roll:
-                await ctx.send(":crown: This is now the server highest roll :crown:")
+                msg += ":crown: This is now the server highest roll :crown:\n"
                 server_highest_roll = roll
+                server_highest_user = author
 
             if roll > user_best_roll:
-                await ctx.send(":star2: This is now your highest roll :star2:")
+                msg += ":star2: This is now your highest roll :star2:\n"
                 await dice_rolls_dal.update_user_roll(server.id, author.id, dice_size, roll)
                 user_best_roll = roll
 
-            if user_best_roll == 0:
-                user_best_roll = roll
-
             if server_highest_user is None or server_highest_user == author:
-                await ctx.send(chat_formatting.inline(f"You are the server winner with {user_best_roll}"))
+                msg += f":crown: You are the server winner with {user_best_roll}\n"
             else:
-                await ctx.send(chat_formatting.inline(f"{server_highest_user} has the server highest roll with "
-                                                      f"{server_highest_roll}"))
-                await ctx.send(chat_formatting.inline(f"Your highest roll is {user_best_roll}"))
+                highest_roll_user_name = bot_utils.get_member_name_by_id(ctx, server_highest_user.id)
+                msg += f"`{highest_roll_user_name}` has the server highest roll with {server_highest_roll}\n"
+                msg += f"Your highest roll is {user_best_roll}\n"
 
-            await ctx.send(f"{author.mention} :game_die: {roll} :game_die:")
+            msg += f":game_die: {roll} :game_die:\n"
+
+            color = discord.Color.red()
+            embed = discord.Embed(description=msg, color=color)
+            embed.set_author(name=bot_utils.get_member_name_by_id(ctx), icon_url=author.avatar.url)
+            await bot_utils.send_embed(ctx, embed)
         else:
-            await bot_utils.send_error_msg(self, ctx, "Dice size needs to be higher than 1")
+            await bot_utils.send_error_msg(ctx, "Dice size needs to be higher than 1")
 
     @roll.command(name="results")
     async def roll_results(self, ctx):
@@ -102,38 +103,31 @@ class DiceRolls(commands.Cog):
         roll results <member#1234>
         """
 
-        dice_size = 100
         server = ctx.guild
-        author = ctx.message.author
         msg_lst = ctx.message.content.split()
-        color = self.bot.settings["EmbedColor"]
-        embed = discord.Embed(color=color)
+        embed = discord.Embed()
 
         try:
             if len(msg_lst) == 3:
                 dice_size = int(msg_lst[2])
             else:
-                raise ValueError
-        except ValueError:
+                dice_size = 100
+        except Exception as e:
             msg = "Thats not a valid dice size.\nPlease try again."
-            embed = discord.Embed(title="", color=discord.Color.red(), description=msg)
-            embed.set_author(name=author.display_name, icon_url=author.avatar.url)
-            await bot_utils.send_embed(self, ctx, embed)
+            await bot_utils.send_error_msg(ctx, msg)
             return
 
         dice_rolls_sql = DiceRollsDal(self.bot.db_session, self.bot.log)
         rs_all_server_rolls = await dice_rolls_sql.get_all_server_rolls(server.id, dice_size)
         if len(rs_all_server_rolls) == 0:
-            await bot_utils.send_error_msg(
-                self, ctx,
-                f"There are no dice rolls of the size {dice_size} in this server."
-            )
+            msg = f"There are no dice rolls of the size {dice_size} in this server."
+            await bot_utils.send_error_msg(ctx, msg)
             return
 
         member_lst = []
         rolls_lst = []
         for position, each_user in enumerate(rs_all_server_rolls, 1):
-            member_name = bot_utils.get_member_name_by_id(self, ctx, each_user["user_id"])
+            member_name = bot_utils.get_member_name_by_id(ctx, each_user["user_id"])
             member_lst.append(f"{position}) {member_name}")
             rolls_lst.append(str(each_user["roll"]))
 
@@ -144,7 +138,7 @@ class DiceRolls(commands.Cog):
         embed.add_field(name="Member", value=chat_formatting.inline(members), inline=True)
         embed.add_field(name="Roll", value=chat_formatting.inline(rolls), inline=True)
         embed.set_footer(text=f"To reset all rolls from this server type: {ctx.prefix}roll reset")
-        await bot_utils.send_embed(self, ctx, embed)
+        await bot_utils.send_embed(ctx, embed)
 
     @roll.command(name="reset")
     @Checks.check_is_admin()
@@ -156,10 +150,9 @@ class DiceRolls(commands.Cog):
         """
 
         dice_rolls_sql = DiceRollsDal(self.bot.db_session, self.bot.log)
-        color = self.bot.settings["EmbedColor"]
         await ctx.message.channel.typing()
         await dice_rolls_sql.delete_all_server_rolls(ctx.guild.id)
-        await bot_utils.send_msg(self, ctx, color, "Rolls from all members in this server have been deleted.")
+        await bot_utils.send_msg(ctx, "Rolls from all members in this server have been deleted.")
 
 
 async def setup(bot):

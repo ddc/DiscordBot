@@ -44,7 +44,7 @@ class GuildWars2(commands.Cog):
             else:
                 cmd = self.bot.get_command("gw2")
 
-            await bot_utils.send_help_msg(self, ctx, cmd)
+            await bot_utils.send_help_msg(ctx, cmd)
             return
         ctx.invoked_subcommand
 
@@ -86,7 +86,7 @@ class GuildWars2(commands.Cog):
             await GW2Config.gw2_config(self, ctx, sub_command)
         else:
             cmd = self.bot.get_command("gw2 config")
-            await bot_utils.send_help_msg(self, ctx, cmd)
+            await bot_utils.send_help_msg(ctx, cmd)
 
     @gw2_group.command()
     @commands.cooldown(1, GW2CoolDowns.Daily.value, BucketType.user)
@@ -104,7 +104,7 @@ class GuildWars2(commands.Cog):
             await GW2Daily.gw2_daily(self, ctx, daily_type)
         else:
             cmd = self.bot.get_command("gw2 daily")
-            await bot_utils.send_help_msg(self, ctx, cmd)
+            await bot_utils.send_help_msg(ctx, cmd)
 
     @gw2_group.command()
     @commands.cooldown(1, GW2CoolDowns.ApiKeys.value, BucketType.user)
@@ -125,7 +125,7 @@ class GuildWars2(commands.Cog):
             await GW2Key.gw2_key(self, ctx, cmd_api_key)
         else:
             cmd = self.bot.get_command("gw2 key")
-            await bot_utils.send_help_msg(self, ctx, cmd)
+            await bot_utils.send_help_msg(ctx, cmd)
 
     @gw2_group.command(name="lastsession")
     @commands.cooldown(1, GW2CoolDowns.LastSession.value, BucketType.user)
@@ -160,7 +160,7 @@ class GuildWars2(commands.Cog):
             await GW2Misc.gw2_wiki(self, ctx, search)
         else:
             cmd = self.bot.get_command("gw2 wiki")
-            await bot_utils.send_help_msg(self, ctx, cmd)
+            await bot_utils.send_help_msg(ctx, cmd)
 
     @gw2_group.command()
     @commands.cooldown(1, GW2CoolDowns.Misc.value, BucketType.user)
@@ -175,7 +175,7 @@ class GuildWars2(commands.Cog):
             await GW2Misc.gw2_info(self, ctx, skill)
         else:
             cmd = self.bot.get_command("gw2 info")
-            await bot_utils.send_help_msg(self, ctx, cmd)
+            await bot_utils.send_help_msg(ctx, cmd)
 
     @gw2_group.command()
     @commands.cooldown(1, GW2CoolDowns.Misc.value, BucketType.user)

@@ -61,32 +61,7 @@ class ProfanityFilters(BotBase):
     channel_id: Mapped[int] = mapped_column(BigInteger)
     channel_name: Mapped[str] = mapped_column()
     created_by: Mapped[int] = mapped_column(BigInteger, nullable=True)
-    updated_by: Mapped[int] = mapped_column(BigInteger, nullable=True)
     servers = relationship(Servers, foreign_keys="ProfanityFilters.server_id")
-
-
-class Blacklist(BotBase):
-    __tablename__ = "blacklist"
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, unique=True)
-    server_id: Mapped[int] = mapped_column(BigInteger, ForeignKey(Servers.id, ondelete="CASCADE"), index=True)
-    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
-    # author_id: Mapped[int] = mapped_column(BigInteger)
-    reason: Mapped[str] = mapped_column(nullable=True)
-    created_by: Mapped[int] = mapped_column(BigInteger, nullable=True)
-    updated_by: Mapped[int] = mapped_column(BigInteger, nullable=True)
-    servers = relationship(Servers, foreign_keys="Blacklist.server_id")
-
-
-class Muted(BotBase):
-    __tablename__ = "muted"
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, unique=True)
-    server_id: Mapped[int] = mapped_column(BigInteger, ForeignKey(Servers.id, ondelete="CASCADE"), index=True)
-    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
-    # author_id: Mapped[int] = mapped_column(BigInteger)
-    reason: Mapped[str] = mapped_column()
-    created_by: Mapped[int] = mapped_column(BigInteger, nullable=True)
-    updated_by: Mapped[int] = mapped_column(BigInteger, nullable=True)
-    servers = relationship(Servers, foreign_keys="Muted.server_id")
 
 
 class DiceRolls(BotBase):
