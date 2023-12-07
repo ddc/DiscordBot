@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-from sqlalchemy import ForeignKey, BigInteger, CHAR, CheckConstraint, DateTime
+from sqlalchemy import ForeignKey, BigInteger, CHAR, Boolean, DateTime
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import text
@@ -26,20 +26,14 @@ class Servers(BotBase):
     __tablename__ = "servers"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, unique=True, index=True)
     name: Mapped[str] = mapped_column(nullable=True)
-    msg_on_join: Mapped[CHAR] = mapped_column(CHAR(1), server_default="Y")
-    msg_on_leave: Mapped[CHAR] = mapped_column(CHAR(1), server_default="Y")
-    msg_on_server_update: Mapped[CHAR] = mapped_column(CHAR(1), server_default="Y")
-    msg_on_member_update: Mapped[CHAR] = mapped_column(CHAR(1), server_default="Y")
-    block_invis_members: Mapped[CHAR] = mapped_column(CHAR(1), server_default="N")
-    bot_word_reactions: Mapped[CHAR] = mapped_column(CHAR(1), server_default="Y")
+    msg_on_join: Mapped[Boolean] = mapped_column(Boolean, default=True)
+    msg_on_leave: Mapped[Boolean] = mapped_column(Boolean, default=True)
+    msg_on_server_update: Mapped[Boolean] = mapped_column(Boolean, default=True)
+    msg_on_member_update: Mapped[Boolean] = mapped_column(Boolean, default=True)
+    block_invis_members: Mapped[Boolean] = mapped_column(Boolean, default=False)
+    bot_word_reactions: Mapped[Boolean] = mapped_column(Boolean, default=True)
     default_text_channel: Mapped[str] = mapped_column(nullable=True)
     updated_by: Mapped[int] = mapped_column(BigInteger, nullable=True)
-    CheckConstraint("msg_on_join IN ('Y','N')", name="check_msg_on_join_y_n")
-    CheckConstraint("msg_on_leave IN ('Y','N')", name="check_msg_on_leave_y_n")
-    CheckConstraint("msg_on_server_update IN ('Y','N')", name="check_msg_on_server_update_y_n")
-    CheckConstraint("msg_on_member_update IN ('Y','N')", name="check_msg_on_member_update_y_n")
-    CheckConstraint("block_invis_members IN ('Y','N')", name="check_block_invis_members_y_n")
-    CheckConstraint("bot_word_reactions IN ('Y','N')", name="check_bot_word_reactions_y_n")
 
 
 class CustomCommands(BotBase):

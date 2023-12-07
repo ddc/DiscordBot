@@ -70,11 +70,11 @@ async def config_join_message(ctx):
 
     match ctx.subcommand_passed:
         case "on" | "ON":
-            new_status = "Y"
+            new_status = True
             color = discord.Color.green()
             msg = "Display a message when someone joins the server is now: `ON`"
         case "off" | "OFF":
-            new_status = "N"
+            new_status = False
             color = discord.Color.red()
             msg = "Display a message when someone joins the server is now: `OFF`"
         case _:
@@ -97,11 +97,11 @@ async def config_leave_message(ctx):
 
     match ctx.subcommand_passed:
         case "on | ON":
-            new_status = "Y"
+            new_status = True
             color = discord.Color.green()
             msg = "Display a message when a member leaves the server is now: `ON`"
         case "off | OFF":
-            new_status = "N"
+            new_status = False
             color = discord.Color.red()
             msg = "Display a message when a member leaves the server is now: `OFF`"
         case _:
@@ -124,11 +124,11 @@ async def config_server_message(ctx):
 
     match ctx.subcommand_passed:
         case "on" | "ON":
-            new_status = "Y"
+            new_status = True
             color = discord.Color.green()
             msg = "Display a message when server gets updated is now: `ON`"
         case "off | OFF":
-            new_status = "N"
+            new_status = False
             color = discord.Color.red()
             msg = "Display a message when server gets updated is now: `OFF`"
         case _:
@@ -151,11 +151,11 @@ async def config_member_message(ctx):
 
     match ctx.subcommand_passed:
         case "on" | "ON":
-            new_status = "Y"
+            new_status = True
             color = discord.Color.green()
             msg = "Display a message when someone changes profile is now: `ON`"
         case "off | OFF":
-            new_status = "N"
+            new_status = False
             color = discord.Color.red()
             msg = "Display a message when someone changes profile is now: `OFF`"
         case _:
@@ -178,11 +178,11 @@ async def config_block_invis_members(ctx):
 
     match ctx.subcommand_passed:
         case "on" | "ON":
-            new_status = "Y"
+            new_status = True
             color = discord.Color.green()
             msg = "Block messages from invisible members is now: `ON`"
         case "off | OFF":
-            new_status = "N"
+            new_status = False
             color = discord.Color.red()
             msg = "Block messages from invisible members is now: `OFF`"
         case _:
@@ -205,11 +205,11 @@ async def config_bot_word_reactions(ctx):
 
     match ctx.subcommand_passed:
         case "on" | "ON":
-            new_status = "Y"
+            new_status = True
             color = discord.Color.green()
             msg = "Bot Reactions: `ON`"
         case "off | OFF":
-            new_status = "N"
+            new_status = False
             color = discord.Color.red()
             msg = "Bot Reactions: `OFF`"
         case _:
@@ -228,6 +228,7 @@ async def config_default_text_channel(ctx):
 
     Example:
     admin config defaultchannel <channel_name>
+    admin config defaultchannel delete
     """
 
     text_channel = ctx.subcommand_passed
@@ -236,13 +237,18 @@ async def config_default_text_channel(ctx):
         return await bot_utils.send_error_msg(ctx, "Missing required channel!!!\n"
                                                    "For more info on this command use: "
                                                    f"{chat_formatting.inline('?help admin config defaultchannel')}")
+    elif text_channel in ("delete", "remove"):
+        text_channel = None
+        msg = "Default text channel for bot messages was successfully deleted"
+        color = discord.Color.red()
+        embed = discord.Embed(description=msg, color=color)
     elif text_channel not in [x.name for x in ctx.guild.text_channels]:
         return await bot_utils.send_error_msg(ctx, f"Channel not found: {chat_formatting.inline(text_channel)}")
     else:
-        msg = "Default text channel to be used for bot messages: "
+        msg = "Default text channel for bot messages: "
+        color = discord.Color.green()
+        embed = discord.Embed(description=f"{msg} {chat_formatting.inline(text_channel)}", color=color)
 
-    color = discord.Color.green()
-    embed = discord.Embed(description=f"{msg} {chat_formatting.inline(text_channel)}", color=color)
     servers_dal = ServersDal(ctx.bot.db_session, ctx.bot.log)
     await servers_dal.update_default_text_channel(ctx.guild.id, str(text_channel), ctx.author.id)
     await bot_utils.send_embed(ctx, embed)
@@ -306,6 +312,7 @@ async def config_list(ctx):
     admin config list
     """
 
+    cmd_prefix = f"{ctx.prefix}admin config"
     servers_dal = ServersDal(ctx.bot.db_session, ctx.bot.log)
     sc = await servers_dal.get_server(ctx.guild.id)
 
@@ -326,33 +333,34 @@ async def config_list(ctx):
     embed.set_author(name=f"Configurations for {ctx.guild.name}", icon_url=f"{ctx.guild.icon.url}")
 
     embed.add_field(
-        name=f"Display a message when someone joins the server\n*`{ctx.prefix}admin config joinmessage [on | off]`*",
-        value=f"{on}" if sc[0]["msg_on_join"] == 'Y' else f"{off}", inline=False)
+        name=f"Display a message when someone joins the server\n*`{cmd_prefix} joinmessage [on | off]`*",
+        value=f"{on}" if sc["msg_on_join"] else f"{off}", inline=False)
     embed.add_field(
-        name=f"Display a message when someone leaves the server\n*`{ctx.prefix}admin config leavemessage [on | off]`*",
-        value=f"{on}" if sc[0]["msg_on_leave"] == 'Y' else f"{off}", inline=False)
+        name=f"Display a message when someone leaves the server\n*`{cmd_prefix} leavemessage [on | off]`*",
+        value=f"{on}" if sc["msg_on_leave"] else f"{off}", inline=False)
     embed.add_field(
-        name=f"Display a message when the server gets updated\n*`{ctx.prefix}admin config servermessage [on | off]`*",
-        value=f"{on}" if sc[0]["msg_on_server_update"] == 'Y' else f"{off}", inline=False)
+        name=f"Display a message when the server gets updated\n*`{cmd_prefix} servermessage [on | off]`*",
+        value=f"{on}" if sc["msg_on_server_update"] else f"{off}", inline=False)
     embed.add_field(
-        name=f"Display a message when someone changes their profile\n*`{ctx.prefix}admin config membermessage [on | off]`*",
-        value=f"{on}" if sc[0]["msg_on_member_update"] == 'Y' else f"{off}", inline=False)
-    embed.add_field(name=f"Block messages from invisible members\n*`{ctx.prefix}admin config blockinvisible [on | off]`*",
-                    value=f"{on}" if sc[0]["block_invis_members"] == 'Y' else f"{off}", inline=False)
+        name=f"Display a message when someone changes their profile\n*`{cmd_prefix} membermessage [on | off]`*",
+        value=f"{on}" if sc["msg_on_member_update"] else f"{off}", inline=False)
+    embed.add_field(name=f"Block messages from invisible members\n*`{cmd_prefix} blockinvisible [on | off]`*",
+                    value=f"{on}" if sc["block_invis_members"] else f"{off}", inline=False)
     embed.add_field(
-        name=f"Bot will react to member words\n*`{ctx.prefix}admin config botreactions [on | off]`*",
-        value=f"{on}" if sc[0]["bot_word_reactions"] == 'Y' else f"{off}", inline=False)
+        name=f"Bot will react to member words\n*`{cmd_prefix} botreactions [on | off]`*",
+        value=f"{on}" if sc["bot_word_reactions"] else f"{off}", inline=False)
 
-    default_text_channel = "No default channel"
-    if sc[0]["default_text_channel"] is not None and sc[0]["default_text_channel"] != "":
-        default_text_channel = sc[0]["default_text_channel"]
+    default_text_channel = "No channels listed"
+    if sc["default_text_channel"] is not None and sc["default_text_channel"] != "":
+        default_text_channel = sc["default_text_channel"]
 
     embed.add_field(
         name="Channel to display bot messages\n"
-             f"*`{ctx.prefix}config defaultchannel <channel_name>`*",
+             f"*`{cmd_prefix} defaultchannel <channel_name>`*",
         value=chat_formatting.inline(default_text_channel), inline=False)
     embed.add_field(
-        name="Channels with profanity filter activated",
+        name="Channels with profanity filter activated\n"
+             f"*`{cmd_prefix} pfilter on <channel_name>`*",
         value=chat_formatting.inline(channel_names),
         inline=False
     )

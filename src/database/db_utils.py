@@ -35,6 +35,14 @@ class DBUtils:
             self.log.error(e)
             raise DBFetchAllException(self.log, e)
 
+    async def fetchone(self, stmt):
+        try:
+            cursor = await self.session.execute(stmt)
+            return cursor.mappings().first()
+        except Exception as e:
+            self.log.error(e)
+            raise DBFetchAllException(self.log, e)
+
     async def fetch_value(self, stmt):
         try:
             cursor = await self.session.execute(stmt)

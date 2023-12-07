@@ -186,7 +186,7 @@ def is_private_message(ctx):
     return True if isinstance(ctx.channel, discord.DMChannel) else False
 
 
-async def last_session_gw2_event(bot, before: discord.Member, after: discord.Member):
+async def gw2_event_session(bot, before: discord.Member, after: discord.Member):
     before_activity = None
     after_activity = None
 
@@ -204,7 +204,7 @@ async def last_session_gw2_event(bot, before: discord.Member, after: discord.Mem
             and (before_activity.type == discord.ActivityType.playing or before_activity.type == discord.ActivityType.streaming)):
         gw2_configs = Gw2ConfigsDal(bot.db_session, bot.log)
         rs_gw2_sc = await gw2_configs.get_gw2_server_configs(after.guild.id)
-        if len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"] == "Y":
+        if len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"]:
             gw2_key_sql = Gw2KeyDal(bot.db_session, bot.log)
             rs_api_key = await gw2_key_sql.get_server_user_api_key(after.guild.id, after.id)
             if len(rs_api_key) > 0:

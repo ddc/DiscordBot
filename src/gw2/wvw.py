@@ -16,15 +16,15 @@ class GW2WvW(commands.Cog):
     async def gw2_wvwinfo(self, ctx, world: str = None):
         user_id = ctx.message.author.id
         await ctx.message.channel.typing()
-        gw2Api = Gw2Api(self.bot)
+        gw2_api = Gw2Api(self.bot)
 
         if not world:
             try:
-                gw2KeySql = Gw2KeyDal(self.bot.db_session, self.bot.log)
-                rs = await gw2KeySql.get_server_user_api_key(ctx.guild.id, user_id)
+                gw2_key_dal = Gw2KeyDal(self.bot.db_session, self.bot.log)
+                rs = await gw2_key_dal.get_server_user_api_key(ctx.guild.id, user_id)
                 if len(rs) == 1:
                     api_key = rs[0]["key"]
-                    results = await gw2Api.call_api("account", key=api_key)
+                    results = await gw2_api.call_api("account", key=api_key)
                     wid = results["world"]
                 else:
                     return await bot_utils.send_error_msg(ctx,
@@ -45,10 +45,10 @@ class GW2WvW(commands.Cog):
         try:
             await ctx.message.channel.typing()
             endpoint = f"wvw/matches?world={wid}"
-            matches = await gw2Api.call_api(endpoint)
+            matches = await gw2_api.call_api(endpoint)
 
             endpoint = f"worlds?id={wid}"
-            worldinfo = await gw2Api.call_api(endpoint)
+            worldinfo = await gw2_api.call_api(endpoint)
         except Exception as e:
             await bot_utils.send_error_msg(ctx, e)
             return self.bot.log.error(ctx, e)
@@ -124,15 +124,15 @@ class GW2WvW(commands.Cog):
 
         user_id = ctx.message.author.id
         await ctx.message.channel.typing()
-        gw2Api = Gw2Api(self.bot)
+        gw2_api = Gw2Api(self.bot)
 
         if not world:
             try:
-                gw2KeySql = Gw2KeyDal(self.bot.db_session, self.bot.log)
-                rs = await gw2KeySql.get_server_user_api_key(ctx.guild.id, user_id)
+                gw2_key_dal = Gw2KeyDal(self.bot.db_session, self.bot.log)
+                rs = await gw2_key_dal.get_server_user_api_key(ctx.guild.id, user_id)
                 if len(rs) == 1:
                     api_key = rs[0]["key"]
-                    results = await gw2Api.call_api("account", key=api_key)
+                    results = await gw2_api.call_api("account", key=api_key)
                     wid = results["world"]
                 else:
                     return await bot_utils.send_error_msg(ctx,
@@ -154,7 +154,7 @@ class GW2WvW(commands.Cog):
         try:
             await ctx.message.channel.typing()
             endpoint = f"wvw/matches?world={wid}"
-            matches = await gw2Api.call_api(endpoint)
+            matches = await gw2_api.call_api(endpoint)
 
             if wid < 2001:
                 tier_number = matches["id"].replace("1-", "")
@@ -194,21 +194,20 @@ class GW2WvW(commands.Cog):
 
         user_id = ctx.message.author.id
         await ctx.message.channel.typing()
-        gw2Api = Gw2Api(self.bot)
+        gw2_api = Gw2Api(self.bot)
 
         if not world:
             try:
-                gw2KeySql = Gw2KeyDal(self.bot.db_session, self.bot.log)
-                rs = await gw2KeySql.get_server_user_api_key(ctx.guild.id, user_id)
+                gw2_key_dal = Gw2KeyDal(self.bot.db_session, self.bot.log)
+                rs = await gw2_key_dal.get_server_user_api_key(ctx.guild.id, user_id)
                 if len(rs) == 1:
                     api_key = rs[0]["key"]
-                    results = await gw2Api.call_api("account", key=api_key)
+                    results = await gw2_api.call_api("account", key=api_key)
                     wid = results["world"]
                 else:
-                    return await bot_utils.send_error_msg(ctx,
-                                                      f"""Invalid World Name
-                                    Use {ctx.prefix}gw2 match <world_name>
-                                    Or register an API key on your account.""")
+                    return await bot_utils.send_error_msg(ctx, "Invalid World Name\n"
+                                                               f"Use {ctx.prefix}gw2 match <world_name> "
+                                                               "Or register an API key on your account.")
             except APIKeyError as e:
                 return await bot_utils.send_error_msg(ctx, "No world name or key associated with your account")
             except Exception as e:
@@ -223,7 +222,7 @@ class GW2WvW(commands.Cog):
         try:
             await ctx.message.channel.typing()
             endpoint = f"wvw/matches?world={wid}"
-            matches = await gw2Api.call_api(endpoint)
+            matches = await gw2_api.call_api(endpoint)
 
             if wid < 2001:
                 tier_number = matches["id"].replace("1-", "")

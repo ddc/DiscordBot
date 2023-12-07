@@ -17,7 +17,7 @@ class OnMemberRemove(commands.Cog):
 
             server_configs_sql = ServersDal(self.bot.db_session, self.bot.log)
             rs = await server_configs_sql.get_server(member.guild.id)
-            if len(rs) > 0 and rs[0]["msg_on_leave"] == "Y":
+            if len(rs) > 0 and rs[0]["msg_on_leave"]:
                 now = datetime.now()
                 embed = discord.Embed(color=discord.Color.red(), description=str(member))
                 embed.set_thumbnail(url=member.avatar.url)

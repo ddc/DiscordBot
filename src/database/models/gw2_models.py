@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
-from sqlalchemy import ForeignKey, BigInteger, CHAR, CheckConstraint, DateTime
+from sqlalchemy import ForeignKey, BigInteger, Boolean, DateTime
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import text
@@ -16,9 +16,8 @@ class Gw2Configs(Gw2Base):
     __tablename__ = "gw2_configs"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, unique=True)
     server_id: Mapped[int] = mapped_column(BigInteger, ForeignKey(Servers.id, ondelete="CASCADE"), unique=True)
-    last_session: Mapped[CHAR] = mapped_column(CHAR(1), server_default="N")
+    last_session: Mapped[Boolean] = mapped_column(Boolean, default=False)
     updated_by: Mapped[int] = mapped_column(BigInteger, nullable=True)
-    CheckConstraint("last_session IN ('Y','N')", name="last_session_y_n")
     servers = relationship(Servers, foreign_keys="Gw2Configs.server_id")
 
 

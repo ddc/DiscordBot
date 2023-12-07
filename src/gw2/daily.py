@@ -29,11 +29,11 @@ async def _daily_embed(self, ctx, daily_type: str):
     await ctx.message.channel.typing()
     achiev_id_lst = []
     todays_date = bot_utils.convert_date_to_str(dt.datetime.now())
-    gw2Api = Gw2Api(self.bot)
+    gw2_api = Gw2Api(self.bot)
 
     try:
         endpoint = "achievements/daily"
-        api_all_dailies = await gw2Api.call_api(endpoint)
+        api_all_dailies = await gw2_api.call_api(endpoint)
     except Exception as e:
         await bot_utils.send_error_msg(ctx, e)
         return self.bot.log.error(ctx, e)
@@ -44,7 +44,7 @@ async def _daily_embed(self, ctx, daily_type: str):
     try:
         achiev_ids = ','.join(achiev_id_lst)
         endpoint = f"achievements?ids={achiev_ids}"
-        api_daily_desc = await gw2Api.call_api(endpoint)
+        api_daily_desc = await gw2_api.call_api(endpoint)
     except Exception as e:
         await bot_utils.send_error_msg(ctx, e)
         return self.bot.log.error(ctx, e)
@@ -62,7 +62,7 @@ async def _daily_embed(self, ctx, daily_type: str):
         reward_id = str(api_daily_desc[x]["rewards"][0]["id"])
         try:
             endpoint = f"items/{reward_id}"
-            api_items_desc = await gw2Api.call_api(endpoint)
+            api_items_desc = await gw2_api.call_api(endpoint)
             reward_name = api_items_desc["name"]
             reward_amount = str(api_daily_desc[x]["rewards"][0]["count"])
         except Exception as e:
@@ -72,7 +72,6 @@ async def _daily_embed(self, ctx, daily_type: str):
         dt = x + 1
         name = f"{dt}) {name} ({reward_amount} {reward_name})"
         value = chat_formatting.inline(requirement)
-
         embed.add_field(name=name, value=value, inline=False)
 
     await bot_utils.send_embed(ctx, embed)

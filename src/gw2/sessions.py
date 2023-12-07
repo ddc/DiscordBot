@@ -32,15 +32,15 @@ class GW2Session(commands.Cog):
         gw2 lastsession
         """
 
-        gw2Configs = Gw2ConfigsDal(self.bot.db_session, self.bot.log)
-        rs_gw2_sc = await gw2Configs.get_gw2_server_configs(ctx.guild.id)
-        if len(rs_gw2_sc) == 0 or (len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"] == "N"):
+        gw2_configs = Gw2ConfigsDal(self.bot.db_session, self.bot.log)
+        rs_gw2_sc = await gw2_configs.get_gw2_server_configs(ctx.guild.id)
+        if len(rs_gw2_sc) == 0 or (len(rs_gw2_sc) > 0 and not rs_gw2_sc[0]["last_session"]):
             return await bot_utils.send_error_msg(ctx, "Last session is not active on this server.\n"
                                                        f"To activate use: `{ctx.prefix}gw2 config lastsession on`")
 
         user_id = ctx.message.author.id
-        gw2KeySql = Gw2KeyDal(self.bot.db_session, self.bot.log)
-        rs_api_key = await gw2KeySql.get_server_user_api_key(ctx.guild.id, user_id)
+        gw2_key_dal = Gw2KeyDal(self.bot.db_session, self.bot.log)
+        rs_api_key = await gw2_key_dal.get_server_user_api_key(ctx.guild.id, user_id)
         if len(rs_api_key) == 0:
             return await bot_utils.send_error_msg(ctx, "You dont have an API key registered in this server.\n"
                                                        f"To add or replace an API key use: `{ctx.prefix}gw2 key "
@@ -88,8 +88,8 @@ class GW2Session(commands.Cog):
             await ctx.message.channel.typing()
             await gw2_utils.update_gw2_session_ends(self.bot, ctx.message.author, api_key)
 
-        gw2LastSessionSql = Gw2SessionsDal(self.bot.db_session, self.bot.log)
-        rs_session = await gw2LastSessionSql.get_user_last_session(user_id)
+        gw2_session_dal = Gw2SessionsDal(self.bot.db_session, self.bot.log)
+        rs_session = await gw2_session_dal.get_user_last_session(user_id)
         if len(rs_session) > 0:
             if rs_session[0]["end_date"] is None:
                 return await bot_utils.send_private_error_msg(ctx,
@@ -135,16 +135,16 @@ class GW2Session(commands.Cog):
                         final_result = f"-{formatted_gold}"
                     embed.add_field(name="Lost gold", value=chat_formatting.inline(str(final_result)), inline=False)
 
-            gw2CharsStartSql = Gw2CharsStartDal(self.bot.db_session, self.bot.log)
-            rs_chars_start = await gw2CharsStartSql.get_all_start_characters(user_id)
+            gw2_chars_start_dal = Gw2CharsStartDal(self.bot.db_session, self.bot.log)
+            rs_chars_start = await gw2_chars_start_dal.get_all_start_characters(user_id)
             if len(rs_chars_start) > 0:
-                gw2CharsEndSql = Gw2CharsEndDal(self.bot.db_session, self.bot.log)
-                rs_chars_end = await gw2CharsEndSql.get_all_end_characters(user_id)
+                gw2_chars_end_dal = Gw2CharsEndDal(self.bot.db_session, self.bot.log)
+                rs_chars_end = await gw2_chars_end_dal.get_all_end_characters(user_id)
                 prof_names = ""
                 total_deaths = 0
 
-                for keysA, char_start in rs_chars_start.items():
-                    for keysB, char_end in rs_chars_end.items():
+                for _, char_start in rs_chars_start.items():
+                    for _, char_end in rs_chars_end.items():
                         if char_start["name"] == char_end["name"]:
                             if char_start["deaths"] != char_end["deaths"]:
                                 name = char_start["name"]
@@ -155,7 +155,7 @@ class GW2Session(commands.Cog):
 
                 if len(prof_names) > 0:
                     deaths_msg = f"{prof_names} [Total:{total_deaths}]"
-                    embed.add_field(name="Times you died", value=chat_formatting.inline(deaths_msg),inline=False)
+                    embed.add_field(name="Times you died", value=chat_formatting.inline(deaths_msg), inline=False)
                 # else:
                 #    deaths_msg = "0"
                 #    embed.add_field(name="Times you died", value=chat_formatting.inline(deaths_msg), inline=True)

@@ -57,5 +57,5 @@ class CustomCommandsDal:
             CustomCommands.server_id == server_id,
             CustomCommands.name == cmd_name,
         ).order_by(CustomCommands.name.asc())
-        results = await self.db_utils.fetchall(stmt)
+        results = await self.db_utils.fetchone(stmt)
         return results

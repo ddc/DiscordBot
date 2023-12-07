@@ -87,11 +87,9 @@ class OnMessage(commands.Cog):
             if is_command:
                 await self.bot.process_commands(ctx.message)
             return
-        else:
-            configs = configs[0]
 
         # block messages from invisible members
-        if configs["block_invis_members"] == "Y":
+        if configs["block_invis_members"]:
             is_member_invis = self._check_member_invisible(ctx)
             if is_member_invis:
                 await bot_utils.delete_channel_message(ctx)
@@ -116,7 +114,7 @@ class OnMessage(commands.Cog):
                 return
 
         # check for bot reactions
-        if configs["bot_word_reactions"] == "Y":
+        if configs["bot_word_reactions"]:
             custom_messages = await self._check_custom_messages(ctx.message)
             if custom_messages:
                 return
@@ -132,9 +130,9 @@ class OnMessage(commands.Cog):
             # execute custom commands
             commands_dal = CustomCommandsDal(self.bot.db_session, self.bot.log)
             rs_command = await commands_dal.get_command(ctx.author.guild.id, str(ctx.invoked_with))
-            if len(rs_command) > 0:
+            if rs_command:
                 await ctx.message.channel.typing()
-                await ctx.message.channel.send(str(rs_command[0]["description"]))
+                await ctx.message.channel.send(rs_command["description"])
                 return
 
             await self.bot.process_commands(ctx.message)

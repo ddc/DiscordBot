@@ -47,12 +47,12 @@ class GW2Misc(commands.Cog):
                     i = 0
 
                     # discord only supports 25 embed fields
-                    timesToRun = totalPosts
+                    times_to_run = totalPosts
                     if totalPosts > 25:
-                        timesToRun = 25
+                        times_to_run = 25
 
                     try:
-                        while i <= timesToRun:
+                        while i <= times_to_run:
                             post = posts[i]
                             post = post.a
                             url = wiki_url + post['href']
@@ -89,7 +89,7 @@ class GW2Misc(commands.Cog):
         skill_sanitized = str(re.escape(skill)).title()
         skill_sanitized = skill_sanitized.replace("Of", "of")
         skill_sanitized = skill_sanitized.replace("The", "the")
-        full_wiki_url = (f"{wiki_url}/wiki/{skill_sanitized}")
+        full_wiki_url = f"{wiki_url}/wiki/{skill_sanitized}"
 
         await ctx.message.channel.typing()
         async with self.bot.aiosession.get(full_wiki_url) as r:
@@ -170,8 +170,8 @@ class GW2Misc(commands.Cog):
         try:
             await ctx.message.channel.typing()
             endpoint = "worlds?ids=all"
-            gw2Api = Gw2Api(self.bot)
-            results = await gw2Api.call_api(endpoint)
+            gw2_api = Gw2Api(self.bot)
+            results = await gw2_api.call_api(endpoint)
         except Exception as e:
             await bot_utils.send_error_msg(ctx, e)
             return self.bot.log.error(ctx, e)
@@ -187,7 +187,7 @@ class GW2Misc(commands.Cog):
                 await ctx.message.channel.typing()
                 wid = world["id"]
                 endpoint = f"wvw/matches?world={wid}"
-                matches = await gw2Api.call_api(endpoint)
+                matches = await gw2_api.call_api(endpoint)
                 if wid < 2001:
                     tier_number = matches["id"].replace("1-", "")
                     embed_na.add_field(name=world["name"],

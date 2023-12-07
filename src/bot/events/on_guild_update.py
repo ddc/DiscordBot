@@ -21,7 +21,7 @@ class OnGuildUpdate(commands.Cog):
 
             server_configs_sql = ServersDal(self.bot.db_session, self.bot.log)
             rs = await server_configs_sql.get_server(after.id)
-            if len(rs) > 0 and rs[0]["msg_on_server_update"] == "Y":
+            if len(rs) > 0 and rs[0]["msg_on_server_update"]:
                 msg = "New Server Settings\n"
                 now = datetime.now()
                 color = self.bot.settings["EmbedColor"]

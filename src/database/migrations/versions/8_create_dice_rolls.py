@@ -31,7 +31,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('id')
     )
-    op.create_unique_constraint(None, 'dice_rolls', ['id'])
+    op.create_unique_constraint('dice_rolls_id_key', 'dice_rolls', ['id'])
     op.create_index(op.f('ix_dice_rolls_server_id'), 'dice_rolls', ['server_id'], unique=False)
     op.create_index(op.f('ix_dice_rolls_user_id'), 'dice_rolls', ['user_id'], unique=False)
     op.execute("""
@@ -48,6 +48,6 @@ def downgrade() -> None:
     op.execute('DROP TRIGGER IF EXISTS before_update_dice_rolls_tr ON bot_configs')
     op.drop_index(op.f('ix_dice_rolls_user_id'), table_name='dice_rolls')
     op.drop_index(op.f('ix_dice_rolls_server_id'), table_name='dice_rolls')
-    op.drop_constraint(None, 'dice_rolls', type_='unique')
+    op.drop_constraint('dice_rolls_id_key', 'dice_rolls', type_='unique')
     op.drop_table('dice_rolls')
     # ### end Alembic commands ###

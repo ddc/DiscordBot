@@ -59,22 +59,14 @@ async def _list(self, ctx):
                      icon_url=f"{ctx.message.channel.guild.icon.url}")
     embed.set_footer(text=f"For more info: {ctx.prefix}help gw2 config")
 
-    gw2Configs = Gw2ConfigsDal(self.bot.db_session, self.bot.log)
-    rs = await gw2Configs.get_gw2_server_configs(ctx.message.channel.guild.id)
-
-    if len(rs) == 0:
-        last_session = "N"
-        # role_timer = f"{self.bot.gw2_settings['BGRoleTimer']} secs (Default)"
-    else:
-        last_session = rs[0]["last_session"]
-        # role_timer = f"{rs[0]['role_timer']} secs"
+    gw2_configs = Gw2ConfigsDal(self.bot.db_session, self.bot.log)
+    rs = await gw2_configs.get_gw2_server_configs(ctx.message.channel.guild.id)
+    last_session = rs[0]["last_session"] if len(rs) == 0 else False
 
     on = chat_formatting.green_text("ON")
     off = chat_formatting.red_text("OFF")
     embed.add_field(name="Bot should record gw2 users last sessions",
-                    value=f"{on}" if last_session == "Y" else f"{off}", inline=False)
-    #embed.add_field(name="Timer the bot should check for api roles in seconds", value=f"{chat_formatting.box(role_timer)}", inline=False)
-
+                    value=f"{on}" if last_session else f"{off}", inline=False)
     await bot_utils.send_embed(ctx, embed, True)
 
 
@@ -90,22 +82,18 @@ async def _lastsession(self, ctx, new_status: str):
     if new_status.lower() == "on":
         new_status = "Y"
         color = discord.Color.green()
-        msg = f"Last session `ACTIVATED`\nBot will now record Gw2 users last sessions."
+        msg = "Last session `ACTIVATED`\nBot will now record Gw2 users last sessions."
     elif new_status.lower() == "off":
         new_status = "N"
         color = discord.Color.red()
-        msg = f"Last session `DEACTIVATED`\nBot will `NOT` record Gw2 users last sessions."
+        msg = "Last session `DEACTIVATED`\nBot will `NOT` record Gw2 users last sessions."
     else:
         raise commands.BadArgument(message="BadArgument")
 
     embed = discord.Embed(description=msg, color=color)
-    gw2Configs = Gw2ConfigsDal(self.bot.db_session, self.bot.log)
-    rs = await gw2Configs.get_gw2_server_configs(ctx.message.channel.guild.id)
-    if len(rs) == 0:
-        # role_timer = self.bot.gw2_settings["BGRoleTimer"]
-        role_timer = 1 # removed role timer
-        await gw2Configs.insert_gw2_last_session(ctx.message.channel.guild.id, new_status, role_timer)
-    elif rs[0]["last_session"] != new_status:
-        await gw2Configs.update_gw2_last_session(ctx.message.channel.guild.id, new_status)
+    gw2_configs = Gw2ConfigsDal(self.bot.db_session, self.bot.log)
+    rs = await gw2_configs.get_gw2_server_configs(ctx.message.channel.guild.id)
+    if rs[0]["last_session"] != new_status:
+        await gw2_configs.update_gw2_last_session(ctx.message.channel.guild.id, new_status)
 
     await bot_utils.send_embed(ctx, embed)

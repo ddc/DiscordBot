@@ -25,10 +25,10 @@ class GW2Account(commands.Cog):
 
         await ctx.message.channel.typing()
         user_id = ctx.message.author.id
-        gw2Api = Gw2Api(self.bot)
-        gw2KeySql = Gw2KeyDal(self.bot.db_session, self.bot.log)
+        gw2_api = Gw2Api(self.bot)
+        gw2_key_dal = Gw2KeyDal(self.bot.db_session, self.bot.log)
 
-        rs = await gw2KeySql.get_server_user_api_key(ctx.guild.id, user_id)
+        rs = await gw2_key_dal.get_server_user_api_key(ctx.guild.id, user_id)
         if len(rs) == 0:
             await ctx.message.channel.typing()
             await bot_utils.send_error_msg(
@@ -40,7 +40,7 @@ class GW2Account(commands.Cog):
         else:
             permissions = str(rs[0]["permissions"])
             api_key = str(rs[0]["key"])
-            is_valid_key = await gw2Api.check_api_key(api_key)
+            is_valid_key = await gw2_api.check_api_key(api_key)
             if not isinstance(is_valid_key, dict):
                 return await bot_utils.send_error_msg(
                     ctx,
@@ -62,25 +62,25 @@ class GW2Account(commands.Cog):
                     # getting infos gw2 api
                     await ctx.message.channel.typing()
                     endpoint = "account"
-                    api_req_acc = await gw2Api.call_api(endpoint, key=api_key)
+                    api_req_acc = await gw2_api.call_api(endpoint, key=api_key)
 
                     server_id = api_req_acc["world"]
                     endpoint = f"worlds/{server_id}"
-                    api_req_server = await gw2Api.call_api(endpoint, key=api_key)
+                    api_req_server = await gw2_api.call_api(endpoint, key=api_key)
 
                     if "pvp" in permissions:
                         await ctx.message.channel.typing()
                         endpoint = "pvp/stats"
-                        api_req_pvp = await gw2Api.call_api(endpoint, key=api_key)
+                        api_req_pvp = await gw2_api.call_api(endpoint, key=api_key)
                         pvprank = api_req_pvp["pvp_rank"] + api_req_pvp["pvp_rank_rollovers"]
 
                     # if "characters" in permissions:
-                    #     api_req_characters= await gw2Api.call_api("characters", key=api_key)
+                    #     api_req_characters= await gw2_api.call_api("characters", key=api_key)
                     #     char_names = dict()
                     #     for i, char_name in enumerate(api_req_characters):
                     #         await ctx.message.channel.typing()
                     #         endpoint = f"characters/{char_name}/core"
-                    #         current_char = await gw2Api.call_api(endpoint, key=api_key)
+                    #         current_char = await gw2_api.call_api(endpoint, key=api_key)
                     #         char_names[char_name] = dict()
                     #         char_names[char_name]["race"]       = current_char["race"]
                     #         char_names[char_name]["gender"]     = current_char["gender"]
@@ -93,7 +93,7 @@ class GW2Account(commands.Cog):
                     # if "progression" in permissions:
                     #     await ctx.message.channel.typing()
                     #     endpoint = "account/achievements"
-                    #     api_req_acc_achiev = await gw2Api.call_api(endpoint, key=api_key)
+                    #     api_req_acc_achiev = await gw2_api.call_api(endpoint, key=api_key)
                     #     achiev_points = await gw2_utils.calculate_user_achiev_points(self, api_req_acc_achiev, api_req_acc)
                 except Exception as e:
                     await bot_utils.send_error_msg(ctx, e)
@@ -126,7 +126,7 @@ class GW2Account(commands.Cog):
                             guild_id = guilds[i]
                             try:
                                 endpoint = "guild/" + guild_id
-                                api_req_guild = await gw2Api.call_api(endpoint, key=api_key)
+                                api_req_guild = await gw2_api.call_api(endpoint, key=api_key)
                             except Exception as e:
                                 await bot_utils.send_error_msg(ctx, e)
                                 return self.bot.log.error(ctx, e)

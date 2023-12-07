@@ -70,7 +70,7 @@ class ServersDal:
 
     async def update_default_text_channel(self, server_id: int, text_channel: str, updated_by: int):
         stmt = sa.update(Servers).where(Servers.id == server_id).values(
-            default_text_channel=text_channel,
+            default_text_channel=None if text_channel == "None" else text_channel,
             updated_by=updated_by
         )
         await self.db_utils.execute(stmt)
@@ -93,7 +93,10 @@ class ServersDal:
 
         if server_id:
             stmt = stmt.where(Servers.id == server_id)
+            stmt = stmt.order_by(Servers.name.asc())
+            results = await self.db_utils.fetchone(stmt)
+        else:
+            stmt = stmt.order_by(Servers.name.asc())
+            results = await self.db_utils.fetchall(stmt)
 
-        stmt = stmt.order_by(Servers.name.asc())
-        results = await self.db_utils.fetchall(stmt)
         return results
