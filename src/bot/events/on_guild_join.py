@@ -11,7 +11,7 @@ class OnGuildJoin(commands.Cog):
 
         @self.bot.event
         async def on_guild_join(guild):
-            await bot_utils.insert_default_initial_configs(self.bot, guild)
+            await bot_utils.insert_server(self.bot, guild)
             bot_configs_sql = BotConfigsDal(self.bot.db_session, self.bot.logs)
             configs = await bot_configs_sql.get_bot_configs()
             prefix = configs[0]["prefix"]
@@ -37,7 +37,7 @@ class OnGuildJoin(commands.Cog):
                     f"To get a list of commands: `{prefix}help`")
             embed = discord.Embed(color=discord.Color.green(), description=msg)
             embed.set_author(name=guild.me.display_name, icon_url=guild.me.avatar.url)
-            channel_to_send_msg = await bot_utils.channel_to_send_msg(self.bot, guild)
+            channel_to_send_msg = await bot_utils.get_server_first_public_text_channel(guild)
             if channel_to_send_msg is not None:
                 try:
                     await channel_to_send_msg.send(embed=embed)

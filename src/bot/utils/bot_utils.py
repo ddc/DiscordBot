@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
 import configparser
-import json
-import logging.handlers
-import os
-import shutil
-import sys
 from datetime import datetime, timezone
 from enum import Enum
+import json
+import logging.handlers
 from operator import attrgetter
+import os
 from random import choice
-import discord
+import shutil
+import sys
 from alembic import command
 from alembic.config import Config
+import discord
 from src.bot.utils import chat_formatting, constants
 from src.bot.utils.background_tasks import BackGroundTasks
 from src.database.dal.bot.servers_dal import ServersDal
-from src.database.dal.gw2.gw2_configs_dal import Gw2ConfigsDal
 
 
 class Object:
@@ -61,12 +60,12 @@ async def run_alembic_migrations():
     command.upgrade(alembic_cfg, "head")
 
 
-async def insert_default_initial_configs(bot, server):
+async def insert_server(bot, server):
     servers_dal = ServersDal(bot.db_session, bot.log)
     await servers_dal.insert_server(server.id, server.name)
 
-    gw2_configs_dal = Gw2ConfigsDal(bot.db_session, bot.log)
-    await gw2_configs_dal.insert_gw2_server_configs(server.id)
+    from src.gw2.utils import gw2_utils
+    await gw2_utils.insert_gw2_server_configs(bot, server)
 
 
 async def init_background_tasks(bot):
@@ -87,33 +86,41 @@ async def load_cogs(bot):
             bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
 
 
-async def send_msg(ctx, msg):
-    color = ctx.bot.settings["EmbedColor"]
-    embed = discord.Embed(color=color, description=msg)
+def get_embed(ctx, description=None, color=None):
+    if not color:
+        color = ctx.bot.settings["EmbedColor"]
+    ebd = discord.Embed(color=color)
+    if description:
+        ebd.description = description
+    return ebd
+
+
+async def send_msg(ctx, description=None, color=None):
+    embed = get_embed(ctx, description, color)
     embed.set_author(name=get_member_name_by_id(ctx), icon_url=ctx.message.author.avatar.url)
     await send_embed(ctx, embed)
 
 
-async def send_warning_msg(ctx, msg):
-    embed = discord.Embed(color=discord.Color.orange(), description=chat_formatting.warning(msg))
+async def send_warning_msg(ctx, description):
+    embed = discord.Embed(color=discord.Color.orange(), description=chat_formatting.warning(description))
     embed.set_author(name=get_member_name_by_id(ctx), icon_url=ctx.message.author.avatar.url)
     await send_embed(ctx, embed)
 
 
-async def send_info_msg(ctx, msg):
-    embed = discord.Embed(color=discord.Color.blue(), description=chat_formatting.info(msg))
+async def send_info_msg(ctx, description):
+    embed = discord.Embed(color=discord.Color.blue(), description=chat_formatting.info(description))
     embed.set_author(name=get_member_name_by_id(ctx), icon_url=ctx.message.author.avatar.url)
     await send_embed(ctx, embed)
 
 
-async def send_error_msg(ctx, msg):
-    embed = discord.Embed(color=discord.Color.red(), description=chat_formatting.error(msg))
+async def send_error_msg(ctx, description):
+    embed = discord.Embed(color=discord.Color.red(), description=chat_formatting.error(description))
     embed.set_author(name=get_member_name_by_id(ctx), icon_url=ctx.message.author.avatar.url)
     await send_embed(ctx, embed)
 
 
-async def send_private_msg(ctx, color, msg):
-    embed = discord.Embed(color=color, description=msg)
+async def send_private_msg(ctx, description, color=None):
+    embed = get_embed(ctx, description, color)
     await send_embed(ctx, embed, True)
 
 
@@ -155,6 +162,8 @@ async def send_embed(ctx, embed, dm=False):
               "you need to enable this option under Privacy & Safety:\n" \
               "\"Allow direct messages from server members.\"\n"
         await send_error_msg(ctx, msg)
+    except Exception as e:
+        ctx.bot.logger.error(e)
 
 
 def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
@@ -257,56 +266,20 @@ def get_member_name_by_id(ctx, user_id: int = None):
         member = ctx.guild.get_member(int(ctx.message.author.id))
 
     if member is not None:
-        member_name = str(member.nick) if member.nick is not None else member.display_name
-        # member_name = (temp_name.encode('ascii', 'ignore')).decode("utf-8")
-        return member_name
+        return str(member.nick) if member.nick is not None else member.display_name
     else:
         return None
 
 
-def get_object_channel(ctx, channel_str: str):
-    for channel in ctx.guild.text_channels:
-        if str(channel.name).lower() == channel_str.lower():
-            return channel
-
-
-async def channel_to_send_msg(bot, server: discord.Guild):
-    servers_dal = ServersDal(bot.db_session, bot.log)
-    rs = await servers_dal.get_server(server.id)
-    default_text_channel = rs[0]["default_text_channel"]
-    sorted_channels = sorted(server.text_channels, key=attrgetter('position'))
-    if default_text_channel is None or default_text_channel == "" or len(default_text_channel) == 0:
-        return get_server_first_public_text_channel(server)
-    if default_text_channel in str(sorted_channels):
-        for channel in sorted_channels:
-            if channel.name == default_text_channel:
-                return channel
-    return None
-
-
-def get_server_first_public_text_channel(server: discord.Guild):
-    sorted_text_channels = sorted(server.text_channels, key=attrgetter('position'))
-    general_channel = None
-    public_channel = None
-
+async def get_server_first_public_text_channel(server: discord.Guild):
+    sorted_text_channels = sorted(server.text_channels, key=attrgetter("position"))
     for channel in sorted_text_channels:
-        if hasattr(channel, 'overwrites') and len(channel.overwrites) > 0:
-            for keys, values in channel.overwrites.items():
-                if keys.name == "@everyone":
-                    for value in values:
-                        if value[0] == "read_messages" and value[1] is True or value[1] is None:
-                            if "general" in channel.name.lower():
-                                general_channel = channel
-                            else:
-                                if public_channel is None:
-                                    public_channel = channel
-
-    if general_channel is not None:
-        return general_channel
-    elif public_channel is not None:
-        return public_channel
-    else:
-        return None
+        if hasattr(channel, "overwrites"):
+            for key, value in channel.overwrites.items():
+                if hasattr(key, "name") and key.name == "@everyone":
+                    if value.read_messages in (True, None):
+                        return channel
+    return None
 
 
 def get_member_first_public_text_channel(member: discord.Member):

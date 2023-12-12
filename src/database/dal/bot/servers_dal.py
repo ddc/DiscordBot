@@ -14,8 +14,8 @@ class ServersDal:
 
     async def insert_server(self, server_id: int, name: str):
         stmt = Servers(
-           id=server_id,
-           name=name,
+            id=server_id,
+            name=name,
         )
         await self.db_utils.add(stmt)
 
@@ -68,9 +68,9 @@ class ServersDal:
         )
         await self.db_utils.execute(stmt)
 
-    async def update_default_text_channel(self, server_id: int, text_channel: str, updated_by: int):
+    async def update_default_text_channel(self, server_id: int, text_channel_id: int, updated_by: int):
         stmt = sa.update(Servers).where(Servers.id == server_id).values(
-            default_text_channel=None if text_channel == "None" else text_channel,
+            default_text_channel=None if text_channel_id == 0 else text_channel_id,
             updated_by=updated_by
         )
         await self.db_utils.execute(stmt)

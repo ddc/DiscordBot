@@ -19,7 +19,6 @@ class BotConfigs(BotBase):
     author_id: Mapped[int] = mapped_column(BigInteger, server_default=constants.AUTHOR_ID)
     url: Mapped[str] = mapped_column(server_default=constants.BOT_WEBPAGE_URL)
     description: Mapped[str] = mapped_column(server_default=constants.DESCRIPTION)
-    updated_by: Mapped[int] = mapped_column(BigInteger, nullable=True)
 
 
 class Servers(BotBase):
@@ -32,7 +31,7 @@ class Servers(BotBase):
     msg_on_member_update: Mapped[Boolean] = mapped_column(Boolean, default=True)
     block_invis_members: Mapped[Boolean] = mapped_column(Boolean, default=False)
     bot_word_reactions: Mapped[Boolean] = mapped_column(Boolean, default=True)
-    default_text_channel: Mapped[str] = mapped_column(nullable=True)
+    default_text_channel: Mapped[int] = mapped_column(BigInteger, nullable=True)
     updated_by: Mapped[int] = mapped_column(BigInteger, nullable=True)
 
 

@@ -72,6 +72,13 @@ async def send_msg(ctx, msg):
     await bot_utils.send_embed(ctx, embed)
 
 
+async def insert_gw2_server_configs(bot, server):
+    gw2_configs_dal = Gw2ConfigsDal(bot.db_session, bot.log)
+    server_config = await gw2_configs_dal.get_gw2_server_configs(server.id)
+    if not server_config:
+        await gw2_configs_dal.insert_gw2_server_configs(server.id)
+
+
 async def calculate_user_achiev_points(self, api_req_acc_achiev, api_req_acc):
     doc_user_achiev_id = []
     temp_achiv = []
@@ -186,7 +193,7 @@ def is_private_message(ctx):
     return True if isinstance(ctx.channel, discord.DMChannel) else False
 
 
-async def gw2_event_session(bot, before: discord.Member, after: discord.Member):
+async def check_gw2_game_activity(bot, before: discord.Member, after: discord.Member):
     before_activity = None
     after_activity = None
 

@@ -107,16 +107,16 @@ async def main():
 
 
 if __name__ == "__main__":
-    print(f"Starting Bot in {constants.TIME_BEFORE_START} secs")
-    time.sleep(constants.TIME_BEFORE_START)
     loop = asyncio.get_event_loop()
     try:
+        print(f"Starting Bot in {constants.TIME_BEFORE_START} secs")
+        time.sleep(constants.TIME_BEFORE_START)
         loop.run_until_complete(main())
+    except KeyboardInterrupt:
+        print("Bot stopped with Ctrl+C")
     except Exception as e:
         print(str(e.args))
-        loop.stop()
-        loop.close()
-        sys.exit(0)
     finally:
+        print("Closing the loop")
         loop.stop()
         loop.close()

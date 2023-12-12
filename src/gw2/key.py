@@ -190,7 +190,7 @@ async def _add_key(self, ctx, api_key: str):
                   f"Server: `{gw2_server_name}`\n" \
                   f"To get info about your new api key use: `{ctx.prefix}gw2 key info`"
             color = self.bot.gw2_settings["EmbedColor"]
-            await bot_utils.send_private_msg(ctx, color, msg)
+            await bot_utils.send_private_msg(ctx, msg, color)
         else:
             # insert key
             insert_object = bot_utils.Object()
@@ -206,7 +206,7 @@ async def _add_key(self, ctx, api_key: str):
                   f"Server: `{gw2_server_name}`\n" \
                   f"To get info about your api key use: `{ctx.prefix}gw2 key info`"
             color = self.bot.gw2_settings["EmbedColor"]
-            await bot_utils.send_private_msg(ctx, color, msg)
+            await bot_utils.send_private_msg(ctx, msg, color)
 
     elif len(rs) == 1 and rs[0]["user_id"] == user_id:
         msg = "That API key is already registered by you or someone else.\n" \
@@ -232,7 +232,7 @@ async def _remove_key(self, ctx):
     else:
         color = self.bot.gw2_settings["EmbedColor"]
         await gw2_api.delete_server_user_api_key(server_id, user_id)
-        await bot_utils.send_private_msg(ctx, color, "Your GW2 API Key has been deleted successfully.")
+        await bot_utils.send_private_msg(ctx, "Your GW2 API Key has been deleted successfully.", color)
 
         # # checking if the bot needs to assign gw2 server roles to user
         # gw2Roles = Gw2RolesSql(self.bot)
