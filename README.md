@@ -13,10 +13,9 @@
 -->
 
 ### [Install Guide - Wiki](https://ddc.github.io/DiscordBot)
-+ Using Docker (replace "MY_TOKEN_HERE" with your bot token)
++ Using Docker
     + git clone https://github.com/ddc/DiscordBot.git
-    + cd DiscordBot
-    + echo MY_TOKEN_HERE > ./config/token
+    + BOT_TOKEN variable needs to be inside DiscordBot/.env
     + docker-compose up --build -d
 
 ## Games Included
@@ -39,7 +38,6 @@
 | admin config blockinvisible  [on , off]				| Block messages from invisible members		    |
 | admin config botreactions    [on , off]				| Bot will react to member words			    |
 | admin config pfilter [on , off]	<_channel name_>	| Profanity Filter (block swear/bad words)	    |
-| admin config defaultchannel <_channel name_>		| Default text channel for bot messages		        |
 
 ## Misc Commands
 | Command                                      | Description                               |

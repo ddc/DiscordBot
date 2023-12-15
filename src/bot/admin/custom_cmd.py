@@ -54,7 +54,7 @@ async def add_custom_command(ctx):
     admin cc add <command> <text/url>
     """
 
-    await bot_utils.delete_channel_message(ctx)
+    await bot_utils.delete_message(ctx)
     cmd_name = ctx.subcommand_passed
     description = " ".join(ctx.message.content.split()[4:])
 
@@ -119,7 +119,7 @@ async def edit_custom_command(ctx):
     admin cc edit <command> <text/url>
     """
 
-    await bot_utils.delete_channel_message(ctx)
+    await bot_utils.delete_message(ctx)
     cmd_name = ctx.subcommand_passed
     description = " ".join(ctx.message.content.split()[4:])
 

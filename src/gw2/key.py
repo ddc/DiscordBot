@@ -15,7 +15,7 @@ class GW2Key(commands.Cog):
         self.bot = bot
 
     async def gw2_key(self, ctx, cmd_api_key: str):
-        await gw2_utils.delete_api_key(self, ctx)
+        await gw2_utils.delete_api_key(ctx)
         command = str(cmd_api_key.replace(f"{ctx.prefix}gw2 key ", "")).split(' ', 1)[0]
 
         if command == "info":

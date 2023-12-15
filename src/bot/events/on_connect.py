@@ -2,7 +2,6 @@
 from discord.ext import commands
 from src.bot.utils import bot_utils
 from src.database.dal.bot.servers_dal import ServersDal
-from src.gw2.utils import gw2_utils
 
 
 class OnConnect(commands.Cog):

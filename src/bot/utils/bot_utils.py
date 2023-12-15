@@ -5,9 +5,7 @@ from enum import Enum
 import json
 import logging.handlers
 from operator import attrgetter
-import os
 from random import choice
-import shutil
 import sys
 from alembic import command
 from alembic.config import Config
@@ -69,9 +67,9 @@ async def insert_server(bot, server):
 
 
 async def init_background_tasks(bot):
-    if bot.settings["BGChangeGame"].lower() == "yes":
+    if bot.settings["bot"]["BGChangeGame"].lower() == "yes":
         bg_tasks = BackGroundTasks(bot)
-        bot.loop.create_task(bg_tasks.bgtask_change_presence(bot.settings["BGActivityTimer"]))
+        bot.loop.create_task(bg_tasks.bgtask_change_presence(bot.settings["bot"]["BGActivityTimer"]))
 
 
 async def load_cogs(bot):
@@ -88,7 +86,7 @@ async def load_cogs(bot):
 
 def get_embed(ctx, description=None, color=None):
     if not color:
-        color = ctx.bot.settings["EmbedColor"]
+        color = ctx.bot.settings["bot"]["EmbedColor"]
     ebd = discord.Embed(color=color)
     if description:
         ebd.description = description
@@ -149,7 +147,7 @@ async def send_help_msg(ctx, cmd):
 async def send_embed(ctx, embed, dm=False):
     try:
         if not embed.color:
-            embed.color = ctx.bot.settings["EmbedColor"]
+            embed.color = ctx.bot.settings["bot"]["EmbedColor"]
 
         if dm:
             await ctx.author.send(embed=embed)
@@ -181,7 +179,7 @@ def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
     logger.exception("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
 
-async def delete_channel_message(ctx, warning=False):
+async def delete_message(ctx, warning=False):
     if not is_private_message(ctx):
         try:
             await ctx.message.delete()
@@ -215,29 +213,12 @@ def convert_datetime_to_str(date: datetime):
     return date.strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
 
 
-def convert_date_to_str(date: datetime):
-    return date.strftime(constants.DATE_FORMATTER)
-
-
-def get_current_date_str():
-    return str(datetime.now(timezone.utc).strftime(constants.DATE_FORMATTER))
-
-
 def get_current_date_time():
     return datetime.now(timezone.utc)
 
 
-def get_current_time():
-    str_time = str(datetime.now(timezone.utc).strftime(constants.TIME_FORMATTER))
-    return datetime.strptime(str_time, f"{constants.TIME_FORMATTER}")
-
-
 def get_current_date_time_str():
     return str(datetime.now(timezone.utc).strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
-
-
-def get_current_time_str():
-    return str(datetime.now(timezone.utc).strftime(constants.TIME_FORMATTER))
 
 
 def get_object_member_by_str(ctx, member_str: str):
@@ -271,7 +252,21 @@ def get_member_name_by_id(ctx, user_id: int = None):
         return None
 
 
-async def get_server_first_public_text_channel(server: discord.Guild):
+async def send_msg_to_system_channel(log, server, embed, plain_msg=None):
+    channel_to_send_msg = await get_server_system_channel(server)
+    if channel_to_send_msg:
+        try:
+            await channel_to_send_msg.send(embed=embed)
+        except discord.HTTPException as e:
+            log.error(e)
+            if plain_msg:
+                await channel_to_send_msg.send(plain_msg)
+
+
+async def get_server_system_channel(server: discord.Guild):
+    if server.system_channel:
+        return server.system_channel
+
     sorted_text_channels = sorted(server.text_channels, key=attrgetter("position"))
     for channel in sorted_text_channels:
         if hasattr(channel, "overwrites"):
@@ -280,18 +275,6 @@ async def get_server_first_public_text_channel(server: discord.Guild):
                     if value.read_messages in (True, None):
                         return channel
     return None
-
-
-def get_member_first_public_text_channel(member: discord.Member):
-    sorted_channels = sorted(member.guild.text_channels, key=attrgetter('position'))
-    for channel in sorted_channels:
-        if member.permissions_in(channel).read_messages is True:
-            return channel
-    return None
-
-
-def get_server_everyone_role(server: discord.Guild):
-    return server.default_role
 
 
 def get_all_ini_file_settings(file_name: str):
@@ -309,11 +292,14 @@ def get_all_ini_file_settings(file_name: str):
                     if len(lst_value) > 1:
                         values = []
                         for each in lst_value:
-                            values.append(each.strip())
+                            values.append(int(each.strip()) if each.strip().isnumeric() else each.strip())
                         value = values
-                except Exception:
-                    value = None
-                if value is not None and len(value) == 0:
+                    if value is not None and type(value) is str:
+                        if len(value) == 0:
+                            value = None
+                        elif value.isnumeric():
+                            value = int(value)
+                except:
                     value = None
                 dictionary[option] = value
         return dictionary
@@ -331,9 +317,12 @@ def get_ini_section_settings(file_name, section):
         for option in parser.options(section):
             try:
                 value = parser.get(section, option).replace("\"", "")
-            except Exception:
-                value = None
-            if value is not None and len(value) == 0:
+                if value is not None and type(value) is str:
+                    if len(value) == 0:
+                        value = None
+                    elif value.isnumeric():
+                        value = int(value)
+            except:
                 value = None
             final_data[option] = value
         return final_data
@@ -348,70 +337,24 @@ def get_ini_settings(file_name: str, section: str, config_name: str):
     try:
         parser.read(file_name)
         value = parser.get(section, config_name).replace("\"", "")
-    except Exception:
-        value = None
-    if value is not None and len(value) == 0:
+        if value is not None and type(value) is str:
+            if len(value) == 0:
+                value = None
+            elif value.isnumeric():
+                value = int(value)
+    except:
         value = None
     return value
 
 
 def get_color_settings(color: str):
     if str(color).lower() == "random":
-        return discord.Color(value=get_random_color())
-
+        color = ''.join([choice('0123456789ABCDEF') for _ in range(6)])
+        color = int(color, 16)
+        return color
     for cor in Colors:
         if cor.name.lower() == color.lower():
             return cor.value
-
-
-def get_random_color():
-    # color = discord.Color(value=get_random_color())
-    color = ''.join([choice('0123456789ABCDEF') for _ in range(6)])
-    color = int(color, 16)
-    return color
-
-
-def recursive_overwrite(src, dest, ignore=None):
-    if os.path.isdir(src):
-        if not os.path.isdir(dest):
-            os.makedirs(dest)
-        files = os.listdir(src)
-        if ignore is not None:
-            ignored = ignore(src, files)
-        else:
-            ignored = set()
-        for f in files:
-            if f not in ignored:
-                recursive_overwrite(os.path.join(src, f),
-                                    os.path.join(dest, f),
-                                    ignore)
-    else:
-        shutil.copyfile(src, dest)
-
-
-async def create_admin_commands_channel(bot, guild: discord.Guild):
-    for chan in guild.text_channels:
-        if chan.name == 'bot-commands':
-            return
-
-    _overwrites = {
-        guild.default_role: discord.PermissionOverwrite(read_messages=True, send_messages=True),
-        guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True)
-    }
-
-    prefix = bot.command_prefix[0]
-    msg = "Use this channel to type bot commands.\n" \
-          f"If you are an admin and wish to list configurations: `{prefix}config list`\n" \
-          f"To get a list of commands: `{prefix}help`"
-    try:
-        channel = await guild.create_text_channel("Bot Commands", overwrites=_overwrites)
-        await channel.edit(topic=msg)
-        await channel.edit(name="Bot Commands")
-        await channel.send(f"{msg}")
-    except discord.Forbidden as err:
-        bot.log.info(f"(Server:{guild.name})(BOT IS NOT ADMIN)({err.text} to create channel: bot-commands)")
-    except discord.HTTPException as err:
-        bot.log.info(f"(Server:{guild.name})({err.text})")
 
 
 def get_bot_stats(bot):

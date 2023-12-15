@@ -22,36 +22,26 @@ class Bot(commands.Bot):
         self.log = kwargs.get("log")
         self.web_client = kwargs.get("web_client")
         self.db_session = kwargs.get("db_session")
-        self.profanity = kwargs.get("profanity")
-        self.start_time = None
-        self.token = None
-        self.settings = None
-        self.gw2_settings = None
-
-        if os.path.isfile(constants.TOKEN_FILENAME):
-            with open(constants.TOKEN_FILENAME, encoding="UTF-8", mode="r") as token_file:
-                self.token = token_file.read().split("\n", 1)[0].strip("\n")
-        else:
-            self.log.error(f"Token file was not found: {constants.TOKEN_FILENAME}")
-            sys.exit(1)
-
-        self.set_bot_custom_configs()
-        self.set_other_cogs_configs()
+        self.settings = {}
+        self.set_bot_custom_settings(*args, **kwargs)
+        self.set_other_cogs_settings(*args, **kwargs)
 
     async def setup_hook(self):
         """ This will be called after login"""
         await bot_utils.load_cogs(self)
 
-    def set_bot_custom_configs(self):
-        self.description = str(constants.DESCRIPTION)
-        self.help_command = commands.DefaultHelpCommand(dm_help=True)
-        self.settings = bot_utils.get_all_ini_file_settings(constants.SETTINGS_FILENAME)
-        self.settings["EmbedOwnerColor"] = bot_utils.get_color_settings(self.settings["EmbedOwnerColor"])
-        self.settings["EmbedColor"] = bot_utils.get_color_settings(self.settings["EmbedColor"])
+    def set_bot_custom_settings(self, *args, **kwargs):
+        profanity.load_censor_words()
+        self.settings["bot"] = bot_utils.get_ini_section_settings(constants.SETTINGS_FILENAME, "Bot")
+        self.settings["bot"]["start_time"] = None
+        self.settings["bot"]["description"] = constants.DESCRIPTION
+        self.settings["bot"]["profanity"] = profanity
+        self.settings["bot"]["EmbedColor"] = bot_utils.get_color_settings(self.settings["bot"]["EmbedColor"])
+        self.settings["bot"]["EmbedOwnerColor"] = bot_utils.get_color_settings(self.settings["bot"]["EmbedOwnerColor"])
 
-    def set_other_cogs_configs(self):
-        self.gw2_settings = bot_utils.get_all_ini_file_settings(gw2_constants.GW2_SETTINGS_FILENAME)
-        self.gw2_settings["EmbedColor"] = bot_utils.get_color_settings(self.gw2_settings["EmbedColor"])
+    def set_other_cogs_settings(self, *args, **kwargs):
+        self.settings["gw2"] = bot_utils.get_ini_section_settings(gw2_constants.GW2_SETTINGS_FILENAME, "Gw2")
+        self.settings["gw2"]["EmbedColor"] = bot_utils.get_color_settings(self.settings["gw2"]["EmbedColor"])
 
 
 async def main():
@@ -63,6 +53,11 @@ async def main():
     async with ClientSession() as client_session, database.get_db_session(database_engine) as db_session:
         # init log
         log = Log(constants.LOGS_DIR, constants.IS_DEBUG).setup_logging()
+
+        # check BOT_TOKEN env
+        if not os.environ.get("BOT_TOKEN"):
+            log.error("BOT_TOKEN env not found")
+            sys.exit(1)
 
         # get prefix from database and set it
         bot_configs_sql = BotConfigsDal(db_session, log)
@@ -78,9 +73,6 @@ async def main():
         bot_game_desc = f"PRIVATE BOT | {help_cmd}" if exclusive_users is not None else random_game_desc
         activity = discord.Game(name=bot_game_desc)
 
-        # load profanity words
-        profanity.load_censor_words()
-
         bot_kwargs = {
             "command_prefix": command_prefix,
             "activity": activity,
@@ -88,13 +80,12 @@ async def main():
             "log": log,
             "web_client": client_session,
             "db_session": db_session,
-            "profanity": profanity,
             "owner_id": int(constants.AUTHOR_ID),
         }
         async with Bot(**bot_kwargs) as bot:
             try:
                 await bot_utils.init_background_tasks(bot)
-                await bot.start(bot.token)
+                await bot.start(os.environ.get("BOT_TOKEN"))
             except discord.LoginFailure:
                 formatted_lines = traceback.format_exc().splitlines()
                 [bot.log.error(x) for x in formatted_lines if x.startswith("discord")]

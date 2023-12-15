@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
 import discord
 from discord.ext import commands
 from src.bot.utils import bot_utils
@@ -26,7 +25,7 @@ class OnUserUpdate(commands.Cog):
             msg = "Profile Changes:\n\n"
             embed = bot_utils.get_embed(self)
             embed.set_author(name=after.display_name, icon_url=after.avatar.url)
-            embed.set_footer(text=f"{datetime.utcnow().strftime('%c')}")
+            embed.set_footer(text=discord.utils.utcnow().strftime("%c"))
 
             if str(before.avatar.url) != str(after.avatar.url):
                 embed.set_thumbnail(url=after.avatar.url)
@@ -50,16 +49,7 @@ class OnUserUpdate(commands.Cog):
                 for guild in after.mutual_guilds:
                     rs = await servers_dal.get_server(guild.id)
                     if rs["msg_on_member_update"]:
-                        if rs["default_text_channel"]:
-                            channel_to_send_msg = bot.get_channel(int(rs["default_text_channel"]))
-                        else:
-                            channel_to_send_msg = await bot_utils.get_server_first_public_text_channel(guild)
-
-                        if channel_to_send_msg:
-                            try:
-                                await channel_to_send_msg.send(embed=embed)
-                            except discord.HTTPException:
-                                await channel_to_send_msg.send(msg)
+                        await bot_utils.send_msg_to_system_channel(self.bot.log, guild, embed, msg)
 
 
 async def setup(bot):

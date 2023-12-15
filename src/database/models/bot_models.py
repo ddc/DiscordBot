@@ -31,7 +31,6 @@ class Servers(BotBase):
     msg_on_member_update: Mapped[Boolean] = mapped_column(Boolean, default=True)
     block_invis_members: Mapped[Boolean] = mapped_column(Boolean, default=False)
     bot_word_reactions: Mapped[Boolean] = mapped_column(Boolean, default=True)
-    default_text_channel: Mapped[int] = mapped_column(BigInteger, nullable=True)
     updated_by: Mapped[int] = mapped_column(BigInteger, nullable=True)
 
 

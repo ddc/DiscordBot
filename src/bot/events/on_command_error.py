@@ -122,10 +122,6 @@ async def _badArgument(self, ctx, errorObj: object):
         user_msg = "Prefixes can only be one of: ! $ % ^ & ? > < . ;"
         await bot_utils.send_error_msg(ctx, user_msg)
         _log_msg_error(self, ctx, f"BadArgument:[{errorObj.errorMsg}][{errorObj.help_command}]")
-    elif "BadArgument_default_text_channel" in errorObj.errorMsg:
-        user_msg = f"Channel not found:\n`{errorObj.bad_argument}`"
-        await bot_utils.send_error_msg(ctx, user_msg)
-        _log_msg_error(self, ctx, f"{errorObj.errorMsg} ({user_msg})")
     elif "BadArgument_Gw2ConfigServer" in errorObj.errorMsg:
         user_msg = f"Guild Wars 2 server not found: `{errorObj.bad_argument}`\n" \
                    f"For more info on gw2 server names use: `{ctx.prefix}gw2 worlds`"
@@ -152,7 +148,7 @@ async def _commandOnCooldown(self, ctx, errorObj: object):
             or "customcom add" in ctx.message.content.lower() \
             or "customcom edit" in ctx.message.content.lower() \
             or "pool" in ctx.message.content.lower():
-        await bot_utils.delete_channel_message(ctx)
+        await bot_utils.delete_message(ctx)
     await bot_utils.send_error_msg(ctx, f"{errorObj.errorMsg}\nCommand: `{errorObj.command}`")
     # _log_msg_error(self, ctx,"COOLDOWN")
 

@@ -26,12 +26,10 @@ class Gw2Api:
         """api languages can be ('en','es','de','fr','ko','zh')"""
 
         description = str(self.bot.description)
-        author = str(self.bot.settings["author"])
-
         headers = {
-            'User-Agent': f"{description} by {author}",
-            'Accept': 'application/json',
-            'lang': 'en'
+            "User-Agent": f"{description}",
+            "Accept": "application/json",
+            "lang": "en"
         }
 
         if key:
@@ -47,33 +45,26 @@ class Gw2Api:
                     err_msg = err["text"]
                 except:
                     err_msg = ""
+
+                init_msg = f"{response.status})({endpoint.split('?')[0]}"
+
                 if response.status == 400:
                     if err_msg == "invalid key":
                         raise APIInvalidKey(self.bot, f"({response.status}) INVALID GW2 API key.")
-                    raise APIBadRequest(self.bot,
-                                        f"({response.status})({endpoint.split('?')[0]}) GW2 API is currently down. Try again later.")
-
-                if response.status == 404:
+                    raise APIBadRequest(self.bot, f"({init_msg}) GW2 API is currently down. Try again later.")
+                elif response.status == 404:
                     raise APINotFound(self.bot, f"({response.status})({endpoint.split('?')[0]}) GW2 API Not found.")
-
-                if response.status == 403:
+                elif response.status == 403:
                     if err_msg == "invalid key":
                         raise APIInvalidKey(self.bot, f"({response.status}) INVALID GW2 API key.")
-                    raise APIForbidden(self.bot,
-                                       f"({response.status})({endpoint.split('?')[0]}) Access denied with your GW2 API key.")
-
-                if response.status == 502 or response.status == 503 or response.status == 504:
-                    raise APIInactiveError(self.bot,
-                                           f"({response.status})({endpoint.split('?')[0]}) GW2 API is currently down. Try again later.")
-
-                if response.status == 429:
-                    raise APIConnectionError(self.bot,
-                                             f"({response.status})({endpoint.split('?')[0]}) GW2 API Requests limit has been saturated. Try again later.")
-
+                    raise APIForbidden(self.bot, f"({init_msg}) Access denied with your GW2 API key.")
+                elif response.status == 502 or response.status == 503 or response.status == 504:
+                    raise APIInactiveError(self.bot, f"({init_msg}) GW2 API is currently down. Try again later.")
+                elif response.status == 429:
+                    raise APIConnectionError(self.bot, f"({init_msg}) GW2 API Requests limit has been saturated. Try again later.")
                 else:
                     if len(err_msg) == 0:
                         err_msg = str(response.reason)
-                    raise APIConnectionError(self.bot,
-                                             f"GW2 API ERROR ({response.status})({endpoint.split('?')[0]})({err_msg})")
+                    raise APIConnectionError(self.bot, f"GW2 API ERROR ({init_msg})({err_msg})")
 
             return await response.json()

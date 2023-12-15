@@ -29,7 +29,6 @@ def upgrade() -> None:
         sa.Column('msg_on_member_update', sa.Boolean(), default=True, nullable=False),
         sa.Column('block_invis_members', sa.Boolean(), default=False, nullable=False),
         sa.Column('bot_word_reactions', sa.Boolean(), default=True, nullable=False),
-        sa.Column('default_text_channel', sa.BigInteger(), nullable=True),
         sa.Column('updated_by', sa.BigInteger(), nullable=True),
         sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(now() at time zone \'utc\')'), nullable=False),
         sa.Column('created_at', sa.DateTime(), server_default=sa.text('(now() at time zone \'utc\')'), nullable=False),

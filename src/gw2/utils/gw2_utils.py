@@ -13,7 +13,7 @@ from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
 from src.gw2.utils.gw2_api import Gw2Api
 
 
-class Gw2ServerRoles(Enum):
+class Gw2Servers(Enum):
     Anvil_Rock = "Anvil Rock"
     Borlis_Pass = "Borlis Pass"
     Yaks_Bend = "Yak's Bend"
@@ -109,38 +109,31 @@ def earned_ap(ach, res):
     earned = 0
     repeats = res["repeated"] if "repeated" in res else 0
     max_possible = max_ap(ach, repeats)
-
     for tier in ach["tiers"]:
         if res["current"] >= tier["count"]:
             earned += tier["points"]
     earned += max_ap(ach) * repeats
-
     if earned > max_possible:
         earned = max_possible
-
     return earned
 
 
 def max_ap(ach, repeatable=False):
     if ach is None:
         return 0
-
     if repeatable:
         return ach["point_cap"]
-
     return sum([t["points"] for t in ach["tiers"]])
 
 
 async def get_world_id(self, world):
     if world is None:
         return None
-
     gw2_api = Gw2Api(self.bot)
     results = await gw2_api.call_api("worlds?ids=all")
     for name in results:
         if name["name"].lower() == world.lower():
             return name["id"]
-
     return None
 
 
@@ -158,7 +151,6 @@ async def get_world_name_population(self, wids: str):
                 # name.append(x["name"]+" ("+x["population"]+")")
     except:
         name = None
-
     return name
 
 
@@ -173,11 +165,10 @@ async def get_world_name(self, wids: str):
             name = results["name"]
     except:
         name = None
-
     return name
 
 
-async def delete_api_key(self, ctx, message=False):
+async def delete_api_key(ctx, message=False):
     if not isinstance(ctx.channel, discord.DMChannel):
         try:
             await ctx.message.delete()
@@ -242,7 +233,6 @@ async def update_gw2_session_ends(bot, before: discord.Member, api_key):
 async def get_last_session_user_stats(self, ctx, api_key):
     if not (hasattr(self, "bot")):
         self.bot = self
-
     gw2_api = Gw2Api(self.bot)
     user_obj = bot_utils.Object()
     user_obj.gold = 0
@@ -268,7 +258,7 @@ async def get_last_session_user_stats(self, ctx, api_key):
     except Exception as e:
         if ctx is not None:
             await bot_utils.send_info_msg(ctx, "GW2 API is currently down. Try again later...")
-            return self.bot.log.error(e)
+        return self.bot.log.error(e)
 
     user_obj.acc_name = api_req_acc["name"]
     user_obj.wvw_rank = api_req_acc["wvw_rank"]
@@ -337,120 +327,88 @@ async def insert_characters(self, member: discord.Member, api_key, type_session:
 
 
 def get_wvw_rank_title(rank: int):
-    prefix = ""
-    title = ""
+    match rank:
+        case num if num in range(150, 619):
+            prefix = "Bronze"
+        case num if num in range(620, 1394):
+            prefix = "Silver"
+        case num if num in range(1395, 2544):
+            prefix = "Gold"
+        case num if num in range(2545, 4094):
+            prefix = "Platinum"
+        case num if num in range(4095, 6444):
+            prefix = "Mithril"
+        case num if num >= 6445:
+            prefix = "Diamond"
+        case _:
+            prefix = ""
 
-    if rank >= 150 < 620:
-        prefix = "Bronze"
-    if rank >= 620 < 1395:
-        prefix = "Silver"
-    if rank >= 1395 < 2545:
-        prefix = "Gold"
-    if rank >= 2545 < 4095:
-        prefix = "Platinum"
-    if rank >= 4095 < 6445:
-        prefix = "Mithril"
-    if rank >= 6445:
-        prefix = "Diamond"
-
-    if (rank >= 1 and rank < 5) or (rank >= 150 and rank < 180) or (rank >= 620 and rank < 670) or (
-            rank >= 1395 and rank < 1470) or (rank >= 2545 and rank < 2645) or (rank >= 4095 and rank < 4245) or (
-            rank >= 6445 and rank < 6695):
-        title = "Invader"
-    elif (rank >= 5 and rank < 10) or (rank >= 180 and rank < 210) or (rank >= 670 and rank < 720) or (
-            rank >= 1470 and rank < 1545) or (rank >= 2645 and rank < 2745) or (rank >= 4245 and rank < 4395) or (
-            rank >= 6695 and rank < 6945):
-        title = "Assaulter"
-    elif (rank >= 10 and rank < 15) or (rank >= 210 and rank < 240) or (rank >= 720 and rank < 770) or (
-            rank >= 1545 and rank < 1620) or (rank >= 2745 and rank < 2845) or (rank >= 4395 and rank < 4545) or (
-            rank >= 6945 and rank < 7195):
-        title = "Raider"
-    elif (rank >= 15 and rank < 20) or (rank >= 240 and rank < 270) or (rank >= 770 and rank < 820) or (
-            rank >= 1620 and rank < 1695) or (rank >= 2845 and rank < 2945) or (rank >= 4545 and rank < 4695) or (
-            rank >= 7195 and rank < 7445):
-        title = "Recruit"
-    elif (rank >= 20 and rank < 30) or (rank >= 270 and rank < 300) or (rank >= 820 and rank < 870) or (
-            rank >= 1695 and rank < 1770) or (rank >= 2945 and rank < 3045) or (rank >= 4695 and rank < 4845) or (
-            rank >= 7445 and rank < 7695):
-        title = "Scout"
-    elif (rank >= 30 and rank < 40) or (rank >= 300 and rank < 330) or (rank >= 840 and rank < 920) or (
-            rank >= 1770 and rank < 1845) or (rank >= 3045 and rank < 3145) or (rank >= 4845 and rank < 4995) or (
-            rank >= 7695 and rank < 7945):
-        title = "Soldier"
-    elif (rank >= 40 and rank < 50) or (rank >= 330 and rank < 360) or (rank >= 920 and rank < 970) or (
-            rank >= 1845 and rank < 1920) or (rank >= 3145 and rank < 3245) or (rank >= 4995 and rank < 5145) or (
-            rank >= 7945 and rank < 8195):
-        title = "Squire"
-    elif (rank >= 50 and rank < 60) or (rank >= 360 and rank < 390) or (rank >= 970 and rank < 1020) or (
-            rank >= 1920 and rank < 1995) or (rank >= 3245 and rank < 3345) or (rank >= 5145 and rank < 5295) or (
-            rank >= 8195 and rank < 8445):
-        title = "Footman"
-    elif (rank >= 60 and rank < 70) or (rank >= 390 and rank < 420) or (rank >= 1020 and rank < 1070) or (
-            rank >= 1995 and rank < 2070) or (rank >= 3345 and rank < 3445) or (rank >= 5295 and rank < 5445) or (
-            rank >= 8445 and rank < 8695):
-        title = "Knight"
-    elif (rank >= 70 and rank < 80) or (rank >= 420 and rank < 450) or (rank >= 1070 and rank < 1120) or (
-            rank >= 2070 and rank < 2145) or (rank >= 3445 and rank < 3545) or (rank >= 5445 and rank < 5595) or (
-            rank >= 8695 and rank < 8945):
-        title = "Major"
-    elif (rank >= 80 and rank < 90) or (rank >= 450 and rank < 480) or (rank >= 1120 and rank < 1170) or (
-            rank >= 2145 and rank < 2220) or (rank >= 3545 and rank < 3645) or (rank >= 5595 and rank < 5745) or (
-            rank >= 8945 and rank < 9195):
-        title = "Colonel"
-    elif (rank >= 90 and rank < 100) or (rank >= 480 and rank < 510) or (rank >= 1170 and rank < 1220) or (
-            rank >= 2220 and rank < 2295) or (rank >= 3645 and rank < 3745) or (rank >= 5745 and rank < 5895) or (
-            rank >= 9195 and rank < 9445):
-        title = "General"
-    elif (rank >= 100 and rank < 110) or (rank >= 510 and rank < 540) or (rank >= 1220 and rank < 1270) or (
-            rank >= 2295 and rank < 2370) or (rank >= 3745 and rank < 3845) or (rank >= 5895 and rank < 6045) or (
-            rank >= 9445 and rank < 9695):
-        title = "Veteran"
-    elif (rank >= 110 and rank < 120) or (rank >= 540 and rank < 570) or (rank >= 1270 and rank < 1320) or (
-            rank >= 2370 and rank < 2445) or (rank >= 3845 and rank < 3945) or (rank >= 6045 and rank < 6195) or (
-            rank >= 9695 and rank < 9945):
-        title = "Champion"
-    elif (rank >= 120) or (rank >= 570) or (rank >= 1320) or (rank >= 2445) or (rank >= 3945) or (rank >= 6195) or (
-            rank >= 9945):
-        title = "Legend"
+    match rank:
+        case num if num in range(1, 4) or num in range(150, 179) or num in range(620, 669) or num in range(1695, 1469) or num in range(2545, 2644) or num in range(4095, 4244) or num in range(6445, 6694):
+            title = "Invader"
+        case num if num in range(5, 9) or num in range(180, 209) or num in range(670, 719) or num in range(1470, 1544) or num in range(2645, 2744) or num in range(4245, 4394) or num in range(6695, 6944):
+            title = "Assaulter"
+        case num if num in range(10, 14) or num in range(210, 239) or num in range(720, 769) or num in range(1545, 1619) or num in range(2745, 2844) or num in range(4395, 4544) or num in range(6945, 7194):
+            title = "Raider"
+        case num if num in range(15, 19) or num in range(240, 269) or num in range(770, 819) or num in range(1620, 1694) or num in range(2845, 2944) or num in range(4545, 4694) or num in range(7195, 7444):
+            title = "Recruit"
+        case num if num in range(20, 29) or num in range(270, 299) or num in range(820, 869) or num in range(1695, 1769) or num in range(2945, 3044) or num in range(4695, 4844) or num in range(7445, 7694):
+            title = "Scout"
+        case num if num in range(30, 39) or num in range(300, 329) or num in range(840, 919) or num in range(1770, 1844) or num in range(3045, 3144) or num in range(4845, 4994) or num in range(7695, 7944):
+            title = "Soldier"
+        case num if num in range(40, 49) or num in range(330, 359) or num in range(920, 969) or num in range(1845, 1919) or num in range(3145, 3244) or num in range(4995, 5144) or num in range(7945, 8194):
+            title = "Squire"
+        case num if num in range(50, 59) or num in range(360, 389) or num in range(970, 1019) or num in range(1920, 1994) or num in range(3245, 3344) or num in range(5145, 5294) or num in range(8195, 8444):
+            title = "Footman"
+        case num if num in range(60, 69) or num in range(390, 419) or num in range(1020, 1069) or num in range(1995, 2069) or num in range(3345, 3444) or num in range(5295, 5444) or num in range(8445, 8694):
+            title = "Knight"
+        case num if num in range(70, 79) or num in range(420, 449) or num in range(1070, 1119) or num in range(2070, 2144) or num in range(3445, 3544) or num in range(5445, 5594) or num in range(8695, 8944):
+            title = "Major"
+        case num if num in range(80, 89) or num in range(450, 479) or num in range(1120, 1169) or num in range(2145, 2219) or num in range(3545, 3644) or num in range(5595, 5744) or num in range(8945, 9194):
+            title = "Colonel"
+        case num if num in range(90, 99) or num in range(480, 509) or num in range(1170, 1219) or num in range(2220, 2294) or num in range(3645, 3744) or num in range(5745, 5894) or num in range(9195, 9444):
+            title = "General"
+        case num if num in range(100, 109) or num in range(510, 539) or num in range(1220, 1269) or num in range(2295, 2369) or num in range(3745, 3844) or num in range(5895, 6044) or num in range(9445, 9694):
+            title = "Veteran"
+        case num if num in range(110, 119) or num in range(540, 569) or num in range(1270, 1319) or num in range(2370, 2444) or num in range(3845, 3944) or num in range(6045, 6194) or num in range(9695, 9944):
+            title = "Champion"
+        case num if num in range(rank >= 120) or num in range(rank >= 570) or num in range(rank >= 1320) or num in range(rank >= 2445) or num in range(rank >= 3945) or num in range(rank >= 6195) or num in range(rank >= 9945):
+            title = "Legend"
+        case _:
+            title = ""
 
     return f"{prefix} {title}"
 
 
 def get_pvp_rank_title(rank: int):
-    title = ""
-    if rank >= 1 and rank < 10:
-        title = "Rabbit"
-    elif rank >= 10 and rank < 20:
-        title = "Deer"
-    elif rank >= 20 and rank < 30:
-        title = "Dolyak"
-    elif rank >= 30 and rank < 40:
-        title = "Wolf"
-    elif rank >= 40 and rank < 50:
-        title = "Tiger"
-    elif rank >= 50 and rank < 60:
-        title = "Bear"
-    elif rank >= 60 and rank < 70:
-        title = "Shark"
-    elif rank >= 70 and rank < 80:
-        title = "Phoenix"
-    elif rank >= 80:
-        title = "Dragon"
-    return f"{title}"
-
-
-def check_gw2_server_name_role(role_name: str):
-    for gw2_roles in Gw2ServerRoles:
-        if gw2_roles.value.lower() == role_name.lower():
-            return True
-    return False
+    match rank:
+        case num if num in range(1, 9):
+            title = "Rabbit"
+        case num if num in range(10, 19):
+            title = "Deer"
+        case num if num in range(20, 29):
+            title = "Dolyak"
+        case num if num in range(30, 39):
+            title = "Wolf"
+        case num if num in range(40, 49):
+            title = "Tiger"
+        case num if num in range(50, 59):
+            title = "Bear"
+        case num if num in range(60, 69):
+            title = "Shark"
+        case num if num in range(70, 79):
+            title = "Phoenix"
+        case num if num >= 80:
+            title = "Dragon"
+        case _:
+            title = ""
+    return title
 
 
 def format_gold(currency: str):
     """
-    Returns gold in string format
-     20 Gold 35 Silver 15 Copper
-
+        Returns gold in string format:
+        20 Gold 35 Silver 15 Copper
     """
 
     formatted_gold = ""
@@ -472,7 +430,6 @@ def get_time_passed(start_time_str, end_time_str):
     date_time_formatter = f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"
     time_passed_delta = (datetime.strptime(end_time_str, date_time_formatter) -
                          datetime.strptime(start_time_str, date_time_formatter))
-
     time_passed_obj = convert_timedelta_to_obj(time_passed_delta)
     return time_passed_obj
 

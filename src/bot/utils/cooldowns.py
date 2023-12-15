@@ -3,7 +3,7 @@ from enum import Enum
 from src.bot.utils import bot_utils, constants
 
 
-file_values = bot_utils.get_all_ini_file_settings(constants.SETTINGS_FILENAME)
+file_values = bot_utils.get_ini_section_settings(constants.SETTINGS_FILENAME, "Cooldowns")
 
 
 class CoolDowns(Enum):

@@ -51,10 +51,10 @@ class Admin(commands.Cog):
         embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar.url)
         await bot_utils.send_embed(ctx, embed)
 
-        if self.bot.settings["BGChangeGame"].lower() == "yes":
+        if self.bot.settings["bot"]["BGChangeGame"].lower() == "yes":
             bg_task_warning = (f"Background task running to update bot activity is ON\n"
                                f"Activity will change after "
-                               f"{self.bot.settings['BGActivityTimer']} secs.")
+                               f"{self.bot.settings['bot']['BGActivityTimer']} secs.")
             embed.description = bg_task_warning
             await bot_utils.send_embed(ctx, embed, True)
 

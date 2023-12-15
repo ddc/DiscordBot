@@ -10,7 +10,7 @@ class OnGuildRemove(commands.Cog):
         @self.bot.event
         async def on_guild_remove(guild):
             servers_sql = ServersDal(self.bot.db_session, self.bot.log)
-            await servers_sql.delete_server(guild)
+            await servers_sql.delete_server(guild.id)
 
 
 async def setup(bot):

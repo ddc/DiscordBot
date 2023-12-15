@@ -68,13 +68,6 @@ class ServersDal:
         )
         await self.db_utils.execute(stmt)
 
-    async def update_default_text_channel(self, server_id: int, text_channel_id: int, updated_by: int):
-        stmt = sa.update(Servers).where(Servers.id == server_id).values(
-            default_text_channel=None if text_channel_id == 0 else text_channel_id,
-            updated_by=updated_by
-        )
-        await self.db_utils.execute(stmt)
-
     async def update_bot_word_reactions(self, server_id: int, new_status: str, updated_by: int):
         stmt = sa.update(Servers).where(Servers.id == server_id).values(
             bot_word_reactions=new_status,

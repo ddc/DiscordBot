@@ -15,7 +15,6 @@ IS_WINDOWS = os.name == "nt"
 ###############################################################################
 BASE_DIR = f"{Path(__file__).resolve().parent.parent.parent.parent}/"
 SETTINGS_FILENAME = os.path.join(BASE_DIR, "config", "settings.ini")
-TOKEN_FILENAME = os.path.join(BASE_DIR, "config", "token")
 ALEMBIC_CONFIG_FILE_PATH = os.path.join(BASE_DIR, "config", "alembic.ini")
 DATABASE_FILENAME = os.path.join(BASE_DIR, "data", "database.db")
 LOGS_DIR = os.path.join(BASE_DIR, "logs")

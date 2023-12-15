@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
+import sys
 import discord
 from discord.ext import commands
 from src.bot.utils import bot_utils, constants
-from src.database.dal.bot.bot_configs_dal import BotConfigsDal
 
 
 class OnGuildJoin(commands.Cog):
@@ -12,38 +12,25 @@ class OnGuildJoin(commands.Cog):
         @self.bot.event
         async def on_guild_join(guild):
             await bot_utils.insert_server(self.bot, guild)
-            bot_configs_sql = BotConfigsDal(self.bot.db_session, self.bot.logs)
-            configs = await bot_configs_sql.get_bot_configs()
-            prefix = configs[0]["prefix"]
-            games_included = None
-
-            if constants.GAMES_INCLUDED is not None:
-                if len(constants.GAMES_INCLUDED) == 1:
-                    games_included = constants.GAMES_INCLUDED[0]
-                elif len(constants.GAMES_INCLUDED) > 1:
-                    games_included = ""
-                    for games in constants.GAMES_INCLUDED:
-                        games_included += f"({games}) "
+            prefix = self.bot.command_prefix
+            games_included = "".join(constants.GAMES_INCLUDED)
             msg = (f"Thanks for using *{self.bot.user.name}*\n"
                    f"To learn more about this bot: `{prefix}about`\n"
-                   f"Games included so far: `{games_included}`\n\n")
+                   f"Games included so far: `{games_included}`\n\n"
+                   f"If you are an Admin and wish to list configurations: `{prefix}config list`\n"
+                   f"To get a list of commands: `{prefix}help`")
 
-            for rol in guild.me.roles:
-                if rol.permissions.value == 8:
-                    msg += ("Bot is running in \"Admin\" mode\n"
-                            "A \"bot-commands\" channel were created for bot commands\n")
+            bot_webpage_url = constants.BOT_WEBPAGE_URL
+            bot_avatar = self.bot.user.avatar.url
+            author = self.bot.get_user(self.bot.owner_id)
+            python_version = "Python {}.{}.{}".format(*sys.version_info[:3])
 
-            msg += (f"If you are an Admin and wish to list configurations: `{prefix}config list`\n"
-                    f"To get a list of commands: `{prefix}help`")
             embed = discord.Embed(color=discord.Color.green(), description=msg)
-            embed.set_author(name=guild.me.display_name, icon_url=guild.me.avatar.url)
-            channel_to_send_msg = await bot_utils.get_server_first_public_text_channel(guild)
-            if channel_to_send_msg is not None:
-                try:
-                    await channel_to_send_msg.send(embed=embed)
-                except discord.HTTPException:
-                    await channel_to_send_msg.send(msg)
-            await bot_utils.create_admin_commands_channel(self.bot, guild)
+            embed.set_author(name=f"{self.bot.user.name} v{constants.VERSION}", icon_url=bot_avatar, url=bot_webpage_url)
+            embed.set_thumbnail(url=bot_avatar)
+            embed.set_footer(text=f"Developed by {str(author)} | {python_version}", icon_url=author.avatar.url)
+
+            await bot_utils.send_msg_to_system_channel(self.bot.log, guild, embed, msg)
 
 
 async def setup(bot):

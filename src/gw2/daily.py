@@ -25,10 +25,9 @@ class GW2Daily(commands.Cog):
 
 
 async def _daily_embed(self, ctx, daily_type: str):
-    import datetime as dt
     await ctx.message.channel.typing()
     achiev_id_lst = []
-    todays_date = bot_utils.convert_date_to_str(dt.datetime.now())
+    todays_date = discord.utils.utcnow().strftime("%c")
     gw2_api = Gw2Api(self.bot)
 
     try:

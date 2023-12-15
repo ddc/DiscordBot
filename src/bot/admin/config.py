@@ -29,7 +29,6 @@ async def config(ctx, subcommand):
     admin config blockinvisible  [on | off]
     admin config botreactions    [on | off]
     admin config pfilter         [on | off] <channel_name>
-    admin config defaultchannel  <channel_name>
     """
 
     match subcommand:
@@ -47,8 +46,6 @@ async def config(ctx, subcommand):
             await config_bot_word_reactions(ctx)
         case "pfilter":
             await config_pfilter(ctx)
-        case "defaultchannel":
-            await config_default_text_channel(ctx)
         case "list":
             await config_list(ctx)
         case _:
@@ -221,40 +218,6 @@ async def config_bot_word_reactions(ctx):
     await bot_utils.send_embed(ctx, embed)
 
 
-@config.command(name="defaultchannel")
-@commands.cooldown(1, CoolDowns.Config.value, BucketType.user)
-async def config_default_text_channel(ctx):
-    """(Set default text channel to be used for bot messages)
-
-    Example:
-    admin config defaultchannel <channel_id>
-    admin config defaultchannel delete
-    """
-
-    new_channel_id = ctx.subcommand_passed
-
-    if not new_channel_id:
-        return await bot_utils.send_error_msg(ctx, "Missing required channel!!!\n"
-                                                   "For more info on this command use: "
-                                                   f"{chat_formatting.inline('?help admin config defaultchannel')}")
-    elif new_channel_id in ("delete", "remove"):
-        new_channel_id = 0
-        msg = "Default text channel for bot messages was successfully deleted"
-        color = discord.Color.red()
-        embed = discord.Embed(description=msg, color=color)
-    elif new_channel_id not in [str(x.id) for x in ctx.guild.text_channels]:
-        return await bot_utils.send_error_msg(ctx, f"Channel id not found: {chat_formatting.inline(new_channel_id)}")
-    else:
-        msg = "Default text channel for bot messages was changed to: "
-        color = discord.Color.green()
-        channel_name = [x.name for x in ctx.guild.text_channels if x.id == int(new_channel_id)][0]
-        embed = discord.Embed(description=f"{msg} {chat_formatting.inline(channel_name)}", color=color)
-
-    servers_dal = ServersDal(ctx.bot.db_session, ctx.bot.log)
-    await servers_dal.update_default_text_channel(ctx.guild.id, int(new_channel_id), ctx.author.id)
-    await bot_utils.send_embed(ctx, embed)
-
-
 @config.command(name="pfilter")
 @commands.cooldown(1, CoolDowns.Config.value, BucketType.user)
 async def config_pfilter(ctx):
@@ -346,17 +309,6 @@ async def config_list(ctx):
     embed.add_field(
         name=f"Bot will react to member words\n*`{cmd_prefix} botreactions [on | off]`*",
         value=f"{on}" if sc["bot_word_reactions"] else f"{off}", inline=False)
-
-    default_text_channel = "No channels listed"
-    if sc["default_text_channel"] is not None and sc["default_text_channel"] != "":
-        for x in ctx.guild.text_channels:
-            if x.id == sc["default_text_channel"]:
-                default_text_channel = x.name
-                break
-    embed.add_field(
-        name="Channel to display bot messages\n"
-             f"*`{cmd_prefix} defaultchannel <channel_id>`*",
-        value=chat_formatting.inline(default_text_channel), inline=False)
     embed.add_field(
         name="Channels with profanity filter activated\n"
              f"*`{cmd_prefix} pfilter on <channel_id>`*",

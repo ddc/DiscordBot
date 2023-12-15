@@ -48,7 +48,7 @@ class OnMessage(commands.Cog):
             if not await self._check_exclusive_users(ctx):
                 return
 
-            allowed_dm_commands = self.bot.settings["DMCommands"]
+            allowed_dm_commands = self.bot.settings["bot"]["DMCommands"]
             if allowed_dm_commands is not None:
                 user_cmd = ctx.message.content.split(" ", 1)[0][1:]
 
@@ -92,7 +92,7 @@ class OnMessage(commands.Cog):
         if configs["block_invis_members"]:
             is_member_invis = self._check_member_invisible(ctx)
             if is_member_invis:
-                await bot_utils.delete_channel_message(ctx)
+                await bot_utils.delete_message(ctx)
                 msg = ("You are Invisible (offline)\n"
                        f"Server \"{ctx.guild.name}\" does not allow messages from invisible members.\n"
                        "Please change your status if you want to send messages to this server.")
@@ -159,7 +159,7 @@ class OnMessage(commands.Cog):
             return True
 
     async def _check_exclusive_users(self, ctx):
-        exclusive_users_id = self.bot.settings["ExclusiveUsers"]
+        exclusive_users_id = self.bot.settings["bot"]["ExclusiveUsers"]
         user_found = False
 
         if exclusive_users_id is not None:
@@ -183,7 +183,7 @@ class OnMessage(commands.Cog):
 
     async def _check_custom_messages(self, message):
         msg = message.system_content.lower()
-        cwords = self.bot.settings["BotReactWords"]
+        cwords = self.bot.settings["bot"]["BotReactWords"]
         cwords.append("🖕")
         config_word_found = False
         bot_word_found = False
@@ -217,7 +217,7 @@ class OnMessage(commands.Cog):
                               f"(Message:{user_msg})")
 
             try:
-                await bot_utils.delete_channel_message(ctx)
+                await bot_utils.delete_message(ctx)
                 await ctx.message.channel.send(censored_text)
                 msg = ("Your message was censored.\n"
                        "Please don't say offensive words in this channel.")

@@ -59,7 +59,7 @@ class Owner(commands.Cog):
         await bot_configs_sql.update_bot_prefix(new_prefix, ctx.message.author.id)
         self.bot.command_prefix = (new_prefix,)
 
-        color = self.bot.settings["EmbedOwnerColor"]
+        color = self.bot.settings["bot"]["EmbedOwnerColor"]
         msg = f"Bot prefix has been changed to: `{new_prefix}`"
         embed = discord.Embed(description=msg, color=color)
         await bot_utils.send_embed(ctx, embed,)
@@ -73,13 +73,13 @@ class Owner(commands.Cog):
         owner botdescription <new_description>
         """
 
-        await bot_utils.delete_channel_message(ctx)
+        await bot_utils.delete_message(ctx)
         await ctx.message.channel.typing()
         bot_configs_sql = BotConfigsDal(self.bot.db_session, self.bot.log)
         await bot_configs_sql.update_bot_description(desc, ctx.message.author.id)
         self.bot.description = desc
 
-        color = self.bot.settings["EmbedOwnerColor"]
+        color = self.bot.settings["bot"]["EmbedOwnerColor"]
         msg = f"Bot description changed to: `{desc}`"
         embed = discord.Embed(description=msg, color=color)
         await bot_utils.send_embed(ctx, embed)
@@ -96,7 +96,7 @@ class Owner(commands.Cog):
         await ctx.message.channel.typing()
         servers_sql = ServersDal(self.bot.db_session, self.bot.log)
         rs = await servers_sql.get_server()
-        color = self.bot.settings["EmbedOwnerColor"]
+        color = self.bot.settings["bot"]["EmbedOwnerColor"]
         embed = discord.Embed(description="All servers in database", color=color)
         embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar.url)
 
