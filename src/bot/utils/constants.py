@@ -40,17 +40,17 @@ GAMES_INCLUDED = ("Guild Wars 2",)
 APIS_INCLUDED = ()
 ###############################################################################
 BOT_COGS = [
-    x for x in glob.glob(os.path.join("src", "bot", "*.py")) if not (os.path.basename(x).startswith("__"))
+    x for x in glob.glob(os.path.join("src", "bot", "*.py"))
 ]
 BOT_COGS.sort(key=lambda x: x.split("/")[2])
 
 EVENTS_COGS = [
-    x for x in glob.glob(os.path.join("src", "bot", "events", "*.py")) if not (os.path.basename(x).startswith("__"))
+    x for x in glob.glob(os.path.join("src", "bot", "events", "*.py"))
 ]
 EVENTS_COGS.sort(key=lambda x: x.split("/")[3])
 
 ADMIN_COGS = [
-    x for x in glob.glob(os.path.join("src", "bot", "admin", "*.py")) if not (os.path.basename(x).startswith("__"))
+    x for x in glob.glob(os.path.join("src", "bot", "admin", "*.py"))
 ]
 ADMIN_COGS.sort(key=lambda x: x.split("/")[3])
 

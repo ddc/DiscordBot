@@ -13,7 +13,7 @@ class GW2WvW(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def gw2_wvwinfo(self, ctx, world: str = None):
+    async def wvwinfo(self, ctx, world: str = None):
         user_id = ctx.message.author.id
         await ctx.message.channel.typing()
         gw2_api = Gw2Api(self.bot)
@@ -27,11 +27,13 @@ class GW2WvW(commands.Cog):
                     results = await gw2_api.call_api("account", key=api_key)
                     wid = results["world"]
                 else:
-                    return await bot_utils.send_error_msg(ctx,
-                                                      "You dont have an API key registered in this server.\n"
-                                                      f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
-                                                      f"To check your API key use: `{ctx.prefix}gw2 key info`")
-            except APIKeyError as e:
+                    return await bot_utils.send_error_msg(
+                        ctx,
+                        "You dont have an API key registered in this server.\n"
+                        f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
+                        f"To check your API key use: `{ctx.prefix}gw2 key info`"
+                    )
+            except APIKeyError:
                 return await bot_utils.send_error_msg(ctx, "No world name or key associated with your account")
             except Exception as e:
                 await bot_utils.send_error_msg(ctx, e)
@@ -60,18 +62,20 @@ class GW2WvW(commands.Cog):
             tier_number = matches["id"].replace("2-", "")
             tier = f"Europe Tier {tier_number}"
 
+        worldcolor = None
         for key, value in matches["all_worlds"].items():
             if wid in value:
                 worldcolor = key
         if not worldcolor:
-            await bot_utils.send_error_msg(ctx, "Could not resolve world's color")
-            return
-        if worldcolor == "red":
-            color = discord.Color.red()
-        elif worldcolor == "green":
-            color = discord.Color.green()
-        else:
-            color = self.bot.gw2_settings["EmbedColor"]
+            return await bot_utils.send_error_msg(ctx, "Could not resolve world's color")
+
+        match worldcolor:
+            case "red":
+                color = discord.Color.red()
+            case "green":
+                color = discord.Color.green()
+            case _:
+                color = self.bot.gw2_settings["EmbedColor"]
 
         ppt = 0
         score = format(matches["scores"][worldcolor], ',d')
@@ -101,9 +105,9 @@ class GW2WvW(commands.Cog):
 
         kills = format(matches["kills"][worldcolor], ',d')
         deaths = format(matches["deaths"][worldcolor], ',d')
-        _title = f"{worldinfo['name']}"
+        title = f"{worldinfo['name']}"
 
-        embed = discord.Embed(title=_title, description=tier, color=color)
+        embed = discord.Embed(title=title, description=tier, color=color)
         embed.add_field(name="Score", value=chat_formatting.inline(score), inline=True)
         embed.add_field(name="Points per tick", value=chat_formatting.inline(ppt), inline=True)
         embed.add_field(name="Victory Points", value=chat_formatting.inline(victoryp), inline=True)
@@ -114,10 +118,9 @@ class GW2WvW(commands.Cog):
         embed.add_field(name="Population", value=chat_formatting.inline(population), inline=False)
         await bot_utils.send_embed(ctx, embed)
 
-    async def gw2_match(self, ctx, world: str = None):
+    async def match(self, ctx, world: str = None):
         """(Info about a wvw match. Defaults to account's world)
 
-        Example:
         gw2 match
         gw2 match world_name
         """
@@ -135,12 +138,14 @@ class GW2WvW(commands.Cog):
                     results = await gw2_api.call_api("account", key=api_key)
                     wid = results["world"]
                 else:
-                    return await bot_utils.send_error_msg(ctx,
-                                                      "Missing World Name\n" \
-                                                      f"Use `{ctx.prefix}gw2 match <world_name>`\n" \
-                                                      "Or register an API key on your account.\n" \
-                                                      f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`")
-            except APIKeyError as e:
+                    return await bot_utils.send_error_msg(
+                        ctx,
+                        "Missing World Name\n"
+                        f"Use `{ctx.prefix}gw2 match <world_name>`\n"
+                        "Or register an API key on your account.\n"
+                        f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`"
+                    )
+            except APIKeyError:
                 return await bot_utils.send_error_msg(ctx, "No world name or API key associated with your account.")
             except Exception as e:
                 await bot_utils.send_error_msg(ctx, e)
@@ -167,9 +172,9 @@ class GW2WvW(commands.Cog):
             blue_worlds_names = await _get_map_names_embed_values(self, "blue", matches)
             red_worlds_names = await _get_map_names_embed_values(self, "red", matches)
 
-            green_values = await _get_match_embed_values(self, "green", matches)
-            blue_values = await _get_match_embed_values(self, "blue", matches)
-            red_values = await _get_match_embed_values(self, "red", matches)
+            green_values = await _get_match_embed_values("green", matches)
+            blue_values = await _get_match_embed_values("blue", matches)
+            red_values = await _get_match_embed_values("red", matches)
         except Exception as e:
             await bot_utils.send_error_msg(ctx, e)
             return self.bot.log.error(ctx, e)
@@ -184,12 +189,10 @@ class GW2WvW(commands.Cog):
         embed.add_field(name="--------------------", value=red_values, inline=True)
         await bot_utils.send_embed(ctx, embed)
 
-    async def gw2_kdr(self, ctx, world: str = None):
+    async def kdr(self, ctx, world: str = None):
         """(Info about a wvw kdr match. Defaults to account's world)
-
-        Example:
-        gw2 kdr
-        gw2 kdr world_name
+            gw2 kdr
+            gw2 kdr world_name
         """
 
         user_id = ctx.message.author.id
@@ -208,7 +211,7 @@ class GW2WvW(commands.Cog):
                     return await bot_utils.send_error_msg(ctx, "Invalid World Name\n"
                                                                f"Use {ctx.prefix}gw2 match <world_name> "
                                                                "Or register an API key on your account.")
-            except APIKeyError as e:
+            except APIKeyError:
                 return await bot_utils.send_error_msg(ctx, "No world name or key associated with your account")
             except Exception as e:
                 await bot_utils.send_error_msg(ctx, e)
@@ -235,9 +238,9 @@ class GW2WvW(commands.Cog):
             blue_worlds_names = await _get_map_names_embed_values(self, "blue", matches)
             red_worlds_names = await _get_map_names_embed_values(self, "red", matches)
 
-            green_values = await _get_kdr_embed_values(self, "green", matches)
-            blue_values = await _get_kdr_embed_values(self, "blue", matches)
-            red_values = await _get_kdr_embed_values(self, "red", matches)
+            green_values = await _get_kdr_embed_values("green", matches)
+            blue_values = await _get_kdr_embed_values("blue", matches)
+            red_values = await _get_kdr_embed_values("red", matches)
         except Exception as e:
             await bot_utils.send_error_msg(ctx, e)
             return self.bot.log.error(ctx, e)
@@ -269,7 +272,7 @@ async def _get_map_names_embed_values(self, map_color: str, matches):
     return worlds_names
 
 
-async def _get_kdr_embed_values(self, map_color: str, matches):
+async def _get_kdr_embed_values(map_color: str, matches):
     kills = matches["kills"][map_color]
     deaths = matches["deaths"][map_color]
     activity = kills + deaths
@@ -287,7 +290,7 @@ async def _get_kdr_embed_values(self, map_color: str, matches):
     return values
 
 
-async def _get_match_embed_values(self, map_color: str, matches):
+async def _get_match_embed_values(map_color: str, matches):
     skirmish_now = len(matches["skirmishes"]) - 1
     ppt = 0
     yaks_delivered = 0
@@ -311,7 +314,6 @@ async def _get_match_embed_values(self, map_color: str, matches):
         kd = round((kills / deaths), 3)
 
     if score == 0:
-        ppt_points = "0.0"
         pppt = "0.0"
         pppk = "0.0"
     else:

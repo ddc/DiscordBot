@@ -2,7 +2,7 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-from src.bot.admin.admin import Admin
+from src.bot.admin.admin_group import Admin
 from src.bot.utils import bot_utils, chat_formatting
 from src.bot.utils.cooldowns import CoolDowns
 from src.database.dal.bot.custom_commands_dal import CustomCommandsDal
@@ -14,7 +14,7 @@ class CustomCommand(Admin):
         super().__init__(bot)
 
 
-@CustomCommand.admin.group(aliases=["cc"])
+@CustomCommand.admin_group.group(aliases=["cc"])
 async def custom_command(ctx, subcommand):
     """(Add, remove, edit, list custom commands)
 

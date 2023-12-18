@@ -15,7 +15,7 @@ from src.bot.utils.background_tasks import BackGroundTasks
 from src.database.dal.bot.servers_dal import ServersDal
 
 
-class Object:
+class Object(object):
     def __init__(self):
         self._created = datetime.now(timezone.utc).isoformat()
 
@@ -82,6 +82,17 @@ async def load_cogs(bot):
         except Exception as e:
             bot.log.error(f"ERROR: FAILED to load extension: {cog_name}")
             bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
+
+
+async def invoke_subcommand(ctx, command_name: str):
+    if ctx.invoked_subcommand:
+        return ctx.invoked_subcommand
+    else:
+        if ctx.command is not None:
+            cmd = ctx.command
+        else:
+            cmd = ctx.bot.get_command(command_name)
+        await send_help_msg(ctx, cmd)
 
 
 def get_embed(ctx, description=None, color=None):

@@ -15,7 +15,7 @@ class GW2Session(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def gw2_lastSession(self, ctx):
+    async def lastSession(self, ctx):
         """(Info about the gw2 player last game session)
 
         Your API Key needs to have the following permissions:
@@ -28,7 +28,6 @@ class GW2Session(commands.Cog):
         2) Need to show, on discord, that you are playing Guild Wars 2, change this on options
         3) Start gw2
 
-        Example:
         gw2 lastsession
         """
 
@@ -78,10 +77,10 @@ class GW2Session(commands.Cog):
             return await bot_utils.send_error_msg(ctx, error_msg)
 
         still_playing_msg = None
-        if not (isinstance(ctx.channel, discord.DMChannel)) \
-        and hasattr(ctx.message.author, "activity") \
-        and ctx.message.author.activity is not None \
-        and "guild wars 2" in str(ctx.message.author.activity.name).lower():
+        if (not (isinstance(ctx.channel, discord.DMChannel))
+                and hasattr(ctx.message.author, "activity")
+                and ctx.message.author.activity is not None
+                and "guild wars 2" in str(ctx.message.author.activity.name).lower()):
             still_playing_msg = f"{ctx.message.author.mention}\n "\
                                 "You are playing Guild Wars 2 at the moment.\n" \
                                 "Your stats may NOT be accurate."
@@ -93,8 +92,8 @@ class GW2Session(commands.Cog):
         if len(rs_session) > 0:
             if rs_session[0]["end_date"] is None:
                 return await bot_utils.send_private_error_msg(ctx,
-                                                  "There was a problem trying to record your last finished session.\n"
-                                                  "Please, do not close discord when the game is running.")
+                                                              "There was a problem trying to record your last finished session.\n"
+                                                              "Please, do not close discord when the game is running.")
 
             await ctx.message.channel.typing()
             color = self.bot.gw2_settings["EmbedColor"]
@@ -251,15 +250,11 @@ class GW2Session(commands.Cog):
                 await ctx.send(still_playing_msg)
             await bot_utils.send_embed(ctx, embed)
         else:
-            await bot_utils.send_private_error_msg(ctx,
+            await bot_utils.send_private_error_msg(
+                ctx,
                 "No records were found in your name.\n"
-                "You are probably trying to execute this command without "
-                "playing the game.\n"
-                "Make sure your status is NOT set to invisible in "
-                "discord.\n"
-                "Make sure \"Display current running game as a status "
-                "message\" "
-                "is ON.\n"
-                "Make sure to start discord on your Desktop FIRST before "
-                "starting Guild Wars 2."
+                "You are probably trying to execute this command without playing the game.\n"
+                "Make sure your status is NOT set to invisible in discord.\n"
+                "Make sure \"Display current running game as a status message\" is ON.\n"
+                "Make sure to start discord on your Desktop FIRST before starting Guild Wars 2."
             )

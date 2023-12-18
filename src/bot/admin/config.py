@@ -6,7 +6,7 @@ from src.database.dal.bot.profanity_filters_dal import ProfanityFilterDal
 from src.database.dal.bot.servers_dal import ServersDal
 from src.bot.utils import bot_utils, chat_formatting
 from src.bot.utils.cooldowns import CoolDowns
-from src.bot.admin.admin import Admin
+from src.bot.admin.admin_group import Admin
 
 
 class Config(Admin):
@@ -15,7 +15,7 @@ class Config(Admin):
         super().__init__(bot)
 
 
-@Config.admin.group()
+@Config.admin_group.group()
 async def config(ctx, subcommand):
     """(Server configurations commands)
 

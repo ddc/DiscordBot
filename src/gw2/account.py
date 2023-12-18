@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import discord
 from discord.ext import commands
-from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.bot.utils import bot_utils, chat_formatting
+from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.gw2.utils import gw2_utils
 from src.gw2.utils.gw2_api import Gw2Api
 from src.gw2.utils.gw2_exceptions import APIError
@@ -13,14 +13,10 @@ class GW2Account(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def gw2_account(self, ctx):
+    async def account(self, ctx):
         """(General information about your GW2 account)
-
-        Required API permissions: account
-
-        Example:
-        gw2 account
-
+            Required API permissions: account
+                gw2 account
         """
 
         await ctx.message.channel.typing()
@@ -53,7 +49,7 @@ class GW2Account(commands.Cog):
             await ctx.message.channel.typing()
             if "account" not in permissions:
                 return await bot_utils.send_private_error_msg(
-                    self, ctx,
+                    ctx,
                     "Your API key doesnt have permission to access your gw2 account.\n"
                     "Please add one key with account permission."
                 )

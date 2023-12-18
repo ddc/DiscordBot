@@ -14,33 +14,17 @@ class Admin(commands.Cog):
 
     @commands.group(aliases=["mod"])
     @Checks.check_is_admin()
-    async def admin(self, ctx):
+    async def admin_group(self, ctx):
         """(Admin Commands)
-
-        admin botgame <game>
-        admin kick member#1234 reason
-        admin ban member#1234 reason
-        admin unban member#1234
-        admin banlist
-
+            admin botgame <game>
         """
+        await bot_utils.invoke_subcommand(ctx, "admin")
 
-        if ctx.invoked_subcommand:
-            return ctx.invoked_subcommand
-        else:
-            if ctx.command is not None:
-                cmd = ctx.command
-            else:
-                cmd = self.bot.get_command("admin")
-            await bot_utils.send_help_msg(ctx, cmd)
-
-    @admin.command(name="botgame")
+    @admin_group.command(name="botgame")
     @commands.cooldown(1, CoolDowns.Admin.value, BucketType.user)
     async def botgame(self, ctx, *, game: str):
         """(Change game that bot is playing)
-
-        Example:
-        admin botgame <game>
+            admin botgame <game>
         """
 
         prefix = self.bot.command_prefix[0]
@@ -60,5 +44,4 @@ class Admin(commands.Cog):
 
 
 async def setup(bot):
-    bot.remove_command("admin")
     await bot.add_cog(Admin(bot))

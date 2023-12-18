@@ -24,24 +24,14 @@ class Owner(commands.Cog):
         owner botdescription <new_description>
         """
 
-        if ctx.invoked_subcommand:
-            return ctx.invoked_subcommand
-        else:
-            if ctx.command is not None:
-                cmd = ctx.command
-            else:
-                cmd = self.bot.get_command("owner")
-            await bot_utils.send_help_msg(ctx, cmd)
+        await bot_utils.invoke_subcommand(ctx, "owner")
 
     @owner.command(name="prefix")
     @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
     async def owner_change_prefix(self, ctx, *, new_prefix: str):
         """(Change bot prefix for commands)
-
-        Possible prefixes: ! $ % ^ & ? > < . ;
-
-        Example:
-        owner prefix <new_prefix>
+            Possible prefixes: ! $ % ^ & ? > < . ;
+                owner prefix <new_prefix>
         """
 
         await ctx.message.channel.typing()
@@ -68,9 +58,7 @@ class Owner(commands.Cog):
     @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
     async def owner_description(self, ctx, *, desc: str):
         """(Change bot description)
-
-        Example:
-        owner botdescription <new_description>
+            owner botdescription <new_description>
         """
 
         await bot_utils.delete_message(ctx)
@@ -88,9 +76,7 @@ class Owner(commands.Cog):
     @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
     async def owner_servers(self, ctx):
         """(Display all servers in database)
-
-        Example:
-        owner servers
+            owner servers
         """
 
         await ctx.message.channel.typing()

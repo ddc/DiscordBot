@@ -21,9 +21,7 @@ class Misc(commands.Cog):
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def pepe(self, ctx):
         """Posts a random Pepe from imgur
-
-        Example:
-        pepe
+            pepe
         """
 
         if ctx.subcommand_passed is not None:
@@ -45,9 +43,7 @@ class Misc(commands.Cog):
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def tts(self, ctx, *, tts_text: str):
         """(Send TTS to current channel)
-
-        Example:
-        tts Hello everyone!
+            tts Hello everyone!
         """
 
         await ctx.message.channel.typing()
@@ -90,9 +86,7 @@ class Misc(commands.Cog):
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def echo(self, ctx, *, msg: str):
         """(Show your msg again)
-
-        Example:
-        echo <msg>
+            echo <msg>
         """
 
         await ctx.message.channel.typing()
@@ -102,9 +96,7 @@ class Misc(commands.Cog):
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def ping(self, ctx):
         """(Test latency)
-
-        Example:
-        ping
+            ping
         """
 
         if ctx.subcommand_passed is not None:
@@ -122,11 +114,8 @@ class Misc(commands.Cog):
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def lmgtfy(self, ctx, *, user_msg: str):
         """(Creates a lmgtfy link)
-
-        Let me Google that for You
-
-        Example:
-        lmgtfy <link>
+            Let me Google that for You
+                lmgtfy <link>
         """
 
         await ctx.message.channel.typing()
@@ -139,9 +128,7 @@ class Misc(commands.Cog):
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def invites(self, ctx):
         """(List active invites link for the current server)
-
-        Example:
-        invites
+            invites
         """
 
         if ctx.subcommand_passed is not None:
@@ -177,9 +164,7 @@ class Misc(commands.Cog):
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def serverinfo(self, ctx):
         """(Shows server's information)
-
-        Example:
-        serverinfo
+            serverinfo
         """
 
         if ctx.subcommand_passed is not None:
@@ -224,10 +209,8 @@ class Misc(commands.Cog):
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def userinfo(self, ctx, *, member_str: str = None):
         """(Shows users's information)
-
-        Example:
-        userinfo
-        userinfo user#1234
+            userinfo
+            userinfo user#1234
         """
 
         await ctx.message.channel.typing()
@@ -289,9 +272,7 @@ class Misc(commands.Cog):
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     async def about(self, ctx):
         """(Information about this bot)
-
-        Example:
-        about
+            about
         """
         if ctx.subcommand_passed is not None:
             raise commands.BadArgument(message="BadArgument")

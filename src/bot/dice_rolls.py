@@ -18,15 +18,11 @@ class DiceRolls(commands.Cog):
     @commands.cooldown(1, CoolDowns.DiceRolls.value, BucketType.user)
     async def roll(self, ctx):
         """(Rolls random number [between 1 and user choice])
-
-        Defaults to 100.
-
-        Example:
-        roll
-        roll 500
-        roll results
-        roll results user#1234
-        roll reset
+                roll (Defaults to 100)
+                roll 500
+                roll results
+                roll results user#1234
+                roll reset
         """
 
         if ctx.invoked_subcommand:
@@ -97,10 +93,8 @@ class DiceRolls(commands.Cog):
     @roll.command(name="results")
     async def roll_results(self, ctx):
         """(Show all rolls from current server or user)
-
-        Example:
-        roll results
-        roll results <member#1234>
+            roll results
+            roll results <member#1234>
         """
 
         server = ctx.guild
@@ -144,9 +138,7 @@ class DiceRolls(commands.Cog):
     @Checks.check_is_admin()
     async def roll_reset(self, ctx):
         """(Deletes all dice rolls from a server)
-
-        Example:
-        roll reset
+            roll reset
         """
 
         dice_rolls_sql = DiceRollsDal(self.bot.db_session, self.bot.log)

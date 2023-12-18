@@ -176,28 +176,29 @@ class OnMessage(commands.Cog):
                    "You are not allowed to execute any commands.\n"
                    "Only a few users are allowed to use it.\n"
                    "Please don't insist. Thank You!!!")
-            await bot_utils.send_private_error_msg(self, ctx, msg)
+            await bot_utils.send_private_error_msg(ctx, msg)
             return False
 
         return True
 
     async def _check_custom_messages(self, message):
         msg = message.system_content.lower()
-        cwords = self.bot.settings["bot"]["BotReactWords"]
+        cwords = [x.strip() for x in self.bot.settings["bot"]["BotReactWords"].split(",")]
         cwords.append("🖕")
         config_word_found = False
-        bot_word_found = False
+        bot_word_found_in_message = False
+
+        # always react on DM messages
+        if isinstance(message.channel, discord.DMChannel):
+            bot_word_found_in_message = True
 
         for m in msg.split():
             if m in cwords:
                 config_word_found = True
             if str(m).lower() == "bot" or str(m).lower() == self.bot.user.mention:
-                bot_word_found = True
+                bot_word_found_in_message = True
 
-        if isinstance(message.channel, discord.DMChannel):
-            bot_word_found = True
-
-        if config_word_found is True and bot_word_found is True:
+        if config_word_found is True and bot_word_found_in_message is True:
             send_msg = "fu ufk!!!"
             if "stupid" in msg.lower():
                 send_msg = "I'm not stupid, fu ufk!!!"

@@ -14,7 +14,7 @@ class GW2Key(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def gw2_key(self, ctx, cmd_api_key: str):
+    async def key(self, ctx, cmd_api_key: str):
         await gw2_utils.delete_api_key(ctx)
         command = str(cmd_api_key.replace(f"{ctx.prefix}gw2 key ", "")).split(' ', 1)[0]
 
@@ -51,9 +51,9 @@ async def _info_key(self, ctx, sub_command=None):
         rs_all = await gw2_key_sql.get_all_user_api_key(user_id)
         if len(rs_all) == 0:
             await bot_utils.send_private_error_msg(ctx,
-                                                  "You dont have an API key registered in this server.\n"
-                                                  f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
-                                                  f"To check your API key use: `{ctx.prefix}gw2 key info`")
+                                                   "You dont have an API key registered in this server.\n"
+                                                   f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
+                                                   f"To check your API key use: `{ctx.prefix}gw2 key info`")
         else:
             for x in range(0, len(rs_all)):
                 rs_guild_info = await servers_dal.get_server(rs_all[x]["server_id"])
@@ -74,28 +74,27 @@ async def _info_key(self, ctx, sub_command=None):
                     self.bot.log.error(ctx, e)
                     return
 
-                _embed = discord.Embed(title="Account Name",
-                                       description=chat_formatting.inline(rs_all[x]["gw2_acc_name"]),
-                                       color=color)
-                _embed.set_author(name=name, icon_url=author_icon_url)
-                _embed.add_field(name="Server", value=chat_formatting.inline(rs_all[x]["server_name"]), inline=True)
-                _embed.add_field(name="Key Name", value=chat_formatting.inline(rs_all[x]["key_name"]), inline=True)
-                _embed.add_field(name="Valid", value=chat_formatting.inline(is_valid_key), inline=True)
-                _embed.add_field(name="Permissions",
-                                 value=chat_formatting.inline(rs_all[x]["permissions"].replace(",", "|")), inline=False)
-                _embed.add_field(name="Key", value=chat_formatting.inline(rs_all[x]["key"]), inline=False)
-                _embed.set_footer(text=footer_guild_name, icon_url=footer_icon_url)
-                await bot_utils.send_embed(ctx, _embed, True)
+                embed = discord.Embed(title="Account Name",
+                                      description=chat_formatting.inline(rs_all[x]["gw2_acc_name"]),
+                                      color=color)
+                embed.set_author(name=name, icon_url=author_icon_url)
+                embed.add_field(name="Server", value=chat_formatting.inline(rs_all[x]["server_name"]), inline=True)
+                embed.add_field(name="Key Name", value=chat_formatting.inline(rs_all[x]["key_name"]), inline=True)
+                embed.add_field(name="Valid", value=chat_formatting.inline(is_valid_key), inline=True)
+                embed.add_field(name="Permissions",
+                                value=chat_formatting.inline(rs_all[x]["permissions"].replace(",", "|")), inline=False)
+                embed.add_field(name="Key", value=chat_formatting.inline(rs_all[x]["key"]), inline=False)
+                embed.set_footer(text=footer_guild_name, icon_url=footer_icon_url)
+                await bot_utils.send_embed(ctx, embed, True)
     elif sub_command is None:
         footer_guild_name = str(ctx.message.guild)
         footer_icon_url = ctx.message.guild.icon.url
-
         rs = await gw2_key_sql.get_server_user_api_key(server_id, user_id)
         if len(rs) == 0:
             await bot_utils.send_private_error_msg(ctx,
-                                                  "You dont have an API key registered in this server.\n"
-                                                  f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
-                                                  f"To check your API key use: `{ctx.prefix}gw2 key info`")
+                                                   "You dont have an API key registered in this server.\n"
+                                                   f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
+                                                   f"To check your API key use: `{ctx.prefix}gw2 key info`")
         else:
             try:
                 api_key = rs[0]["key"]
@@ -111,18 +110,18 @@ async def _info_key(self, ctx, sub_command=None):
                 self.bot.log.error(ctx, e)
                 return
 
-            _embed = discord.Embed(title="Account Name",
-                                   description=chat_formatting.inline(rs[0]["gw2_acc_name"]),
-                                   color=color)
-            _embed.set_author(name=name, icon_url=author_icon_url)
-            _embed.add_field(name="Server", value=chat_formatting.inline(rs[0]["server_name"]), inline=True)
-            _embed.add_field(name="Key Name", value=chat_formatting.inline(rs[0]["key_name"]), inline=True)
-            _embed.add_field(name="Valid", value=chat_formatting.inline(is_valid_key), inline=True)
-            _embed.add_field(name="Permissions", value=chat_formatting.inline(rs[0]["permissions"].replace(",", "|")),
-                             inline=False)
-            _embed.add_field(name="Key", value=chat_formatting.inline(rs[0]["key"]), inline=False)
-            _embed.set_footer(text=footer_guild_name, icon_url=footer_icon_url)
-            await bot_utils.send_embed(ctx, _embed, True)
+            embed = discord.Embed(title="Account Name",
+                                  description=chat_formatting.inline(rs[0]["gw2_acc_name"]),
+                                  color=color)
+            embed.set_author(name=name, icon_url=author_icon_url)
+            embed.add_field(name="Server", value=chat_formatting.inline(rs[0]["server_name"]), inline=True)
+            embed.add_field(name="Key Name", value=chat_formatting.inline(rs[0]["key_name"]), inline=True)
+            embed.add_field(name="Valid", value=chat_formatting.inline(is_valid_key), inline=True)
+            embed.add_field(name="Permissions", value=chat_formatting.inline(rs[0]["permissions"].replace(",", "|")),
+                            inline=False)
+            embed.add_field(name="Key", value=chat_formatting.inline(rs[0]["key"]), inline=False)
+            embed.set_footer(text=footer_guild_name, icon_url=footer_icon_url)
+            await bot_utils.send_embed(ctx, embed, True)
     else:
         raise commands.BadArgument(message="BadArgument")
 
@@ -222,27 +221,11 @@ async def _remove_key(self, ctx):
     gw2_api = Gw2KeyDal(self.bot.db_session, self.bot.log)
 
     rs_key = await gw2_api.get_server_user_api_key(server_id, user_id)
-    server_name = rs_key[0]["server_name"].lower()
-
     if len(rs_key) == 0:
-        await gw2_utils.removeAllGw2RolesFromUser(self, ctx.message.author)
-        await bot_utils.send_private_error_msg(ctx, "You dont have an API key registered in this server.\n" \
-                                                      f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
-                                                      f"To check your API key use: `{ctx.prefix}gw2 key info`")
+        await bot_utils.send_private_error_msg(ctx, "You dont have an API key registered in this server.\n"
+                                                    f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
+                                                    f"To check your API key use: `{ctx.prefix}gw2 key info`")
     else:
         color = self.bot.gw2_settings["EmbedColor"]
         await gw2_api.delete_server_user_api_key(server_id, user_id)
         await bot_utils.send_private_msg(ctx, "Your GW2 API Key has been deleted successfully.", color)
-
-        # # checking if the bot needs to assign gw2 server roles to user
-        # gw2Roles = Gw2RolesSql(self.bot)
-        # rs_role = await gw2Roles.get_gw2_server_role(ctx.message.channel.guild.id, server_name)
-        # if len(rs_role) > 0:
-        #     new_role = None
-        #     for rol in ctx.message.channel.guild.roles:
-        #         if rol.name.lower() == server_name:
-        #             new_role = rol
-        #             break
-        #
-        #     if new_role is not None:
-        #         await gw2_utils.removeGw2RoleFromUser(self, ctx.message.author, new_role)

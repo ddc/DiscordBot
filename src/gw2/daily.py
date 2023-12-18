@@ -10,18 +10,19 @@ class GW2Daily(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def gw2_daily(self, ctx, daily_type: str):
-        if daily_type == "pve":
-            await _daily_embed(self, ctx, "pve")
-        elif daily_type == "pvp":
-            await _daily_embed(self, ctx, "pvp")
-        elif daily_type == "wvw":
-            await _daily_embed(self, ctx, "wvw")
-        elif daily_type == "fractals":
-            await _daily_embed(self, ctx, "fractals")
-        else:
-            msg = "Wrong type.\n Types need to be pve, pvp, wvw, fractals.\nPlease try again."
-            await bot_utils.send_error_msg(ctx, msg)
+    async def daily(self, ctx, daily_type: str):
+        match daily_type:
+            case "pve":
+                await _daily_embed(self, ctx, "pve")
+            case "pvp":
+                await _daily_embed(self, ctx, "pvp")
+            case "wvw":
+                await _daily_embed(self, ctx, "wvw")
+            case "fractals":
+                await _daily_embed(self, ctx, "fractals")
+            case _:
+                msg = "Wrong type.\n Types need to be pve, pvp, wvw, fractals.\nPlease try again."
+                await bot_utils.send_error_msg(ctx, msg)
 
 
 async def _daily_embed(self, ctx, daily_type: str):
@@ -68,8 +69,7 @@ async def _daily_embed(self, ctx, daily_type: str):
             await bot_utils.send_error_msg(ctx, e)
             return self.bot.log.error(ctx, e)
 
-        dt = x + 1
-        name = f"{dt}) {name} ({reward_amount} {reward_name})"
+        name = f"{x + 1}) {name} ({reward_amount} {reward_name})"
         value = chat_formatting.inline(requirement)
         embed.add_field(name=name, value=value, inline=False)
 

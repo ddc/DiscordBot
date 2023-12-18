@@ -10,7 +10,7 @@ class GW2Config(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def gw2_config(self, ctx, sub_command: str):
+    async def config(self, ctx, sub_command: str):
         err_missing_arg = "Missing required argument!!!\n" \
                           f"For more info on this command use: {ctx.prefix}help {ctx.command}"
 
@@ -28,20 +28,10 @@ class GW2Config(commands.Cog):
             if new_status.lower() != "on" and new_status.lower() != "off":
                 raise commands.BadArgument(message="BadArgument")
             await _lastsession(self, ctx, new_status)
-        # elif command == "roletimer":
-        #     role_timer = ctx.message.clean_content.replace(f"{ctx.prefix}gw2 config roletimer ", "")
-        #     if role_timer == f"{ctx.prefix}gw2 config roletimer":
-        #         await bot_utils.send_error_msg(ctx, err_missing_arg)
-        #     else:
-        #         await _roletimer(self, ctx, role_timer)
-        # elif command == "apirole":
-        #     stats_sever = ctx.message.clean_content.replace(f"{ctx.prefix}gw2 config apirole ", "")
-        #     if stats_sever == f"{ctx.prefix}gw2 config apirole":
-        #         await bot_utils.send_error_msg(ctx, err_missing_arg)
-        #     else:
-        #         await _apirole(self, ctx, stats_sever)
         else:
-            msg = "Wrong command.\nCommand needs to be [list | lastsession | apiroles | serverprefix]\nPlease try again."
+            msg = ("Wrong command.\n"
+                   "Command needs to be [list | lastsession | apiroles | serverprefix]\n"
+                   "Please try again.")
             await bot_utils.send_error_msg(ctx, msg)
 
 

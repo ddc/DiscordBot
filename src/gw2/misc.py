@@ -13,7 +13,7 @@ class GW2Misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def gw2_wiki(self, ctx, search):
+    async def wiki(self, ctx, search):
         if len(search) > 300:
             await ctx.send("Search too long")
             return
@@ -36,19 +36,19 @@ class GW2Misc(commands.Cog):
                 results = await r.text()
                 soup = BeautifulSoup(results, 'html.parser')
                 posts = soup.find_all("div", {"class": "mw-search-result-heading"})[:50]
-                totalPosts = len(posts)
+                total_posts = len(posts)
                 if not posts:
                     await bot_utils.send_msg(ctx, "No results!")
                     return
 
                 embed = discord.Embed(title="Wiki Search Results", color=ctx.bot.gw2_settings["EmbedColor"])
 
-                if totalPosts > 0:
+                if total_posts > 0:
                     i = 0
 
                     # discord only supports 25 embed fields
-                    times_to_run = totalPosts
-                    if totalPosts > 25:
+                    times_to_run = total_posts
+                    if total_posts > 25:
                         times_to_run = 25
 
                     try:
@@ -83,7 +83,7 @@ class GW2Misc(commands.Cog):
             embed.set_thumbnail(url=gw2_constants.GW2_WIKI_ICON_URL)
             await bot_utils.send_embed(ctx, embed)
 
-    async def gw2_info(self, ctx, skill):
+    async def info(self, ctx, skill):
         wiki_url = gw2_constants.WIKI_URL
         skill = skill.replace(" ", "_")
         skill_sanitized = str(re.escape(skill)).title()
@@ -160,11 +160,9 @@ class GW2Misc(commands.Cog):
             embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
             await bot_utils.send_embed(ctx, embed)
 
-    async def gw2_worlds(self, ctx):
+    async def worlds(self, ctx):
         """ (List all worlds)
-
-        Example:
-        gw2 worlds
+            gw2 worlds
         """
 
         try:
