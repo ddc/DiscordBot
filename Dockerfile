@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 python:3.11-slim-buster AS python-base
+FROM --platform=linux/amd64 python:3.12-bookworm AS python-base
 
 LABEL Description="DiscordBot"
 
@@ -25,7 +25,9 @@ RUN set -ex \
     && apt-get install --no-install-recommends -y build-essential curl \
     && curl -sSL https://install.python-poetry.org | python3 - --version "$POETRY_VERSION" \
     && poetry config virtualenvs.create false \
-    && apt-get purge --auto-remove -y build-essential
+    && apt-get purge --auto-remove -y build-essential \
+    && apt-get autoremove -y \
+    && apt-get clean
 
 COPY pyproject.toml poetry.lock /opt/DiscordBot/
 RUN poetry install --no-interaction --no-ansi --no-dev
