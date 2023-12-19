@@ -193,11 +193,14 @@ def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
 async def delete_message(ctx, warning=False):
     if not is_private_message(ctx):
         try:
+            msg = "Your message was removed for privacy."
             await ctx.message.delete()
-            if warning:
-                await send_msg(ctx, "Your message was removed for privacy.")
         except Exception as e:
-            ctx.bot.log.error(str(e))
+            msg = "Bot does not have permission to delete messages"
+            ctx.bot.log.error(f"{str(e)}: {msg}")
+        finally:
+            if warning:
+                await send_msg(ctx, msg)
 
 
 def is_member_admin(member: discord.Member):

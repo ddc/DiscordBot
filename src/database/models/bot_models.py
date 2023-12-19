@@ -25,12 +25,12 @@ class Servers(BotBase):
     __tablename__ = "servers"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, unique=True, index=True)
     name: Mapped[str] = mapped_column(nullable=True)
-    msg_on_join: Mapped[Boolean] = mapped_column(Boolean, default=True)
-    msg_on_leave: Mapped[Boolean] = mapped_column(Boolean, default=True)
-    msg_on_server_update: Mapped[Boolean] = mapped_column(Boolean, default=True)
-    msg_on_member_update: Mapped[Boolean] = mapped_column(Boolean, default=True)
-    block_invis_members: Mapped[Boolean] = mapped_column(Boolean, default=False)
-    bot_word_reactions: Mapped[Boolean] = mapped_column(Boolean, default=True)
+    msg_on_join: Mapped[Boolean] = mapped_column(Boolean, server_default="1")
+    msg_on_leave: Mapped[Boolean] = mapped_column(Boolean, server_default="1")
+    msg_on_server_update: Mapped[Boolean] = mapped_column(Boolean, server_default="1")
+    msg_on_member_update: Mapped[Boolean] = mapped_column(Boolean, server_default="1")
+    block_invis_members: Mapped[Boolean] = mapped_column(Boolean, server_default="0")
+    bot_word_reactions: Mapped[Boolean] = mapped_column(Boolean, server_default="1")
     updated_by: Mapped[int] = mapped_column(BigInteger, nullable=True)
 
 

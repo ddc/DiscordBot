@@ -32,16 +32,7 @@ class Gw2CharsEndDal:
         await self.db_session.commit()
 
     async def get_all_end_characters(self, user_id: int):
-        stmt = select(
-            Gw2CharsEnd.id,
-            Gw2CharsEnd.user_id,
-            Gw2CharsEnd.name,
-            Gw2CharsEnd.profession,
-            Gw2CharsEnd.deaths,
-            Gw2CharsEnd.created_at,
-            Gw2CharsEnd.updated_at,
-        ).where(
-            Gw2CharsEnd.user_id == user_id,
-        )
+        columns = [x for x in Gw2CharsEnd.__table__.columns]
+        stmt = select(*columns).where(Gw2CharsEnd.user_id == user_id)
         results = await self.db_utils.fetchall(stmt)
         return results

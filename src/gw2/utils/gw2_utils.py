@@ -66,7 +66,7 @@ class Gw2Servers(Enum):
 
 
 async def send_msg(ctx, msg):
-    color = ctx.bot.gw2_settings["EmbedColor"]
+    color = ctx.bot.settings["gw2"]["EmbedColor"]
     embed = discord.Embed(color=color, description=msg)
     embed.set_author(name=bot_utils.get_member_name_by_id(ctx), icon_url=ctx.message.author.avatar.url)
     await bot_utils.send_embed(ctx, embed)
@@ -90,7 +90,7 @@ async def calculate_user_achiev_points(self, api_req_acc_achiev, api_req_acc):
         temp_achiv.insert(counter, str(ach["id"]))
         counter = counter + 1
         if counter == 200:
-            all_user_achievs_ids = ','.join(temp_achiv)
+            all_user_achievs_ids = ",".join(temp_achiv)
             endpoint = f"achievements?ids={all_user_achievs_ids}"
             api_achiev = await gw2_api.call_api(endpoint)
             doc_user_achiev_id += api_achiev
@@ -137,11 +137,11 @@ async def get_world_id(self, world):
     return None
 
 
-async def get_world_name_population(self, wids: str):
+async def get_world_name_population(ctx, wids: str):
     try:
         name = []
         endpoint = f"worlds?ids={wids}"
-        gw2_api = Gw2Api(self.bot)
+        gw2_api = Gw2Api(ctx.bot)
         results = await gw2_api.call_api(endpoint)
         if len(results) == 0:
             return None
@@ -202,7 +202,7 @@ async def check_gw2_game_activity(bot, before: discord.Member, after: discord.Me
             and (before_activity.type == discord.ActivityType.playing or before_activity.type == discord.ActivityType.streaming)):
         gw2_configs = Gw2ConfigsDal(bot.db_session, bot.log)
         rs_gw2_sc = await gw2_configs.get_gw2_server_configs(after.guild.id)
-        if len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["last_session"]:
+        if len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["session"]:
             gw2_key_sql = Gw2KeyDal(bot.db_session, bot.log)
             rs_api_key = await gw2_key_sql.get_server_user_api_key(after.guild.id, after.id)
             if len(rs_api_key) > 0:

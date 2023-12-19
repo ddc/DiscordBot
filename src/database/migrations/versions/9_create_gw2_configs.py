@@ -23,7 +23,7 @@ def upgrade() -> None:
         'gw2_configs',
         sa.Column('id', sa.BigInteger(), nullable=False),
         sa.Column('server_id', sa.BigInteger(), nullable=False),
-        sa.Column('last_session', sa.Boolean(), default=True, nullable=False),
+        sa.Column('session', sa.Boolean(), nullable=False, server_default="0"),
         sa.Column('updated_by', sa.BigInteger(), nullable=True),
         sa.Column('updated_at', sa.DateTime(), server_default=sa.text("(now() at time zone 'utc')"), nullable=False),
         sa.Column('created_at', sa.DateTime(), server_default=sa.text("(now() at time zone 'utc')"), nullable=False),

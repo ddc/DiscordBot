@@ -26,7 +26,7 @@ def upgrade() -> None:
         sa.Column('user_id', sa.BigInteger(), nullable=False),
         sa.Column('name', sa.String(), nullable=True),
         sa.Column('gw2_acc_name', sa.String(), nullable=False),
-        sa.Column('server_name', sa.String(), nullable=False),
+        sa.Column('server', sa.String(), nullable=False),
         sa.Column('permissions', sa.String(), nullable=False),
         sa.Column('key', sa.String(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), server_default=sa.text("(now() at time zone 'utc')"), nullable=False),

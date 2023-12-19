@@ -25,9 +25,8 @@ class Gw2Api:
     async def call_api(self, endpoint: str, version="2", key=None):
         """api languages can be ('en','es','de','fr','ko','zh')"""
 
-        description = str(self.bot.description)
         headers = {
-            "User-Agent": f"{description}",
+            "User-Agent": self.bot.settings["bot"]["description"],
             "Accept": "application/json",
             "lang": "en"
         }
@@ -58,10 +57,12 @@ class Gw2Api:
                     if err_msg == "invalid key":
                         raise APIInvalidKey(self.bot, f"({response.status}) INVALID GW2 API key.")
                     raise APIForbidden(self.bot, f"({init_msg}) Access denied with your GW2 API key.")
-                elif response.status == 502 or response.status == 503 or response.status == 504:
-                    raise APIInactiveError(self.bot, f"({init_msg}) GW2 API is currently down. Try again later.")
                 elif response.status == 429:
                     raise APIConnectionError(self.bot, f"({init_msg}) GW2 API Requests limit has been saturated. Try again later.")
+                elif response.status == 502 or response.status == 504:
+                    raise APIInactiveError(self.bot, f"({init_msg}) GW2 API is currently down. Try again later.")
+                elif response.status == 503:
+                    raise APIInactiveError(self.bot, f"({init_msg}) {err_msg}")
                 else:
                     if len(err_msg) == 0:
                         err_msg = str(response.reason)

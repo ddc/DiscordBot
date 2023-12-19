@@ -6,63 +6,36 @@ from src.database.dal.bot.profanity_filters_dal import ProfanityFilterDal
 from src.database.dal.bot.servers_dal import ServersDal
 from src.bot.utils import bot_utils, chat_formatting
 from src.bot.utils.cooldowns import CoolDowns
-from src.bot.admin.admin_group import Admin
+from src.bot.admin.admin import Admin
 
 
 class Config(Admin):
-    """(Admin Config commands)"""
+    """(Admin Config Commands)"""
     def __init__(self, bot):
         super().__init__(bot)
 
 
-@Config.admin_group.group()
-async def config(ctx, subcommand):
+@Config.admin.group()
+async def config(ctx):
     """(Server configurations commands)
-
-    Examples:
-
-    admin config list
-    admin config joinmessage     [on | off]
-    admin config leavemessage    [on | off]
-    admin config servermessage   [on | off]
-    admin config membermessage   [on | off]
-    admin config blockinvisible  [on | off]
-    admin config botreactions    [on | off]
-    admin config pfilter         [on | off] <channel_name>
+        admin config list
+        admin config joinmessage     [on | off]
+        admin config leavemessage    [on | off]
+        admin config servermessage   [on | off]
+        admin config membermessage   [on | off]
+        admin config blockinvisible  [on | off]
+        admin config botreactions    [on | off]
+        admin config pfilter         [on | off] <channel_name>
     """
 
-    match subcommand:
-        case "joinmessage":
-            await config_join_message(ctx)
-        case "leavemessage":
-            await config_leave_message(ctx)
-        case "servermessage":
-            await config_server_message(ctx)
-        case "membermessage":
-            await config_member_message(ctx)
-        case "blockinvisible":
-            await config_block_invis_members(ctx)
-        case "botreactions":
-            await config_bot_word_reactions(ctx)
-        case "pfilter":
-            await config_pfilter(ctx)
-        case "list":
-            await config_list(ctx)
-        case _:
-            if ctx.command is not None:
-                cmd = ctx.command
-            else:
-                cmd = ctx.bot.get_command("admin config")
-            await bot_utils.send_help_msg(ctx, cmd)
+    await bot_utils.invoke_subcommand(ctx, "admin config")
 
 
 @config.command(name="joinmessage")
 @commands.cooldown(1, CoolDowns.Config.value, BucketType.user)
 async def config_join_message(ctx):
     """(Show message when a user joins the server)
-
-    Example:
-    admin config joinmessage [on | off]
+            admin config joinmessage [on | off]
     """
 
     match ctx.subcommand_passed:
@@ -77,9 +50,10 @@ async def config_join_message(ctx):
         case _:
             raise commands.BadArgument(message="BadArgument")
 
+    await ctx.message.channel.typing()
     embed = discord.Embed(description=msg, color=color)
     servers_dal = ServersDal(ctx.bot.db_session, ctx.bot.log)
-    await servers_dal.update_msg_on_join(ctx.guild.id, str(new_status), ctx.author.id)
+    await servers_dal.update_msg_on_join(ctx.guild.id, new_status, ctx.author.id)
     await bot_utils.send_embed(ctx, embed)
 
 
@@ -106,7 +80,7 @@ async def config_leave_message(ctx):
 
     embed = discord.Embed(description=msg, color=color)
     servers_dal = ServersDal(ctx.bot.db_session, ctx.bot.log)
-    await servers_dal.update_msg_on_leave(ctx.guild.id, str(new_status), ctx.author.id)
+    await servers_dal.update_msg_on_leave(ctx.guild.id, new_status, ctx.author.id)
     await bot_utils.send_embed(ctx, embed)
 
 
@@ -133,7 +107,7 @@ async def config_server_message(ctx):
 
     embed = discord.Embed(description=msg, color=color)
     servers_dal = ServersDal(ctx.bot.db_session, ctx.bot.log)
-    await servers_dal.update_msg_on_server_update(ctx.guild.id, str(new_status), ctx.author.id)
+    await servers_dal.update_msg_on_server_update(ctx.guild.id, new_status, ctx.author.id)
     await bot_utils.send_embed(ctx, embed)
 
 
@@ -160,7 +134,7 @@ async def config_member_message(ctx):
 
     embed = discord.Embed(description=msg, color=color)
     servers_dal = ServersDal(ctx.bot.db_session, ctx.bot.log)
-    await servers_dal.update_msg_on_member_update(ctx.guild.id, str(new_status), ctx.author.id)
+    await servers_dal.update_msg_on_member_update(ctx.guild.id, new_status, ctx.author.id)
     await bot_utils.send_embed(ctx, embed)
 
 
@@ -187,7 +161,7 @@ async def config_block_invis_members(ctx):
 
     embed = discord.Embed(description=msg, color=color)
     servers_dal = ServersDal(ctx.bot.db_session, ctx.bot.log)
-    await servers_dal.update_block_invis_members(ctx.guild.id, str(new_status), ctx.author.id)
+    await servers_dal.update_block_invis_members(ctx.guild.id, new_status, ctx.author.id)
     await bot_utils.send_embed(ctx, embed)
 
 
@@ -214,7 +188,7 @@ async def config_bot_word_reactions(ctx):
 
     embed = discord.Embed(description=msg, color=color)
     servers_dal = ServersDal(ctx.bot.db_session, ctx.bot.log)
-    await servers_dal.update_bot_word_reactions(ctx.guild.id, str(new_status), ctx.author.id)
+    await servers_dal.update_bot_word_reactions(ctx.guild.id, new_status, ctx.author.id)
     await bot_utils.send_embed(ctx, embed)
 
 
@@ -232,7 +206,7 @@ async def config_pfilter(ctx):
 
     if not new_status or len(new_channel_id) == 0:
         return await bot_utils.send_error_msg(ctx, "Missing required argument!!!\n"
-                                                   "For more info on this command use: "
+                                                   "For more info on this command: "
                                                    f"{chat_formatting.inline('?help admin config pfilter')}")
     if new_channel_id not in [str(x.id) for x in ctx.guild.text_channels]:
         return await bot_utils.send_error_msg(ctx, f"Channel id not found: {chat_formatting.inline(new_channel_id)}")

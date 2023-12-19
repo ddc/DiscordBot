@@ -14,7 +14,7 @@ PYTHON_OK = sys.version_info >= (3, 6)
 IS_WINDOWS = os.name == "nt"
 ###############################################################################
 BASE_DIR = f"{Path(__file__).resolve().parent.parent.parent.parent}/"
-SETTINGS_FILENAME = os.path.join(BASE_DIR, "config", "settings.ini")
+SETTINGS_FILENAME = os.path.join(BASE_DIR, "config", "bot_settings.ini")
 ALEMBIC_CONFIG_FILE_PATH = os.path.join(BASE_DIR, "config", "alembic.ini")
 DATABASE_FILENAME = os.path.join(BASE_DIR, "data", "database.db")
 LOGS_DIR = os.path.join(BASE_DIR, "logs")
@@ -39,24 +39,13 @@ GAMES_INCLUDED = ("Guild Wars 2",)
 ###############################################################################
 APIS_INCLUDED = ()
 ###############################################################################
-BOT_COGS = [
-    x for x in glob.glob(os.path.join("src", "bot", "*.py"))
-]
-BOT_COGS.sort(key=lambda x: x.split("/")[2])
-
-EVENTS_COGS = [
-    x for x in glob.glob(os.path.join("src", "bot", "events", "*.py"))
-]
-EVENTS_COGS.sort(key=lambda x: x.split("/")[3])
-
-ADMIN_COGS = [
-    x for x in glob.glob(os.path.join("src", "bot", "admin", "*.py"))
-]
-ADMIN_COGS.sort(key=lambda x: x.split("/")[3])
-
-OTHER_COGS = [
-    os.path.join("src", "gw2", "gw2.py"),
-]
+_bot_cogs = [os.path.join("src", "bot", "admin", "admin.py")] # loading admin group cog first
+_bot_cogs += [x for x in glob.glob(os.path.join("src", "bot", "*.py"))]
+_bot_cogs += [x for x in glob.glob(os.path.join("src", "bot", "events", "*.py"))]
+_bot_cogs += [x for x in glob.glob(os.path.join("src", "bot", "admin", "*.py")) if x not in _bot_cogs]
 ###############################################################################
-ALL_COGS = BOT_COGS + EVENTS_COGS + ADMIN_COGS + OTHER_COGS
+_gw2_cogs = [os.path.join("src", "gw2", "gw2.py")] # loading gw2 group cog first
+_gw2_cogs += [x for x in glob.glob(os.path.join("src", "gw2", "*.py")) if x not in _gw2_cogs]
+###############################################################################
+ALL_COGS = _bot_cogs + _gw2_cogs
 ###############################################################################

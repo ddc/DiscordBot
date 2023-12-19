@@ -2,20 +2,20 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-from src.bot.admin.admin_group import Admin
+from src.bot.admin.admin import Admin
 from src.bot.utils import bot_utils, chat_formatting
 from src.bot.utils.cooldowns import CoolDowns
 from src.database.dal.bot.custom_commands_dal import CustomCommandsDal
 
 
 class CustomCommand(Admin):
-    """(Admin custom commands)"""
+    """(Admin Users Custom Commands)"""
     def __init__(self, bot):
         super().__init__(bot)
 
 
-@CustomCommand.admin_group.group(aliases=["cc"])
-async def custom_command(ctx, subcommand):
+@CustomCommand.admin.group(aliases=["cc"])
+async def custom_command(ctx):
     """(Add, remove, edit, list custom commands)
 
     Example:
@@ -26,23 +26,7 @@ async def custom_command(ctx, subcommand):
     admin cc list
     """
 
-    match subcommand:
-        case "add":
-            await add_custom_command(ctx)
-        case "edit":
-            await edit_custom_command(ctx)
-        case "remove":
-            await remove_custom_command(ctx)
-        case "removeall":
-            await remove_all_custom_commands(ctx)
-        case "list":
-            await list_custom_commands(ctx)
-        case _:
-            if ctx.command is not None:
-                cmd = ctx.command
-            else:
-                cmd = ctx.bot.get_command("admin config")
-            await bot_utils.send_help_msg(ctx, cmd)
+    await bot_utils.invoke_subcommand(ctx, "admin cc")
 
 
 @custom_command.command(name="add")
@@ -60,7 +44,7 @@ async def add_custom_command(ctx):
 
     if not cmd_name or len(description) == 0:
         return await bot_utils.send_error_msg(ctx, "Missing required argument!!!\n"
-                                                   "For more info on this command use: "
+                                                   "For more info on this command: "
                                                    f"{chat_formatting.inline('?help admin cc add')}")
 
     for cmd in ctx.bot.commands:
@@ -80,7 +64,7 @@ async def add_custom_command(ctx):
         await bot_utils.send_msg(ctx, f"Custom command successfully added:\n`{ctx.prefix}{cmd_name}`")
     else:
         await bot_utils.send_warning_msg(ctx, f"Command already exists: `{ctx.prefix}{cmd_name}`\n"
-                                              f"To edit use: `{ctx.prefix}admin cc edit {cmd_name} <text/url>`")
+                                              f"To edit: `{ctx.prefix}admin cc edit {cmd_name} <text/url>`")
 
 
 @custom_command.command(name="remove")
@@ -95,7 +79,7 @@ async def remove_custom_command(ctx):
     cmd_name = ctx.subcommand_passed
     if not cmd_name:
         return await bot_utils.send_error_msg(ctx, "Missing required argument!!!\n"
-                                                   "For more info on this command use: "
+                                                   "For more info on this command: "
                                                    f"{chat_formatting.inline('?help admin cc remove')}")
 
     commands_dal = CustomCommandsDal(ctx.bot.db_session, ctx.bot.log)
@@ -125,7 +109,7 @@ async def edit_custom_command(ctx):
 
     if not cmd_name or len(description) == 0:
         return await bot_utils.send_error_msg(ctx, "Missing required argument!!!\n"
-                                                   "For more info on this command use: "
+                                                   "For more info on this command: "
                                                    f"{chat_formatting.inline('?help admin cc edit')}")
 
     commands_dal = CustomCommandsDal(ctx.bot.db_session, ctx.bot.log)

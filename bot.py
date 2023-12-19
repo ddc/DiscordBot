@@ -20,7 +20,7 @@ class Bot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.log = kwargs.get("log")
-        self.web_client = kwargs.get("web_client")
+        self.aiosession = kwargs.get("aiosession")
         self.db_session = kwargs.get("db_session")
         self.settings = {}
         self.set_bot_custom_settings(*args, **kwargs)
@@ -78,12 +78,13 @@ async def main():
             "activity": activity,
             "intents": intents,
             "log": log,
-            "web_client": client_session,
+            "aiosession": client_session,
             "db_session": db_session,
             "owner_id": int(constants.AUTHOR_ID),
         }
         async with Bot(**bot_kwargs) as bot:
             try:
+                a = 1
                 await bot_utils.init_background_tasks(bot)
                 await bot.start(os.environ.get("BOT_TOKEN"))
             except discord.LoginFailure:

@@ -12,35 +12,25 @@ class Gw2ConfigsDal:
         self.db_utils = DBUtils(self.db_session, self.log)
 
     async def insert_gw2_server_configs(self, server_id: int):
-        try:
-            stmt = Gw2Configs(
-               server_id=server_id,
-            )
-            await self.db_utils.add(stmt)
-        except Exception as e:
-            print(e)
+        stmt = Gw2Configs(server_id=server_id)
+        await self.db_utils.add(stmt)
 
-    async def insert_gw2_last_session(self, server_id: int, new_status: str):
+    async def insert_gw2_session_config(self, server_id: int, new_status: str):
         stmt = Gw2Configs(
            server_id=server_id,
-           last_session=new_status,
+           session=new_status,
         )
         await self.db_utils.add(stmt)
 
-    async def get_gw2_server_configs(self, server_id: int):
-        stmt = select(
-            Gw2Configs.id,
-            Gw2Configs.server_id,
-            Gw2Configs.last_session,
-            Gw2Configs.created_at,
-            Gw2Configs.updated_at,
-        ).where(
-            Gw2Configs.server_id == server_id
+    async def update_gw2_session_config(self, server_id: int, new_status: bool, updated_by: int):
+        stmt = sa.update(Gw2Configs).where(Gw2Configs.server_id == server_id).values(
+            session=new_status,
+            updated_by=updated_by
         )
+        await self.db_utils.execute(stmt)
 
+    async def get_gw2_server_configs(self, server_id: int):
+        columns = [x for x in Gw2Configs.__table__.columns]
+        stmt = select(*columns).where(Gw2Configs.server_id == server_id)
         results = await self.db_utils.fetchall(stmt)
         return results
-
-    async def update_gw2_last_session(self, server_id: int, new_status: str):
-        stmt = sa.update(Gw2Configs).where(Gw2Configs.server_id == server_id).values(last_session=new_status)
-        await self.db_utils.execute(stmt)

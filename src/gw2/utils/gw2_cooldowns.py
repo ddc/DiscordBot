@@ -11,6 +11,6 @@ class GW2CoolDowns(Enum):
     Account = 1 if constants.IS_DEBUG else int(file_values["Account"])
     ApiKeys = 1 if constants.IS_DEBUG else int(file_values["ApiKeys"])
     Daily = 1 if constants.IS_DEBUG else int(file_values["Daily"])
-    LastSession = 1 if constants.IS_DEBUG else int(file_values["LastSession"])
+    Session = 1 if constants.IS_DEBUG else int(file_values["Session"])
     Misc = 1 if constants.IS_DEBUG else int(file_values["Misc"])
     Wvw = 1 if constants.IS_DEBUG else int(file_values["Wvw"])

@@ -8,19 +8,20 @@ from src.bot.utils.cooldowns import CoolDowns
 
 
 class Admin(commands.Cog):
-    """(Admin commands)"""
+    """(Admin Commands)"""
     def __init__(self, bot):
         self.bot = bot
 
     @commands.group(aliases=["mod"])
     @Checks.check_is_admin()
-    async def admin_group(self, ctx):
+    async def admin(self, ctx):
         """(Admin Commands)
             admin botgame <game>
         """
+
         await bot_utils.invoke_subcommand(ctx, "admin")
 
-    @admin_group.command(name="botgame")
+    @admin.command(name="botgame")
     @commands.cooldown(1, CoolDowns.Admin.value, BucketType.user)
     async def botgame(self, ctx, *, game: str):
         """(Change game that bot is playing)

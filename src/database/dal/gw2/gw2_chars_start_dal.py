@@ -32,17 +32,7 @@ class Gw2CharsStartDal:
         await self.db_session.commit()
 
     async def get_all_start_characters(self, user_id: int):
-        stmt = select(
-            Gw2CharsStart.id,
-            Gw2CharsStart.user_id,
-            Gw2CharsStart.name,
-            Gw2CharsStart.profession,
-            Gw2CharsStart.deaths,
-            Gw2CharsStart.created_at,
-            Gw2CharsStart.updated_at,
-        ).where(
-            Gw2CharsStart.user_id == user_id,
-        )
-
+        columns = [x for x in Gw2CharsStart.__table__.columns]
+        stmt = select(*columns).where(Gw2CharsStart.user_id == user_id)
         results = await self.db_utils.fetchall(stmt)
         return results

@@ -82,7 +82,7 @@ async def _commandNotFound(self, ctx, errorObj: object):
 
 
 async def _missingRequiredArgument(self, ctx, errorObj: object):
-    msg = f"Missing required argument!!!\nFor more info on this command use: `{ctx.prefix}help {ctx.command}`"
+    msg = f"Missing required argument!!!\nFor more info on this command: `{ctx.prefix}help {ctx.command}`"
     await bot_utils.send_error_msg(ctx, msg)
     # await ctx.send(Formatting.error_inline(msg))
     # await ctx.send(Formatting.box(ctx.command.help))
@@ -124,12 +124,12 @@ async def _badArgument(self, ctx, errorObj: object):
         _log_msg_error(self, ctx, f"BadArgument:[{errorObj.errorMsg}][{errorObj.help_command}]")
     elif "BadArgument_Gw2ConfigServer" in errorObj.errorMsg:
         user_msg = f"Guild Wars 2 server not found: `{errorObj.bad_argument}`\n" \
-                   f"For more info on gw2 server names use: `{ctx.prefix}gw2 worlds`"
+                   f"For more info on gw2 server names: `{ctx.prefix}gw2 worlds`"
         await bot_utils.send_error_msg(ctx, user_msg)
         _log_msg_error(self, ctx, f"{errorObj.errorMsg} ({user_msg})")
     elif "BadArgument" in errorObj.errorMsg:
         # user_msg = f"BadArgument: {errorObj.bad_argument} \nType {errorObj.help_command} for more info."
-        user_msg = f"Unknown option: `{errorObj.bad_argument}`\nFor more info on this command use: `{errorObj.help_command}`"
+        user_msg = f"Unknown option: `{errorObj.bad_argument}`\nFor more info on this command: `{errorObj.help_command}`"
         await bot_utils.send_error_msg(ctx, user_msg)
         _log_msg_error(self, ctx,
                        f"BadArgument:[{errorObj.bad_argument}][{errorObj.errorMsg}][{errorObj.help_command}]")
