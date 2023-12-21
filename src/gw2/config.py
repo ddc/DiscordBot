@@ -45,18 +45,18 @@ async def config_list(ctx):
     on = chat_formatting.green_text("ON")
     off = chat_formatting.red_text("OFF")
     embed.add_field(name="GW2 Users Session", value=f"{on}" if rs[0]["session"] else f"{off}", inline=False)
-    await bot_utils.send_embed(ctx, embed, True)
+    await bot_utils.send_embed(ctx, embed, dm=True)
 
 
 @config.command(name="session")
 @commands.cooldown(1, GW2CoolDowns.ApiKeys.value, BucketType.user)
-async def config_session(ctx):
+async def config_session(ctx, subcommand_passed: str):
     """(Configure Guild Wars 2 Sessions)
         gw2 config session on
         gw2 config session off
     """
 
-    match ctx.subcommand_passed:
+    match subcommand_passed:
         case "on" | "ON":
             new_status = True
             color = discord.Color.green()

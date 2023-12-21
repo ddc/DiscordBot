@@ -106,7 +106,7 @@ class DiceRolls(commands.Cog):
                 dice_size = int(msg_lst[2])
             else:
                 dice_size = 100
-        except Exception as e:
+        except:
             msg = "Thats not a valid dice size.\nPlease try again."
             await bot_utils.send_error_msg(ctx, msg)
             return
@@ -125,12 +125,12 @@ class DiceRolls(commands.Cog):
             member_lst.append(f"{position}) {member_name}")
             rolls_lst.append(str(each_user["roll"]))
 
-        members = '\n'.join(member_lst)
-        rolls = '\n'.join(rolls_lst)
+        members = "\n".join(member_lst)
+        rolls = "\n".join(rolls_lst)
 
         embed.set_author(name=f"{server.name} (Dice Size: {dice_size})", icon_url=server.icon.url)
-        embed.add_field(name="Member", value=chat_formatting.inline(members), inline=True)
-        embed.add_field(name="Roll", value=chat_formatting.inline(rolls), inline=True)
+        embed.add_field(name="Member", value=chat_formatting.inline(members))
+        embed.add_field(name="Roll", value=chat_formatting.inline(rolls))
         embed.set_footer(text=f"To reset all rolls from this server type: {ctx.prefix}roll reset")
         await bot_utils.send_embed(ctx, embed)
 

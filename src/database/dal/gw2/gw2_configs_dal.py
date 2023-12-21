@@ -15,13 +15,6 @@ class Gw2ConfigsDal:
         stmt = Gw2Configs(server_id=server_id)
         await self.db_utils.add(stmt)
 
-    async def insert_gw2_session_config(self, server_id: int, new_status: str):
-        stmt = Gw2Configs(
-           server_id=server_id,
-           session=new_status,
-        )
-        await self.db_utils.add(stmt)
-
     async def update_gw2_session_config(self, server_id: int, new_status: bool, updated_by: int):
         stmt = sa.update(Gw2Configs).where(Gw2Configs.server_id == server_id).values(
             session=new_status,

@@ -14,12 +14,12 @@ class OnMemberJoin(commands.Cog):
             server_configs_sql = ServersDal(self.bot.db_session, self.bot.log)
             rs = await server_configs_sql.get_server(member.guild.id)
             if rs["msg_on_join"]:
-                now = discord.utils.utcnow()
+                now = bot_utils.get_current_date_time_str()
                 embed = discord.Embed(color=discord.Color.green(), description=str(member))
                 embed.set_thumbnail(url=member.avatar.url)
                 embed.set_author(name="Joined the Server")
-                embed.set_footer(text=f"{now.strftime('%c')}")
-                msg = f"{member.name} Joined the Server\n{now.strftime('%c')}"
+                embed.set_footer(icon_url=self.bot.user.avatar.url, text=f"{now} UTC")
+                msg = f"{member.name} Joined the Server\n{now}"
                 await bot_utils.send_msg_to_system_channel(self.bot.log, member.guild, embed, msg)
 
 

@@ -65,11 +65,10 @@ class Gw2Servers(Enum):
     Millers_Sound = "Miller's Sound [DE]"
 
 
-async def send_msg(ctx, msg):
+async def send_msg(ctx, description, dm=False):
     color = ctx.bot.settings["gw2"]["EmbedColor"]
-    embed = discord.Embed(color=color, description=msg)
-    embed.set_author(name=bot_utils.get_member_name_by_id(ctx), icon_url=ctx.message.author.avatar.url)
-    await bot_utils.send_embed(ctx, embed)
+    embed = discord.Embed(color=color, description=description)
+    await bot_utils.send_embed(ctx, embed, dm)
 
 
 async def insert_gw2_server_configs(bot, server):
@@ -79,11 +78,11 @@ async def insert_gw2_server_configs(bot, server):
         await gw2_configs_dal.insert_gw2_server_configs(server.id)
 
 
-async def calculate_user_achiev_points(self, api_req_acc_achiev, api_req_acc):
+async def calculate_user_achiev_points(ctx, api_req_acc_achiev, api_req_acc):
     doc_user_achiev_id = []
     temp_achiv = []
     counter = 0
-    gw2_api = Gw2Api(self.bot)
+    gw2_api = Gw2Api(ctx.bot)
     total = api_req_acc["daily_ap"] + api_req_acc["monthly_ap"]
 
     for ach in api_req_acc_achiev:

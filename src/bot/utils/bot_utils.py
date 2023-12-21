@@ -29,6 +29,7 @@ class Object(object):
 
 
 class Colors(Enum):
+    black = discord.Color.default()
     teal = discord.Color.teal()
     dark_teal = discord.Color.dark_teal()
     green = discord.Color.green()
@@ -85,6 +86,7 @@ async def load_cogs(bot):
 
 
 async def invoke_subcommand(ctx, command_name: str):
+    await ctx.message.channel.typing()
     if ctx.invoked_subcommand:
         return ctx.invoked_subcommand
     else:
@@ -104,48 +106,24 @@ def get_embed(ctx, description=None, color=None):
     return ebd
 
 
-async def send_msg(ctx, description=None, color=None):
+async def send_msg(ctx, description=None, dm=False, color=None):
     embed = get_embed(ctx, description, color)
-    embed.set_author(name=get_member_name_by_id(ctx), icon_url=ctx.message.author.avatar.url)
-    await send_embed(ctx, embed)
+    await send_embed(ctx, embed, dm)
 
 
-async def send_warning_msg(ctx, description):
-    embed = discord.Embed(color=discord.Color.orange(), description=chat_formatting.warning(description))
-    embed.set_author(name=get_member_name_by_id(ctx), icon_url=ctx.message.author.avatar.url)
-    await send_embed(ctx, embed)
+async def send_warning_msg(ctx, description, dm=False):
+    embed = get_embed(ctx, chat_formatting.warning(description), color=discord.Color.orange())
+    await send_embed(ctx, embed, dm)
 
 
-async def send_info_msg(ctx, description):
-    embed = discord.Embed(color=discord.Color.blue(), description=chat_formatting.info(description))
-    embed.set_author(name=get_member_name_by_id(ctx), icon_url=ctx.message.author.avatar.url)
-    await send_embed(ctx, embed)
+async def send_info_msg(ctx, description, dm=False):
+    embed = get_embed(ctx, chat_formatting.info(description), discord.Color.blue())
+    await send_embed(ctx, embed, dm)
 
 
-async def send_error_msg(ctx, description):
-    embed = discord.Embed(color=discord.Color.red(), description=chat_formatting.error(description))
-    embed.set_author(name=get_member_name_by_id(ctx), icon_url=ctx.message.author.avatar.url)
-    await send_embed(ctx, embed)
-
-
-async def send_private_msg(ctx, description, color=None):
-    embed = get_embed(ctx, description, color)
-    await send_embed(ctx, embed, True)
-
-
-async def send_private_warning_msg(ctx, msg):
-    embed = discord.Embed(color=discord.Color.orange(), description=chat_formatting.warning(msg))
-    await send_embed(ctx, embed, True)
-
-
-async def send_private_info_msg(ctx, msg):
-    embed = discord.Embed(color=discord.Color.blue(), description=chat_formatting.info(msg))
-    await send_embed(ctx, embed, True)
-
-
-async def send_private_error_msg(ctx, msg):
-    embed = discord.Embed(color=discord.Color.red(), description=chat_formatting.error(msg))
-    await send_embed(ctx, embed, True)
+async def send_error_msg(ctx, description, dm=False):
+    embed = get_embed(ctx, chat_formatting.error(description), discord.Color.red())
+    await send_embed(ctx, embed, dm)
 
 
 async def send_help_msg(ctx, cmd):
@@ -159,11 +137,11 @@ async def send_embed(ctx, embed, dm=False):
     try:
         if not embed.color:
             embed.color = ctx.bot.settings["bot"]["EmbedColor"]
-
-        if dm:
+        if not embed.author:
+            embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
+        if is_private_message(ctx) or dm:
             await ctx.author.send(embed=embed)
         else:
-            await ctx.message.channel.typing()
             await ctx.send(embed=embed)
     except (discord.Forbidden, discord.HTTPException):
         msg = "Direct messages are disable in your configuration.\n" \
@@ -183,8 +161,7 @@ def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
     formatter = logging.Formatter(fmt, datefmt="%Y-%m-%dT%H:%M:%S")
     stderr_hdlr.setFormatter(formatter)
     logger.addHandler(stderr_hdlr)
-    if issubclass(exc_type, KeyboardInterrupt) \
-            or issubclass(exc_type, EOFError):
+    if issubclass(exc_type, KeyboardInterrupt) or issubclass(exc_type, EOFError):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
     logger.exception("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
@@ -193,14 +170,16 @@ def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
 async def delete_message(ctx, warning=False):
     if not is_private_message(ctx):
         try:
+            color = None
             msg = "Your message was removed for privacy."
             await ctx.message.delete()
         except Exception as e:
-            msg = "Bot does not have permission to delete messages"
+            color = discord.Color.red()
+            msg = "Bot does not have permission to delete messages."
             ctx.bot.log.error(f"{str(e)}: {msg}")
         finally:
             if warning:
-                await send_msg(ctx, msg)
+                await send_msg(ctx, msg, False, color)
 
 
 def is_member_admin(member: discord.Member):
@@ -223,16 +202,16 @@ def is_private_message(ctx):
     return True if isinstance(ctx.channel, discord.DMChannel) else False
 
 
-def convert_datetime_to_str(date: datetime):
-    return date.strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
-
-
 def get_current_date_time():
     return datetime.now(timezone.utc)
 
 
 def get_current_date_time_str():
-    return str(datetime.now(timezone.utc).strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"))
+    return convert_datetime_to_str(get_current_date_time())
+
+
+def convert_datetime_to_str(date: datetime):
+    return date.strftime(constants.DATE_TIME_FORMATTER_STR)
 
 
 def get_object_member_by_str(ctx, member_str: str):
@@ -244,9 +223,9 @@ def get_object_member_by_str(ctx, member_str: str):
     return None
 
 
-def get_user_by_id(bot, user_id: int):
-    user = bot.get_user(int(user_id))
-    return user
+# def get_user_by_id(bot, user_id: int):
+#     user = bot.get_user(int(user_id))
+#     return user
 
 
 def get_member_by_id(guild, member_id: int):
@@ -254,16 +233,16 @@ def get_member_by_id(guild, member_id: int):
     return member
 
 
-def get_member_name_by_id(ctx, user_id: int = None):
-    if user_id:
-        member = ctx.guild.get_member(int(user_id))
-    else:
-        member = ctx.guild.get_member(int(ctx.message.author.id))
-
-    if member is not None:
-        return str(member.nick) if member.nick is not None else member.display_name
-    else:
-        return None
+# def get_member_name_by_id(ctx, user_id: int = None):
+#     if user_id:
+#         member = ctx.guild.get_member(int(user_id))
+#     else:
+#         member = ctx.guild.get_member(int(ctx.message.author.id))
+#
+#     if member is not None:
+#         return str(member.nick) if member.nick is not None else member.display_name
+#     else:
+#         return None
 
 
 async def send_msg_to_system_channel(log, server, embed, plain_msg=None):
@@ -293,7 +272,7 @@ async def get_server_system_channel(server: discord.Guild):
 
 def get_all_ini_file_settings(file_name: str):
     dictionary = {}
-    parser = configparser.ConfigParser(delimiters='=')
+    parser = configparser.ConfigParser(delimiters="=")
     parser.optionxform = str
     parser._interpolation = configparser.ExtendedInterpolation()
     try:

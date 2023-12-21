@@ -31,14 +31,13 @@ async def wvw(ctx):
 @wvw.command(name="info")
 @commands.cooldown(1, GW2CoolDowns.Wvw.value, BucketType.user)
 async def info(ctx, *, world: str = None):
-    user_id = ctx.message.author.id
     await ctx.message.channel.typing()
     gw2_api = Gw2Api(ctx.bot)
 
     if not world:
         try:
             gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
-            rs = await gw2_key_dal.get_server_user_api_key(ctx.guild.id, user_id)
+            rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
             if len(rs) == 1:
                 api_key = rs[0]["key"]
                 results = await gw2_api.call_api("account", key=api_key)
@@ -46,9 +45,9 @@ async def info(ctx, *, world: str = None):
             else:
                 return await bot_utils.send_error_msg(
                     ctx,
-                    "You dont have an API key registered in this server.\n"
-                    f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n"
-                    f"To check your API key use: `{ctx.prefix}gw2 key info`"
+                    "You dont have an API key registered.\n"
+                    f"To add or replace an API key send a DM with: `{ctx.prefix}gw2 key add <api_key>`\n"
+                    f"To check your API key: `{ctx.prefix}gw2 key info`"
                 )
         except APIKeyError:
             return await bot_utils.send_error_msg(ctx, "No world name or key associated with your account")
@@ -91,8 +90,10 @@ async def info(ctx, *, world: str = None):
             color = discord.Color.red()
         case "green":
             color = discord.Color.green()
+        case "blue":
+            color = discord.Color.blue()
         case _:
-            color = ctx.bot.settings["gw2"]["EmbedColor"]
+            color = discord.Color.default()
 
     ppt = 0
     score = format(matches["scores"][worldcolor], ',d')
@@ -125,13 +126,13 @@ async def info(ctx, *, world: str = None):
     title = f"{worldinfo['name']}"
 
     embed = discord.Embed(title=title, description=tier, color=color)
-    embed.add_field(name="Score", value=chat_formatting.inline(score), inline=True)
-    embed.add_field(name="Points per tick", value=chat_formatting.inline(ppt), inline=True)
-    embed.add_field(name="Victory Points", value=chat_formatting.inline(victoryp), inline=True)
-    embed.add_field(name="Skirmish", value=chat_formatting.inline(skirmish), inline=True)
-    embed.add_field(name="Kills", value=chat_formatting.inline(kills), inline=True)
-    embed.add_field(name="Deaths", value=chat_formatting.inline(deaths), inline=True)
-    embed.add_field(name="K/D ratio", value=chat_formatting.inline(str(kd)), inline=True)
+    embed.add_field(name="Score", value=chat_formatting.inline(score))
+    embed.add_field(name="Points per tick", value=chat_formatting.inline(ppt))
+    embed.add_field(name="Victory Points", value=chat_formatting.inline(victoryp))
+    embed.add_field(name="Skirmish", value=chat_formatting.inline(skirmish))
+    embed.add_field(name="Kills", value=chat_formatting.inline(kills))
+    embed.add_field(name="Deaths", value=chat_formatting.inline(deaths))
+    embed.add_field(name="K/D ratio", value=chat_formatting.inline(str(kd)))
     embed.add_field(name="Population", value=chat_formatting.inline(population), inline=False)
     await bot_utils.send_embed(ctx, embed)
 
@@ -145,14 +146,13 @@ async def match(ctx, *, world: str = None):
     gw2 match world_name
     """
 
-    user_id = ctx.message.author.id
     await ctx.message.channel.typing()
     gw2_api = Gw2Api(ctx.bot)
 
     if not world:
         try:
             gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
-            rs = await gw2_key_dal.get_server_user_api_key(ctx.guild.id, user_id)
+            rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
             if len(rs) == 1:
                 api_key = rs[0]["key"]
                 results = await gw2_api.call_api("account", key=api_key)
@@ -163,7 +163,7 @@ async def match(ctx, *, world: str = None):
                     "Missing World Name\n"
                     f"Use `{ctx.prefix}gw2 match <world_name>`\n"
                     "Or register an API key on your account.\n"
-                    f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`"
+                    f"To add or replace an API key send a DM with: `{ctx.prefix}gw2 key add <api_key>`\n"
                 )
         except APIKeyError:
             return await bot_utils.send_error_msg(ctx, "No world name or API key associated with your account.")
@@ -201,12 +201,12 @@ async def match(ctx, *, world: str = None):
 
     color = ctx.bot.settings["gw2"]["EmbedColor"]
     embed = discord.Embed(title="WvW Score", description=tier, color=color)
-    embed.add_field(name="Green", value=green_worlds_names, inline=True)
-    embed.add_field(name="Blue", value=blue_worlds_names, inline=True)
-    embed.add_field(name="Red", value=red_worlds_names, inline=True)
-    embed.add_field(name="--------------------", value=green_values, inline=True)
-    embed.add_field(name="--------------------", value=blue_values, inline=True)
-    embed.add_field(name="--------------------", value=red_values, inline=True)
+    embed.add_field(name="Green", value=green_worlds_names)
+    embed.add_field(name="Blue", value=blue_worlds_names)
+    embed.add_field(name="Red", value=red_worlds_names)
+    embed.add_field(name="--------------------", value=green_values)
+    embed.add_field(name="--------------------", value=blue_values)
+    embed.add_field(name="--------------------", value=red_values)
     await bot_utils.send_embed(ctx, embed)
 
 
@@ -218,14 +218,13 @@ async def kdr(ctx, *, world: str = None):
         gw2 kdr world_name
     """
 
-    user_id = ctx.message.author.id
     await ctx.message.channel.typing()
     gw2_api = Gw2Api(ctx.bot)
 
     if not world:
         try:
             gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
-            rs = await gw2_key_dal.get_server_user_api_key(ctx.guild.id, user_id)
+            rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
             if len(rs) == 1:
                 api_key = rs[0]["key"]
                 results = await gw2_api.call_api("account", key=api_key)
@@ -266,16 +265,16 @@ async def kdr(ctx, *, world: str = None):
         red_values = await _get_kdr_embed_values("red", matches)
     except Exception as e:
         await bot_utils.send_error_msg(ctx, e)
-        return self.bot.log.error(ctx, e)
+        return ctx.bot.log.error(ctx, e)
 
-    color = self.bot.settings["gw2"]["EmbedColor"]
+    color = ctx.bot.settings["gw2"]["EmbedColor"]
     embed = discord.Embed(title="WvW Kills/Death Ratings", description=tier, color=color)
-    embed.add_field(name="Green", value=green_worlds_names, inline=True)
-    embed.add_field(name="Blue", value=blue_worlds_names, inline=True)
-    embed.add_field(name="Red", value=red_worlds_names, inline=True)
-    embed.add_field(name="--------------------", value=green_values, inline=True)
-    embed.add_field(name="--------------------", value=blue_values, inline=True)
-    embed.add_field(name="--------------------", value=red_values, inline=True)
+    embed.add_field(name="Green", value=green_worlds_names)
+    embed.add_field(name="Blue", value=blue_worlds_names)
+    embed.add_field(name="Red", value=red_worlds_names)
+    embed.add_field(name="--------------------", value=green_values)
+    embed.add_field(name="--------------------", value=blue_values)
+    embed.add_field(name="--------------------", value=red_values)
     await bot_utils.send_embed(ctx, embed)
 
 

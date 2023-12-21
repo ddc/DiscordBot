@@ -69,7 +69,7 @@ async def fractals(ctx):
 async def _daily_embed(ctx, daily_type: str):
     await ctx.message.channel.typing()
     achiev_id_lst = []
-    todays_date = discord.utils.utcnow().strftime("%c")
+    todays_date = bot_utils.get_current_date_time()
     gw2_api = Gw2Api(ctx.bot)
 
     try:

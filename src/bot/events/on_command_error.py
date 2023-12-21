@@ -194,7 +194,7 @@ async def _commandInvokeError(self, ctx, errorObj: object):
             else:
                 msg = "Error while executing SQL query: "
                 sql = ""
-            await bot_utils.send_private_error_msg(ctx, f"{msg}\n{error_message}")
+            await bot_utils.send_error_msg(ctx, f"{msg}\n{error_message}", True)
             _log_msg_error(self, ctx, f"OperationalError|SQL error:({sql}){msg} {error_message}")
         else:
             msg = f"There was an internal error with command:\n`{errorObj.command}`"

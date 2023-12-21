@@ -28,7 +28,7 @@ class OnGuildJoin(commands.Cog):
             embed = discord.Embed(color=discord.Color.green(), description=msg)
             embed.set_author(name=f"{self.bot.user.name} v{constants.VERSION}", icon_url=bot_avatar, url=bot_webpage_url)
             embed.set_thumbnail(url=bot_avatar)
-            embed.set_footer(text=f"Developed by {str(author)} | {python_version}", icon_url=author.avatar.url)
+            embed.set_footer(icon_url=author.avatar.url, text=f"Developed by {str(author)} | {python_version}")
 
             await bot_utils.send_msg_to_system_channel(self.bot.log, guild, embed, msg)
 

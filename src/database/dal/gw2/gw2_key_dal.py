@@ -13,7 +13,6 @@ class Gw2KeyDal:
 
     async def insert_api_key(self, **kwargs):
         stmt = Gw2Keys(
-            server_id=kwargs.get("server_id"),
             user_id=kwargs.get("user_id"),
             name=kwargs.get("key_name"),
             gw2_acc_name=kwargs.get("gw2_acc_name"),
@@ -25,7 +24,6 @@ class Gw2KeyDal:
 
     async def update_api_key(self, **kwargs):
         stmt = sa.update(Gw2Keys).where(
-            Gw2Keys.server_id == kwargs.get("server_id"),
             Gw2Keys.user_id == kwargs.get("user_id"),
         ).values(
             name=kwargs.get("key_name"),
@@ -36,36 +34,23 @@ class Gw2KeyDal:
         )
         await self.db_utils.execute(stmt)
 
-    async def delete_server_user_api_key(self, server_id: int, user_id: int):
-        stmt = sa.delete(Gw2Keys).where(
-            Gw2Keys.server_id == server_id,
-            Gw2Keys.user_id == user_id
-        )
-        await self.db_utils.execute(stmt)
-
-    async def delete_all_user_api_key(self, user_id: int):
+    async def delete_user_api_key(self, user_id: int):
         stmt = sa.delete(Gw2Keys).where(Gw2Keys.user_id == user_id)
         await self.db_utils.execute(stmt)
 
-    async def get_server_api_key(self, server_id: int, key: str):
+    async def get_api_key(self, api_key: str):
         columns = [x for x in Gw2Keys.__table__.columns]
-        stmt = select(*columns).where(
-            Gw2Keys.server_id == server_id,
-            Gw2Keys.key == key,
-        )
+        stmt = select(*columns).where(Gw2Keys.key == api_key,)
         results = await self.db_utils.fetchall(stmt)
         return results
 
-    async def get_server_user_api_key(self, server_id: int, user_id: int):
+    async def get_api_key_by_name(self, key_name: str):
         columns = [x for x in Gw2Keys.__table__.columns]
-        stmt = select(*columns).where(
-            Gw2Keys.server_id == server_id,
-            Gw2Keys.user_id == user_id,
-        )
+        stmt = select(*columns).where(Gw2Keys.name == key_name,)
         results = await self.db_utils.fetchall(stmt)
         return results
 
-    async def get_all_user_api_key(self, user_id: int):
+    async def get_api_key_by_user(self, user_id: int):
         columns = [x for x in Gw2Keys.__table__.columns]
         stmt = select(*columns).where(Gw2Keys.user_id == user_id)
         results = await self.db_utils.fetchall(stmt)

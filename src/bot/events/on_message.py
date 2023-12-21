@@ -176,7 +176,7 @@ class OnMessage(commands.Cog):
                    "You are not allowed to execute any commands.\n"
                    "Only a few users are allowed to use it.\n"
                    "Please don't insist. Thank You!!!")
-            await bot_utils.send_private_error_msg(ctx, msg)
+            await bot_utils.send_error_msg(ctx, msg, True)
             return False
 
         return True
@@ -199,12 +199,12 @@ class OnMessage(commands.Cog):
                 bot_word_found_in_message = True
 
         if config_word_found is True and bot_word_found_in_message is True:
-            send_msg = "fu ufk!!!"
+            bot_msg = "fu ufk!!!"
             if "stupid" in msg.lower():
-                send_msg = "I'm not stupid, fu ufk!!!"
+                bot_msg = "I'm not stupid, fu ufk!!!"
             elif "retard" in msg.lower():
-                send_msg = "I'm not retard, fu ufk!!!"
-            await self._send_custom_message(message, send_msg)
+                bot_msg = "I'm not retard, fu ufk!!!"
+            await self._send_custom_message(message, bot_msg)
             return True
         return False
 
@@ -231,7 +231,7 @@ class OnMessage(commands.Cog):
                 return True
             except Exception as e:
                 msg = ("Profanity filter is ON, "
-                       "but Bot does not have permission to delete messages"
+                       "but Bot does not have permission to delete messages."
                        "with offensive words.\n"
                        "Missing permission: Manage Messages")
                 self.bot.log.info(f"(Server:{ctx.message.guild.name})"

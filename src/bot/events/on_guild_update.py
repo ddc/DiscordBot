@@ -13,11 +13,11 @@ class OnGuildUpdate(commands.Cog):
         async def on_guild_update(before, after):
             msg = "New Server Settings\n"
             embed = bot_utils.get_embed(self)
-            embed.set_footer(text=f"{discord.utils.utcnow().strftime('%c')}")
+            embed.set_footer(icon_url=self.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str()} UTC")
 
             if str(before.icon.url) != str(after.icon.url):
                 embed.set_thumbnail(url=after.icon.url)
-                embed.add_field(name="New Server Icon", value="", inline=True)
+                embed.add_field(name="New Server Icon", value="")
                 msg += f"New Server Icon: \n{after.icon.url}\n"
 
             if str(before.name) != str(after.name):
@@ -30,7 +30,7 @@ class OnGuildUpdate(commands.Cog):
                 embed.set_thumbnail(url=after.icon.url)
                 if before.owner_id is not None:
                     embed.add_field(name="Previous Server Owner", value=str(before.owner))
-                embed.add_field(name="New Server Owner", value=str(after.owner), inline=True)
+                embed.add_field(name="New Server Owner", value=str(after.owner))
                 msg += f"New Server Owner: `{after.owner}`\n"
 
             if len(embed.fields) > 0:

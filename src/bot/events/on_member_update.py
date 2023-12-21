@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import discord
 from discord.ext import commands
 from src.database.dal.bot.servers_dal import ServersDal
 from src.bot.utils import bot_utils
@@ -25,7 +24,7 @@ class OnMemberUpdate(commands.Cog):
             msg = "Profile Changes:\n\n"
             embed = bot_utils.get_embed(self)
             embed.set_author(name=after.display_name, icon_url=after.avatar.url)
-            embed.set_footer(text=discord.utils.utcnow().strftime("%c"))
+            embed.set_footer(icon_url=self.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str()} UTC")
 
             if before.nick != after.nick:
                 if before.nick is not None:

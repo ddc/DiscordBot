@@ -94,8 +94,8 @@ class Owner(commands.Cog):
 
         ids = "\n".join(id_list)
         names = "\n".join(name_list)
-        embed.add_field(name="ID", value=ids, inline=True)
-        embed.add_field(name="Name", value=names, inline=True)
+        embed.add_field(name="ID", value=ids)
+        embed.add_field(name="Name", value=names)
         await bot_utils.send_embed(ctx, embed, True)
 
 

@@ -15,8 +15,7 @@ class Log:
         try:
             os.makedirs(self.dir, exist_ok=True) if not os.path.isdir(self.dir) else None
         except Exception as e:
-            sys.stderr.write(f"[ERROR]:[Unable to create logs dir]:"
-                             f"{str(e)}: {self.dir}\n")
+            sys.stderr.write(f"[ERROR]:[Unable to create logs dir]:{str(e)}: {self.dir}\n")
             sys.exit(1)
 
         log_file_path = f"{self.dir}/bot.log"

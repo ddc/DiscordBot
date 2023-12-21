@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import discord
 from discord.ext import commands
 from src.bot.utils import bot_utils
 from src.database.dal.bot.servers_dal import ServersDal
@@ -25,11 +24,11 @@ class OnUserUpdate(commands.Cog):
             msg = "Profile Changes:\n\n"
             embed = bot_utils.get_embed(self)
             embed.set_author(name=after.display_name, icon_url=after.avatar.url)
-            embed.set_footer(text=discord.utils.utcnow().strftime("%c"))
+            embed.set_footer(icon_url=self.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str()} UTC")
 
             if str(before.avatar.url) != str(after.avatar.url):
                 embed.set_thumbnail(url=after.avatar.url)
-                embed.add_field(name="New Avatar", value="-->", inline=True)
+                embed.add_field(name="New Avatar", value="-->")
                 msg += f"New Avatar: \n{after.avatar.url}\n"
 
             if str(before.name) != str(after.name):

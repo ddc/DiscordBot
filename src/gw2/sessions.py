@@ -47,9 +47,9 @@ async def session(ctx):
     gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
     rs_api_key = await gw2_key_dal.get_server_user_api_key(ctx.guild.id, user_id)
     if len(rs_api_key) == 0:
-        return await bot_utils.send_error_msg(ctx, "You dont have an API key registered in this server.\n"
-                                                   f"To add or replace an API key: `{ctx.prefix}gw2 key add <api_key>`\n"
-                                                   f"To check for all your API keys: `{ctx.prefix}gw2 key info all`")
+        return await bot_utils.send_error_msg(ctx, "You dont have an API key registered.\n"
+                                                   f"To add or replace an API key send a DM with: `{ctx.prefix}gw2 key add <api_key>`\n"
+                                                   f"To check your API key: `{ctx.prefix}gw2 key info`")
 
     api_key = rs_api_key[0]["key"]
     gw2_server = rs_api_key[0]["server_name"]
@@ -75,8 +75,8 @@ async def session(ctx):
         error_msg += "- progression is OK\n" if progression is True else "- progression is MISSING\n"
         error_msg += "- wallet is OK\n" if wallet is True else "- wallet is MISSING\n"
         error_msg += "Please add another API key with permissions that are MISSING if you want to use this command.\n" \
-                     f"To add or replace an API key use: `{ctx.prefix}gw2 key add <api_key>`\n" \
-                     f"To check your API key use: `{ctx.prefix}gw2 key info`"
+                     f"To add or replace an API key send a DM with: `{ctx.prefix}gw2 key add <api_key>`\n" \
+                     f"To check your API key: `{ctx.prefix}gw2 key info`"
         return await bot_utils.send_error_msg(ctx, error_msg)
 
     still_playing_msg = None
@@ -94,9 +94,10 @@ async def session(ctx):
     rs_session = await gw2_session_dal.get_user_last_session(user_id)
     if len(rs_session) > 0:
         if rs_session[0]["end_date"] is None:
-            return await bot_utils.send_private_error_msg(ctx,
-                                                          "There was a problem trying to record your last finished session.\n"
-                                                          "Please, do not close discord when the game is running.")
+            return await bot_utils.send_error_msg(ctx,
+                                                  "There was a problem trying to record your last finished session.\n"
+                                                  "Please, do not close discord when the game is running.",
+                                                  True)
 
         await ctx.message.channel.typing()
         color = ctx.bot.settings["gw2"]["EmbedColor"]
@@ -119,11 +120,11 @@ async def session(ctx):
         embed = discord.Embed(color=color)
         embed.set_author(name=f"{ctx.message.author.display_name}'s GW2 Last Session ({st_date})",
                          icon_url=ctx.message.author.avatar.url)
-        embed.add_field(name="Account Name", value=chat_formatting.inline(acc_name), inline=True)
-        embed.add_field(name="Server", value=chat_formatting.inline(gw2_server), inline=True)
+        embed.add_field(name="Account Name", value=chat_formatting.inline(acc_name))
+        embed.add_field(name="Server", value=chat_formatting.inline(gw2_server))
 
         total_played_time = gw2_utils.get_time_passed(st_time, ed_time)
-        embed.add_field(name="Total played time", value=chat_formatting.inline(str(total_played_time.timedelta)), inline=True)
+        embed.add_field(name="Total played time", value=chat_formatting.inline(str(total_played_time.timedelta)))
 
         if rs_session[0]["start_gold"] != rs_session[0]["end_gold"]:
             full_gold = str(rs_session[0]["end_gold"] - rs_session[0]["start_gold"])
@@ -159,106 +160,101 @@ async def session(ctx):
                 embed.add_field(name="Times you died", value=chat_formatting.inline(deaths_msg), inline=False)
             # else:
             #    deaths_msg = "0"
-            #    embed.add_field(name="Times you died", value=chat_formatting.inline(deaths_msg), inline=True)
+            #    embed.add_field(name="Times you died", value=chat_formatting.inline(deaths_msg))
 
         if rs_session[0]["start_karma"] != rs_session[0]["end_karma"]:
             final_result = str(rs_session[0]["end_karma"] - rs_session[0]["start_karma"])
             if int(final_result) > 0:
-                embed.add_field(name="Gained karma", value=chat_formatting.inline(f"+{final_result}"), inline=True)
+                embed.add_field(name="Gained karma", value=chat_formatting.inline(f"+{final_result}"))
             elif int(final_result) < 0:
-                embed.add_field(name="Lost karma", value=chat_formatting.inline(str(final_result)), inline=True)
+                embed.add_field(name="Lost karma", value=chat_formatting.inline(str(final_result)))
 
         if rs_session[0]["start_laurels"] != rs_session[0]["end_laurels"]:
             final_result = str(rs_session[0]["end_laurels"] - rs_session[0]["start_laurels"])
             if int(final_result) > 0:
-                embed.add_field(name="Gained laurels", value=chat_formatting.inline(f"+{final_result}"), inline=True)
+                embed.add_field(name="Gained laurels", value=chat_formatting.inline(f"+{final_result}"))
             elif int(final_result) < 0:
-                embed.add_field(name="Lost laurels", value=chat_formatting.inline(str(final_result)), inline=True)
+                embed.add_field(name="Lost laurels", value=chat_formatting.inline(str(final_result)))
 
         if rs_session[0]["start_wvw_rank"] != rs_session[0]["end_wvw_rank"]:
             final_result = str(rs_session[0]["end_wvw_rank"] - rs_session[0]["start_wvw_rank"])
-            embed.add_field(name="Gained wvw ranks", value=chat_formatting.inline(str(final_result)), inline=True)
+            embed.add_field(name="Gained wvw ranks", value=chat_formatting.inline(str(final_result)))
 
         if rs_session[0]["start_yaks"] != rs_session[0]["end_yaks"]:
             final_result = str(rs_session[0]["end_yaks"] - rs_session[0]["start_yaks"])
-            embed.add_field(name="Yaks killed", value=chat_formatting.inline(str(final_result)), inline=True)
+            embed.add_field(name="Yaks killed", value=chat_formatting.inline(str(final_result)))
 
         if rs_session[0]["start_yaks_scorted"] != rs_session[0]["end_yaks_scorted"]:
             final_result = str(rs_session[0]["end_yaks_scorted"] - rs_session[0]["start_yaks_scorted"])
-            embed.add_field(name="Yaks scorted", value=chat_formatting.inline(str(final_result)), inline=True)
+            embed.add_field(name="Yaks scorted", value=chat_formatting.inline(str(final_result)))
 
         if rs_session[0]["start_players"] != rs_session[0]["end_players"]:
             final_result = str(rs_session[0]["end_players"] - rs_session[0]["start_players"])
-            embed.add_field(name="Players killed", value=chat_formatting.inline(str(final_result)), inline=True)
+            embed.add_field(name="Players killed", value=chat_formatting.inline(str(final_result)))
 
         if rs_session[0]["start_keeps"] != rs_session[0]["end_keeps"]:
             final_result = str(rs_session[0]["end_keeps"] - rs_session[0]["start_keeps"])
-            embed.add_field(name="Keeps captured", value=chat_formatting.inline(str(final_result)), inline=True)
+            embed.add_field(name="Keeps captured", value=chat_formatting.inline(str(final_result)))
 
         if rs_session[0]["start_towers"] != rs_session[0]["end_towers"]:
             final_result = str(rs_session[0]["end_towers"] - rs_session[0]["start_towers"])
-            embed.add_field(name="Towers captured", value=chat_formatting.inline(str(final_result)), inline=True)
+            embed.add_field(name="Towers captured", value=chat_formatting.inline(str(final_result)))
 
         if rs_session[0]["start_camps"] != rs_session[0]["end_camps"]:
             final_result = str(rs_session[0]["end_camps"] - rs_session[0]["start_camps"])
-            embed.add_field(name="Camps captured", value=chat_formatting.inline(str(final_result)), inline=True)
+            embed.add_field(name="Camps captured", value=chat_formatting.inline(str(final_result)))
 
         if rs_session[0]["start_castles"] != rs_session[0]["end_castles"]:
             final_result = str(rs_session[0]["end_castles"] - rs_session[0]["start_castles"])
-            embed.add_field(name="SMC captured", value=chat_formatting.inline(str(final_result)), inline=True)
+            embed.add_field(name="SMC captured", value=chat_formatting.inline(str(final_result)))
 
         if rs_session[0]["start_wvw_tickets"] != rs_session[0]["end_wvw_tickets"]:
             final_result = str(rs_session[0]["end_wvw_tickets"] - rs_session[0]["start_wvw_tickets"])
             if int(final_result) > 0:
-                embed.add_field(name="Gained wvw tickets", value=chat_formatting.inline(f"+{final_result}"), inline=True)
+                embed.add_field(name="Gained wvw tickets", value=chat_formatting.inline(f"+{final_result}"))
             elif int(final_result) < 0:
-                embed.add_field(name="Lost wvw tickets", value=chat_formatting.inline(str(final_result)), inline=True)
+                embed.add_field(name="Lost wvw tickets", value=chat_formatting.inline(str(final_result)))
 
         if rs_session[0]["start_test_heroics"] != rs_session[0]["end_test_heroics"]:
             final_result = str(rs_session[0]["end_test_heroics"] - rs_session[0]["start_test_heroics"])
             if int(final_result) > 0:
-                embed.add_field(name="Gained test. heroics", value=chat_formatting.inline(f"+{final_result}"),
-                                inline=True)
+                embed.add_field(name="Gained test. heroics", value=chat_formatting.inline(f"+{final_result}"))
             elif int(final_result) < 0:
-                embed.add_field(name="Lost test. heroics", value=chat_formatting.inline(str(final_result)), inline=True)
+                embed.add_field(name="Lost test. heroics", value=chat_formatting.inline(str(final_result)))
 
         if rs_session[0]["start_proof_heroics"] != rs_session[0]["end_proof_heroics"]:
             final_result = str(rs_session[0]["end_proof_heroics"] - rs_session[0]["start_proof_heroics"])
             if int(final_result) > 0:
-                embed.add_field(name="Gained proof heroics", value=chat_formatting.inline(f"+{final_result}"),
-                                inline=True)
+                embed.add_field(name="Gained proof heroics", value=chat_formatting.inline(f"+{final_result}"))
             elif int(final_result) < 0:
-                embed.add_field(name="Lost proof heroics", value=chat_formatting.inline(str(final_result)), inline=True)
+                embed.add_field(name="Lost proof heroics", value=chat_formatting.inline(str(final_result)))
 
         if rs_session[0]["start_badges_honor"] != rs_session[0]["end_badges_honor"]:
             final_result = str(rs_session[0]["end_badges_honor"] - rs_session[0]["start_badges_honor"])
             if int(final_result) > 0:
-                embed.add_field(name="Gained badges of honor", value=chat_formatting.inline(f"+{final_result}"),
-                                inline=True)
+                embed.add_field(name="Gained badges of honor", value=chat_formatting.inline(f"+{final_result}"))
             elif int(final_result) < 0:
-                embed.add_field(name="Lost badges of honor", value=chat_formatting.inline(str(final_result)),
-                                inline=True)
+                embed.add_field(name="Lost badges of honor", value=chat_formatting.inline(str(final_result)))
 
         if rs_session[0]["start_guild_commendations"] != rs_session[0]["end_guild_commendations"]:
             final_result = str(rs_session[0]["end_guild_commendations"]-rs_session[0]["start_guild_commendations"])
             if int(final_result) > 0:
-                embed.add_field(name="Gained guild commendations", value=chat_formatting.inline(f"+{final_result}"),
-                                inline=True)
+                embed.add_field(name="Gained guild commendations", value=chat_formatting.inline(f"+{final_result}"))
             elif int(final_result) < 0:
-                embed.add_field(name="Lost guild commendations", value=chat_formatting.inline(str(final_result)),
-                                inline=True)
+                embed.add_field(name="Lost guild commendations", value=chat_formatting.inline(str(final_result)))
 
         if still_playing_msg is not None:
             await ctx.send(still_playing_msg)
         await bot_utils.send_embed(ctx, embed)
     else:
-        await bot_utils.send_private_error_msg(
+        await bot_utils.send_error_msg(
             ctx,
             "No records were found in your name.\n"
             "You are probably trying to execute this command without playing the game.\n"
             "Make sure your status is NOT set to invisible in discord.\n"
             "Make sure \"Display current running game as a status message\" is ON.\n"
-            "Make sure to start discord on your Desktop FIRST before starting Guild Wars 2."
+            "Make sure to start discord on your Desktop FIRST before starting Guild Wars 2.",
+            True
         )
 
 

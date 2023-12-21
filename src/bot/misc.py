@@ -169,6 +169,7 @@ class Misc(commands.Cog):
 
         if ctx.subcommand_passed is not None:
             raise commands.BadArgument(message="BadArgument")
+
         await ctx.message.channel.typing()
         server = ctx.guild
         online = len([m.status for m in server.members
@@ -195,7 +196,7 @@ class Misc(commands.Cog):
         embed.add_field(name="Roles", value=len(server.roles))
         embed.add_field(name="Owner", value=str(server.owner))
         embed.add_field(name='Emojis', value=len(server.emojis))
-        embed.set_footer(text=f"Server ID: {server.id} | {now.strftime('%c')}")
+        embed.set_footer(text=f"Server ID: {server.id} | {created}")
 
         if server.icon.url:
             embed.set_author(name=server.name, url=server.icon.url)
@@ -255,7 +256,7 @@ class Misc(commands.Cog):
         embed.add_field(name="Joined Discord on", value=created_on)
         embed.add_field(name="Joined this server on", value=joined_on)
         embed.add_field(name="Roles", value=roles_str.replace("@", ""), inline=False)
-        embed.set_footer(text=f"Member #{member_number} | User ID:{user.id} | {now.strftime('%c')}")
+        embed.set_footer(text=f"Member #{member_number} | User ID:{user.id} | {bot_utils.get_current_date_time_str()}")
 
         name = str(user)
         name = " ~ ".join((name, user.nick)) if user.nick else name
@@ -283,23 +284,8 @@ class Misc(commands.Cog):
         author = self.bot.get_user(self.bot.owner_id)
         python_version = "Python {}.{}.{}".format(*sys.version_info[:3])
 
-        games_included = None
-        if constants.GAMES_INCLUDED is not None:
-            if len(constants.GAMES_INCLUDED) == 1:
-                games_included = f"{constants.GAMES_INCLUDED[0]}"
-            elif len(constants.GAMES_INCLUDED) > 1:
-                games_included = ""
-                for games in constants.GAMES_INCLUDED:
-                    games_included += f"({games}) "
-
-        apis_included = None
-        if constants.APIS_INCLUDED is not None:
-            if len(constants.APIS_INCLUDED) == 1:
-                apis_included = f"{constants.APIS_INCLUDED[0]}"
-            elif len(constants.APIS_INCLUDED) > 1:
-                apis_included = ""
-                for apis in constants.APIS_INCLUDED:
-                    apis_included += f"({apis}) "
+        apis_included = self._get_apis_included(constants.APIS_INCLUDED)
+        games_included = self._get_apis_included(constants.GAMES_INCLUDED)
 
         dev_info_msg = (f"Developed as an open source project and hosted on [GitHub]({bot_webpage_url})\n"
                         f"A python discord api wrapper: [discord.py]({constants.DISCORDPY_URL})\n""")
@@ -307,36 +293,49 @@ class Misc(commands.Cog):
         bot_stats = bot_utils.get_bot_stats(self.bot)
         servers = bot_stats["servers"]
         users = bot_stats["users"]
-        # channels = bot_stats["channels"]
+        channels = bot_stats["channels"]
 
         embed = discord.Embed(description=str(self.bot.description))
         embed.set_author(name=f"{self.bot.user.name} v{constants.VERSION}", icon_url=bot_avatar, url=bot_webpage_url)
         embed.set_thumbnail(url=bot_avatar)
-        embed.set_footer(text=f"Developed by {str(author)} | {python_version}", icon_url=author.avatar.url)
+        embed.set_footer(icon_url=author.avatar.url, text=f"Developed by {str(author)} | {python_version}")
 
         embed.add_field(name="Development Info", value=dev_info_msg, inline=False)
-        embed.add_field(name="Servers", value=f"{servers}", inline=True)
-        embed.add_field(name="Users", value=f"{users}", inline=True)
-        # embed.add_field(name="Channels", value=f"{channels}", inline=True)
+        embed.add_field(name="Servers", value=f"{servers}")
+        embed.add_field(name="Users", value=f"{users}")
+        embed.add_field(name="Channels", value=f"{channels}")
         if apis_included is not None:
             embed.add_field(name="APIs Included", value=apis_included, inline=False)
         if games_included is not None:
             embed.add_field(name="Games Included", value=games_included, inline=False)
-        embed.add_field(name="Download", value=f"[Version {constants.VERSION}]({bot_webpage_url})", inline=True)
-        embed.add_field(name="Donations", value=f"[Paypal]({constants.PAYPAL_URL})", inline=True)
+        embed.add_field(name="Download", value=f"[Version {constants.VERSION}]({bot_webpage_url})")
+        embed.add_field(name="Donations", value=f"[Paypal]({constants.PAYPAL_URL})")
         embed.add_field(name="Help", value=f"For a list of command categories, type `{ctx.prefix}help`", inline=False)
         await bot_utils.send_embed(ctx, embed)
 
-    # @commands.command()
-    # @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
-    # async def test(self, ctx):
-    #     """(test)"""
-    #
-    #     msg = "test"
-    #     color = discord.Color.red()
-    #     embed = discord.Embed(color=color, description=msg)
-    #     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
-    #     await bot_utils.send_embed(ctx, embed, True)
+    @staticmethod
+    def _get_apis_included(apis_const: tuple):
+        result = None
+        if apis_const is not None:
+            if len(apis_const) == 1:
+                result = f"{apis_const[0]}"
+            elif len(apis_const) > 1:
+                result = ""
+                for apis in apis_const:
+                    result += f"({apis}) "
+        return result
+
+    @commands.command()
+    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
+    async def test(self, ctx):
+        """(test)"""
+
+        msg = "test"
+        color = discord.Color.red()
+        embed = discord.Embed(color=color, description=msg)
+        embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
+        embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str()} UTC")
+        await bot_utils.send_embed(ctx, embed, True)
 
 
 async def setup(bot):

@@ -173,11 +173,11 @@ async def list_custom_commands(ctx):
     dates = '\n'.join(date)
 
     embed = discord.Embed()
-    embed.set_footer(text=f"For more info: {ctx.prefix}help admin cc")
     embed.set_author(name="Custom commands in this server", icon_url=f"{ctx.guild.icon.url}")
-    embed.add_field(name="Command", value=chat_formatting.inline(cmd), inline=True)
-    embed.add_field(name="Created by", value=chat_formatting.inline(authors), inline=True)
-    embed.add_field(name="Created at", value=chat_formatting.inline(dates), inline=True)
+    embed.add_field(name="Command", value=chat_formatting.inline(cmd))
+    embed.add_field(name="Created by", value=chat_formatting.inline(authors))
+    embed.add_field(name="Created at", value=chat_formatting.inline(dates))
+    embed.set_footer(text=f"For more info: {ctx.prefix}help admin cc")
     await bot_utils.send_embed(ctx, embed)
 
 

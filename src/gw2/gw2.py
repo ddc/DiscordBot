@@ -20,6 +20,7 @@ class GuildWars2(commands.Cog):
             gw2 wiki name_to_search
             gw2 info info_to_search
         """
+
         await bot_utils.invoke_subcommand(ctx, "gw2")
 
 
