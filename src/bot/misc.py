@@ -47,32 +47,32 @@ class Misc(commands.Cog):
         """
 
         await ctx.message.channel.typing()
-        display_filename = f"{bot_utils.get_member_name_by_id(ctx, ctx.message.author.id)}.mp3"
+        display_filename = f"{bot_utils.get_member_by_id(ctx.guild, ctx.message.author.id)}.mp3"
         new_tts_msg = []
 
         if "<@!" in tts_text or "<:" in tts_text:
-            msg_text = tts_text.split(' ')
+            msg_text = tts_text.split(" ")
             for msg in msg_text:
                 if "<@!" == msg[0:3]:
-                    member_id = msg.strip(' ').strip('<@!').strip('>')
+                    member_id = msg.strip(" ").strip("<@!").strip(">")
                     member = ctx.guild.get_member(int(member_id))
                     new_tts_msg.append(f"@{member.display_name}")
                 elif "<:" == msg[0:2] and ">" == msg[-1]:
-                    emoji_id = msg.split(":")[2].strip('>')
+                    emoji_id = msg.split(":")[2].strip(">")
                     if len(emoji_id) >= 18:
                         emoji_name = msg.split(":")[1]
                         new_tts_msg.append(emoji_name)
                 elif len(msg) > 0:
                     new_tts_msg.append(msg)
 
-            new_tts_msg = ' '.join(new_tts_msg)
+            new_tts_msg = " ".join(new_tts_msg)
 
         if len(new_tts_msg) == 0:
             new_tts_msg = tts_text
 
         try:
             mp3_fp = BytesIO()
-            tts = gTTS(text=new_tts_msg, lang='en')
+            tts = gTTS(text=new_tts_msg, lang="en")
             tts.write_to_fp(mp3_fp)
         except AssertionError as e:
             err_msg = "No text to send to TTS API"
@@ -138,23 +138,23 @@ class Misc(commands.Cog):
         server = ctx.guild
         active_invites = await server.invites()
 
-        revoked_invites = ['~~{0.code}: `{0.channel}` created by `{0.inviter}`~~ '.format(x) for x in active_invites if
+        revoked_invites = ["~~{0.code}: `{0.channel}` created by `{0.inviter}`~~ ".format(x) for x in active_invites if
                            x.revoked]
-        unlimited_invites = ['[`{0.code}`]({0.url}): `{0.channel}` created by `{0.inviter}`'.format(x) for x in
+        unlimited_invites = ["[`{0.code}`]({0.url}): `{0.channel}` created by `{0.inviter}`".format(x) for x in
                              active_invites if x.max_age == 0 and x not in revoked_invites]
-        limited_invites = ['[`{0.code}`]({0.url}): `{0.channel}` created by `{0.inviter}`'.format(x) for x in
+        limited_invites = ["[`{0.code}`]({0.url}): `{0.channel}` created by `{0.inviter}`".format(x) for x in
                            active_invites if x.max_age != 0 and x not in revoked_invites]
 
-        embed = discord.Embed(title='Invite Links')
+        embed = discord.Embed(title="Invite Links")
         embed.set_thumbnail(url=server.icon.url)
 
         if unlimited_invites:
-            embed.add_field(name=f'Unlimited Invites ({len(unlimited_invites)})',
-                            value='\n'.join(unlimited_invites[:5]))
+            embed.add_field(name=f"Unlimited Invites ({len(unlimited_invites)})",
+                            value="\n".join(unlimited_invites[:5]))
         if limited_invites:
-            embed.add_field(name=f'Temporary Invites ({len(limited_invites)})', value='\n'.join(limited_invites))
+            embed.add_field(name=f"Temporary Invites ({len(limited_invites)})", value="\n".join(limited_invites))
         if revoked_invites:
-            embed.add_field(name=f'Revoked Invites ({len(revoked_invites)})', value='\n'.join(revoked_invites))
+            embed.add_field(name=f"Revoked Invites ({len(revoked_invites)})", value="\n".join(revoked_invites))
         if len(unlimited_invites) > 0 or len(limited_invites) > 0 or len(revoked_invites) > 0:
             await bot_utils.send_embed(ctx, embed)
         else:
@@ -195,7 +195,7 @@ class Misc(commands.Cog):
         embed.add_field(name="Voice Channels", value=voice_channels)
         embed.add_field(name="Roles", value=len(server.roles))
         embed.add_field(name="Owner", value=str(server.owner))
-        embed.add_field(name='Emojis', value=len(server.emojis))
+        embed.add_field(name="Emojis", value=len(server.emojis))
         embed.set_footer(text=f"Server ID: {server.id} | {created}")
 
         if server.icon.url:

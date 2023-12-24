@@ -59,7 +59,7 @@ async def add_custom_command(ctx):
 
     commands_dal = CustomCommandsDal(ctx.bot.db_session, ctx.bot.log)
     rs = await commands_dal.get_command(ctx.guild.id, str(cmd_name))
-    if len(rs) == 0:
+    if not rs:
         await commands_dal.insert_command(ctx.guild.id, ctx.author.id, cmd_name, description)
         await bot_utils.send_msg(ctx, f"Custom command successfully added:\n`{ctx.prefix}{cmd_name}`")
     else:
@@ -84,7 +84,7 @@ async def remove_custom_command(ctx):
 
     commands_dal = CustomCommandsDal(ctx.bot.db_session, ctx.bot.log)
     rs = await commands_dal.get_all_server_commands(ctx.guild.id)
-    if len(rs) == 0:
+    if not rs:
         return await bot_utils.send_warning_msg(ctx, "There are no custom commands in this server.")
 
     if cmd_name in [x.name for x in rs]:
@@ -114,9 +114,8 @@ async def edit_custom_command(ctx):
 
     commands_dal = CustomCommandsDal(ctx.bot.db_session, ctx.bot.log)
     rs = await commands_dal.get_all_server_commands(ctx.guild.id)
-    if len(rs) == 0:
-        await bot_utils.send_error_msg(ctx, "There are no custom commands in this server.")
-        return
+    if not rs:
+        return await bot_utils.send_error_msg(ctx, "There are no custom commands in this server.")
 
     if cmd_name in [x.name for x in rs]:
         await commands_dal.update_command_description(ctx.guild.id, ctx.author.id, cmd_name, description)
@@ -136,9 +135,8 @@ async def remove_all_custom_commands(ctx):
 
     commands_dal = CustomCommandsDal(ctx.bot.db_session, ctx.bot.log)
     rs = await commands_dal.get_all_server_commands(ctx.guild.id)
-    if len(rs) == 0:
-        await bot_utils.send_error_msg(ctx, "There are no custom commands in this server.")
-        return
+    if not rs:
+        return await bot_utils.send_error_msg(ctx, "There are no custom commands in this server.")
 
     await commands_dal.delete_all_commands(ctx.guild.id)
     await bot_utils.send_msg(ctx, "All custom commands from this server were successfully removed.")
@@ -155,22 +153,21 @@ async def list_custom_commands(ctx):
 
     commands_dal = CustomCommandsDal(ctx.bot.db_session, ctx.bot.log)
     rs = await commands_dal.get_all_server_commands(ctx.guild.id)
-    if len(rs) == 0:
-        await bot_utils.send_warning_msg(ctx, "There are no custom commands in this server.")
-        return
+    if not rs:
+        return await bot_utils.send_warning_msg(ctx, "There are no custom commands in this server.")
 
     command = []
     author = []
     date = []
     for i, each in enumerate(rs, 1):
-        author_name = bot_utils.get_member_name_by_id(ctx, each["created_by"])
+        author_name = bot_utils.get_member_by_id(ctx.guild, each["created_by"])
         command.append(f"{i}) {each['name']}")
         author.append(author_name)
         date.append(str(each['created_at'])[:-7])
 
-    cmd = '\n'.join(command)
-    authors = '\n'.join(author)
-    dates = '\n'.join(date)
+    cmd = "\n".join(command)
+    authors = "\n".join(author)
+    dates = "\n".join(date)
 
     embed = discord.Embed()
     embed.set_author(name="Custom commands in this server", icon_url=f"{ctx.guild.icon.url}")

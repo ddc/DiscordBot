@@ -25,7 +25,7 @@ async def config(ctx):
         admin config membermessage   [on | off]
         admin config blockinvisible  [on | off]
         admin config botreactions    [on | off]
-        admin config pfilter         [on | off] <channel_name>
+        admin config pfilter         [on | off] <channel_id>
     """
 
     await bot_utils.invoke_subcommand(ctx, "admin config")
@@ -33,12 +33,13 @@ async def config(ctx):
 
 @config.command(name="joinmessage")
 @commands.cooldown(1, CoolDowns.Config.value, BucketType.user)
-async def config_join_message(ctx):
+async def config_join_message(ctx, *, status: str):
     """(Show message when a user joins the server)
-            admin config joinmessage [on | off]
+            admin config joinmessage on
+            admin config joinmessage off
     """
 
-    match ctx.subcommand_passed:
+    match status:
         case "on" | "ON":
             new_status = True
             color = discord.Color.green()
@@ -59,14 +60,13 @@ async def config_join_message(ctx):
 
 @config.command(name="leavemessage")
 @commands.cooldown(1, CoolDowns.Config.value, BucketType.user)
-async def config_leave_message(ctx):
+async def config_leave_message(ctx, *, status: str):
     """(Show message when a user leaves the server)
-
-    Example:
-    admin config leavemessage [on | off]
+            admin config leavemessage on
+            admin config leavemessage off
     """
 
-    match ctx.subcommand_passed:
+    match status:
         case "on | ON":
             new_status = True
             color = discord.Color.green()
@@ -86,14 +86,13 @@ async def config_leave_message(ctx):
 
 @config.command(name="servermessage")
 @commands.cooldown(1, CoolDowns.Config.value, BucketType.user)
-async def config_server_message(ctx):
+async def config_server_message(ctx, *, status: str):
     """(Show message when a server gets updated)
-
-    Example:
-    admin config servermessage [on | off]
+            admin config servermessage on
+            admin config servermessage off
     """
 
-    match ctx.subcommand_passed:
+    match status:
         case "on" | "ON":
             new_status = True
             color = discord.Color.green()
@@ -113,14 +112,13 @@ async def config_server_message(ctx):
 
 @config.command(name="membermessage")
 @commands.cooldown(1, CoolDowns.Config.value, BucketType.user)
-async def config_member_message(ctx):
+async def config_member_message(ctx, *, status: str):
     """(Show message when a member make changes on his/her profile)
-
-    Example:
-    admin config membermessage [on | off]
+            admin config membermessage on
+            admin config membermessage off
     """
 
-    match ctx.subcommand_passed:
+    match status:
         case "on" | "ON":
             new_status = True
             color = discord.Color.green()
@@ -140,14 +138,13 @@ async def config_member_message(ctx):
 
 @config.command(name="blockinvisible")
 @commands.cooldown(1, CoolDowns.Config.value, BucketType.user)
-async def config_block_invis_members(ctx):
+async def config_block_invis_members(ctx, *, status: str):
     """(Block messages from invisible members)
-
-    Example:
-    admin config blockinvisible [on | off]
+            admin config blockinvisible on
+            admin config blockinvisible off
     """
 
-    match ctx.subcommand_passed:
+    match status:
         case "on" | "ON":
             new_status = True
             color = discord.Color.green()
@@ -167,14 +164,13 @@ async def config_block_invis_members(ctx):
 
 @config.command(name="botreactions")
 @commands.cooldown(1, CoolDowns.Config.value, BucketType.user)
-async def config_bot_word_reactions(ctx):
+async def config_bot_word_reactions(ctx, *, status: str):
     """(Bot will react to member words)
-
-    Example:
-    admin config botreactions [on | off]
+            admin config botreactions on
+            admin config botreactions off
     """
 
-    match ctx.subcommand_passed:
+    match status:
         case "on" | "ON":
             new_status = True
             color = discord.Color.green()
@@ -194,20 +190,25 @@ async def config_bot_word_reactions(ctx):
 
 @config.command(name="pfilter")
 @commands.cooldown(1, CoolDowns.Config.value, BucketType.user)
-async def config_pfilter(ctx):
+async def config_pfilter(ctx, *, subcommand_passed):
     """(Block offensive words by users)
-
-    Example:
-    admin config pfilter [on | off] <channel_id>
+        Bot needs to have a permission to Manage Messages
+            admin config pfilter on <channel_id>
+            admin config pfilter off <channel_id>
     """
 
-    new_status = ctx.subcommand_passed
-    new_channel_id = " ".join(ctx.message.content.split()[4:])
-
-    if not new_status or len(new_channel_id) == 0:
+    help_command = f"For more info on this command: {chat_formatting.inline(f'{ctx.prefix}help admin config pfilter')}"
+    subcommands = subcommand_passed.split()
+    if len(subcommands) < 2:
         return await bot_utils.send_error_msg(ctx, "Missing required argument!!!\n"
-                                                   "For more info on this command: "
-                                                   f"{chat_formatting.inline('?help admin config pfilter')}")
+                                                   f"{help_command}")
+
+    new_status = subcommand_passed.split()[0]
+    new_channel_id = subcommand_passed.split()[1]
+
+    if not new_channel_id.isnumeric():
+        return await bot_utils.send_error_msg(ctx, "Chnanel id should be used instead of its name!!!\n"
+                                                   f"{help_command}")
     if new_channel_id not in [str(x.id) for x in ctx.guild.text_channels]:
         return await bot_utils.send_error_msg(ctx, f"Channel id not found: {chat_formatting.inline(new_channel_id)}")
 
@@ -219,9 +220,8 @@ async def config_pfilter(ctx):
         case "on" | "ON":
             # check if bot has permission to delete messages
             if not ctx.guild.me.guild_permissions.administrator or not ctx.guild.me.guild_permissions.manage_messages:
-                msg = ("`Bot does not have permission to delete messages.\n"
-                       "Profanity filter could not be activated.\n"
-                       "Missing permission: \"Manage Messages\"`")
+                msg = ("`Bot does not have permission to \"Manage Messages\".\n\n"
+                       "Profanity Filter could not be activated.`")
                 return await bot_utils.send_error_msg(ctx, msg)
 
             embed.color = discord.Color.green()
@@ -241,9 +241,7 @@ async def config_pfilter(ctx):
 @commands.cooldown(1, CoolDowns.Config.value, BucketType.user)
 async def config_list(ctx):
     """(List all bot configurations)
-
-    Example:
-    admin config list
+            admin config list
     """
 
     cmd_prefix = f"{ctx.prefix}admin config"
@@ -255,7 +253,7 @@ async def config_list(ctx):
 
     if len(pf) > 0:
         channel_names_lst = [x['channel_name'] for x in pf]
-        channel_names = '\n'.join(channel_names_lst)
+        channel_names = "\n".join(channel_names_lst)
     else:
         channel_names = "No channels listed"
 

@@ -141,11 +141,11 @@ async def get_world_name_population(ctx, wids: str):
         name = []
         endpoint = f"worlds?ids={wids}"
         gw2_api = Gw2Api(ctx.bot)
-        results = await gw2_api.call_api(endpoint)
-        if len(results) == 0:
+        rs = await gw2_api.call_api(endpoint)
+        if not rs:
             return None
         else:
-            for x in results:
+            for x in rs:
                 name.append(x["name"])
                 # name.append(x["name"]+" ("+x["population"]+")")
     except:
@@ -157,11 +157,11 @@ async def get_world_name(self, wids: str):
     try:
         endpoint = f"worlds?ids={wids}"
         gw2_api = Gw2Api(self.bot)
-        results = await gw2_api.call_api(endpoint)
-        if len(results) == 0:
-            return None
+        rs = await gw2_api.call_api(endpoint)
+        if not rs:
+            name = None
         else:
-            name = results["name"]
+            name = rs["name"]
     except:
         name = None
     return name
@@ -375,7 +375,6 @@ def get_wvw_rank_title(rank: int):
             title = "Legend"
         case _:
             title = ""
-
     return f"{prefix} {title}"
 
 

@@ -7,7 +7,7 @@ from pathlib import Path
 
 IS_DEBUG = True
 DEFAULT_PREFIX = "!"
-ALLOWED_PREFIXES = "!$%^&?><.;"
+ALLOWED_PREFIXES = ["!", "?", "$", "%", "&", "."]
 TIME_BEFORE_START = 5 if IS_DEBUG is False else 0
 INTERACTIVE_MODE = len(sys.argv) <= 1
 PYTHON_OK = sys.version_info >= (3, 6)

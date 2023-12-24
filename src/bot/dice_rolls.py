@@ -39,23 +39,27 @@ class DiceRolls(commands.Cog):
                 dice_size = int(ctx.subcommand_passed)
             else:
                 msg = "Thats not a valid dice size.\nPlease try again."
-                await bot_utils.send_error_msg(ctx, msg)
-                return
+                return await bot_utils.send_error_msg(ctx, msg)
 
         if dice_size > 1:
-            server_highest_roll = 0
-            roll = random.randint(1, dice_size)
-            user_best_roll = 0
-            server_highest_user = None
             msg = ""
+            roll = random.randint(1, dice_size)
 
             dice_rolls_dal = DiceRollsDal(self.bot.db_session, self.bot.log)
-            rs_user = await dice_rolls_dal.get_user_rolls_by_dice_size(server.id, author.id, dice_size)
-            if len(rs_user) == 0:
+            rs_user = await dice_rolls_dal.get_user_roll_by_dice_size(server.id, author.id, dice_size)
+            if not rs_user:
+                user_highest_roll = 0
                 await dice_rolls_dal.insert_user_roll(server.id, author.id, dice_size, roll)
             else:
-                user_best_roll = rs_user[0]["roll"]
+                user_highest_roll = rs_user[0]["roll"]
 
+            if roll > user_highest_roll:
+                user_highest_roll = roll
+                msg += ":star2: This is now your highest roll :star2:\n"
+                await dice_rolls_dal.update_user_roll(server.id, author.id, dice_size, roll)
+
+            server_highest_user = None
+            server_highest_roll = 0
             rs_server_max_roll = await dice_rolls_dal.get_server_max_roll(ctx.guild.id, dice_size)
             if len(rs_server_max_roll) > 0:
                 user = bot_utils.get_member_by_id(ctx.guild, rs_server_max_roll[0]["user_id"])
@@ -69,23 +73,17 @@ class DiceRolls(commands.Cog):
                 server_highest_roll = roll
                 server_highest_user = author
 
-            if roll > user_best_roll:
-                msg += ":star2: This is now your highest roll :star2:\n"
-                await dice_rolls_dal.update_user_roll(server.id, author.id, dice_size, roll)
-                user_best_roll = roll
-
             if server_highest_user is None or server_highest_user == author:
-                msg += f":crown: You are the server winner with {user_best_roll}\n"
+                msg += f":crown: You are the server winner with {user_highest_roll}\n"
             else:
-                highest_roll_user_name = bot_utils.get_member_name_by_id(ctx, server_highest_user.id)
+                highest_roll_user_name = bot_utils.get_member_by_id(ctx.guild, server_highest_user.id)
                 msg += f"`{highest_roll_user_name}` has the server highest roll with {server_highest_roll}\n"
-                msg += f"Your highest roll is {user_best_roll}\n"
+                msg += f"Your highest roll is {user_highest_roll}\n"
 
             msg += f":game_die: {roll} :game_die:\n"
-
             color = discord.Color.red()
             embed = discord.Embed(description=msg, color=color)
-            embed.set_author(name=bot_utils.get_member_name_by_id(ctx), icon_url=author.avatar.url)
+            embed.set_author(name=author.display_name, icon_url=author.avatar.url)
             await bot_utils.send_embed(ctx, embed)
         else:
             await bot_utils.send_error_msg(ctx, "Dice size needs to be higher than 1")
@@ -113,7 +111,7 @@ class DiceRolls(commands.Cog):
 
         dice_rolls_sql = DiceRollsDal(self.bot.db_session, self.bot.log)
         rs_all_server_rolls = await dice_rolls_sql.get_all_server_rolls(server.id, dice_size)
-        if len(rs_all_server_rolls) == 0:
+        if not rs_all_server_rolls:
             msg = f"There are no dice rolls of the size {dice_size} in this server."
             await bot_utils.send_error_msg(ctx, msg)
             return
@@ -121,8 +119,8 @@ class DiceRolls(commands.Cog):
         member_lst = []
         rolls_lst = []
         for position, each_user in enumerate(rs_all_server_rolls, 1):
-            member_name = bot_utils.get_member_name_by_id(ctx, each_user["user_id"])
-            member_lst.append(f"{position}) {member_name}")
+            member = bot_utils.get_member_by_id(ctx.guild, each_user["user_id"])
+            member_lst.append(f"{position}) {member.display_name}")
             rolls_lst.append(str(each_user["roll"]))
 
         members = "\n".join(member_lst)

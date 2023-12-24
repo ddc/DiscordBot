@@ -16,7 +16,7 @@ class Admin(commands.Cog):
     @Checks.check_is_admin()
     async def admin(self, ctx):
         """(Admin Commands)
-            admin botgame <game>
+                admin botgame <game>
         """
 
         await bot_utils.invoke_subcommand(ctx, "admin")
@@ -25,7 +25,7 @@ class Admin(commands.Cog):
     @commands.cooldown(1, CoolDowns.Admin.value, BucketType.user)
     async def botgame(self, ctx, *, game: str):
         """(Change game that bot is playing)
-            admin botgame <game>
+                admin botgame <game>
         """
 
         prefix = self.bot.command_prefix[0]
@@ -36,10 +36,10 @@ class Admin(commands.Cog):
         embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar.url)
         await bot_utils.send_embed(ctx, embed)
 
-        if self.bot.settings["bot"]["BGChangeGame"].lower() == "yes":
+        bg_activity_timer = self.bot.settings["bot"]["BGActivityTimer"]
+        if bg_activity_timer and bg_activity_timer > 0:
             bg_task_warning = (f"Background task running to update bot activity is ON\n"
-                               f"Activity will change after "
-                               f"{self.bot.settings['bot']['BGActivityTimer']} secs.")
+                               f"Activity will change after {bg_activity_timer} secs.")
             embed.description = bg_task_warning
             await bot_utils.send_embed(ctx, embed, True)
 

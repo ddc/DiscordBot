@@ -59,7 +59,7 @@ async def run_alembic_migrations():
     command.upgrade(alembic_cfg, "head")
 
 
-async def insert_server(bot, server):
+async def insert_server(bot, server: discord.Guild):
     servers_dal = ServersDal(bot.db_session, bot.log)
     await servers_dal.insert_server(server.id, server.name)
 
@@ -68,9 +68,10 @@ async def insert_server(bot, server):
 
 
 async def init_background_tasks(bot):
-    if bot.settings["bot"]["BGChangeGame"].lower() == "yes":
+    bg_activity_timer = bot.settings["bot"]["BGActivityTimer"]
+    if bg_activity_timer and bg_activity_timer > 0:
         bg_tasks = BackGroundTasks(bot)
-        bot.loop.create_task(bg_tasks.bgtask_change_presence(bot.settings["bot"]["BGActivityTimer"]))
+        bot.loop.create_task(bg_tasks.bgtask_change_presence(bg_activity_timer))
 
 
 async def load_cogs(bot):
@@ -153,20 +154,6 @@ async def send_embed(ctx, embed, dm=False):
         ctx.bot.logger.error(e)
 
 
-def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
-    logger = logging.getLogger()
-    stderr_hdlr = logging.StreamHandler(stream=sys.stdout)
-    stderr_hdlr.setLevel(logging.INFO)
-    fmt = "[%(asctime)s.%(msecs)03d]:[%(levelname)s]:%(message)s"
-    formatter = logging.Formatter(fmt, datefmt="%Y-%m-%dT%H:%M:%S")
-    stderr_hdlr.setFormatter(formatter)
-    logger.addHandler(stderr_hdlr)
-    if issubclass(exc_type, KeyboardInterrupt) or issubclass(exc_type, EOFError):
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
-    logger.exception("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-
-
 async def delete_message(ctx, warning=False):
     if not is_private_message(ctx):
         try:
@@ -223,26 +210,14 @@ def get_object_member_by_str(ctx, member_str: str):
     return None
 
 
-# def get_user_by_id(bot, user_id: int):
-#     user = bot.get_user(int(user_id))
-#     return user
+def get_user_by_id(bot, user_id: int):
+    user = bot.get_user(int(user_id))
+    return user
 
 
-def get_member_by_id(guild, member_id: int):
+def get_member_by_id(guild: discord.Guild, member_id: int):
     member = guild.get_member(int(member_id))
     return member
-
-
-# def get_member_name_by_id(ctx, user_id: int = None):
-#     if user_id:
-#         member = ctx.guild.get_member(int(user_id))
-#     else:
-#         member = ctx.guild.get_member(int(ctx.message.author.id))
-#
-#     if member is not None:
-#         return str(member.nick) if member.nick is not None else member.display_name
-#     else:
-#         return None
 
 
 async def send_msg_to_system_channel(log, server, embed, plain_msg=None):
@@ -370,8 +345,27 @@ def get_bot_stats(bot):
             elif isinstance(c, discord.VoiceChannel):
                 voice_channels += 1
 
-    result['servers'] = f"{len(bot.guilds)} servers"
-    result['users'] = f"({unique_users} users)({bot_users} bots)[{len(bot.users)} total]"
-    result['channels'] = f"({text_channels} text)({voice_channels} voice)[{int(text_channels + voice_channels)} total]"
+    result["servers"] = f"{len(bot.guilds)} servers"
+    result["users"] = f"({unique_users} users)({bot_users} bots)[{len(bot.users)} total]"
+    result["channels"] = f"({text_channels} text)({voice_channels} voice)[{int(text_channels + voice_channels)} total]"
+
+    if bot.start_time is None:
+        result["start_time"] = get_current_date_time()
+    else:
+        result["start_time"] = bot.start_time
 
     return result
+
+
+def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
+    logger = logging.getLogger()
+    stderr_hdlr = logging.StreamHandler(stream=sys.stdout)
+    stderr_hdlr.setLevel(logging.INFO)
+    fmt = "[%(asctime)s.%(msecs)03d]:[%(levelname)s]:%(message)s"
+    formatter = logging.Formatter(fmt, datefmt="%Y-%m-%dT%H:%M:%S")
+    stderr_hdlr.setFormatter(formatter)
+    logger.addHandler(stderr_hdlr)
+    if issubclass(exc_type, KeyboardInterrupt) or issubclass(exc_type, EOFError):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    logger.exception("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))

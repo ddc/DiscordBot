@@ -82,13 +82,13 @@ async def add(ctx, api_key: str):
     # searching if API key in local database
     gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
     rs = await gw2_key_dal.get_api_key(api_key)
-    if len(rs) == 0:
+    if not rs:
         await gw2_key_dal.insert_api_key(**kwargs)
         msg = f"Your key `{key_name}` was verified and was **added** to your discord account.\n" \
               f"Server: `{gw2_server_name}`\n" \
               f"To get info about your api key: `{ctx.prefix}gw2 key info`"
         await bot_utils.send_msg(ctx, msg, True, embed_color)
-    elif len(rs) == 1 and rs[0]["user_id"] == user_id:
+    elif rs[0]["user_id"] == user_id:
         await gw2_key_dal.update_api_key(**kwargs)
         msg = f"Your API key `{rs[0]['name']}` was **replaced** with your new key: `{key_name}`\n" \
               f"Server: `{gw2_server_name}`\n" \
@@ -108,8 +108,8 @@ async def remove(ctx):
     user_id = ctx.message.author.id
     gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
 
-    rs_key = await gw2_key_dal.get_api_key_by_user(user_id)
-    if len(rs_key) == 0:
+    rs = await gw2_key_dal.get_api_key_by_user(user_id)
+    if not rs:
         await bot_utils.send_error_msg(ctx, "You dont have an API key registered.\n"
                                             f"To add or replace an API key send a DM with: `{ctx.prefix}gw2 key add <api_key>`\n"
                                             f"To check your API key: `{ctx.prefix}gw2 key info`",
@@ -141,7 +141,7 @@ async def info(ctx, key_name: str = None):
     else:
         rs = await gw2_key_dal.get_api_key_by_name(key_name)
 
-    if len(rs) == 0:
+    if not rs:
         await bot_utils.send_error_msg(ctx, no_user_key_found_error, True)
     else:
         try:

@@ -19,9 +19,12 @@ from src.gw2.utils import gw2_constants
 class Bot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.log = kwargs.get("log")
+        profanity.load_censor_words()
         self.aiosession = kwargs.get("aiosession")
         self.db_session = kwargs.get("db_session")
+        self.start_time = bot_utils.get_current_date_time()
+        self.log = kwargs.get("log")
+        self.profanity = profanity
         self.settings = {}
         self.set_bot_custom_settings(*args, **kwargs)
         self.set_other_cogs_settings(*args, **kwargs)
@@ -31,13 +34,21 @@ class Bot(commands.Bot):
         await bot_utils.load_cogs(self)
 
     def set_bot_custom_settings(self, *args, **kwargs):
-        profanity.load_censor_words()
         self.settings["bot"] = bot_utils.get_ini_section_settings(constants.SETTINGS_FILENAME, "Bot")
-        self.settings["bot"]["start_time"] = None
-        self.settings["bot"]["description"] = constants.DESCRIPTION
-        self.settings["bot"]["profanity"] = profanity
         self.settings["bot"]["EmbedColor"] = bot_utils.get_color_settings(self.settings["bot"]["EmbedColor"])
         self.settings["bot"]["EmbedOwnerColor"] = bot_utils.get_color_settings(self.settings["bot"]["EmbedOwnerColor"])
+
+        if self.settings["bot"]["AllowedDMCommands"]:
+            lst = sorted([x.strip() for x in self.settings["bot"]["AllowedDMCommands"].split(",")])
+            self.settings["bot"]["AllowedDMCommands"] = lst
+        else:
+            self.settings["bot"]["AllowedDMCommands"] = None
+
+        if self.settings["bot"]["BotReactionWords"]:
+            lst = sorted([x.strip() for x in self.settings["bot"]["BotReactionWords"].split(",")])
+            self.settings["bot"]["BotReactionWords"] = lst
+        else:
+            self.settings["bot"]["BotReactionWords"] = None
 
     def set_other_cogs_settings(self, *args, **kwargs):
         self.settings["gw2"] = bot_utils.get_ini_section_settings(gw2_constants.GW2_SETTINGS_FILENAME, "Gw2")
@@ -75,16 +86,16 @@ async def main():
 
         bot_kwargs = {
             "command_prefix": command_prefix,
+            "description": constants.DESCRIPTION,
             "activity": activity,
             "intents": intents,
-            "log": log,
             "aiosession": client_session,
             "db_session": db_session,
             "owner_id": int(constants.AUTHOR_ID),
+            "log": log,
         }
         async with Bot(**bot_kwargs) as bot:
             try:
-                a = 1
                 await bot_utils.init_background_tasks(bot)
                 await bot.start(os.environ.get("BOT_TOKEN"))
             except discord.LoginFailure:

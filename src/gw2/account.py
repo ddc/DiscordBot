@@ -30,7 +30,7 @@ async def account(ctx):
 
     gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
     rs = await gw2_key_dal.get_api_key_by_user(user_id)
-    if len(rs) == 0:
+    if not rs:
         return await bot_utils.send_error_msg(
             ctx,
             "You dont have an API key registered.\n"
@@ -135,9 +135,9 @@ async def account(ctx):
                         guild_leader_names.insert(i, full_name)
 
         if len(guilds_names) > 0:
-            embed.add_field(name="Guilds", value=chat_formatting.inline('\n'.join(guilds_names)), inline=False)
+            embed.add_field(name="Guilds", value=chat_formatting.inline("\n".join(guilds_names)), inline=False)
         if len(guild_leader_names) > 0:
-            embed.add_field(name="Guild Leader", value=chat_formatting.inline('\n'.join(guild_leader_names)), inline=False)
+            embed.add_field(name="Guild Leader", value=chat_formatting.inline("\n".join(guild_leader_names)), inline=False)
 
         days = (api_req_acc["age"] / 60) / 24
         created = api_req_acc["created"].split("T", 1)[0]

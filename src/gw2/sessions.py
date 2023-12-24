@@ -46,7 +46,7 @@ async def session(ctx):
     user_id = ctx.message.author.id
     gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
     rs_api_key = await gw2_key_dal.get_server_user_api_key(ctx.guild.id, user_id)
-    if len(rs_api_key) == 0:
+    if not rs_api_key:
         return await bot_utils.send_error_msg(ctx, "You dont have an API key registered.\n"
                                                    f"To add or replace an API key send a DM with: `{ctx.prefix}gw2 key add <api_key>`\n"
                                                    f"To check your API key: `{ctx.prefix}gw2 key info`")

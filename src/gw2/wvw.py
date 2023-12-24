@@ -38,17 +38,17 @@ async def info(ctx, *, world: str = None):
         try:
             gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
             rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
-            if len(rs) == 1:
-                api_key = rs[0]["key"]
-                results = await gw2_api.call_api("account", key=api_key)
-                wid = results["world"]
-            else:
+            if not rs:
                 return await bot_utils.send_error_msg(
                     ctx,
                     "You dont have an API key registered.\n"
                     f"To add or replace an API key send a DM with: `{ctx.prefix}gw2 key add <api_key>`\n"
                     f"To check your API key: `{ctx.prefix}gw2 key info`"
                 )
+
+            api_key = rs[0]["key"]
+            results = await gw2_api.call_api("account", key=api_key)
+            wid = results["world"]
         except APIKeyError:
             return await bot_utils.send_error_msg(ctx, "No world name or key associated with your account")
         except Exception as e:
@@ -153,11 +153,7 @@ async def match(ctx, *, world: str = None):
         try:
             gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
             rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
-            if len(rs) == 1:
-                api_key = rs[0]["key"]
-                results = await gw2_api.call_api("account", key=api_key)
-                wid = results["world"]
-            else:
+            if not rs:
                 return await bot_utils.send_error_msg(
                     ctx,
                     "Missing World Name\n"
@@ -165,6 +161,10 @@ async def match(ctx, *, world: str = None):
                     "Or register an API key on your account.\n"
                     f"To add or replace an API key send a DM with: `{ctx.prefix}gw2 key add <api_key>`\n"
                 )
+
+            api_key = rs[0]["key"]
+            results = await gw2_api.call_api("account", key=api_key)
+            wid = results["world"]
         except APIKeyError:
             return await bot_utils.send_error_msg(ctx, "No world name or API key associated with your account.")
         except Exception as e:
@@ -225,14 +225,13 @@ async def kdr(ctx, *, world: str = None):
         try:
             gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
             rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
-            if len(rs) == 1:
-                api_key = rs[0]["key"]
-                results = await gw2_api.call_api("account", key=api_key)
-                wid = results["world"]
-            else:
+            if not rs:
                 return await bot_utils.send_error_msg(ctx, "Invalid World Name\n"
                                                            f"Use {ctx.prefix}gw2 match <world_name> "
                                                            "Or register an API key on your account.")
+            api_key = rs[0]["key"]
+            results = await gw2_api.call_api("account", key=api_key)
+            wid = results["world"]
         except APIKeyError:
             return await bot_utils.send_error_msg(ctx, "No world name or key associated with your account")
         except Exception as e:

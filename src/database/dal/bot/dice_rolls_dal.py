@@ -34,7 +34,7 @@ class DiceRollsDal:
         stmt = sa.delete(DiceRolls).where(DiceRolls.server_id == server_id)
         await self.db_utils.execute(stmt)
 
-    async def get_user_rolls_by_dice_size(self, server_id: int, user_id: int, dice_size: int):
+    async def get_user_roll_by_dice_size(self, server_id: int, user_id: int, dice_size: int):
         columns = [x for x in DiceRolls.__table__.columns]
         stmt = select(*columns).where(
             DiceRolls.server_id == server_id,
@@ -44,7 +44,7 @@ class DiceRollsDal:
         results = await self.db_utils.fetchall(stmt)
         return results
 
-    async def get_user_rolls(self, server_id: int, user_id: int):
+    async def get_user_rolls_all_dice_sizes(self, server_id: int, user_id: int):
         columns = [x for x in DiceRolls.__table__.columns]
         stmt = select(*columns).where(
             DiceRolls.server_id == server_id,

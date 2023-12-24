@@ -48,20 +48,14 @@ class OnMessage(commands.Cog):
             if not await self._check_exclusive_users(ctx):
                 return
 
-            allowed_dm_commands = self.bot.settings["bot"]["DMCommands"]
+            allowed_dm_commands = self.bot.settings["bot"]["AllowedDMCommands"]
             if allowed_dm_commands is not None:
                 user_cmd = ctx.message.content.split(" ", 1)[0][1:]
 
-                if isinstance(allowed_dm_commands, (list, tuple)):
-                    sorted_allowed_cmds = sorted(allowed_dm_commands)
-                else:
-                    sorted_allowed_cmds = allowed_dm_commands.split()
+                if user_cmd in allowed_dm_commands:
+                    return await self.bot.process_commands(ctx.message)
 
-                if user_cmd in sorted_allowed_cmds:
-                    await self.bot.process_commands(ctx.message)
-                    return
-
-                str_allowed_dm_commands = '\n'.join(sorted_allowed_cmds)
+                str_allowed_dm_commands = "\n".join(allowed_dm_commands)
                 msg = "That command is not allowed in direct messages."
                 embed = discord.Embed(color=discord.Color.red(), description=f"{chat_formatting.error_inline(msg)}")
                 embed.add_field(name="Commands allowed in direct messages:",
@@ -88,7 +82,7 @@ class OnMessage(commands.Cog):
                 await self.bot.process_commands(ctx.message)
             return
 
-        # block messages from invisible members
+        # block messages/commands from invisible members
         if configs["block_invis_members"]:
             is_member_invis = self._check_member_invisible(ctx)
             if is_member_invis:
@@ -107,19 +101,19 @@ class OnMessage(commands.Cog):
                         await ctx.send(f"{ctx.message.author.mention} {msg}")
                 return
 
-        # remove bad words on current channel
-        if configs["profanity_filter"]:
-            bad_word = await self._check_censured_words(ctx)
-            if bad_word:
-                return
+        if not is_command:
+            # remove bad words on current channel
+            if configs["profanity_filter"]:
+                bad_word = await self._check_censured_words(ctx)
+                if bad_word:
+                    return
 
-        # check for bot reactions
-        if configs["bot_word_reactions"]:
-            custom_messages = await self._check_custom_messages(ctx.message)
-            if custom_messages:
-                return
-
-        if is_command:
+            # check for bot reactions
+            if configs["bot_word_reactions"]:
+                custom_messages = await self._check_custom_messages(ctx.message)
+                if custom_messages:
+                    return
+        else:
             ignore_prefixes_characteres = await self._check_prefixes_characteres(ctx.message)
             if ignore_prefixes_characteres:
                 return
@@ -183,7 +177,7 @@ class OnMessage(commands.Cog):
 
     async def _check_custom_messages(self, message):
         msg = message.system_content.lower()
-        cwords = [x.strip() for x in self.bot.settings["bot"]["BotReactWords"].split(",")]
+        cwords = self.bot.settings["bot"]["BotReactionWords"]
         cwords.append("🖕")
         config_word_found = False
         bot_word_found_in_message = False

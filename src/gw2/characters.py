@@ -29,7 +29,7 @@ async def characters(ctx):
 
     gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
     rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
-    if len(rs) == 0:
+    if not rs:
         return await bot_utils.send_error_msg(
             ctx,
             "You dont have an API key registered.\n"
