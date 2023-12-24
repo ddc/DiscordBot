@@ -3,7 +3,6 @@ import configparser
 from datetime import datetime, timezone
 from enum import Enum
 import json
-import logging.handlers
 from operator import attrgetter
 from random import choice
 import sys
@@ -194,11 +193,15 @@ def get_current_date_time():
 
 
 def get_current_date_time_str():
-    return convert_datetime_to_str(get_current_date_time())
+    return convert_datetime_to_str_long(get_current_date_time())
 
 
-def convert_datetime_to_str(date: datetime):
+def convert_datetime_to_str_long(date: datetime):
     return date.strftime(constants.DATE_TIME_FORMATTER_STR)
+
+
+def convert_datetime_to_str_short(date: datetime):
+    return date.strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
 
 
 def get_object_member_by_str(ctx, member_str: str):
@@ -246,8 +249,8 @@ async def get_server_system_channel(server: discord.Guild):
 
 
 def get_all_ini_file_settings(file_name: str):
-    dictionary = {}
-    parser = configparser.ConfigParser(delimiters="=")
+    final_data = {}
+    parser = configparser.ConfigParser(delimiters="=", allow_no_value=True)
     parser.optionxform = str
     parser._interpolation = configparser.ExtendedInterpolation()
     try:
@@ -267,17 +270,19 @@ def get_all_ini_file_settings(file_name: str):
                             value = None
                         elif value.isnumeric():
                             value = int(value)
+                        elif "," in value:
+                            value = sorted([x.strip() for x in value.split(",")])
                 except:
                     value = None
-                dictionary[option] = value
-        return dictionary
+                final_data[option] = value
+        return final_data
     except Exception as e:
         sys.stderr.write(str(e))
 
 
 def get_ini_section_settings(file_name, section):
     final_data = {}
-    parser = configparser.ConfigParser(delimiters="=")
+    parser = configparser.ConfigParser(delimiters="=", allow_no_value=True)
     parser.optionxform = str
     parser._interpolation = configparser.ExtendedInterpolation()
     try:
@@ -290,6 +295,8 @@ def get_ini_section_settings(file_name, section):
                         value = None
                     elif value.isnumeric():
                         value = int(value)
+                    elif "," in value:
+                        value = sorted([x.strip() for x in value.split(",")])
             except:
                 value = None
             final_data[option] = value
@@ -310,6 +317,8 @@ def get_ini_settings(file_name: str, section: str, config_name: str):
                 value = None
             elif value.isnumeric():
                 value = int(value)
+            elif "," in value:
+                value = sorted([x.strip() for x in value.split(",")])
     except:
         value = None
     return value
@@ -317,7 +326,7 @@ def get_ini_settings(file_name: str, section: str, config_name: str):
 
 def get_color_settings(color: str):
     if str(color).lower() == "random":
-        color = ''.join([choice('0123456789ABCDEF') for _ in range(6)])
+        color = "".join([choice("0123456789ABCDEF") for _ in range(6)])
         color = int(color, 16)
         return color
     for cor in Colors:
@@ -355,17 +364,3 @@ def get_bot_stats(bot):
         result["start_time"] = bot.start_time
 
     return result
-
-
-def log_uncaught_exceptions(exc_type, exc_value, exc_traceback):
-    logger = logging.getLogger()
-    stderr_hdlr = logging.StreamHandler(stream=sys.stdout)
-    stderr_hdlr.setLevel(logging.INFO)
-    fmt = "[%(asctime)s.%(msecs)03d]:[%(levelname)s]:%(message)s"
-    formatter = logging.Formatter(fmt, datefmt="%Y-%m-%dT%H:%M:%S")
-    stderr_hdlr.setFormatter(formatter)
-    logger.addHandler(stderr_hdlr)
-    if issubclass(exc_type, KeyboardInterrupt) or issubclass(exc_type, EOFError):
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
-    logger.exception("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))

@@ -38,18 +38,6 @@ class Bot(commands.Bot):
         self.settings["bot"]["EmbedColor"] = bot_utils.get_color_settings(self.settings["bot"]["EmbedColor"])
         self.settings["bot"]["EmbedOwnerColor"] = bot_utils.get_color_settings(self.settings["bot"]["EmbedOwnerColor"])
 
-        if self.settings["bot"]["AllowedDMCommands"]:
-            lst = sorted([x.strip() for x in self.settings["bot"]["AllowedDMCommands"].split(",")])
-            self.settings["bot"]["AllowedDMCommands"] = lst
-        else:
-            self.settings["bot"]["AllowedDMCommands"] = None
-
-        if self.settings["bot"]["BotReactionWords"]:
-            lst = sorted([x.strip() for x in self.settings["bot"]["BotReactionWords"].split(",")])
-            self.settings["bot"]["BotReactionWords"] = lst
-        else:
-            self.settings["bot"]["BotReactionWords"] = None
-
     def set_other_cogs_settings(self, *args, **kwargs):
         self.settings["gw2"] = bot_utils.get_ini_section_settings(gw2_constants.GW2_SETTINGS_FILENAME, "Gw2")
         self.settings["gw2"]["EmbedColor"] = bot_utils.get_color_settings(self.settings["gw2"]["EmbedColor"])

@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-NO_ENTRY = "\u26D4"
-SAD_FACE = "\U0001F61E"
-WARNING_SIGN = "\u26A0"  # \uFE0F
-INFORMATION_SOURCE = "\u2139"
-QUESTION_MARK = "\u2753"
-ROBOT = "\U0001F916"
+NO_ENTRY = ":no_entry:"
+WARNING_SIGN = ":warning:"
+INFORMATION_SOURCE = ":grey_exclamation:"
+QUESTION_MARK = ":question:"
+SAD_FACE = ":frowning2:"
+ROBOT = ":robot:"
 
 
 def error_inline(text):
-    return f"`{NO_ENTRY}\n{text}`"
+    return f"{NO_ENTRY}\n`{text}`"
 
 
 def error(text):
@@ -16,7 +16,7 @@ def error(text):
 
 
 def warning_inline(text):
-    return f"`{WARNING_SIGN}\n{text}`"
+    return f"{WARNING_SIGN}\n`{text}`"
 
 
 def warning(text):
@@ -24,7 +24,7 @@ def warning(text):
 
 
 def info_inline(text):
-    return f"`{INFORMATION_SOURCE}\n{text}`"
+    return f"{INFORMATION_SOURCE}\n`{text}`"
 
 
 def info(text):
@@ -32,11 +32,11 @@ def info(text):
 
 
 def question_inline(text):
-    return f"`{QUESTION_MARK}\n{text}`"
+    return f"{QUESTION_MARK}\n`{text}`"
 
 
 def question(text):
-    return f"`{QUESTION_MARK}`\n{text}"
+    return f"{QUESTION_MARK}\n{text}"
 
 
 def bold(text):
@@ -100,7 +100,11 @@ def pagify(text, delims=["\n"], *, escape=True, shorten_by=8,
         yield in_text
 
 
-def escape(text, *, mass_mentions=False, formatting=False):
+def escape_mass_mentions(text):
+    return _escape(text, mass_mentions=True)
+
+
+def _escape(text, *, mass_mentions=False, formatting=False):
     if mass_mentions:
         text = text.replace("@everyone", "@\u200beveryone")
         text = text.replace("@here", "@\u200bhere")
@@ -110,7 +114,3 @@ def escape(text, *, mass_mentions=False, formatting=False):
                 .replace("_", "\\_")
                 .replace("~", "\\~"))
     return text
-
-
-def escape_mass_mentions(text):
-    return escape(text, mass_mentions=True)

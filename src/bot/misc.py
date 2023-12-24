@@ -74,9 +74,8 @@ class Misc(commands.Cog):
             mp3_fp = BytesIO()
             tts = gTTS(text=new_tts_msg, lang="en")
             tts.write_to_fp(mp3_fp)
-        except AssertionError as e:
-            err_msg = "No text to send to TTS API"
-            raise commands.CommandInvokeError(err_msg)
+        except AssertionError:
+            await bot_utils.send_error_msg(ctx, "No text to send to TTS API")
 
         mp3_fp.seek(0)
         await ctx.send(file=discord.File(mp3_fp, display_filename))
@@ -182,7 +181,7 @@ class Misc(commands.Cog):
         voice_channels = len(server.voice_channels)
 
         now = bot_utils.get_current_date_time()
-        created = bot_utils.convert_datetime_to_str(server.created_at)
+        created = bot_utils.convert_datetime_to_str_long(server.created_at)
         passed = (now - server.created_at).days
         created_at = f"Since {created[:-7]}. That's over {passed} days ago!"
 
@@ -325,17 +324,17 @@ class Misc(commands.Cog):
                     result += f"({apis}) "
         return result
 
-    @commands.command()
-    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
-    async def test(self, ctx):
-        """(test)"""
-
-        msg = "test"
-        color = discord.Color.red()
-        embed = discord.Embed(color=color, description=msg)
-        embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
-        embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str()} UTC")
-        await bot_utils.send_embed(ctx, embed, True)
+    # @commands.command()
+    # @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
+    # async def test(self, ctx):
+    #     """(test)"""
+    #
+    #     msg = "test"
+    #     color = discord.Color.red()
+    #     embed = discord.Embed(color=color, description=msg)
+    #     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
+    #     embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str()} UTC")
+    #     await bot_utils.send_embed(ctx, embed, True)
 
 
 async def setup(bot):
