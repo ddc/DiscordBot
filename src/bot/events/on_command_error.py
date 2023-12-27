@@ -10,20 +10,16 @@ class Errors(commands.Cog):
 
         @self.bot.event
         async def on_command_error(ctx, error):
-            if ctx.subcommand_passed is None:
-                command = f"{ctx.prefix}{ctx.invoked_with}"
-                help_command = f"{ctx.prefix}help {ctx.invoked_with}"
-            else:
-                cmd = ctx.view.buffer.split(" ", 1)[0][1:]
-                command = f"{ctx.prefix}{cmd} {ctx.subcommand_passed}"
-                help_command = f"{ctx.prefix}help {cmd} {ctx.subcommand_passed}"
+            command = str(ctx.command)
+            if ctx.subcommand_passed is not None:
+                command = f"{command} {ctx.subcommand_passed}"
 
             error_msg = _get_error_msg(error)
             error_dict = {
                 "error_msg": error_msg,
+                "command": f"{ctx.prefix}{command}",
+                "help_command": f"{ctx.prefix}help {command}",
                 "bad_argument": None,
-                "command": command,
-                "help_command": help_command,
             }
 
             if isinstance(error, commands.NoPrivateMessage):
@@ -42,8 +38,7 @@ class Errors(commands.Cog):
                     bad_server_list = ctx.message.clean_content.split()[4:]
                     error_dict["bad_argument"] = ' '.join(bad_server_list)
                 else:
-                    le = len(ctx.message.clean_content.split()) - 1
-                    error_dict["bad_argument"] = ctx.message.clean_content.split()[le]
+                    error_dict["bad_argument"] = ctx.message.clean_content.replace(error_dict["command"], "").strip()
                 return await _bad_argument(self, ctx, error_dict)
             elif isinstance(error, commands.CommandInvokeError):
                 return await _command_invoke_error(self, ctx, error_dict)

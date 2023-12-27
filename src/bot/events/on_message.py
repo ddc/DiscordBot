@@ -224,10 +224,8 @@ class OnMessage(commands.Cog):
                     await ctx.message.channel.send(f"{ctx.message.author.mention} {msg}")
                 return True
             except Exception as e:
-                msg = ("Profanity filter is ON, "
-                       "but Bot does not have permission to delete messages."
-                       "with offensive words.\n"
-                       "Missing permission: Manage Messages")
+                msg = ("Profanity filter is ON\n"
+                       "but Bot does not have permission to \"Manage Messages\"")
                 self.bot.log.info(f"(Server:{ctx.message.guild.name})"
                                   f"(Channel:{ctx.message.channel})"
                                   f"(Author:{ctx.message.author})"

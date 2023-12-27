@@ -220,8 +220,8 @@ async def config_pfilter(ctx, *, subcommand_passed):
         case "on" | "ON":
             # check if bot has permission to delete messages
             if not ctx.guild.me.guild_permissions.administrator or not ctx.guild.me.guild_permissions.manage_messages:
-                msg = ("`Bot does not have permission to \"Manage Messages\".\n\n"
-                       "Profanity Filter could not be activated.`")
+                msg = ("Profanity Filter could not be activated.\n"
+                       "Bot does not have permission to \"Manage Messages\".")
                 return await bot_utils.send_error_msg(ctx, msg)
 
             embed.color = discord.Color.green()
