@@ -8,7 +8,6 @@ from src.gw2.gw2 import GuildWars2
 from src.gw2.utils import gw2_utils
 from src.gw2.utils.gw2_api import Gw2Api
 from src.gw2.utils.gw2_cooldowns import GW2CoolDowns
-from src.gw2.utils.gw2_exceptions import APIError
 
 
 class GW2Account(GuildWars2):
@@ -62,10 +61,10 @@ async def account(ctx):
     try:
         # getting infos gw2 api
         await ctx.message.channel.typing()
-        api_req_acc = await gw2_api.call_api("account", key=api_key)
+        api_req_acc = await gw2_api.call_api("account", api_key)
 
         server_id = api_req_acc["world"]
-        api_req_server = await gw2_api.call_api(f"worlds/{server_id}", key=api_key)
+        api_req_server = await gw2_api.call_api(f"worlds/{server_id}", api_key)
 
         await ctx.message.channel.typing()
         acc_name = api_req_acc["name"]
@@ -89,7 +88,7 @@ async def account(ctx):
         embed.add_field(name="Server", value=chat_formatting.inline(f"{server_name} ({population})"))
 
         if "characters" in permissions:
-            api_req_characters = await gw2_api.call_api("characters", key=api_key)
+            api_req_characters = await gw2_api.call_api("characters", api_key)
             embed.add_field(name="Characters", value=chat_formatting.inline(len(api_req_characters)), inline=False)
 
         if "progression" in permissions:
@@ -97,7 +96,7 @@ async def account(ctx):
             fractallevel = api_req_acc["fractal_level"]
             embed.add_field(name="Fractal Level", value=chat_formatting.inline(fractallevel), inline=False)
 
-            api_req_acc_achiev = await gw2_api.call_api("account/achievements", key=api_key)
+            api_req_acc_achiev = await gw2_api.call_api("account/achievements", api_key)
             achiev_points = await gw2_utils.calculate_user_achiev_points(ctx, api_req_acc_achiev, api_req_acc)
             embed.add_field(name="Achievements Points", value=chat_formatting.inline(achiev_points), inline=False)
 
@@ -107,7 +106,7 @@ async def account(ctx):
 
         if "pvp" in permissions:
             await ctx.message.channel.typing()
-            api_req_pvp = await gw2_api.call_api("pvp/stats", key=api_key)
+            api_req_pvp = await gw2_api.call_api("pvp/stats", api_key)
             pvprank = api_req_pvp["pvp_rank"] + api_req_pvp["pvp_rank_rollovers"]
             pvp_title = str(gw2_utils.get_pvp_rank_title(pvprank))
             embed.add_field(name="PVP Rank", value=chat_formatting.inline(f"{pvp_title} ({pvprank})"), inline=False)
@@ -120,7 +119,7 @@ async def account(ctx):
             for i in range(0, len(guilds)):
                 guild_id = guilds[i]
                 try:
-                    api_req_guild = await gw2_api.call_api(f"guild/{guild_id}", key=api_key)
+                    api_req_guild = await gw2_api.call_api(f"guild/{guild_id}", api_key)
                 except Exception as e:
                     await bot_utils.send_error_msg(ctx, e)
                     return ctx.bot.log.error(ctx, e)

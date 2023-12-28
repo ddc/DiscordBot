@@ -47,7 +47,7 @@ async def info(ctx, *, world: str = None):
                 )
 
             api_key = rs[0]["key"]
-            results = await gw2_api.call_api("account", key=api_key)
+            results = await gw2_api.call_api("account", api_key)
             wid = results["world"]
         except APIKeyError:
             return await bot_utils.send_error_msg(ctx, "No world name or key associated with your account")
@@ -62,11 +62,8 @@ async def info(ctx, *, world: str = None):
 
     try:
         await ctx.message.channel.typing()
-        endpoint = f"wvw/matches?world={wid}"
-        matches = await gw2_api.call_api(endpoint)
-
-        endpoint = f"worlds?id={wid}"
-        worldinfo = await gw2_api.call_api(endpoint)
+        matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
+        worldinfo = await gw2_api.call_api(f"worlds?id={wid}")
     except Exception as e:
         await bot_utils.send_error_msg(ctx, e)
         return ctx.bot.log.error(ctx, e)
@@ -163,7 +160,7 @@ async def match(ctx, *, world: str = None):
                 )
 
             api_key = rs[0]["key"]
-            results = await gw2_api.call_api("account", key=api_key)
+            results = await gw2_api.call_api("account", api_key)
             wid = results["world"]
         except APIKeyError:
             return await bot_utils.send_error_msg(ctx, "No world name or API key associated with your account.")
@@ -178,8 +175,7 @@ async def match(ctx, *, world: str = None):
 
     try:
         await ctx.message.channel.typing()
-        endpoint = f"wvw/matches?world={wid}"
-        matches = await gw2_api.call_api(endpoint)
+        matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
 
         if wid < 2001:
             tier_number = matches["id"].replace("1-", "")
@@ -230,7 +226,7 @@ async def kdr(ctx, *, world: str = None):
                                                            f"Use {ctx.prefix}gw2 match <world_name> "
                                                            "Or register an API key on your account.")
             api_key = rs[0]["key"]
-            results = await gw2_api.call_api("account", key=api_key)
+            results = await gw2_api.call_api("account", api_key)
             wid = results["world"]
         except APIKeyError:
             return await bot_utils.send_error_msg(ctx, "No world name or key associated with your account")
@@ -245,8 +241,7 @@ async def kdr(ctx, *, world: str = None):
 
     try:
         await ctx.message.channel.typing()
-        endpoint = f"wvw/matches?world={wid}"
-        matches = await gw2_api.call_api(endpoint)
+        matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
 
         if wid < 2001:
             tier_number = matches["id"].replace("1-", "")

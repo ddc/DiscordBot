@@ -53,7 +53,7 @@ async def add(ctx, api_key: str):
 
     try:
         # getting gw2 acc name
-        api_req_acc_info = await gw2_api.call_api("account", key=api_key)
+        api_req_acc_info = await gw2_api.call_api("account", api_key)
         gw2_acc_name = api_req_acc_info["name"]
         member_server_id = api_req_acc_info["world"]
     except Exception as e:
@@ -62,8 +62,8 @@ async def add(ctx, api_key: str):
 
     try:
         # getting gw2 server name
-        endpoint = f"worlds/{member_server_id}"
-        api_req_server = await gw2_api.call_api(endpoint, key=api_key)
+        uri = f"worlds/{member_server_id}"
+        api_req_server = await gw2_api.call_api(uri, api_key)
         gw2_server_name = api_req_server["name"]
     except Exception as e:
         await bot_utils.send_error_msg(ctx, e, True)

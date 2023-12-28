@@ -171,9 +171,8 @@ async def worlds(ctx):
 
     try:
         await ctx.message.channel.typing()
-        endpoint = "worlds?ids=all"
         gw2_api = Gw2Api(ctx.bot)
-        results = await gw2_api.call_api(endpoint)
+        results = await gw2_api.call_api("worlds?ids=all")
     except Exception as e:
         await bot_utils.send_error_msg(ctx, e)
         return ctx.bot.log.error(ctx, e)
@@ -188,8 +187,7 @@ async def worlds(ctx):
         try:
             await ctx.message.channel.typing()
             wid = world["id"]
-            endpoint = f"wvw/matches?world={wid}"
-            matches = await gw2_api.call_api(endpoint)
+            matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
             if wid < 2001:
                 tier_number = matches["id"].replace("1-", "")
                 embed_na.add_field(name=world["name"],
@@ -214,8 +212,8 @@ async def worlds(ctx):
 #     gw2KeySql = Gw2KeyDal(self.bot.db_session, self.bot.log)
 #     rs = await gw2KeySql.get_server_user_api_key(ctx.guild.id, user_id)
 #     api_key = rs[0]["key"]
-#     endpoint = "/wvw/matches/1-3"
-#     api_req = await gw2Api.call_api(endpoint, key=api_key)
+#     uri = "/wvw/matches/1-3"
+#     api_req = await gw2Api.call_api(uri, api_key)
 #     return api_req
 
 

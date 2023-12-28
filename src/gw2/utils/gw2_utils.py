@@ -90,8 +90,7 @@ async def calculate_user_achiev_points(ctx, api_req_acc_achiev, api_req_acc):
         counter = counter + 1
         if counter == 200:
             all_user_achievs_ids = ",".join(temp_achiv)
-            endpoint = f"achievements?ids={all_user_achievs_ids}"
-            api_achiev = await gw2_api.call_api(endpoint)
+            api_achiev = await gw2_api.call_api(f"achievements?ids={all_user_achievs_ids}")
             doc_user_achiev_id += api_achiev
             counter = 0
             temp_achiv = []
@@ -139,9 +138,8 @@ async def get_world_id(self, world):
 async def get_world_name_population(ctx, wids: str):
     try:
         name = []
-        endpoint = f"worlds?ids={wids}"
         gw2_api = Gw2Api(ctx.bot)
-        rs = await gw2_api.call_api(endpoint)
+        rs = await gw2_api.call_api(f"worlds?ids={wids}")
         if not rs:
             return None
         else:
@@ -155,9 +153,8 @@ async def get_world_name_population(ctx, wids: str):
 
 async def get_world_name(self, wids: str):
     try:
-        endpoint = f"worlds?ids={wids}"
         gw2_api = Gw2Api(self.bot)
-        rs = await gw2_api.call_api(endpoint)
+        rs = await gw2_api.call_api(f"worlds?ids={wids}")
         if not rs:
             name = None
         else:
@@ -251,9 +248,9 @@ async def get_last_session_user_stats(self, ctx, api_key):
     user_obj.keeps = 0
 
     try:
-        api_req_acc = await gw2_api.call_api("account", key=api_key)
-        api_req_wallet = await gw2_api.call_api("account/wallet", key=api_key)
-        api_req_achiev = await gw2_api.call_api("account/achievements", key=api_key)
+        api_req_acc = await gw2_api.call_api("account", api_key)
+        api_req_wallet = await gw2_api.call_api("account/wallet", api_key)
+        api_req_achiev = await gw2_api.call_api("account/achievements", api_key)
     except Exception as e:
         if ctx is not None:
             await bot_utils.send_info_msg(ctx, "GW2 API is currently down. Try again later...")
@@ -307,7 +304,7 @@ async def insert_characters(self, member: discord.Member, api_key, type_session:
 
     try:
         gw2_api = Gw2Api(self.bot)
-        api_req_characters = await gw2_api.call_api("characters", key=api_key)
+        api_req_characters = await gw2_api.call_api("characters", api_key)
         insert_obj = bot_utils.Object()
         insert_obj.api_key = api_key
         insert_obj.ctx = ctx

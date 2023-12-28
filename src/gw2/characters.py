@@ -60,17 +60,17 @@ async def characters(ctx):
 
     try:
         await ctx.message.channel.typing()
-        api_req_acc = await gw2_api.call_api("account", key=api_key)
+        api_req_acc = await gw2_api.call_api("account", api_key)
 
         color = ctx.bot.settings["gw2"]["EmbedColor"]
         embed = discord.Embed(title="Account Name", description=chat_formatting.inline(api_req_acc["name"]), color=color)
         embed.set_thumbnail(url=ctx.message.author.avatar.url)
         embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
 
-        api_req_characters = await gw2_api.call_api("characters", key=api_key)
+        api_req_characters = await gw2_api.call_api("characters", api_key)
         for char_name in api_req_characters:
             await ctx.message.channel.typing()
-            current_char = await gw2_api.call_api(f"characters/{char_name}/core", key=api_key)
+            current_char = await gw2_api.call_api(f"characters/{char_name}/core", api_key)
             days = (current_char["age"] / 60) / 24
             created = current_char["created"].split("T", 1)[0]
             embed.add_field(name=char_name, value=chat_formatting.inline(

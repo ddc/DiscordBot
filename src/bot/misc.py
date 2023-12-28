@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from gtts import gTTS
-from data.pepe import pepedatabase
+from src.bot.utils.pepe import pepedatabase
 from src.bot.utils import bot_utils, chat_formatting, constants
 from src.bot.utils.cooldowns import CoolDowns
 
@@ -70,8 +70,8 @@ class Misc(commands.Cog):
         if len(new_tts_msg) == 0:
             new_tts_msg = tts_text
 
+        mp3_fp = BytesIO()
         try:
-            mp3_fp = BytesIO()
             tts = gTTS(text=new_tts_msg, lang="en")
             tts.write_to_fp(mp3_fp)
         except AssertionError:

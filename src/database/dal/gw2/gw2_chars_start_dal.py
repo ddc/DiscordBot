@@ -16,8 +16,8 @@ class Gw2CharsStartDal:
             if insert_obj.ctx is not None:
                 await insert_obj.ctx.message.channel.typing()
 
-            endpoint = f"characters/{char_name}/core"
-            current_char = await insert_obj.gw2Api.call_api(endpoint, key=insert_obj.api_key)
+            uri = f"characters/{char_name}/core"
+            current_char = await insert_obj.gw2Api.call_api(uri, insert_obj.api_key)
             name = current_char["name"]
             profession = current_char["profession"]
             deaths = current_char["deaths"]

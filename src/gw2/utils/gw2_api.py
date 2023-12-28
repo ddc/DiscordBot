@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from src.gw2.utils import gw2_constants
 from src.gw2.utils.gw2_exceptions import (
     APIBadRequest, APIConnectionError, APIError, APIForbidden,
     APIInactiveError, APIInvalidKey, APIKeyError, APINotFound
@@ -13,7 +14,7 @@ class Gw2Api:
         """checks if apy key is valid"""
 
         try:
-            api_req_key_info = await self.call_api("tokeninfo", key=api_key)
+            api_req_key_info = await self.call_api("tokeninfo", api_key)
         except (APIBadRequest, APIConnectionError, APIError, APIForbidden,
                 APIInactiveError, APIInvalidKey, APIKeyError, APINotFound) as e:
             return e
@@ -22,8 +23,10 @@ class Gw2Api:
             api_req_key_info["permissions"] = sorted(api_req_key_info["permissions"])
         return api_req_key_info
 
-    async def call_api(self, endpoint: str, version="2", key=None):
+    async def call_api(self, uri: str, key=None):
         """api languages can be ('en','es','de','fr','ko','zh')"""
+
+        endpoint = f"{gw2_constants.API_URI }/{uri}"
 
         headers = {
             "User-Agent": self.bot.settings["bot"]["description"],
@@ -34,10 +37,7 @@ class Gw2Api:
         if key:
             headers.update({"Authorization": f"Bearer {key}"})
 
-        apiserv = f"https://api.guildwars2.com/v{version}/"
-        url = apiserv + endpoint
-
-        async with self.bot.aiosession.get(url, headers=headers) as response:
+        async with self.bot.aiosession.get(endpoint, headers=headers) as response:
             if response.status != 200 and response.status != 206:
                 try:
                     err = await response.json()

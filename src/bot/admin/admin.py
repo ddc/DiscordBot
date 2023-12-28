@@ -41,7 +41,7 @@ class Admin(commands.Cog):
             bg_task_warning = (f"Background task running to update bot activity is ON\n"
                                f"Activity will change after {bg_activity_timer} secs.")
             embed.description = bg_task_warning
-            await bot_utils.send_embed(ctx, embed, True)
+            await bot_utils.send_embed(ctx, embed, False)
 
 
 async def setup(bot):
