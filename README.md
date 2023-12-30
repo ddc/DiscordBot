@@ -1,4 +1,4 @@
-# A Multifunction Bot for Discord
+# A Bot for Discord
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-brightgreen.svg?style=plastic)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=38E66BHC4623Y)
 [![license](https://img.shields.io/github/license/ddc/DiscordBot.svg?style=plastic)](https://github.com/ddc/DiscordBot/blob/master/LICENSE) 
@@ -15,11 +15,12 @@
 ### [Install Guide - Wiki](https://ddc.github.io/DiscordBot)
 + Using Docker
     + git clone https://github.com/ddc/DiscordBot.git
-    + BOT_TOKEN variable needs to be inside DiscordBot/.env
+    + BOT_TOKEN variable needs to be inside the .env file
     + docker-compose up --build -d
 
 ## Games Included
 + [Guild Wars 2](https://www.guildwars2.com)
+
 
 ## Admin/Mod Commands
 | Command                                | Description                         |
@@ -61,22 +62,18 @@
 | owner botdescription <_new description_>		| Change bot description					 |
 
 ## GW2 Commands
-| Command                                       | Description                                    |
-|:----------------------------------------------|:-----------------------------------------------|
-| gw2 account                        			| General information about your GW2 account      |
-| gw2 worlds	 								| List all worlds							      |
-| gw2 wvwinfo	 								| Info about a world						      |
-| gw2 lastsession	 							| Info about the gw2 player last game session     |
-| gw2 kdr <_worldname_>	 						| Info about a wvw kill/death ratings         |
-| gw2 wiki <_name to search_>					| Search the Guild wars 2 wiki				      |
-| gw2 info <_info to search_>					| Information about a given name/skill/rune	      |
-| gw2 daily [pve, pvp, wvw, fractals]			| Show today's Dailies						      |
-| gw2 key [add , remove , info] <_api key_>		| Add/Remove/Info - GW2 APIkey managing		  |
-| gw2 [match, wvwinfo] <_world name_> 			| Info about a wvw match					      |
-| gw2 config list								| List all gw2 configurations in the server       |
-| gw2 config roletimer <_time secs_>			| Timer to check for api roles in seconds         |
-| gw2 config lastsession [on , off]				| Bot should record users last sessions	      |
-| gw2 config apirole [on , off] <_server name_>	| Bot should add role that matches gw2 server |
+| Command                                      | Description                                   |
+|:---------------------------------------------|:----------------------------------------------|
+| gw2 config list								| List all gw2 configurations in the server     |
+| gw2 config session [on , off]				| Bot should record users last sessions	        |
+| gw2 wvw [match, info, kdr] <_world name_>  	| Info about a wvw match					    |
+| gw2 daily [pve, pvp, wvw, fractals]			| Show today's Dailies						    |
+| gw2 key [add , remove , info] <_api key_>	| Add/Remove/Info - GW2 APIkey managing		    |
+| gw2 account                        			| General information about your GW2 account    |
+| gw2 worlds	 								| List all worlds							    |
+| gw2 wiki <_name to search_>					| Search the Guild wars 2 wiki				    |
+| gw2 info <_info to search_>					| Information about a given name/skill/rune	    |
+
 
 ## Acknowledgements
 + [Guild Wars 2 API](https://wiki.guildwars2.com/wiki/API:2)
@@ -84,8 +81,10 @@
 + [PostgreSQL](https://www.postgresql.org)
 + [Git](https://git-scm.com/download)
 
+
 ## License
 Released under the [GNU GPL v3](LICENSE).
+
 
 ## Buy me a cup of coffee
 This bot is open source and always will be, even if I don't get donations. That said, I know there are people out there that may still want to donate just to show their appreciation so this is for you guys. Thanks in advance!

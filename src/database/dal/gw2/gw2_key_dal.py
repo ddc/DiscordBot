@@ -11,26 +11,26 @@ class Gw2KeyDal:
         self.log = log
         self.db_utils = DBUtils(self.db_session, self.log)
 
-    async def insert_api_key(self, **kwargs):
+    async def insert_api_key(self, insert_args: dict):
         stmt = Gw2Keys(
-            user_id=kwargs.get("user_id"),
-            name=kwargs.get("key_name"),
-            gw2_acc_name=kwargs.get("gw2_acc_name"),
-            server=kwargs.get("server_name"),
-            permissions=kwargs.get("permissions"),
-            key=kwargs.get("api_key"),
+            user_id=insert_args["user_id"],
+            name=insert_args["key_name"],
+            gw2_acc_name=insert_args["gw2_acc_name"],
+            server=insert_args["server_name"],
+            permissions=insert_args["permissions"],
+            key=insert_args["api_key"],
         )
         await self.db_utils.add(stmt)
 
-    async def update_api_key(self, **kwargs):
+    async def update_api_key(self, update_args: dict):
         stmt = sa.update(Gw2Keys).where(
-            Gw2Keys.user_id == kwargs.get("user_id"),
+            Gw2Keys.user_id == update_args["user_id"],
         ).values(
-            name=kwargs.get("key_name"),
-            gw2_acc_name=kwargs.get("gw2_acc_name"),
-            server=kwargs.get("server_name"),
-            permissions=kwargs.get("permissions"),
-            key=kwargs.get("api_key"),
+            name=update_args["key_name"],
+            gw2_acc_name=update_args["gw2_acc_name"],
+            server=update_args["server_name"],
+            permissions=update_args["permissions"],
+            key=update_args["api_key"],
         )
         await self.db_utils.execute(stmt)
 

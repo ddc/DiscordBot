@@ -200,7 +200,7 @@ async def check_gw2_game_activity(bot, before: discord.Member, after: discord.Me
         rs_gw2_sc = await gw2_configs.get_gw2_server_configs(after.guild.id)
         if len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["session"]:
             gw2_key_sql = Gw2KeyDal(bot.db_session, bot.log)
-            rs_api_key = await gw2_key_sql.get_server_user_api_key(after.guild.id, after.id)
+            rs_api_key = await gw2_key_sql.get_api_key_by_user(after.id)
             if len(rs_api_key) > 0:
                 if after_activity is not None:
                     await insert_gw2_session_starts(bot, after, rs_api_key[0]["key"])
@@ -305,18 +305,17 @@ async def insert_characters(self, member: discord.Member, api_key, type_session:
     try:
         gw2_api = Gw2Api(self.bot)
         api_req_characters = await gw2_api.call_api("characters", api_key)
-        insert_obj = bot_utils.Object()
-        insert_obj.api_key = api_key
-        insert_obj.ctx = ctx
-        insert_obj.gw2_api = gw2_api
-        insert_obj.user_id = member.id
+        insert_args = {
+            "api_key": api_key,
+            "user_id": member.id,
+        }
 
         if type_session == "start":
             gw2_chars_start_sql = Gw2CharsStartDal(self.bot.db_session, self.bot.log)
-            await gw2_chars_start_sql.insert_character(insert_obj, api_req_characters)
+            await gw2_chars_start_sql.insert_character(ctx, gw2_api, api_req_characters, insert_args)
         else:
             gw2_chars_end_sql = Gw2CharsEndDal(self.bot.db_session, self.bot.log)
-            await gw2_chars_end_sql.insert_character(insert_obj, api_req_characters)
+            await gw2_chars_end_sql.insert_character(ctx, gw2_api, api_req_characters, insert_args)
 
     except Exception as e:
         return self.bot.log.error(e)

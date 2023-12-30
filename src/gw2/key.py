@@ -83,13 +83,13 @@ async def add(ctx, api_key: str):
     gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
     rs = await gw2_key_dal.get_api_key(api_key)
     if not rs:
-        await gw2_key_dal.insert_api_key(**kwargs)
+        await gw2_key_dal.insert_api_key(kwargs)
         msg = f"Your key `{key_name}` was verified and was **added** to your discord account.\n" \
               f"Server: `{gw2_server_name}`\n" \
               f"To get info about your api key: `{ctx.prefix}gw2 key info`"
         await bot_utils.send_msg(ctx, msg, True, embed_color)
     elif rs[0]["user_id"] == user_id:
-        await gw2_key_dal.update_api_key(**kwargs)
+        await gw2_key_dal.update_api_key(kwargs)
         msg = f"Your API key `{rs[0]['name']}` was **replaced** with your new key: `{key_name}`\n" \
               f"Server: `{gw2_server_name}`\n" \
               f"To get info about your new api key: `{ctx.prefix}gw2 key info`"
