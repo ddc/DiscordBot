@@ -255,7 +255,7 @@ class Misc(commands.Cog):
         embed.add_field(name="Joined Discord on", value=created_on)
         embed.add_field(name="Joined this server on", value=joined_on)
         embed.add_field(name="Roles", value=roles_str.replace("@", ""), inline=False)
-        embed.set_footer(text=f"Member #{member_number} | User ID:{user.id} | {bot_utils.get_current_date_time_str()}")
+        embed.set_footer(text=f"Member #{member_number} | User ID:{user.id} | {bot_utils.get_current_date_time_str_long()}")
 
         name = str(user)
         name = " ~ ".join((name, user.nick)) if user.nick else name

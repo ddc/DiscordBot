@@ -5,8 +5,7 @@ import discord
 from src.bot.utils import bot_utils
 from src.bot.utils import constants
 from src.bot.utils.bot_utils import Object
-from src.database.dal.gw2.gw2_chars_end_dal import Gw2CharsEndDal
-from src.database.dal.gw2.gw2_chars_start_dal import Gw2CharsStartDal
+from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
 from src.database.dal.gw2.gw2_configs_dal import Gw2ConfigsDal
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
@@ -192,130 +191,122 @@ async def check_gw2_game_activity(bot, before: discord.Member, after: discord.Me
         if aact.type is not discord.ActivityType.custom:
             after_activity = aact
 
-    if ((after_activity is not None and "guild wars 2" in str(after_activity.name).lower())
-            and (after_activity.type == discord.ActivityType.playing or after_activity.type == discord.ActivityType.streaming)
-            or (before_activity is not None and "guild wars 2" in str(before_activity.name).lower())
-            and (before_activity.type == discord.ActivityType.playing or before_activity.type == discord.ActivityType.streaming)):
+    if (after_activity is not None and "guild wars 2" in str(after_activity.name).lower()
+            or before_activity is not None and "guild wars 2" in str(before_activity.name).lower()):
         gw2_configs = Gw2ConfigsDal(bot.db_session, bot.log)
         rs_gw2_sc = await gw2_configs.get_gw2_server_configs(after.guild.id)
         if len(rs_gw2_sc) > 0 and rs_gw2_sc[0]["session"]:
             gw2_key_sql = Gw2KeyDal(bot.db_session, bot.log)
             rs_api_key = await gw2_key_sql.get_api_key_by_user(after.id)
-            if len(rs_api_key) > 0:
+            if rs_api_key:
                 if after_activity is not None:
-                    await insert_gw2_session_starts(bot, after, rs_api_key[0]["key"])
+                    await start_session(bot, after, rs_api_key[0]["key"])
                 else:
-                    await update_gw2_session_ends(bot, before, rs_api_key[0]["key"])
+                    await end_session(bot, after, rs_api_key[0]["key"])
 
 
-async def insert_gw2_session_starts(bot, after: discord.Member, api_key):
-    object_start = await get_last_session_user_stats(bot, None, api_key)
-    object_start.user_id = after.id
-    object_start.date = bot_utils.get_current_date_time_str()
-    gw2_last_session_sql = Gw2SessionsDal(bot.db_session, bot.log)
-    await gw2_last_session_sql.insert_start_session(object_start)
-    await insert_characters(bot, after, api_key, "start")
+async def start_session(bot, after: discord.Member, api_key):
+    user_obj = await get_user_stats(bot, api_key)
+    user_obj["user_id"] = after.id
+    user_obj["date"] = bot_utils.convert_datetime_to_str_short(bot_utils.get_current_date_time())
+    gw2_session_dal = Gw2SessionsDal(bot.db_session, bot.log)
+    session_id = await gw2_session_dal.insert_start_session(user_obj)
+    await insert_session_char(bot, after, api_key, session_id, "start")
 
 
-async def update_gw2_session_ends(bot, before: discord.Member, api_key):
-    object_end = await get_last_session_user_stats(bot, None, api_key)
-    object_end.user_id = before.id
-    object_end.date = bot_utils.get_current_date_time_str()
-    gw2_last_session_sql = Gw2SessionsDal(bot.db_session, bot.log)
-    await gw2_last_session_sql.update_end_session(object_end)
-    await insert_characters(bot, before, api_key, "end")
+async def end_session(bot, before: discord.Member, api_key):
+    user_obj = await get_user_stats(bot, api_key)
+    user_obj["user_id"] = before.id
+    user_obj["date"] = bot_utils.convert_datetime_to_str_short(bot_utils.get_current_date_time())
+    gw2_session_dal = Gw2SessionsDal(bot.db_session, bot.log)
+    session_id = await gw2_session_dal.update_end_session(user_obj)
+    await insert_session_char(bot, before, api_key, session_id, "end")
 
 
-async def get_last_session_user_stats(self, ctx, api_key):
-    if not (hasattr(self, "bot")):
-        self.bot = self
-    gw2_api = Gw2Api(self.bot)
-    user_obj = bot_utils.Object()
-    user_obj.gold = 0
-    user_obj.karma = 0
-    user_obj.laurels = 0
-    user_obj.badges_honor = 0
-    user_obj.guild_commendations = 0
-    user_obj.wvw_tickets = 0
-    user_obj.proof_heroics = 0
-    user_obj.test_heroics = 0
-    user_obj.players = 0
-    user_obj.yaks_scorted = 0
-    user_obj.yaks = 0
-    user_obj.camps = 0
-    user_obj.castles = 0
-    user_obj.towers = 0
-    user_obj.keeps = 0
-
+async def get_user_stats(bot, api_key):
+    gw2_api = Gw2Api(bot)
     try:
         api_req_acc = await gw2_api.call_api("account", api_key)
         api_req_wallet = await gw2_api.call_api("account/wallet", api_key)
         api_req_achiev = await gw2_api.call_api("account/achievements", api_key)
     except Exception as e:
-        if ctx is not None:
-            await bot_utils.send_info_msg(ctx, "GW2 API is currently down. Try again later...")
-        return self.bot.log.error(e)
+        # if ctx is not None:
+        #     await bot_utils.send_info_msg(ctx, "GW2 API is currently down. Try again later...")
+        return bot.log.error(e)
 
-    user_obj.acc_name = api_req_acc["name"]
-    user_obj.wvw_rank = api_req_acc["wvw_rank"]
+    user_obj = {
+        "acc_name": api_req_acc["name"],
+        "wvw_rank": api_req_acc["wvw_rank"],
+        "gold": 0,
+        "karma": 0,
+        "laurels": 0,
+        "badges_honor": 0,
+        "guild_commendations": 0,
+        "wvw_tickets": 0,
+        "proof_heroics": 0,
+        "test_heroics": 0,
+        "players": 0,
+        "yaks_scorted": 0,
+        "yaks": 0,
+        "camps": 0,
+        "castles": 0,
+        "towers": 0,
+        "keeps": 0,
+    }
 
     if len(api_req_wallet) > 0:
         for wallet in api_req_wallet:
             if wallet["id"] == 1:
-                user_obj.gold = wallet["value"]
+                user_obj["gold"] = wallet["value"]
             if wallet["id"] == 2:
-                user_obj.karma = wallet["value"]
+                user_obj["karma"] = wallet["value"]
             if wallet["id"] == 3:
-                user_obj.laurels = wallet["value"]
+                user_obj["laurels"] = wallet["value"]
             if wallet["id"] == 15:
-                user_obj.badges_honor = wallet["value"]
+                user_obj["badges_honor"] = wallet["value"]
             if wallet["id"] == 16:
-                user_obj.guild_commendations = wallet["value"]
+                user_obj["guild_commendations"] = wallet["value"]
             if wallet["id"] == 26:
-                user_obj.wvw_tickets = wallet["value"]
+                user_obj["wvw_tickets"] = wallet["value"]
             if wallet["id"] == 31:
-                user_obj.proof_heroics = wallet["value"]
+                user_obj["proof_heroics"] = wallet["value"]
             if wallet["id"] == 36:
-                user_obj.test_heroics = wallet["value"]
+                user_obj["test_heroics"] = wallet["value"]
 
     if len(api_req_achiev) > 0:
         for achiev in api_req_achiev:
             if achiev["id"] == 283:
-                user_obj.players = achiev["current"]
+                user_obj["players"] = achiev["current"]
             if achiev["id"] == 285:
-                user_obj.yaks_scorted = achiev["current"]
+                user_obj["yaks_scorted"] = achiev["current"]
             if achiev["id"] == 288:
-                user_obj.yaks = achiev["current"]
+                user_obj["yaks"] = achiev["current"]
             if achiev["id"] == 291:
-                user_obj.camps = achiev["current"]
+                user_obj["camps"] = achiev["current"]
             if achiev["id"] == 294:
-                user_obj.castles = achiev["current"]
+                user_obj["castles"] = achiev["current"]
             if achiev["id"] == 297:
-                user_obj.towers = achiev["current"]
+                user_obj["towers"] = achiev["current"]
             if achiev["id"] == 300:
-                user_obj.keeps = achiev["current"]
+                user_obj["keeps"] = achiev["current"]
 
     return user_obj
 
 
-async def insert_characters(self, member: discord.Member, api_key, type_session: str, ctx=None):
-    if not (hasattr(self, "bot")):
-        self.bot = self
-
+async def insert_session_char(self, member: discord.Member, api_key, session_id, session_type: str):
     try:
         gw2_api = Gw2Api(self.bot)
         api_req_characters = await gw2_api.call_api("characters", api_key)
         insert_args = {
             "api_key": api_key,
+            "session_id": session_id,
             "user_id": member.id,
+            "start": True if session_type == "start" else False,
+            "end": True if session_type == "end" else False,
         }
 
-        if type_session == "start":
-            gw2_chars_start_sql = Gw2CharsStartDal(self.bot.db_session, self.bot.log)
-            await gw2_chars_start_sql.insert_character(ctx, gw2_api, api_req_characters, insert_args)
-        else:
-            gw2_chars_end_sql = Gw2CharsEndDal(self.bot.db_session, self.bot.log)
-            await gw2_chars_end_sql.insert_character(ctx, gw2_api, api_req_characters, insert_args)
+        gw2_session_chars_dal = Gw2SessionCharsDal(self.bot.db_session, self.bot.log)
+        await gw2_session_chars_dal.insert_session_char(gw2_api, api_req_characters, insert_args)
 
     except Exception as e:
         return self.bot.log.error(e)
@@ -420,10 +411,8 @@ def format_gold(currency: str):
     return formatted_gold
 
 
-def get_time_passed(start_time_str, end_time_str):
-    date_time_formatter = f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}"
-    time_passed_delta = (datetime.strptime(end_time_str, date_time_formatter) -
-                         datetime.strptime(start_time_str, date_time_formatter))
+def get_time_passed(start_time: datetime, end_time: datetime):
+    time_passed_delta = end_time - start_time
     time_passed_obj = convert_timedelta_to_obj(time_passed_delta)
     return time_passed_obj
 

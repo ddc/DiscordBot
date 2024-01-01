@@ -13,7 +13,7 @@ class OnGuildUpdate(commands.Cog):
         async def on_guild_update(before, after):
             msg = "New Server Settings\n"
             embed = bot_utils.get_embed(self)
-            embed.set_footer(icon_url=self.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str()} UTC")
+            embed.set_footer(icon_url=self.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
 
             if str(before.icon.url) != str(after.icon.url):
                 embed.set_thumbnail(url=after.icon.url)

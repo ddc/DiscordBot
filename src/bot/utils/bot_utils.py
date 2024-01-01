@@ -192,7 +192,7 @@ def get_current_date_time():
     return datetime.now(timezone.utc)
 
 
-def get_current_date_time_str():
+def get_current_date_time_str_long():
     return convert_datetime_to_str_long(get_current_date_time())
 
 
@@ -202,6 +202,10 @@ def convert_datetime_to_str_long(date: datetime):
 
 def convert_datetime_to_str_short(date: datetime):
     return date.strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
+
+
+def convert_str_to_datetime_short(date_str: str):
+    return datetime.strptime(date_str, f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
 
 
 def get_object_member_by_str(ctx, member_str: str):

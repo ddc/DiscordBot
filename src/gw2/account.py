@@ -142,7 +142,7 @@ async def account(ctx):
         created = api_req_acc["created"].split("T", 1)[0]
         embed.add_field(name="Created", value=chat_formatting.inline(f"{created} ({round(days)} days ago)"), inline=False)
 
-        embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str()} UTC")
+        embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
         await bot_utils.send_embed(ctx, embed)
 
     except Exception as e:

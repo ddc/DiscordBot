@@ -17,7 +17,7 @@ class OnMemberRemove(commands.Cog):
             server_configs_sql = ServersDal(self.bot.db_session, self.bot.log)
             rs = await server_configs_sql.get_server(member.guild.id)
             if rs["msg_on_leave"]:
-                now = bot_utils.get_current_date_time_str()
+                now = bot_utils.get_current_date_time_str_long()
                 embed = discord.Embed(color=discord.Color.red(), description=str(member))
                 embed.set_thumbnail(url=member.avatar.url)
                 embed.set_author(name="Left the Server")

@@ -24,7 +24,7 @@ class OnUserUpdate(commands.Cog):
             msg = "Profile Changes:\n\n"
             embed = bot_utils.get_embed(self)
             embed.set_author(name=after.display_name, icon_url=after.avatar.url)
-            embed.set_footer(icon_url=self.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str()} UTC")
+            embed.set_footer(icon_url=self.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
 
             if str(before.avatar.url) != str(after.avatar.url):
                 embed.set_thumbnail(url=after.avatar.url)

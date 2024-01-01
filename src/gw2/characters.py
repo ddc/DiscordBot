@@ -83,7 +83,7 @@ async def characters(ctx):
                 f"Date: {created}\n"
             ))
 
-        embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str()} UTC")
+        embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
         await bot_utils.send_embed(ctx, embed)
 
     except Exception as e:

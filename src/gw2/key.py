@@ -165,7 +165,7 @@ async def info(ctx, key_name: str = None):
         embed.add_field(name="Valid", value=chat_formatting.inline(is_valid_key))
         embed.add_field(name="Permissions", value=chat_formatting.inline(rs[0]["permissions"].replace(",", "|")), inline=False)
         embed.add_field(name="Key", value=chat_formatting.inline(rs[0]["key"]), inline=False)
-        embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str()} UTC")
+        embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
         await bot_utils.send_embed(ctx, embed, dm=True)
 
 

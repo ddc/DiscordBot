@@ -82,7 +82,7 @@ async def main():
             "owner_id": int(constants.AUTHOR_ID),
             "log": log,
         }
-        async with Bot(**bot_kwargs) as bot:
+        async with Bot(bot_kwargs) as bot:
             try:
                 await bot_utils.init_background_tasks(bot)
                 await bot.start(os.environ.get("BOT_TOKEN"))

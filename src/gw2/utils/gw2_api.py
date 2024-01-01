@@ -26,10 +26,10 @@ class Gw2Api:
     async def call_api(self, uri: str, key=None):
         """api languages can be ('en','es','de','fr','ko','zh')"""
 
-        endpoint = f"{gw2_constants.API_URI }/{uri}"
+        endpoint = f"{gw2_constants.API_URI}/{uri}"
 
         headers = {
-            "User-Agent": self.bot.settings["bot"]["description"],
+            "User-Agent": self.bot.description,
             "Accept": "application/json",
             "lang": "en"
         }

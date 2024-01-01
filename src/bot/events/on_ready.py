@@ -22,7 +22,7 @@ class OnReady(commands.Cog):
             print(f"Users: {bot_stats['users']}")
             print(f"Channels: {bot_stats['channels']}")
             print("--------------------")
-            print(f"{bot_utils.get_current_date_time_str()}")
+            print(f"{bot_utils.get_current_date_time_str_long()}")
             bot.log.info(f"====> {bot.user} IS ONLINE AND CONNECTED TO DISCORD <====")
 
 
