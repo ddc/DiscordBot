@@ -9,6 +9,7 @@ class DiceRollsDal:
     def __init__(self, db_session, log):
         self.db_session = db_session
         self.log = log
+        self.columns = [x for x in DiceRolls.__table__.columns]
         self.db_utils = DBUtils(self.db_session, self.log)
 
     async def insert_user_roll(self, server_id: int, user_id: int, dice_size: int, roll: int):
@@ -35,8 +36,7 @@ class DiceRollsDal:
         await self.db_utils.execute(stmt)
 
     async def get_user_roll_by_dice_size(self, server_id: int, user_id: int, dice_size: int):
-        columns = [x for x in DiceRolls.__table__.columns]
-        stmt = select(*columns).where(
+        stmt = select(*self.columns).where(
             DiceRolls.server_id == server_id,
             DiceRolls.user_id == user_id,
             DiceRolls.dice_size == dice_size,
@@ -45,8 +45,7 @@ class DiceRollsDal:
         return results
 
     async def get_user_rolls_all_dice_sizes(self, server_id: int, user_id: int):
-        columns = [x for x in DiceRolls.__table__.columns]
-        stmt = select(*columns).where(
+        stmt = select(*self.columns).where(
             DiceRolls.server_id == server_id,
             DiceRolls.user_id == user_id,
         ).order_by(DiceRolls.dice_size.asc())
@@ -54,8 +53,7 @@ class DiceRollsDal:
         return results
 
     async def get_all_server_rolls(self, server_id: int, dice_size: int):
-        columns = [x for x in DiceRolls.__table__.columns]
-        stmt = select(*columns).where(
+        stmt = select(*self.columns).where(
             DiceRolls.server_id == server_id,
             DiceRolls.dice_size == dice_size,
         ).order_by(DiceRolls.roll.desc())

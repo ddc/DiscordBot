@@ -9,6 +9,7 @@ class Gw2KeyDal:
     def __init__(self, db_session, log):
         self.db_session = db_session
         self.log = log
+        self.columns = [x for x in Gw2Keys.__table__.columns]
         self.db_utils = DBUtils(self.db_session, self.log)
 
     async def insert_api_key(self, insert_args: dict):
@@ -39,19 +40,16 @@ class Gw2KeyDal:
         await self.db_utils.execute(stmt)
 
     async def get_api_key(self, api_key: str):
-        columns = [x for x in Gw2Keys.__table__.columns]
-        stmt = select(*columns).where(Gw2Keys.key == api_key,)
+        stmt = select(*self.columns).where(Gw2Keys.key == api_key,)
         results = await self.db_utils.fetchall(stmt)
         return results
 
     async def get_api_key_by_name(self, key_name: str):
-        columns = [x for x in Gw2Keys.__table__.columns]
-        stmt = select(*columns).where(Gw2Keys.name == key_name,)
+        stmt = select(*self.columns).where(Gw2Keys.name == key_name,)
         results = await self.db_utils.fetchall(stmt)
         return results
 
     async def get_api_key_by_user(self, user_id: int):
-        columns = [x for x in Gw2Keys.__table__.columns]
-        stmt = select(*columns).where(Gw2Keys.user_id == user_id)
+        stmt = select(*self.columns).where(Gw2Keys.user_id == user_id)
         results = await self.db_utils.fetchall(stmt)
         return results

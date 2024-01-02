@@ -8,6 +8,7 @@ class Gw2SessionCharsDal:
     def __init__(self, db_session, log):
         self.db_session = db_session
         self.log = log
+        self.columns = [x for x in Gw2SessionChars.__table__.columns]
         self.db_utils = DBUtils(self.db_session, self.log)
 
     async def insert_session_char(self, gw2_api, api_characters, insert_args: dict):
@@ -29,13 +30,11 @@ class Gw2SessionCharsDal:
         await self.db_session.commit()
 
     async def get_all_start_characters(self, user_id: int):
-        columns = [x for x in Gw2SessionChars.__table__.columns]
-        stmt = select(*columns).where(Gw2SessionChars.user_id == user_id, Gw2SessionChars.start is True)
+        stmt = select(*self.columns).where(Gw2SessionChars.user_id == user_id, Gw2SessionChars.start is True)
         results = await self.db_utils.fetchall(stmt)
         return results
 
     async def get_all_end_characters(self, user_id: int):
-        columns = [x for x in Gw2SessionChars.__table__.columns]
-        stmt = select(*columns).where(Gw2SessionChars.user_id == user_id, Gw2SessionChars.end is True)
+        stmt = select(*self.columns).where(Gw2SessionChars.user_id == user_id, Gw2SessionChars.end is True)
         results = await self.db_utils.fetchall(stmt)
         return results

@@ -10,6 +10,7 @@ from gtts import gTTS
 from src.bot.utils.pepe import pepedatabase
 from src.bot.utils import bot_utils, chat_formatting, constants
 from src.bot.utils.cooldowns import CoolDowns
+from src.bot.utils.checks import Checks
 
 
 class Misc(commands.Cog):
@@ -325,7 +326,6 @@ class Misc(commands.Cog):
         return result
 
     # @commands.command()
-    # @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
     # async def test(self, ctx):
     #     """(test)"""
     #
@@ -333,7 +333,7 @@ class Misc(commands.Cog):
     #     color = discord.Color.red()
     #     embed = discord.Embed(color=color, description=msg)
     #     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
-    #     embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str()} UTC")
+    #     embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
     #     await bot_utils.send_embed(ctx, embed, True)
 
 

@@ -9,6 +9,7 @@ class CustomCommandsDal:
     def __init__(self, db_session, log):
         self.db_session = db_session
         self.log = log
+        self.columns = [x for x in CustomCommands.__table__.columns]
         self.db_utils = DBUtils(self.db_session, self.log)
 
     async def insert_command(self, server_id: int, user_id: int, cmd_name: str, description: str):
@@ -44,16 +45,14 @@ class CustomCommandsDal:
         await self.db_utils.execute(stmt)
 
     async def get_all_server_commands(self, server_id: int):
-        columns = [x for x in CustomCommands.__table__.columns]
-        stmt = (select(*columns)
+        stmt = (select(*self.columns)
                 .where(CustomCommands.server_id == server_id)
                 .order_by(CustomCommands.name.asc()))
         results = await self.db_utils.fetchall(stmt)
         return results
 
     async def get_command(self, server_id: int, cmd_name: str):
-        columns = [x for x in CustomCommands.__table__.columns]
-        stmt = select(*columns).where(
+        stmt = select(*self.columns).where(
             CustomCommands.server_id == server_id,
             CustomCommands.name == cmd_name,
         ).order_by(CustomCommands.name.asc())

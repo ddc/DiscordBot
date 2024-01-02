@@ -13,7 +13,6 @@ class GuildWars2(commands.Cog):
             gw2 config list
             gw2 config session [on | off]
             gw2 wvw [match | info | kdr] world_name
-            gw2 daily [pve | pvp | wvw | fractals]
             gw2 key [add | remove | info] api_key
             gw2 account
             gw2 worlds

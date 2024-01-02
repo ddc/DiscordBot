@@ -56,7 +56,7 @@ class OnMessage(commands.Cog):
                     return await self.bot.process_commands(ctx.message)
 
                 str_allowed_dm_commands = "\n".join(allowed_dm_commands)
-                msg = "That command is not allowed in direct messages."
+                msg = "Command not allowed in direct messages."
                 embed = discord.Embed(color=discord.Color.red(), description=f"{chat_formatting.error_inline(msg)}")
                 embed.add_field(name="Commands allowed in direct messages:",
                                 value=f"{chat_formatting.inline(str_allowed_dm_commands)}",

@@ -67,7 +67,6 @@
 | gw2 config list								| List all gw2 configurations in the server     |
 | gw2 config session [on , off]				| Bot should record users last sessions	        |
 | gw2 wvw [match, info, kdr] <_world name_>  	| Info about a wvw match					    |
-| gw2 daily [pve, pvp, wvw, fractals]			| Show today's Dailies						    |
 | gw2 key [add , remove , info] <_api key_>	| Add/Remove/Info - GW2 APIkey managing		    |
 | gw2 account                        			| General information about your GW2 account    |
 | gw2 worlds	 								| List all worlds							    |

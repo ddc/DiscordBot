@@ -3,11 +3,10 @@ from datetime import datetime, timedelta
 from enum import Enum
 import discord
 from src.bot.utils import bot_utils
-from src.bot.utils import constants
 from src.bot.utils.bot_utils import Object
-from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
 from src.database.dal.gw2.gw2_configs_dal import Gw2ConfigsDal
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
+from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
 from src.gw2.utils.gw2_api import Gw2Api
 
@@ -154,10 +153,7 @@ async def get_world_name(self, wids: str):
     try:
         gw2_api = Gw2Api(self.bot)
         rs = await gw2_api.call_api(f"worlds?ids={wids}")
-        if not rs:
-            name = None
-        else:
-            name = rs["name"]
+        name = None if not rs else rs["name"]
     except:
         name = None
     return name
@@ -206,20 +202,20 @@ async def check_gw2_game_activity(bot, before: discord.Member, after: discord.Me
 
 
 async def start_session(bot, after: discord.Member, api_key):
-    user_obj = await get_user_stats(bot, api_key)
-    user_obj["user_id"] = after.id
-    user_obj["date"] = bot_utils.convert_datetime_to_str_short(bot_utils.get_current_date_time())
+    session = await get_user_stats(bot, api_key)
+    session["user_id"] = after.id
+    session["date"] = bot_utils.convert_datetime_to_str_short(bot_utils.get_current_date_time())
     gw2_session_dal = Gw2SessionsDal(bot.db_session, bot.log)
-    session_id = await gw2_session_dal.insert_start_session(user_obj)
+    session_id = await gw2_session_dal.insert_start_session(session)
     await insert_session_char(bot, after, api_key, session_id, "start")
 
 
 async def end_session(bot, before: discord.Member, api_key):
-    user_obj = await get_user_stats(bot, api_key)
-    user_obj["user_id"] = before.id
-    user_obj["date"] = bot_utils.convert_datetime_to_str_short(bot_utils.get_current_date_time())
+    session = await get_user_stats(bot, api_key)
+    session["user_id"] = before.id
+    session["date"] = bot_utils.convert_datetime_to_str_short(bot_utils.get_current_date_time())
     gw2_session_dal = Gw2SessionsDal(bot.db_session, bot.log)
-    session_id = await gw2_session_dal.update_end_session(user_obj)
+    session_id = await gw2_session_dal.update_end_session(session)
     await insert_session_char(bot, before, api_key, session_id, "end")
 
 
@@ -230,11 +226,9 @@ async def get_user_stats(bot, api_key):
         api_req_wallet = await gw2_api.call_api("account/wallet", api_key)
         api_req_achiev = await gw2_api.call_api("account/achievements", api_key)
     except Exception as e:
-        # if ctx is not None:
-        #     await bot_utils.send_info_msg(ctx, "GW2 API is currently down. Try again later...")
         return bot.log.error(e)
 
-    user_obj = {
+    user_stats = {
         "acc_name": api_req_acc["name"],
         "wvw_rank": api_req_acc["wvw_rank"],
         "gold": 0,
@@ -254,43 +248,43 @@ async def get_user_stats(bot, api_key):
         "keeps": 0,
     }
 
-    if len(api_req_wallet) > 0:
-        for wallet in api_req_wallet:
-            if wallet["id"] == 1:
-                user_obj["gold"] = wallet["value"]
-            if wallet["id"] == 2:
-                user_obj["karma"] = wallet["value"]
-            if wallet["id"] == 3:
-                user_obj["laurels"] = wallet["value"]
-            if wallet["id"] == 15:
-                user_obj["badges_honor"] = wallet["value"]
-            if wallet["id"] == 16:
-                user_obj["guild_commendations"] = wallet["value"]
-            if wallet["id"] == 26:
-                user_obj["wvw_tickets"] = wallet["value"]
-            if wallet["id"] == 31:
-                user_obj["proof_heroics"] = wallet["value"]
-            if wallet["id"] == 36:
-                user_obj["test_heroics"] = wallet["value"]
+    for wallet in api_req_wallet:
+        match wallet["id"]:
+            case 1:
+                user_stats["gold"] = wallet["value"]
+            case 2:
+                user_stats["karma"] = wallet["value"]
+            case 3:
+                user_stats["laurels"] = wallet["value"]
+            case 15:
+                user_stats["badges_honor"] = wallet["value"]
+            case 16:
+                user_stats["guild_commendations"] = wallet["value"]
+            case 26:
+                user_stats["wvw_tickets"] = wallet["value"]
+            case 31:
+                user_stats["proof_heroics"] = wallet["value"]
+            case 36:
+                user_stats["test_heroics"] = wallet["value"]
 
-    if len(api_req_achiev) > 0:
-        for achiev in api_req_achiev:
-            if achiev["id"] == 283:
-                user_obj["players"] = achiev["current"]
-            if achiev["id"] == 285:
-                user_obj["yaks_scorted"] = achiev["current"]
-            if achiev["id"] == 288:
-                user_obj["yaks"] = achiev["current"]
-            if achiev["id"] == 291:
-                user_obj["camps"] = achiev["current"]
-            if achiev["id"] == 294:
-                user_obj["castles"] = achiev["current"]
-            if achiev["id"] == 297:
-                user_obj["towers"] = achiev["current"]
-            if achiev["id"] == 300:
-                user_obj["keeps"] = achiev["current"]
+    for achiev in api_req_achiev:
+        match achiev["id"]:
+            case 283:
+                user_stats["players"] = achiev["current"]
+            case 285:
+                user_stats["yaks_scorted"] = achiev["current"]
+            case 288:
+                user_stats["yaks"] = achiev["current"]
+            case 291:
+                user_stats["camps"] = achiev["current"]
+            case 294:
+                user_stats["castles"] = achiev["current"]
+            case 297:
+                user_stats["towers"] = achiev["current"]
+            case 300:
+                user_stats["keeps"] = achiev["current"]
 
-    return user_obj
+    return user_stats
 
 
 async def insert_session_char(self, member: discord.Member, api_key, session_id, session_type: str):

@@ -10,6 +10,7 @@ class ServersDal:
     def __init__(self, db_session, log):
         self.db_session = db_session
         self.log = log
+        self.columns = [x for x in Servers.__table__.columns]
         self.db_utils = DBUtils(self.db_session, self.log)
 
     async def insert_server(self, server_id: int, name: str):
@@ -76,13 +77,11 @@ class ServersDal:
         await self.db_utils.execute(stmt)
 
     async def get_server(self, server_id=None, channel_id=None):
-        columns = [x for x in Servers.__table__.columns]
-
         if channel_id:
-            stmt = (select(*columns, ProfanityFilters.id.label("profanity_filter"))
+            stmt = (select(*self.columns, ProfanityFilters.id.label("profanity_filter"))
                     .join(ProfanityFilters, ProfanityFilters.channel_id == channel_id, isouter=True))
         else:
-            stmt = select(*columns)
+            stmt = select(*self.columns)
 
         if server_id:
             stmt = stmt.where(Servers.id == server_id)

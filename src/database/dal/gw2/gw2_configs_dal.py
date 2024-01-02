@@ -9,6 +9,7 @@ class Gw2ConfigsDal:
     def __init__(self, db_session, log):
         self.db_session = db_session
         self.log = log
+        self.columns = [x for x in Gw2Configs.__table__.columns]
         self.db_utils = DBUtils(self.db_session, self.log)
 
     async def insert_gw2_server_configs(self, server_id: int):
@@ -23,7 +24,6 @@ class Gw2ConfigsDal:
         await self.db_utils.execute(stmt)
 
     async def get_gw2_server_configs(self, server_id: int):
-        columns = [x for x in Gw2Configs.__table__.columns]
-        stmt = select(*columns).where(Gw2Configs.server_id == server_id)
+        stmt = select(*self.columns).where(Gw2Configs.server_id == server_id)
         results = await self.db_utils.fetchall(stmt)
         return results

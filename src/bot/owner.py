@@ -83,7 +83,7 @@ class Owner(commands.Cog):
         servers_sql = ServersDal(self.bot.db_session, self.bot.log)
         rs = await servers_sql.get_server()
         color = self.bot.settings["bot"]["EmbedOwnerColor"]
-        embed = discord.Embed(description="All servers in database", color=color)
+        embed = discord.Embed(description="Database servers", color=color)
         embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar.url)
 
         id_list = []

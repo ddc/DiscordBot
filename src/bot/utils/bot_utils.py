@@ -143,7 +143,7 @@ async def send_embed(ctx, embed, dm=False):
             await ctx.author.send(embed=embed)
         else:
             await ctx.send(embed=embed)
-    except discord.Forbidden:
+    except (discord.Forbidden, discord.HTTPException):
         msg = "Direct messages are disable in your configuration.\n" \
               "If you want to receive messages from Bots, " \
               "you need to enable this option under Privacy & Safety:\n" \
