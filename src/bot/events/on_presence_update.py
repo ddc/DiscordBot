@@ -14,6 +14,9 @@ class OnPresenceUpdate(commands.Cog):
                 This is called when one or more of the following things change:
                     status
                     activity
+                :param before: discord.Member
+                :param after: discord.Member
+                :return: None
             """
             if after.bot:
                 return

@@ -8,6 +8,12 @@ class OnGuildChannelUpdate(commands.Cog):
 
         @self.bot.event
         async def on_guild_channel_update(before, after):
+            """
+                Called when a channel gets updated
+                :param before: abc.GuildChannel
+                :param after: abc.GuildChannel
+                :return: None
+            """
             pass
 
 

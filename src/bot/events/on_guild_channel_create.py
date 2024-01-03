@@ -8,6 +8,11 @@ class OnGuildChannelCreate(commands.Cog):
 
         @self.bot.event
         async def on_guild_channel_create(channel):
+            """
+                Called when a channel gets created
+                :param channel: abc.GuildChannel
+                :return: None
+            """
             pass
 
 
