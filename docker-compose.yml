@@ -1,39 +1,44 @@
 version: '3.8'
 
 x-common-variables: &common-variables
-    TZ: "America/Los_Angeles"
+    TZ: "UTC"
 
 services:
-    db:
-        image: postgres:13
+    database:
+        image: postgres:latest
         container_name: postgres_bot
         restart: always
-        ports:
-            - 5432:5432
-        expose:
-            - 5432/tcp
-        volumes:
-            - ./postgresql:/var/lib/postgresql/data
+        env_file:
+          - .env
         environment:
             <<: *common-variables
             POSTGRES_DB: discordbot
             POSTGRES_USER: postgres
             POSTGRES_PASSWORD: postgres
+        ports:
+            - "5432:5432"
+        expose:
+            - 5432/tcp
+        volumes:
+            - ./postgresql:/var/lib/postgresql/data:rw
         networks:
-            - bot_network
+            - network
     bot:
         build: .
         container_name: discord_bot
         restart: always
-        volumes:
-            - .:/opt/DiscordBot
+        env_file:
+          - .env
         environment:
             <<: *common-variables
+        volumes:
+            - .:/opt/DiscordBot
         depends_on:
-            - db
+            - database
         networks:
-            - bot_network
+            - network
+        command: "python bot.py"
 
 networks:
-    bot_network:
+    network:
         driver: bridge

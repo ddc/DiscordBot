@@ -1,11 +1,37 @@
-FROM python:3.9
-#################
+FROM --platform=linux/amd64 python:3.12-bookworm AS python-base
+
 LABEL Description="DiscordBot"
-#################
-RUN mkdir -p /opt/DiscordBot
+
+ENV TERM=xterm \
+    TZ="UTC" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONFAULTHANDLER=1 \
+    PYTHONHASHSEED=random \
+    PIP_NO_CACHE_DIR=off \
+    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    PIP_DEFAULT_TIMEOUT=100 \
+    PIP_ROOT_USER_ACTION=ignore \
+    POETRY_HOME="/opt/poetry" \
+    POETRY_VERSION=1.7.1 \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_CREATE=false \
+    PATH=/opt/poetry/bin:$PATH
+
 WORKDIR /opt/DiscordBot
-ADD . /opt/DiscordBot
-RUN python -m pip install --upgrade pip \
-&& python -m pip install --no-cache-dir -r ./requirements.txt
-#################
-CMD ["python", "launcher.py", "--start"]
+
+RUN set -ex \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y build-essential curl \
+    && curl -sSL https://install.python-poetry.org | python3 - --version "$POETRY_VERSION" \
+    && poetry config virtualenvs.create false \
+    && apt-get purge --auto-remove -y build-essential \
+    && apt-get autoremove -y \
+    && apt-get clean
+
+COPY pyproject.toml poetry.lock /opt/DiscordBot/
+RUN poetry install --no-interaction --no-ansi --no-dev
+
+COPY src /opt/DiscordBot/src
+
+CMD ["python", "bot.py"]
