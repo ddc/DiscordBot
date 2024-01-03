@@ -24,7 +24,7 @@ _versionFile = open(os.path.join(BASE_DIR, "VERSION"), encoding="utf-8", mode="r
 VERSION = _versionFile.read().split("\n", 1)[0].strip("\n")
 _versionFile.close()
 ###############################################################################
-DESCRIPTION = "A Multifunction Bot for Discord"
+DESCRIPTION = "A Bot for Discord"
 AUTHOR_ID = "195615080665055232"
 PAYPAL_URL = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=38E66BHC4623Y"
 BOT_WEBPAGE_URL = "https://ddc.github.io/DiscordBot"
