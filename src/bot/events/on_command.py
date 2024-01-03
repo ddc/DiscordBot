@@ -8,6 +8,11 @@ class OnCommand(commands.Cog):
 
         @self.bot.event
         async def on_command(ctx):
+            """
+                Called when a command gets called
+                :param ctx: discord.ext.commands.Context
+                :return: None
+            """
             pass
 
 

@@ -17,6 +17,9 @@ class OnMemberUpdate(commands.Cog):
                     roles
                     pending
                     flags
+                :param before: discord.Member
+                :param after: discord.Member
+                :return: None
             """
             if after.bot:
                 return
