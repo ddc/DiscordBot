@@ -19,6 +19,7 @@ ENV TERM=xterm \
     PATH=/opt/poetry/bin:$PATH
 
 WORKDIR /opt/DiscordBot
+RUN mkdir /opt/DiscordBot/logs
 
 RUN set -ex \
     && apt-get update \
@@ -33,5 +34,8 @@ COPY pyproject.toml poetry.lock /opt/DiscordBot/
 RUN poetry install --no-interaction --no-ansi --no-dev
 
 COPY src /opt/DiscordBot/src
+
+RUN adduser --no-create-home discordbot
+USER discordbot
 
 CMD ["python", "bot.py"]
