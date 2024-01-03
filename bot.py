@@ -99,7 +99,7 @@ async def main():
 
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
     try:
         print(f"Starting Bot in {constants.TIME_BEFORE_START} secs")
         time.sleep(constants.TIME_BEFORE_START)
@@ -110,5 +110,6 @@ if __name__ == "__main__":
         print(str(e.args))
     finally:
         print("Closing the loop")
+        loop.run_until_complete(loop.shutdown_asyncgens())
         loop.stop()
         loop.close()
