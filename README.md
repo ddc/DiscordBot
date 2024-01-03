@@ -69,7 +69,7 @@
 | gw2 wvw [match, info, kdr] <_world name_> | Info about a wvw match                     |
 | gw2 key [add , remove , info] <_api key_> | Add/Remove/Info - GW2 APIkey managing      |
 | gw2 account                               | General information about your GW2 account |
-| gw2 worlds                                | List all worlds                            |
+| gw2 worlds [na, eu]                       | List all worlds by timezone                |
 | gw2 wiki <_name to search_>               | Search the Guild wars 2 wiki               |
 | gw2 info <_info to search_>               | Information about a given name/skill/rune  |
 

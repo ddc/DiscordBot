@@ -10,7 +10,6 @@ from gtts import gTTS
 from src.bot.utils.pepe import pepedatabase
 from src.bot.utils import bot_utils, chat_formatting, constants
 from src.bot.utils.cooldowns import CoolDowns
-from src.bot.utils.checks import Checks
 
 
 class Misc(commands.Cog):
