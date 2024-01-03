@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/DiscordBot/assets/css/style.css?v=41dce1b8b3ee377fee5d97cc71687268c7c17bd9">
+
+    <!-- Begin Jekyll SEO tag v2.5.0 -->
+    <title>A Multifunction Bot for Discord | DiscordBot</title>
+    <meta name="generator" content="Jekyll v3.8.5"/>
+    <meta property="og:title" content="A Multifunction Bot for Discord"/>
+    <meta property="og:locale" content="en_US"/>
+    <link rel="canonical" href="https://ddc.github.io/DiscordBot/"/>
+    <meta property="og:url" content="https://ddc.github.io/DiscordBot/"/>
+    <meta property="og:site_name" content="DiscordBot"/>
+    <script type="application/ld+json">
+        {
+            "@type": "WebSite",
+            "headline": "A Multifunction Bot for Discord",
+            "url": "https://ddc.github.io/DiscordBot/",
+            "name": "DiscordBot",
+            "@context": "http://schema.org"
+        }</script>
+    <!-- End Jekyll SEO tag -->
+
+    <style>
+        th{text-align:left;}
+        td{text-align:left;}
+    </style>
+
+</head>
+
+<body>
+<header>
+    <div class="container">
+        <h1>DiscordBot</h1>
+        <h2></h2>
+        <section id="downloads">
+            <a href="https://github.com/ddc/DiscordBot" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+    </div>
+</header>
+
+<div class="container">
+    <section id="main_content">
+        <h1 id="a-multifunction-bot-for-discord">A Multifunction Bot for Discord</h1>
+
+
+        <p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=38E66BHC4623Y"><img src="https://img.shields.io/badge/Donate-PayPal-green.svg?style=plastic" alt="Donate"/></a>
+            <a href="https://github.com/ddc/DiscordBot/blob/master/LICENSE"><img src="https://img.shields.io/github/license/ddc/DiscordBot.svg?style=plastic" alt="License"/></a>
+            <a href="https://www.python.org/downloads/release"><img src="https://img.shields.io/badge/python-3.7-blue.svg?style=plastic" alt="Python"/></a>
+            <a href="https://github.com/ddc/DiscordBot/releases/latest"><img src="https://img.shields.io/github/release/ddc/DiscordBot.svg?style=plastic" alt="GitHub release"/></a>
+        </p>
+
+
+        <h3 id="install-guide---wiki"><a href="https://ddc.github.io/DiscordBot">Install Guide - Wiki</a></h3>
+        <ul>
+            <li>Using Docker
+                <ul>
+                    <li>git clone https://github.com/ddc/DiscordBot.git</li>
+                    <li>BOT_TOKEN variable needs to be inside the .env file</li>
+                    <li>docker-compose up --build -d</li>
+                </ul>
+            </li>
+        </ul>
+        <h2 id="games-included">Games Included</h2>
+        <ul>
+            <li><a href="https://www.guildwars2.com">Guild Wars 2</a></li>
+        </ul>
+
+
+        <h2 id="admin-commands">Admin/Mod Commands</h2>
+        <table>
+            <thead>
+                <tr class="header">
+                    <th>Commands</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="odd">
+                    <td>admin cc [add,edit,remove] &lt;<em>command</em>&gt;</td>
+                    <td>Add, edit or remove custom commands</td>
+                </tr>
+                <tr class="even">
+                    <td>admin botgame &lt;<em>new game</em>&gt;</td>
+                    <td>Change game that bot is playing </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 id="admin-config-commands">Config Commands</h2>
+        <table>
+            <thead>
+                <tr class="header">
+                    <th>Commands</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="odd">
+                    <td>admin config list</td>
+                    <td>List all bot configurations</td>
+                </tr>
+                <tr class="even">
+                    <td>admin config servermessage [on, off]</td>
+                    <td>Show message when a server gets updated</td>
+                </tr>
+                <tr class="odd">
+                    <td>admin config membermessage [on, off]</td>
+                    <td>Show message when someone updates the profile</td>
+                </tr>
+                <tr class="even">
+                    <td>admin config joinmessage [on, off]</td>
+                    <td>Show message when a user joins the server</td>
+                </tr>
+                <tr class="odd">
+                    <td>admin config leavemessage [on, off]</td>
+                    <td>Show message when a user leaves the server</td>
+                </tr>
+                <tr class="even">
+                    <td>admin config blockinvisible [on, off]</td>
+                    <td>Block messages from invisible members</td>
+                </tr>
+                <tr class="odd">
+                    <td>admin config botreactions [on, off]</td>
+                    <td>Bot will react to member words </td>
+                </tr>
+                <tr class="even">
+                    <td>admin config pfilter [on, off] &lt;<em>channel name</em>&gt;</td>
+                    <td>Profanity Filter (block swear/bad words)  </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+        <h2 id="misc-commands">Misc Commands</h2>
+        <table>
+            <thead>
+                <tr class="header">
+                    <th>Commands</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="odd">
+                    <td>about</td>
+                    <td>Displays bot info</td>
+                </tr>
+                <tr class="even">
+                    <td>echo</td>
+                    <td>Shows your msg again</td>
+                </tr>
+                <tr class="odd">
+                    <td>ping</td>
+                    <td>Test latency by receiving a ping message</td>
+                </tr>
+                <tr class="even">
+                    <td>roll</td>
+                    <td>Rolls random number</td>
+                </tr>
+                <tr class="odd">
+                    <td>pepe</td>
+                    <td>Posts a random Pepe from imgur url</td>
+                </tr>
+                <tr class="even">
+                    <td>tts &lt;<em>message</em>&gt;</td>
+                    <td>Send TTS as .mp3 to channel</td>
+                </tr>
+                <tr class="odd">
+                    <td>serverinfo</td>
+                    <td>Shows server's informations</td>
+                </tr>
+                <tr class="even">
+                    <td>userinfo &lt;<em>member#1234</em>&gt;</td>
+                    <td>Shows discord user informations</td>
+                </tr>
+                <tr class="odd">
+                    <td>lmgtfy &lt;<em>link</em>&gt;</td>
+                    <td>Creates a lmgtfy link</td>
+                </tr>
+                <tr class="even">
+                    <td>invites</td>
+                    <td>List active invites link for the server</td>
+                </tr>
+            </tbody>
+        </table>
+
+
+        <h2 id="bot-owner-commands">Bot Owner Commands</h2>
+        <table>
+            <thead>
+                <tr class="header">
+                    <th>Commands</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="odd">
+                    <td>owner servers </td>
+                    <td>Display all servers in database</td>
+                </tr>
+                <tr class="even">
+                    <td>owner prefix &lt;<em>new prefix</em>&gt;</td>
+                    <td>Change bot prefix for commands</td>
+                </tr>
+                <tr class="odd">
+                    <td>owner botdescription &lt;<em>new description</em>&gt;</td>
+                    <td>Change bot description</td>
+                </tr>
+            </tbody>
+        </table>
+
+
+        <h2 id="gw2-commands">GW2 Commands</h2>
+        <table>
+            <thead>
+                <tr class="header">
+                    <th>Commands</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="odd">
+                    <td>gw2 config list</td>
+                    <td>List all gw2 configurations in the server</td>
+                </tr>
+                <tr class="even">
+                    <td>gw2 config session [on, off]</td>
+                    <td>Bot should record users last sessions</td>
+                </tr>
+                <tr class="odd">
+                    <td>gw2 wvw [match, info, kdr] &lt;<em>world name</em>&gt;</td>
+                    <td>Info about a wvw match</td>
+                </tr>
+                <tr class="even">
+                    <td>gw2 key [add , remove , info] &lt;<em>api key</em>&gt;</td>
+                    <td>Add/Remove/Info - GW2 APIkey managing</td>
+                </tr>
+                <tr class="odd">
+                    <td>gw2 account</td>
+                    <td>General information about your GW2 account</td>
+                </tr>
+                <tr class="even">
+                    <td>gw2 worlds</td>
+                    <td>List all worlds </td>
+                </tr>
+                <tr class="odd">
+                    <td>gw2 wiki &lt;<em>name to search</em>&gt;</td>
+                    <td>Search the Guild wars 2 wiki</td>
+                </tr>
+                <tr class="even">
+                    <td>gw2 info &lt;<em>info to search</em>&gt;</td>
+                    <td>Information about a given name/skill/rune</td>
+                </tr>
+            </tbody>
+        </table>
+
+
+        <h2 id="acknowledgements">Acknowledgements</h2>
+        <ul>
+            <li><a href="https://wiki.guildwars2.com/wiki/API:2">Guild Wars 2 API</a></li>
+            <li><a href="https://www.postgresql.org">PostgreSQL</a></li>
+            <li><a href="https://discordapp.com/developers/applications/me">Discord Bot Api</a></li>
+            <li><a href="https://sqlite.org">SQLite3</a></li>
+            <li><a href="https://git-scm.com/download">Git</a></li>
+        </ul>
+
+
+        <h2 id="license">License</h2>
+        <p>Released under the <a href="LICENSE">GNU GPL v3</a>.</p>
+        <h2 id="buy-me-a-cup-of-coffee">Buy me a cup of coffee</h2>
+        <p>This bot is open source and always will be, even if I don't get donations. That said, I know there are people
+            out there that may still want to donate just to show their appreciation so this is for you guys. Thanks in
+            advance!</p>
+        <p><a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=38E66BHC4623Y"><img
+                src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" alt="paypal"/></a></p>
+
+    </section>
+</div>
+</body>
+</html>
