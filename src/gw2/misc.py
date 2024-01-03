@@ -2,9 +2,8 @@
 import re
 import discord
 from bs4 import BeautifulSoup
-from src.bot.utils import bot_utils, chat_formatting
+from src.bot.utils import bot_utils
 from src.gw2.utils import gw2_utils, gw2_constants
-from src.gw2.utils.gw2_api import Gw2Api
 from src.gw2.gw2 import GuildWars2
 from discord.ext import commands
 from src.gw2.utils.gw2_cooldowns import GW2CoolDowns
@@ -160,48 +159,6 @@ async def info(ctx, *, skill):
         embed.set_thumbnail(url=skill_icon_url)
         embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
         await bot_utils.send_embed(ctx, embed)
-
-
-@GW2Misc.gw2.command()
-@commands.cooldown(1, GW2CoolDowns.Misc.value, BucketType.user)
-async def worlds(ctx):
-    """ (List all worlds)
-        gw2 worlds
-    """
-
-    try:
-        await ctx.message.channel.typing()
-        gw2_api = Gw2Api(ctx.bot)
-        results = await gw2_api.call_api("worlds?ids=all")
-    except Exception as e:
-        await bot_utils.send_error_msg(ctx, e)
-        return ctx.bot.log.error(ctx, e)
-
-    color = ctx.bot.settings["gw2"]["EmbedColor"]
-    desc_na = "~~~~~ NA Servers ~~~~~"
-    embed_na = discord.Embed(color=color, description=chat_formatting.inline(desc_na))
-    desc_eu = "~~~~~ EU Servers ~~~~~"
-    embed_eu = discord.Embed(color=color, description=chat_formatting.inline(desc_eu))
-
-    for world in results:
-        try:
-            await ctx.message.channel.typing()
-            wid = world["id"]
-            matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
-            if wid < 2001:
-                tier_number = matches["id"].replace("1-", "")
-                embed_na.add_field(name=world["name"],
-                                   value=chat_formatting.inline(f"T{tier_number} {world['population']}"))
-            else:
-                tier_number = matches["id"].replace("2-", "")
-                embed_eu.add_field(name=world["name"],
-                                   value=chat_formatting.inline(f"T{tier_number} {world['population']}"))
-        except Exception as e:
-            await bot_utils.send_error_msg(ctx, e)
-            return ctx.bot.log.error(ctx, e)
-
-    await ctx.send(embed=embed_na)
-    await ctx.send(embed=embed_eu)
 
 
 # @GW2Misc.gw2.command()

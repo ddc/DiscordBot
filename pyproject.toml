@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "DiscordBot"
-version = "2.0"
-description = "A Multifunction Bot for Discord"
+version = "2.0.1"
+description = "A Bot for Discord"
 authors = ["ddc <ddc@users.noreply.github.com>"]
 readme = "README.md"
 

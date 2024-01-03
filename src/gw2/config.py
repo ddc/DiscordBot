@@ -27,7 +27,7 @@ async def config(ctx):
 
 
 @config.command(name="list")
-@commands.cooldown(1, GW2CoolDowns.ApiKeys.value, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Config.value, BucketType.user)
 async def config_list(ctx):
     """(List all Guild Wars 2 Current Server Configurations)
             gw2 config list
@@ -49,7 +49,7 @@ async def config_list(ctx):
 
 
 @config.command(name="session")
-@commands.cooldown(1, GW2CoolDowns.ApiKeys.value, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Config.value, BucketType.user)
 async def config_session(ctx, subcommand_passed: str):
     """(Configure Guild Wars 2 Sessions)
         gw2 config session on

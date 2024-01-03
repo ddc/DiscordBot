@@ -425,3 +425,14 @@ def convert_timedelta_to_obj(time_delta: timedelta):
         obj.minutes = int(str(time_delta).split(":")[1].strip())
         obj.seconds = int(str(time_delta).split(":")[2].strip())
     return obj
+
+
+async def get_worlds_ids(ctx):
+    try:
+        await ctx.message.channel.typing()
+        gw2_api = Gw2Api(ctx.bot)
+        results = await gw2_api.call_api("worlds?ids=all")
+        return True, results
+    except Exception as e:
+        await bot_utils.send_error_msg(ctx, e)
+        return False, ctx.bot.log.error(ctx, e)

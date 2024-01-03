@@ -16,6 +16,7 @@ class Owner(commands.Cog):
 
     @commands.group()
     @Checks.check_is_bot_owner()
+    @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
     async def owner(self, ctx):
         """(Bot Owner Commands)
 
@@ -27,7 +28,6 @@ class Owner(commands.Cog):
         await bot_utils.invoke_subcommand(ctx, "owner")
 
     @owner.command(name="prefix")
-    @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
     async def owner_change_prefix(self, ctx, *, new_prefix: str):
         """(Change bot prefix for commands)
             Possible prefixes: ! $ % ^ & ? > < . ;
@@ -55,7 +55,6 @@ class Owner(commands.Cog):
         await bot_utils.send_embed(ctx, embed,)
 
     @owner.command(name="botdescription")
-    @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
     async def owner_description(self, ctx, *, desc: str):
         """(Change bot description)
             owner botdescription <new_description>
@@ -73,7 +72,6 @@ class Owner(commands.Cog):
         await bot_utils.send_embed(ctx, embed)
 
     @owner.command(name="servers")
-    @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
     async def owner_servers(self, ctx):
         """(Display all servers in database)
             owner servers
