@@ -66,7 +66,8 @@ async def main():
 
         # set bot description
         help_cmd = f"{command_prefix}help"
-        game = str(random.choice(constants.GAMES_INCLUDED))
+        system_random = random.SystemRandom()
+        game = system_random.choice(constants.GAMES_INCLUDED)
         random_game_desc = f"{game} | {help_cmd}"
         exclusive_users = bot_utils.get_ini_settings(constants.SETTINGS_FILENAME, "Bot", "ExclusiveUsers")
         bot_game_desc = f"PRIVATE BOT | {help_cmd}" if exclusive_users is not None else random_game_desc

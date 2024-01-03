@@ -43,7 +43,8 @@ class DiceRolls(commands.Cog):
 
         if dice_size > 1:
             msg = ""
-            roll = random.randint(1, dice_size)
+            system_random = random.SystemRandom()
+            roll = system_random.randint(1, dice_size)
 
             dice_rolls_dal = DiceRollsDal(self.bot.db_session, self.bot.log)
             rs_user = await dice_rolls_dal.get_user_roll_by_dice_size(server.id, author.id, dice_size)

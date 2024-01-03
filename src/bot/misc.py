@@ -29,7 +29,8 @@ class Misc(commands.Cog):
             raise commands.BadArgument(message="BadArgument")
 
         await ctx.message.channel.typing()
-        pepe_url = f"{random.choice(pepedatabase)[:-1]}.jpg"
+        system_random = random.SystemRandom()
+        pepe_url = f"{system_random.choice(pepedatabase)[:-1]}.jpg"
         async with aiohttp.ClientSession() as session:
             async with session.get(pepe_url) as resp:
                 if resp.status != 200:

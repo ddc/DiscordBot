@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from enum import Enum
 import json
 from operator import attrgetter
-from random import choice
+import random
 import sys
 from alembic import command
 from alembic.config import Config
@@ -330,7 +330,8 @@ def get_ini_settings(file_name: str, section: str, config_name: str):
 
 def get_color_settings(color: str):
     if str(color).lower() == "random":
-        color = "".join([choice("0123456789ABCDEF") for _ in range(6)])
+        system_random = random.SystemRandom()
+        color = "".join([system_random.choice("0123456789ABCDEF") for _ in range(6)])
         color = int(color, 16)
         return color
     for cor in Colors:
