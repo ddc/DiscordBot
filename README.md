@@ -23,55 +23,55 @@
 
 
 ## Admin/Mod Commands
-| Command                                | Description                         |
+| Commands                               | Description                         |
 |:---------------------------------------|:------------------------------------|
 | admin cc [add,edit,remove] <_command_> | Add, edit or remove custom commands |
 | admin botgame <_new game_>             | Change game that bot is playing     |
 
 ## Config Commands
-| Command                                       | Description                                          |
-|:----------------------------------------------|:-----------------------------------------------------|
-| admin config list									| List all bot configurations                   |
-| admin config servermessage   [on , off]				| Show message when a server gets updated	    |
-| admin config membermessage   [on , off]				| Show message when someone updates the profile |
-| admin config joinmessage     [on , off]				| Show message when a user joins the server	    |
-| admin config leavemessage    [on , off]				| Show message when a user leaves the server    |
-| admin config blockinvisible  [on , off]				| Block messages from invisible members		    |
-| admin config botreactions    [on , off]				| Bot will react to member words			    |
-| admin config pfilter [on , off]	<_channel name_>	| Profanity Filter (block swear/bad words)	    |
+| Commands                                         | Description                                   |
+|:-------------------------------------------------|:----------------------------------------------|
+| admin config list                                | List all bot configurations                   |
+| admin config servermessage   [on , off]          | Show message when a server gets updated       |
+| admin config membermessage   [on , off]          | Show message when someone updates the profile |
+| admin config joinmessage     [on , off]          | Show message when a user joins the server	    |
+| admin config leavemessage    [on , off]          | Show message when a user leaves the server    |
+| admin config blockinvisible  [on , off]          | Block messages from invisible members         |
+| admin config botreactions    [on , off]          | Bot will react to member words                |
+| admin config pfilter [on , off]	<_channel name_> | Profanity Filter (blocks swear words)         |
 
 ## Misc Commands
-| Command                                      | Description                               |
-|:---------------------------------------------|:------------------------------------------|
-| about										| Display bot info                          |
-| echo											| Show your msg again                       |
-| ping											| Test latency by receiving a ping message  |
-| roll 										| Rolls random number                       |
-| pepe 										| Posts a random Pepe from imgur            |
-| tts <_message_>				                | Send TTS as .mp3 to channel               |
-| serverinfo									| Shows server's informations               |
-| userinfo <_member#1234_>						| Shows discord user informations           |
-| lmgtfy <_link_>								| Creates a lmgtfy link	                    |
-| invites                                      | List active invites link for the server   |
+| Commands                 | Description                              |
+|:-------------------------|:-----------------------------------------|
+| about                    | Displays bot info                        |
+| echo                     | Shows your msg again                     |
+| ping                     | Test latency by receiving a ping message |
+| roll                     | Rolls random number                      |
+| pepe                     | Posts a random Pepe from imgur url       |
+| tts <_message_>          | Send TTS as .mp3 to channel              |
+| serverinfo               | Shows server's informations              |
+| userinfo <_member#1234_> | Shows discord user informations          |
+| lmgtfy <_link_>          | Creates a lmgtfy link	                   |
+| invites                  | List active invites link for the server  |
 
 ## Bot Owner Commands
-| Command                                      | Description                                |
-|:---------------------------------------------|:-------------------------------------------|
-| owner servers								| Display all servers in database			 |
-| owner prefix <_new prefix_>					| Change bot prefix for commands			 |
-| owner botdescription <_new description_>		| Change bot description					 |
+| Commands                                  | Description                     |
+|:------------------------------------------|:--------------------------------|
+| owner servers                             | Display all servers in database |
+| owner prefix <_new prefix_>               | Change bot prefix for commands  |
+| owner botdescription <_new description_>	 | Change bot description          |
 
 ## GW2 Commands
-| Command                                      | Description                                   |
-|:---------------------------------------------|:----------------------------------------------|
-| gw2 config list								| List all gw2 configurations in the server     |
-| gw2 config session [on , off]				| Bot should record users last sessions	        |
-| gw2 wvw [match, info, kdr] <_world name_>  	| Info about a wvw match					    |
-| gw2 key [add , remove , info] <_api key_>	| Add/Remove/Info - GW2 APIkey managing		    |
-| gw2 account                        			| General information about your GW2 account    |
-| gw2 worlds	 								| List all worlds							    |
-| gw2 wiki <_name to search_>					| Search the Guild wars 2 wiki				    |
-| gw2 info <_info to search_>					| Information about a given name/skill/rune	    |
+| Commands                                  | Description                                |
+|:------------------------------------------|:-------------------------------------------|
+| gw2 config list                           | List all gw2 configurations in the server  |
+| gw2 config session [on , off]             | Bot should record users last sessions      |
+| gw2 wvw [match, info, kdr] <_world name_> | Info about a wvw match                     |
+| gw2 key [add , remove , info] <_api key_> | Add/Remove/Info - GW2 APIkey managing      |
+| gw2 account                               | General information about your GW2 account |
+| gw2 worlds                                | List all worlds                            |
+| gw2 wiki <_name to search_>               | Search the Guild wars 2 wiki               |
+| gw2 info <_info to search_>               | Information about a given name/skill/rune  |
 
 
 ## Acknowledgements
