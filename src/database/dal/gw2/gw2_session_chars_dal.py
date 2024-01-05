@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy.future import select
-from src.database.db_utils import DBUtils
+from src.database.db_utils_async import DBUtilsAsync
 from src.database.models.gw2_models import Gw2SessionChars
 
 
 class Gw2SessionCharsDal:
     def __init__(self, db_session, log):
         self.db_session = db_session
-        self.log = log
         self.columns = [x for x in Gw2SessionChars.__table__.columns]
-        self.db_utils = DBUtils(self.db_session, self.log)
+        self.db_utils = DBUtilsAsync(db_session, log)
 
     async def insert_session_char(self, gw2_api, api_characters, insert_args: dict):
         for char_name in api_characters:

@@ -6,7 +6,7 @@ from src.database.db_exceptions import (
 )
 
 
-class DBUtils:
+class DBUtilsAsync:
     def __init__(self, session, log):
         self.session = session
         self.log = log
@@ -16,7 +16,6 @@ class DBUtils:
             self.session.add(stmt)
             await self.session.commit()
         except Exception as e:
-            self.log.error(e)
             raise DBExecuteException(self.log, e)
 
     async def execute(self, stmt):
@@ -24,7 +23,6 @@ class DBUtils:
             await self.session.execute(stmt)
             await self.session.commit()
         except Exception as e:
-            self.log.error(e)
             raise DBExecuteException(self.log, e)
 
     async def fetchall(self, stmt):
@@ -32,7 +30,6 @@ class DBUtils:
             cursor = await self.session.execute(stmt)
             return cursor.mappings().all()
         except Exception as e:
-            self.log.error(e)
             raise DBFetchAllException(self.log, e)
 
     async def fetchone(self, stmt):
@@ -40,7 +37,6 @@ class DBUtils:
             cursor = await self.session.execute(stmt)
             return cursor.mappings().first()
         except Exception as e:
-            self.log.error(e)
             raise DBFetchAllException(self.log, e)
 
     async def fetch_value(self, stmt):
@@ -48,5 +44,4 @@ class DBUtils:
             cursor = await self.session.execute(stmt)
             return cursor.first()[0]
         except Exception as e:
-            self.log.error(e)
             raise DBFetchValueException(self.log, e)

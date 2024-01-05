@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 import sqlalchemy as sa
 from sqlalchemy.future import select
-from src.database.db_utils import DBUtils
+from src.database.db_utils_async import DBUtilsAsync
 from src.database.models.bot_models import ProfanityFilters
 
 
 class ProfanityFilterDal:
     def __init__(self, db_session, log):
-        self.db_session = db_session
-        self.log = log
         self.columns = [x for x in ProfanityFilters.__table__.columns]
-        self.db_utils = DBUtils(self.db_session, self.log)
+        self.db_utils = DBUtilsAsync(db_session, log)
 
     async def insert_profanity_filter_channel(self,
                                               server_id: int,
