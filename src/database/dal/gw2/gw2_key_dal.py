@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 import sqlalchemy as sa
 from sqlalchemy.future import select
-from src.database.db_utils import DBUtils
+from src.database.db_utils_async import DBUtilsAsync
 from src.database.models.gw2_models import Gw2Keys
 
 
 class Gw2KeyDal:
     def __init__(self, db_session, log):
-        self.db_session = db_session
-        self.log = log
         self.columns = [x for x in Gw2Keys.__table__.columns]
-        self.db_utils = DBUtils(self.db_session, self.log)
+        self.db_utils = DBUtilsAsync(db_session, log)
 
     async def insert_api_key(self, insert_args: dict):
         stmt = Gw2Keys(

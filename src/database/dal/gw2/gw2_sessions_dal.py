@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 import sqlalchemy as sa
 from sqlalchemy.future import select
-from src.database.db_utils import DBUtils
+from src.database.db_utils_async import DBUtilsAsync
 from src.database.models.gw2_models import Gw2Sessions, Gw2SessionChars
 
 
 class Gw2SessionsDal:
     def __init__(self, db_session, log):
-        self.db_session = db_session
-        self.log = log
         self.columns = [x for x in Gw2Sessions.__table__.columns]
-        self.db_utils = DBUtils(self.db_session, self.log)
+        self.db_utils = DBUtilsAsync(db_session, log)
 
     async def insert_start_session(self, session: dict):
         stmt = sa.delete(Gw2Sessions).where(Gw2Sessions.user_id == session["user_id"],)
