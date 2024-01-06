@@ -4,8 +4,8 @@ from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from src.database.dal.bot.profanity_filters_dal import ProfanityFilterDal
 from src.database.dal.bot.servers_dal import ServersDal
-from src.bot.utils import bot_utils, chat_formatting
-from src.bot.utils.cooldowns import CoolDowns
+from src.bot.tools import bot_utils, chat_formatting
+from src.bot.tools.cooldowns import CoolDowns
 from src.bot.admin.admin import Admin
 
 

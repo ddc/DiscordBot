@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-import discord
 from discord.ext import commands
 from src.database.dal.bot.servers_dal import ServersDal
-from src.bot.utils import bot_utils
+from src.bot.tools import bot_utils
 
 
 class OnGuildUpdate(commands.Cog):

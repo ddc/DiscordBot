@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 from src.database.dal.bot.custom_commands_dal import CustomCommandsDal
 from src.database.dal.bot.servers_dal import ServersDal
-from src.bot.utils import bot_utils, chat_formatting
+from src.bot.tools import bot_utils, chat_formatting
 
 
 class OnMessage(commands.Cog):

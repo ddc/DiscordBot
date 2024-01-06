@@ -9,8 +9,9 @@ import sys
 from alembic import command
 from alembic.config import Config
 import discord
-from src.bot.utils import chat_formatting, constants
-from src.bot.utils.background_tasks import BackGroundTasks
+from src.bot.tools import chat_formatting
+from src.bot.constants import variables
+from src.bot.tools.background_tasks import BackGroundTasks
 from src.database.dal.bot.servers_dal import ServersDal
 
 
@@ -54,7 +55,7 @@ class Colors(Enum):
 
 
 async def run_alembic_migrations():
-    alembic_cfg = Config(constants.ALEMBIC_CONFIG_FILE_PATH)
+    alembic_cfg = Config(variables.ALEMBIC_CONFIG_FILE_PATH)
     command.upgrade(alembic_cfg, "head")
 
 
@@ -75,7 +76,7 @@ async def init_background_tasks(bot):
 
 async def load_cogs(bot):
     bot.log.debug("Loading Bot Extensions...")
-    for ext in constants.ALL_COGS:
+    for ext in variables.ALL_COGS:
         cog_name = ".".join(ext.split("/")[-4:])[:-3]
         try:
             await bot.load_extension(cog_name)
@@ -197,15 +198,15 @@ def get_current_date_time_str_long():
 
 
 def convert_datetime_to_str_long(date: datetime):
-    return date.strftime(constants.DATE_TIME_FORMATTER_STR)
+    return date.strftime(variables.DATE_TIME_FORMATTER_STR)
 
 
 def convert_datetime_to_str_short(date: datetime):
-    return date.strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
+    return date.strftime(f"{variables.DATE_FORMATTER} {variables.TIME_FORMATTER}")
 
 
 def convert_str_to_datetime_short(date_str: str):
-    return datetime.strptime(date_str, f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
+    return datetime.strptime(date_str, f"{variables.DATE_FORMATTER} {variables.TIME_FORMATTER}")
 
 
 def get_object_member_by_str(ctx, member_str: str):

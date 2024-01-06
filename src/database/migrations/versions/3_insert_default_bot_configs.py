@@ -6,7 +6,7 @@ Create Date: 2023-11-12 18:03:55.035037
 
 """
 from typing import Sequence, Union
-from src.bot.utils import constants
+from src.bot.constants import variables
 from alembic import op
 import sqlalchemy as sa
 from src.database.models.bot_models import BotConfigs
@@ -21,10 +21,10 @@ def upgrade() -> None:
     op.execute(
         sa.insert(BotConfigs).values(
             id=1,
-            prefix=constants.DEFAULT_PREFIX,
-            author_id=constants.AUTHOR_ID,
-            url=constants.BOT_WEBPAGE_URL,
-            description=constants.DESCRIPTION
+            prefix=variables.DEFAULT_PREFIX,
+            author_id=variables.AUTHOR_ID,
+            url=variables.BOT_WEBPAGE_URL,
+            description=variables.DESCRIPTION
         )
     )
 

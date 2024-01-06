@@ -3,9 +3,9 @@ import random
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-from src.bot.utils import bot_utils, chat_formatting
-from src.bot.utils.checks import Checks
-from src.bot.utils.cooldowns import CoolDowns
+from src.bot.tools import bot_utils, chat_formatting
+from src.bot.tools.checks import Checks
+from src.bot.tools.cooldowns import CoolDowns
 from src.database.dal.bot.dice_rolls_dal import DiceRollsDal
 
 

@@ -9,7 +9,7 @@ from typing import (
     Sequence,
     Union,
 )
-from src.bot.utils import constants
+from src.bot.constants import variables
 from alembic import op
 import sqlalchemy as sa
 
@@ -26,10 +26,10 @@ def upgrade() -> None:
     op.create_table(
         'bot_configs',
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('prefix', sa.CHAR(length=1), server_default=constants.DEFAULT_PREFIX, nullable=False),
-        sa.Column('author_id', sa.BigInteger(), server_default=constants.AUTHOR_ID, nullable=False),
-        sa.Column('url', sa.String(), server_default=constants.BOT_WEBPAGE_URL, nullable=False),
-        sa.Column('description', sa.String(), server_default=constants.DESCRIPTION, nullable=False),
+        sa.Column('prefix', sa.CHAR(length=1), server_default=variables.DEFAULT_PREFIX, nullable=False),
+        sa.Column('author_id', sa.BigInteger(), server_default=variables.AUTHOR_ID, nullable=False),
+        sa.Column('url', sa.String(), server_default=variables.BOT_WEBPAGE_URL, nullable=False),
+        sa.Column('description', sa.String(), server_default=variables.DESCRIPTION, nullable=False),
         sa.Column('updated_at', sa.DateTime(), server_default=sa.text("(now() at time zone 'utc')"), nullable=False),
         sa.Column('created_at', sa.DateTime(), server_default=sa.text("(now() at time zone 'utc')"), nullable=False),
         sa.PrimaryKeyConstraint('id'),

@@ -4,9 +4,10 @@ from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from src.database.dal.bot.bot_configs_dal import BotConfigsDal
 from src.database.dal.bot.servers_dal import ServersDal
-from src.bot.utils import bot_utils, constants
-from src.bot.utils.checks import Checks
-from src.bot.utils.cooldowns import CoolDowns
+from src.bot.tools import bot_utils
+from src.bot.constants import variables
+from src.bot.tools.checks import Checks
+from src.bot.tools.cooldowns import CoolDowns
 
 
 class Owner(commands.Cog):
@@ -35,7 +36,7 @@ class Owner(commands.Cog):
         """
 
         await ctx.message.channel.typing()
-        if new_prefix not in constants.ALLOWED_PREFIXES:
+        if new_prefix not in variables.ALLOWED_PREFIXES:
             raise commands.BadArgument(message="BadArgument_bot_prefix")
 
         bot_user = ctx.me

@@ -2,9 +2,9 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-from src.bot.utils import bot_utils
-from src.bot.utils.checks import Checks
-from src.bot.utils.cooldowns import CoolDowns
+from src.bot.tools import bot_utils
+from src.bot.tools.checks import Checks
+from src.bot.tools.cooldowns import CoolDowns
 
 
 class Admin(commands.Cog):

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import discord
 from discord.ext import commands
-from src.bot.utils import bot_utils, constants
+from src.bot.tools import bot_utils
+from src.bot.constants import variables
 
 
 class Errors(commands.Cog):
@@ -105,7 +106,7 @@ class Errors(commands.Cog):
 
         match self.error["error_msg"]:
             case str(x) if "bot_prefix" in x:
-                error_msg = f"Prefixes can only be one of: {' '.join(constants.ALLOWED_PREFIXES)}"
+                error_msg = f"Prefixes can only be one of: {' '.join(variables.ALLOWED_PREFIXES)}"
             case str(x) if "Gw2ConfigServer" in x:
                 error_msg = (f"Guild Wars 2 server not found: `{self.error['bad_argument']}`\n"
                        f"For more info on gw2 server names: `{ctx.prefix}gw2 worlds`")

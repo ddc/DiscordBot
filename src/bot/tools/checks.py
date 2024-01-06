@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from discord.ext import commands
-from src.bot.utils import bot_utils
+from src.bot.tools import bot_utils
 
 
 class Checks:

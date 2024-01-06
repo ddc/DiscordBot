@@ -7,9 +7,10 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from gtts import gTTS
-from src.bot.utils.pepe import pepedatabase
-from src.bot.utils import bot_utils, chat_formatting, constants
-from src.bot.utils.cooldowns import CoolDowns
+from src.bot.tools.pepe import pepedatabase
+from src.bot.tools import bot_utils, chat_formatting
+from src.bot.tools.cooldowns import CoolDowns
+from src.bot.constants import variables
 
 
 class Misc(commands.Cog):
@@ -279,16 +280,16 @@ class Misc(commands.Cog):
             raise commands.BadArgument(message="BadArgument")
 
         await ctx.message.channel.typing()
-        bot_webpage_url = constants.BOT_WEBPAGE_URL
+        bot_webpage_url = variables.BOT_WEBPAGE_URL
         bot_avatar = self.bot.user.avatar.url
         author = self.bot.get_user(self.bot.owner_id)
         python_version = "Python {}.{}.{}".format(*sys.version_info[:3])
 
-        apis_included = self._get_apis_included(constants.APIS_INCLUDED)
-        games_included = self._get_apis_included(constants.GAMES_INCLUDED)
+        apis_included = self._get_apis_included(variables.APIS_INCLUDED)
+        games_included = self._get_apis_included(variables.GAMES_INCLUDED)
 
         dev_info_msg = (f"Developed as an open source project and hosted on [GitHub]({bot_webpage_url})\n"
-                        f"A python discord api wrapper: [discord.py]({constants.DISCORDPY_URL})\n""")
+                        f"A python discord api wrapper: [discord.py]({variables.DISCORDPY_URL})\n""")
 
         bot_stats = bot_utils.get_bot_stats(self.bot)
         servers = bot_stats["servers"]
@@ -296,7 +297,7 @@ class Misc(commands.Cog):
         channels = bot_stats["channels"]
 
         embed = discord.Embed(description=str(self.bot.description))
-        embed.set_author(name=f"{self.bot.user.name} v{constants.VERSION}", icon_url=bot_avatar, url=bot_webpage_url)
+        embed.set_author(name=f"{self.bot.user.name} v{variables.VERSION}", icon_url=bot_avatar, url=bot_webpage_url)
         embed.set_thumbnail(url=bot_avatar)
         embed.set_footer(icon_url=author.avatar.url, text=f"Developed by {str(author)} | {python_version}")
 
@@ -308,8 +309,8 @@ class Misc(commands.Cog):
             embed.add_field(name="APIs Included", value=apis_included, inline=False)
         if games_included is not None:
             embed.add_field(name="Games Included", value=games_included, inline=False)
-        embed.add_field(name="Download", value=f"[Version {constants.VERSION}]({bot_webpage_url})")
-        embed.add_field(name="Donations", value=f"[Paypal]({constants.PAYPAL_URL})")
+        embed.add_field(name="Download", value=f"[Version {variables.VERSION}]({bot_webpage_url})")
+        embed.add_field(name="Donations", value=f"[Paypal]({variables.PAYPAL_URL})")
         embed.add_field(name="Help", value=f"For a list of command categories, type `{ctx.prefix}help`", inline=False)
         await bot_utils.send_embed(ctx, embed)
 

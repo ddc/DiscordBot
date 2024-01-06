@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey, BigInteger, CHAR, Boolean, DateTime
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.sql import text
-from src.bot.utils import constants
+from src.bot.constants import variables
 
 
 class BotBase(AsyncAttrs, DeclarativeBase):
@@ -15,10 +15,10 @@ class BotBase(AsyncAttrs, DeclarativeBase):
 class BotConfigs(BotBase):
     __tablename__ = "bot_configs"
     id: Mapped[int] = mapped_column(primary_key=True, unique=True)
-    prefix: Mapped[CHAR] = mapped_column(CHAR(1), server_default=constants.DEFAULT_PREFIX)
-    author_id: Mapped[int] = mapped_column(BigInteger, server_default=constants.AUTHOR_ID)
-    url: Mapped[str] = mapped_column(server_default=constants.BOT_WEBPAGE_URL)
-    description: Mapped[str] = mapped_column(server_default=constants.DESCRIPTION)
+    prefix: Mapped[CHAR] = mapped_column(CHAR(1), server_default=variables.DEFAULT_PREFIX)
+    author_id: Mapped[int] = mapped_column(BigInteger, server_default=variables.AUTHOR_ID)
+    url: Mapped[str] = mapped_column(server_default=variables.BOT_WEBPAGE_URL)
+    description: Mapped[str] = mapped_column(server_default=variables.DESCRIPTION)
 
 
 class Servers(BotBase):

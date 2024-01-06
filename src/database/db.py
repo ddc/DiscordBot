@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from src.bot.utils import bot_utils, constants
+from src.bot.tools import bot_utils
+from src.bot.constants import variables
 
 
 class Database:
     def __init__(self):
-        db_configs = bot_utils.get_ini_section_settings(constants.SETTINGS_FILENAME, "Database")
+        db_configs = bot_utils.get_ini_section_settings(variables.SETTINGS_FILENAME, "Database")
         self.username = db_configs["username"]
         self.password = db_configs["password"]
         self.host = db_configs["host"]

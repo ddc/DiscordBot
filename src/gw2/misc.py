@@ -2,11 +2,12 @@
 import re
 import discord
 from bs4 import BeautifulSoup
-from src.bot.utils import bot_utils
-from src.gw2.utils import gw2_utils, gw2_constants
+from src.bot.tools import bot_utils
+from src.gw2.tools import gw2_utils
+from src.gw2.constants import gw2_variables
 from src.gw2.gw2 import GuildWars2
 from discord.ext import commands
-from src.gw2.utils.gw2_cooldowns import GW2CoolDowns
+from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 from discord.ext.commands.cooldowns import BucketType
 
 
@@ -28,7 +29,7 @@ async def wiki(ctx, *, search):
         return
 
     len_eb_fields = 0
-    wiki_url = gw2_constants.WIKI_URL
+    wiki_url = gw2_variables.WIKI_URL
     search = search.replace(" ", "+")
     full_wiki_url = f"{wiki_url}/index.php?title=Special%3ASearch&search={search}&fulltext=Search"
 
@@ -79,7 +80,7 @@ async def wiki(ctx, *, search):
         else:
             embed.add_field(name="No results", value=f"[Click here]({full_wiki_url})")
 
-        embed.set_thumbnail(url=gw2_constants.GW2_WIKI_ICON_URL)
+        embed.set_thumbnail(url=gw2_variables.GW2_WIKI_ICON_URL)
         await bot_utils.send_embed(ctx, embed)
 
 
@@ -92,7 +93,7 @@ async def info(ctx, *, skill):
 
     await ctx.message.channel.typing()
 
-    wiki_url = gw2_constants.WIKI_URL
+    wiki_url = gw2_variables.WIKI_URL
     skill = skill.replace(" ", "_")
     skill_sanitized = str(re.escape(skill)).title()
     skill_sanitized = skill_sanitized.replace("Of", "of")
