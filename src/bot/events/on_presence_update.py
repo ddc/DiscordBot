@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from discord.ext import commands
-from src.gw2.utils import gw2_utils
+from src.gw2.tools import gw2_utils
 
 
 class OnPresenceUpdate(commands.Cog):

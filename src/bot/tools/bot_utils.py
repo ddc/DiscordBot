@@ -63,7 +63,7 @@ async def insert_server(bot, server: discord.Guild):
     servers_dal = ServersDal(bot.db_session, bot.log)
     await servers_dal.insert_server(server.id, server.name)
 
-    from src.gw2.utils import gw2_utils
+    from src.gw2.tools import gw2_utils
     await gw2_utils.insert_gw2_server_configs(bot, server)
 
 
@@ -77,7 +77,7 @@ async def init_background_tasks(bot):
 async def load_cogs(bot):
     bot.log.debug("Loading Bot Extensions...")
     for ext in variables.ALL_COGS:
-        cog_name = ".".join(ext.split("/")[-4:])[:-3]
+        cog_name = ext.replace("/", ".").replace(".py", "")
         try:
             await bot.load_extension(cog_name)
             bot.log.debug(f"\t {cog_name}")

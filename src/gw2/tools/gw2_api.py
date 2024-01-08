@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from src.gw2.utils import gw2_constants
-from src.gw2.utils.gw2_exceptions import (
+from src.gw2.constants import gw2_variables
+from src.gw2.tools.gw2_exceptions import (
     APIBadRequest, APIConnectionError, APIError, APIForbidden,
     APIInactiveError, APIInvalidKey, APIKeyError, APINotFound
 )
@@ -26,7 +26,7 @@ class Gw2Api:
     async def call_api(self, uri: str, key=None):
         """api languages can be ('en','es','de','fr','ko','zh')"""
 
-        endpoint = f"{gw2_constants.API_URI}/{uri}"
+        endpoint = f"{gw2_variables.API_URI}/{uri}"
 
         headers = {
             "User-Agent": self.bot.description,

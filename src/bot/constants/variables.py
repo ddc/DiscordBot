@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 
-IS_DEBUG = False
+IS_DEBUG = True
 DEFAULT_PREFIX = "!"
 ALLOWED_PREFIXES = ["!", "?", "$", "%", "&", "."]
 TIME_BEFORE_START = 5 if IS_DEBUG is False else 0
