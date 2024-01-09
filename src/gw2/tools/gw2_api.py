@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from src.gw2.constants import gw2_variables
+from src.gw2.constants import gw2_variables, gw2_messages
 from src.gw2.tools.gw2_exceptions import (
     APIBadRequest, APIConnectionError, APIError, APIForbidden,
     APIInactiveError, APIInvalidKey, APIKeyError, APINotFound
@@ -49,23 +49,23 @@ class Gw2Api:
 
                 if response.status == 400:
                     if err_msg == "invalid key":
-                        raise APIInvalidKey(self.bot, f"({response.status}) INVALID GW2 API key.")
-                    raise APIBadRequest(self.bot, f"({init_msg}) GW2 API is currently down. Try again later.")
+                        raise APIInvalidKey(self.bot, f"({response.status}) {gw2_messages.INVALID_API_KEY}")
+                    raise APIBadRequest(self.bot, f"({init_msg}) {gw2_messages.API_DOWN}")
                 elif response.status == 404:
-                    raise APINotFound(self.bot, f"({response.status})({endpoint.split('?')[0]}) GW2 API Not found.")
+                    raise APINotFound(self.bot, f"({response.status})({endpoint.split('?')[0]}) {gw2_messages.API_NOT_FOUND}")
                 elif response.status == 403:
                     if err_msg == "invalid key":
-                        raise APIInvalidKey(self.bot, f"({response.status}) INVALID GW2 API key.")
-                    raise APIForbidden(self.bot, f"({init_msg}) Access denied with your GW2 API key.")
+                        raise APIInvalidKey(self.bot, f"({response.status}) {gw2_messages.INVALID_API_KEY}")
+                    raise APIForbidden(self.bot, f"({init_msg}) {gw2_messages.API_ACCESS_DENIED}")
                 elif response.status == 429:
-                    raise APIConnectionError(self.bot, f"({init_msg}) GW2 API Requests limit has been saturated. Try again later.")
+                    raise APIConnectionError(self.bot, f"({init_msg}) {gw2_messages.API_REQUEST_REACHED}")
                 elif response.status == 502 or response.status == 504:
-                    raise APIInactiveError(self.bot, f"({init_msg}) GW2 API is currently down. Try again later.")
+                    raise APIInactiveError(self.bot, f"({init_msg}) {gw2_messages.API_DOWN}")
                 elif response.status == 503:
                     raise APIInactiveError(self.bot, f"({init_msg}) {err_msg}")
                 else:
                     if len(err_msg) == 0:
                         err_msg = str(response.reason)
-                    raise APIConnectionError(self.bot, f"GW2 API ERROR ({init_msg})({err_msg})")
+                    raise APIConnectionError(self.bot, f"{gw2_messages.API_ERROR} ({init_msg})({err_msg})")
 
             return await response.json()

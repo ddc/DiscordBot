@@ -2,6 +2,7 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
+from src.bot.constants import messages
 from src.bot.tools import bot_utils
 from src.bot.tools.checks import Checks
 from src.bot.tools.cooldowns import CoolDowns
@@ -32,14 +33,13 @@ class Admin(commands.Cog):
         bot_game_desc = f"{game} | {prefix}help"
         await self.bot.change_presence(activity=discord.Game(name=bot_game_desc))
 
-        embed = discord.Embed(description=f"```I'm now playing: {game}```")
+        embed = discord.Embed(description=f"```{messages.BOT_ANNOUNCE_PLAYING.format(game)}```")
         embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar.url)
         await bot_utils.send_embed(ctx, embed)
 
         bg_activity_timer = self.bot.settings["bot"]["BGActivityTimer"]
         if bg_activity_timer and bg_activity_timer > 0:
-            bg_task_warning = (f"Background task running to update bot activity is ON\n"
-                               f"Activity will change after {bg_activity_timer} secs.")
+            bg_task_warning = messages.BG_TASK_WARNING.format(bg_activity_timer)
             embed.description = bg_task_warning
             await bot_utils.send_embed(ctx, embed, False)
 

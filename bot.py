@@ -10,7 +10,7 @@ from aiohttp import ClientSession
 from better_profanity import profanity
 from discord.ext import commands
 from src.bot.tools import bot_utils
-from src.bot.constants import variables
+from src.bot.constants import variables, messages
 from src.bot.tools.log import Log
 from src.database.dal.bot.bot_configs_dal import BotConfigsDal
 from src.database.db import Database
@@ -56,7 +56,7 @@ async def main():
 
         # check BOT_TOKEN env
         if not os.environ.get("BOT_TOKEN"):
-            log.error("BOT_TOKEN env not found")
+            log.error(messages.BOT_TOKEN_NOT_FOUND)
             sys.exit(1)
 
         # get prefix from database and set it
@@ -92,7 +92,7 @@ async def main():
                 formatted_lines = traceback.format_exc().splitlines()
                 [bot.log.error(x) for x in formatted_lines if x.startswith("discord")]
             except Exception as ex:
-                bot.log.error(f"Bot has been terminated. {ex}]")
+                bot.log.error(f"{messages.BOT_TERMINATED} | {ex}]")
             finally:
                 await bot.close()
 
@@ -102,15 +102,15 @@ async def main():
 if __name__ == "__main__":
     loop = asyncio.new_event_loop()
     try:
-        print(f"Starting Bot in {variables.TIME_BEFORE_START} secs")
+        print(messages.BOT_STARTING.format(variables.TIME_BEFORE_START))
         time.sleep(variables.TIME_BEFORE_START)
         loop.run_until_complete(main())
     except KeyboardInterrupt:
-        print("Bot stopped with Ctrl+C")
+        print(messages.BOT_STOPPED_CTRTC)
     except Exception as e:
         print(str(e.args))
     finally:
-        print("Closing the loop")
+        print(messages.CLOSING_LOOP)
         loop.run_until_complete(loop.shutdown_asyncgens())
         loop.stop()
         loop.close()

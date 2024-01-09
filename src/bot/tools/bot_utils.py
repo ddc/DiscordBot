@@ -10,7 +10,7 @@ from alembic import command
 from alembic.config import Config
 import discord
 from src.bot.tools import chat_formatting
-from src.bot.constants import variables
+from src.bot.constants import variables, messages
 from src.bot.tools.background_tasks import BackGroundTasks
 from src.database.dal.bot.servers_dal import ServersDal
 
@@ -75,14 +75,14 @@ async def init_background_tasks(bot):
 
 
 async def load_cogs(bot):
-    bot.log.debug("Loading Bot Extensions...")
+    bot.log.debug(messages.LOADING_EXTENSIONS)
     for ext in variables.ALL_COGS:
         cog_name = ext.replace("/", ".").replace(".py", "")
         try:
             await bot.load_extension(cog_name)
             bot.log.debug(f"\t {cog_name}")
         except Exception as e:
-            bot.log.error(f"ERROR: FAILED to load extension: {cog_name}")
+            bot.log.error(f"{messages.LOADING_EXTENSION_FAILED}: {cog_name}")
             bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
 
 
@@ -145,24 +145,21 @@ async def send_embed(ctx, embed, dm=False):
         else:
             await ctx.send(embed=embed)
     except (discord.Forbidden, discord.HTTPException):
-        msg = "Direct messages are disable in your configuration.\n" \
-              "If you want to receive messages from Bots, " \
-              "you need to enable this option under Privacy & Safety:\n" \
-              "\"Allow direct messages from server members.\"\n"
-        await send_error_msg(ctx, msg)
+        await send_error_msg(ctx, messages.DISABLED_DM)
     except Exception as e:
         ctx.bot.logger.error(e)
 
 
 async def delete_message(ctx, warning=False):
     if not is_private_message(ctx):
+        color = None
+        msg = messages.MESSAGE_REMOVED_FOR_PRIVACY
+
         try:
-            color = None
-            msg = "Your message was removed for privacy."
             await ctx.message.delete()
         except Exception as e:
             color = discord.Color.red()
-            msg = "Bot does not have permission to delete messages."
+            msg = messages.DELETE_MESSAGE_NO_PERMISSION
             ctx.bot.log.error(f"{str(e)}: {msg}")
         finally:
             if warning:

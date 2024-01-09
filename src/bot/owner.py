@@ -5,7 +5,7 @@ from discord.ext.commands.cooldowns import BucketType
 from src.database.dal.bot.bot_configs_dal import BotConfigsDal
 from src.database.dal.bot.servers_dal import ServersDal
 from src.bot.tools import bot_utils
-from src.bot.constants import variables
+from src.bot.constants import variables, messages
 from src.bot.tools.checks import Checks
 from src.bot.tools.cooldowns import CoolDowns
 
@@ -51,7 +51,7 @@ class Owner(commands.Cog):
         self.bot.command_prefix = (new_prefix,)
 
         color = self.bot.settings["bot"]["EmbedOwnerColor"]
-        msg = f"Bot prefix has been changed to: `{new_prefix}`"
+        msg = f"{messages.BOT_PREFIX_CHANGED}: `{new_prefix}`"
         embed = discord.Embed(description=msg, color=color)
         await bot_utils.send_embed(ctx, embed,)
 
@@ -68,7 +68,7 @@ class Owner(commands.Cog):
         self.bot.description = desc
 
         color = self.bot.settings["bot"]["EmbedOwnerColor"]
-        msg = f"Bot description changed to: `{desc}`"
+        msg = f"{messages.BOT_DESCRIPTION_CHANGED}: `{desc}`"
         embed = discord.Embed(description=msg, color=color)
         await bot_utils.send_embed(ctx, embed)
 

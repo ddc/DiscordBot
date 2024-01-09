@@ -8,6 +8,7 @@ from src.gw2.gw2 import GuildWars2
 from src.gw2.tools import gw2_utils
 from src.gw2.tools.gw2_api import Gw2Api
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
+from src.gw2.constants import gw2_messages
 
 
 class GW2Account(GuildWars2):
@@ -25,38 +26,27 @@ async def account(ctx):
     """
 
     await ctx.message.channel.typing()
-    user_id = ctx.message.author.id
-
     gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
-    rs = await gw2_key_dal.get_api_key_by_user(user_id)
+    rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
     if not rs:
-        return await bot_utils.send_error_msg(
-            ctx,
-            "You dont have an API key registered.\n"
-            f"To add or replace an API key send a DM with: `{ctx.prefix}gw2 key add <api_key>`\n"
-            f"To check your API key: `{ctx.prefix}gw2 key info`"
-        )
+        msg = gw2_messages.NO_API_KEY
+        msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
+        msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
+        return await bot_utils.send_error_msg(ctx, msg)
 
     api_key = str(rs[0]["key"])
     gw2_api = Gw2Api(ctx.bot)
     is_valid_key = await gw2_api.check_api_key(api_key)
     if not isinstance(is_valid_key, dict):
-        return await bot_utils.send_error_msg(
-            ctx,
-            is_valid_key.args[1] + "\n"
-            "This API Key is INVALID or no longer exists in gw2 api database.\n"
-            f"To add or replace an API key send a DM with: `{ctx.prefix}gw2 key add <api_key>`\n"
-            f"To check your API key: `{ctx.prefix}gw2 key info`"
-        )
+        msg = f"{is_valid_key.args[1]}\n"
+        msg += gw2_messages.INVALID_API_KEY_HELP_MESSAGE.format(ctx.prefix)
+        msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
+        msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
+        return await bot_utils.send_error_msg(ctx, msg)
 
     permissions = str(rs[0]["permissions"])
     if "account" not in permissions:
-        return await bot_utils.send_error_msg(
-            ctx,
-            "Your API key doesnt have permission to access your gw2 account.\n"
-            "Please add one key with account permission.",
-            True
-        )
+        return await bot_utils.send_error_msg(ctx, gw2_messages.API_KEY_NO_PERMISSION, True)
 
     try:
         # getting infos gw2 api

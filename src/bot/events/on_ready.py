@@ -3,7 +3,7 @@ import sys
 import discord
 from discord.ext import commands
 from src.bot.tools import bot_utils
-from src.bot.constants import variables
+from src.bot.constants import variables, messages
 
 
 class OnReady(commands.Cog):
@@ -24,7 +24,7 @@ class OnReady(commands.Cog):
             print(f"Channels: {bot_stats['channels']}")
             print("--------------------")
             print(f"{bot_utils.get_current_date_time_str_long()}")
-            bot.log.info(f"====> {bot.user} IS ONLINE AND CONNECTED TO DISCORD <====")
+            bot.log.info(messages.BOT_ONLINE.format(bot.user))
 
 
 async def setup(bot):

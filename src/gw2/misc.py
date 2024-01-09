@@ -9,6 +9,7 @@ from src.gw2.gw2 import GuildWars2
 from discord.ext import commands
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 from discord.ext.commands.cooldowns import BucketType
+from src.gw2.constants import gw2_messages
 
 
 class GW2Misc(GuildWars2):
@@ -25,7 +26,7 @@ async def wiki(ctx, *, search):
     """
 
     if len(search) > 300:
-        await ctx.send("Search too long")
+        await ctx.send(gw2_messages.LONG_SEARCH)
         return
 
     len_eb_fields = 0
@@ -40,10 +41,10 @@ async def wiki(ctx, *, search):
         posts = soup.find_all("div", {"class": "mw-search-result-heading"})[:50]
         total_posts = len(posts)
         if not posts:
-            await bot_utils.send_error_msg(ctx, "No results!")
+            await bot_utils.send_error_msg(ctx, gw2_messages.NO_RESULTS)
             return
 
-        embed = discord.Embed(title="Wiki Search Results", color=ctx.bot.settings["gw2"]["EmbedColor"])
+        embed = discord.Embed(title=gw2_messages.WIKI_SEARCH_RESULTS, color=ctx.bot.settings["gw2"]["EmbedColor"])
 
         if total_posts > 0:
             i = 0
@@ -67,18 +68,18 @@ async def wiki(ctx, *, search):
                                     found = True
                                     break
                             if not found and "/history" not in post["title"]:
-                                embed.add_field(name=post["title"], value=f"[Click here]({url})")
+                                embed.add_field(name=post["title"], value=f"[{gw2_messages.CLICK_HERE}]({url})")
                                 len_eb_fields += 1
                         elif "/history" not in post["title"]:
-                            embed.add_field(name=post["title"], value=f"[Click here]({url})")
+                            embed.add_field(name=post["title"], value=f"[{gw2_messages.CLICK_HERE}]({url})")
                             len_eb_fields += 1
                     i += 1
             except IndexError:
                 pass
 
-            embed.description = f"Displaying **{len(embed.fields)}** closest titles that matches **{keyword.title()}**"
+            embed.description = gw2_messages.DISPLAYIN_WIKI_SEARCH_TITLE.format(len(embed.fields), keyword.title())
         else:
-            embed.add_field(name="No results", value=f"[Click here]({full_wiki_url})")
+            embed.add_field(name=gw2_messages.NO_RESULTS, value=f"[{gw2_messages.CLICK_HERE}]({full_wiki_url})")
 
         embed.set_thumbnail(url=gw2_variables.GW2_WIKI_ICON_URL)
         await bot_utils.send_embed(ctx, embed)
@@ -102,7 +103,7 @@ async def info(ctx, *, skill):
 
     async with ctx.bot.aiosession.get(full_wiki_url) as r:
         if r.status != 200:
-            return await bot_utils.send_error_msg(ctx, "No results!")
+            return await bot_utils.send_error_msg(ctx, gw2_messages.NO_RESULTS)
 
         skill_url = str(r.url)
         skill_name = str(r.url).split("/")[-1:][0].replace("_", " ")
@@ -150,7 +151,7 @@ async def info(ctx, *, skill):
                                             f"Buy: *{tp_buy_price}*\n" \
                                             f"[Gw2tp]({gw2tp_url}) / [Gw2bltc]({gw2bltc_url})"
         else:
-            skill_description = "Click on link above for more info !!!"
+            skill_description = gw2_messages.CLICK_ON_LINK
             color = discord.Color.red()
 
         embed = discord.Embed(title=skill_name,

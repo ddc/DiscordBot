@@ -7,6 +7,7 @@ from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.gw2.gw2 import GuildWars2
 from src.gw2.tools.gw2_api import Gw2Api
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
+from src.gw2.constants import gw2_messages
 
 
 class GW2Key(GuildWars2):
@@ -84,19 +85,16 @@ async def add(ctx, api_key: str):
     rs = await gw2_key_dal.get_api_key(api_key)
     if not rs:
         await gw2_key_dal.insert_api_key(api_key_args)
-        msg = f"Your key was verified and was **added** to your discord account.\n" \
-              f"Key: `{key_name}`\n" \
-              f"Server: `{gw2_server_name}`\n" \
-              f"To get info about your api key: `{ctx.prefix}gw2 key info`"
+        msg = gw2_messages.KEY_ADDED_SUCCESSFULLY.format(key_name, gw2_server_name)
+        msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
         await bot_utils.send_msg(ctx, msg, True, embed_color)
     elif rs[0]["user_id"] == user_id:
         await gw2_key_dal.update_api_key(api_key_args)
-        msg = f"Your API key `{rs[0]['name']}` was **replaced** with your new key: `{key_name}`\n" \
-              f"Server: `{gw2_server_name}`\n" \
-              f"To get info about your new api key: `{ctx.prefix}gw2 key info`"
+        msg = gw2_messages.KEY_REPLACED_SUCCESSFULLY.format(rs[0]['name'], key_name, gw2_server_name)
+        msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
         await bot_utils.send_msg(ctx, msg, True, embed_color)
     else:
-        await bot_utils.send_error_msg(ctx, "That API key is already in use by someone else.", True)
+        await bot_utils.send_error_msg(ctx, gw2_messages.KEY_ALREADY_IN_USE, True)
 
 
 @key.command(name="remove")
@@ -111,14 +109,14 @@ async def remove(ctx):
 
     rs = await gw2_key_dal.get_api_key_by_user(user_id)
     if not rs:
-        await bot_utils.send_error_msg(ctx, "You dont have an API key registered.\n"
-                                            f"To add or replace an API key send a DM with: `{ctx.prefix}gw2 key add <api_key>`\n"
-                                            f"To check your API key: `{ctx.prefix}gw2 key info`",
-                                            True)
+        msg = gw2_messages.NO_API_KEY.format(ctx.prefix)
+        msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
+        msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
+        return await bot_utils.send_error_msg(ctx, msg)
     else:
         color = ctx.bot.settings["gw2"]["EmbedColor"]
         await gw2_key_dal.delete_user_api_key(user_id)
-        await bot_utils.send_msg(ctx, "Your GW2 API Key has been deleted successfully.", True, color)
+        await bot_utils.send_msg(ctx, gw2_messages.KEY_REMOVED_SUCCESSFULLY, True, color)
 
 
 @key.command(name="info", aliases=["list"])
@@ -133,9 +131,9 @@ async def info(ctx, key_name: str = None):
     color = ctx.bot.settings["gw2"]["EmbedColor"]
     gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
     gw2_api = Gw2Api(ctx.bot)
-    no_user_key_found_error = ("You dont have an API key registered.\n"
-                               f"To add or replace an API key send a DM with: `{ctx.prefix}gw2 key add <api_key>`\n"
-                               f"To check your API key: `{ctx.prefix}gw2 key info`")
+    msg = gw2_messages.NO_API_KEY
+    msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
+    msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
 
     if key_name is None:
         rs = await gw2_key_dal.get_api_key_by_user(user_id)
@@ -143,14 +141,14 @@ async def info(ctx, key_name: str = None):
         rs = await gw2_key_dal.get_api_key_by_name(key_name)
 
     if not rs:
-        await bot_utils.send_error_msg(ctx, no_user_key_found_error, True)
+        await bot_utils.send_error_msg(ctx, msg, True)
     else:
         try:
             api_key = rs[0]["key"]
             is_valid_key = await gw2_api.check_api_key(api_key)
             if not isinstance(is_valid_key, dict):
                 is_valid_key = "NO"
-                name = "***This API Key is INVALID or no longer exists in gw2 api database***"
+                name = f"***{gw2_messages.INVALID_API_KEY}***"
             else:
                 is_valid_key = "YES"
                 name = f"{ctx.message.author}"

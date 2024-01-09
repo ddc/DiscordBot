@@ -4,6 +4,7 @@ from discord.ext import commands
 from src.database.dal.bot.custom_commands_dal import CustomCommandsDal
 from src.database.dal.bot.servers_dal import ServersDal
 from src.bot.tools import bot_utils, chat_formatting
+from src.bot.constants import messages
 
 
 class OnMessage(commands.Cog):
@@ -34,14 +35,14 @@ class OnMessage(commands.Cog):
                 return
 
             if bot_utils.is_bot_owner(ctx, ctx.message.author):
-                msg = "Hello master.\nWhat can i do for you?"
+                msg = messages.OWNER_DM_BOT_MESSAGE
                 embed = discord.Embed(color=discord.Color.green(), description=f"{chat_formatting.inline(msg)}")
                 await ctx.message.author.send(embed=embed)
 
                 cmd = self.bot.get_command("owner")
                 await ctx.author.send(chat_formatting.box(cmd.help))
             else:
-                msg = "Hello, I don't accept direct messages."
+                msg = messages.NO_DM_MESSAGES
                 embed = discord.Embed(color=discord.Color.red(), description=f"{chat_formatting.error_inline(msg)}")
                 await ctx.message.author.send(embed=embed)
         else:
@@ -49,6 +50,7 @@ class OnMessage(commands.Cog):
                 return
 
             allowed_dm_commands = self.bot.settings["bot"]["AllowedDMCommands"]
+            msg = messages.DM_COMMAND_NOT_ALLOWED
             if allowed_dm_commands is not None:
                 user_cmd = ctx.message.content.split(" ", 1)[0][1:]
 
@@ -56,15 +58,13 @@ class OnMessage(commands.Cog):
                     return await self.bot.process_commands(ctx.message)
 
                 str_allowed_dm_commands = "\n".join(allowed_dm_commands)
-                msg = "Command not allowed in direct messages."
                 embed = discord.Embed(color=discord.Color.red(), description=f"{chat_formatting.error_inline(msg)}")
-                embed.add_field(name="Commands allowed in direct messages:",
+                embed.add_field(name=f"{messages.DM_COMMANDS_ALLOW_LIST}:",
                                 value=f"{chat_formatting.inline(str_allowed_dm_commands)}",
                                 inline=False)
 
                 await ctx.message.author.send(embed=embed)
             else:
-                msg = "Commands are not allowed in direct messages."
                 embed = discord.Embed(color=discord.Color.red(), description=f"{chat_formatting.error_inline(msg)}")
                 await ctx.message.author.send(embed=embed)
 
@@ -77,7 +77,7 @@ class OnMessage(commands.Cog):
             ctx.message.channel.id
         )
         if not configs:
-            self.bot.log.warning("Error getting server configs")
+            self.bot.log.warning(messages.GET_CONFIGS_ERROR)
             if is_command:
                 await self.bot.process_commands(ctx.message)
             return
@@ -87,9 +87,7 @@ class OnMessage(commands.Cog):
             is_member_invis = self._check_member_invisible(ctx)
             if is_member_invis:
                 await bot_utils.delete_message(ctx)
-                msg = ("You are Invisible (offline)\n"
-                       f"Server \"{ctx.guild.name}\" does not allow messages from invisible members.\n"
-                       "Please change your status if you want to send messages to this server.")
+                msg = messages.BLOCKED_INVIS_MESSAGE.format(ctx.guild.name)
                 embed = discord.Embed(title="", color=discord.Color.red(), description=chat_formatting.error_inline(msg))
                 embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
                 try:
@@ -140,7 +138,7 @@ class OnMessage(commands.Cog):
     @staticmethod
     async def _send_custom_message(message, send_msg: str):
         await message.channel.typing()
-        desc = f":rage: :middle_finger:\n{chat_formatting.inline(send_msg)}"
+        desc = f"{messages.BOT_REACT_EMOJIS}\n{chat_formatting.inline(send_msg)}"
         embed = discord.Embed(color=discord.Color.red(), description=desc)
         embed.set_author(name=message.author.display_name, icon_url=message.author.avatar.url)
         await message.channel.send(embed=embed)
@@ -166,11 +164,7 @@ class OnMessage(commands.Cog):
                     user_found = True
 
         if user_found is False and exclusive_users_id is not None:
-            msg = ("This is a Private Bot.\n"
-                   "You are not allowed to execute any commands.\n"
-                   "Only a few users are allowed to use it.\n"
-                   "Please don't insist. Thank You!!!")
-            await bot_utils.send_error_msg(ctx, msg, True)
+            await bot_utils.send_error_msg(ctx, messages.PRIVATE_BOT_MESSAGE, True)
             return False
 
         return True
@@ -195,9 +189,9 @@ class OnMessage(commands.Cog):
         if config_word_found is True and bot_word_found_in_message is True:
             bot_msg = "fu ufk!!!"
             if "stupid" in msg.lower():
-                bot_msg = "I'm not stupid, fu ufk!!!"
+                bot_msg = messages.BOT_REACT_STUPID
             elif "retard" in msg.lower():
-                bot_msg = "I'm not retard, fu ufk!!!"
+                bot_msg = messages.BOT_REACT_RETARD
             await self._send_custom_message(message, bot_msg)
             return True
         return False
@@ -214,8 +208,7 @@ class OnMessage(commands.Cog):
             try:
                 await bot_utils.delete_message(ctx)
                 await ctx.message.channel.send(censored_text)
-                msg = ("Your message was censored.\n"
-                       "Please don't say offensive words in this channel.")
+                msg = messages.MESSAGE_CENSURED
                 embed = discord.Embed(title="", color=discord.Color.red(), description=msg)
                 embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
                 try:
@@ -224,8 +217,7 @@ class OnMessage(commands.Cog):
                     await ctx.message.channel.send(f"{ctx.message.author.mention} {msg}")
                 return True
             except Exception as e:
-                msg = ("Profanity filter is ON\n"
-                       "but Bot does not have permission to \"Manage Messages\"")
+                msg = f"Profanity filter is ON\nbut {messages.BOT_MISSING_MANAGE_MESSAGES_PERMISSION}"
                 self.bot.log.info(f"(Server:{ctx.message.guild.name})"
                                   f"(Channel:{ctx.message.channel})"
                                   f"(Author:{ctx.message.author})"
