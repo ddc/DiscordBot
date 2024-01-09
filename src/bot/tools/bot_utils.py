@@ -9,8 +9,9 @@ import sys
 from alembic import command
 from alembic.config import Config
 import discord
-from src.bot.utils import chat_formatting, constants
-from src.bot.utils.background_tasks import BackGroundTasks
+from src.bot.tools import chat_formatting
+from src.bot.constants import variables, messages
+from src.bot.tools.background_tasks import BackGroundTasks
 from src.database.dal.bot.servers_dal import ServersDal
 
 
@@ -54,7 +55,7 @@ class Colors(Enum):
 
 
 async def run_alembic_migrations():
-    alembic_cfg = Config(constants.ALEMBIC_CONFIG_FILE_PATH)
+    alembic_cfg = Config(variables.ALEMBIC_CONFIG_FILE_PATH)
     command.upgrade(alembic_cfg, "head")
 
 
@@ -62,7 +63,7 @@ async def insert_server(bot, server: discord.Guild):
     servers_dal = ServersDal(bot.db_session, bot.log)
     await servers_dal.insert_server(server.id, server.name)
 
-    from src.gw2.utils import gw2_utils
+    from src.gw2.tools import gw2_utils
     await gw2_utils.insert_gw2_server_configs(bot, server)
 
 
@@ -74,14 +75,14 @@ async def init_background_tasks(bot):
 
 
 async def load_cogs(bot):
-    bot.log.debug("Loading Bot Extensions...")
-    for ext in constants.ALL_COGS:
-        cog_name = ".".join(ext.split("/")[-4:])[:-3]
+    bot.log.debug(messages.LOADING_EXTENSIONS)
+    for ext in variables.ALL_COGS:
+        cog_name = ext.replace("/", ".").replace(".py", "")
         try:
             await bot.load_extension(cog_name)
             bot.log.debug(f"\t {cog_name}")
         except Exception as e:
-            bot.log.error(f"ERROR: FAILED to load extension: {cog_name}")
+            bot.log.error(f"{messages.LOADING_EXTENSION_FAILED}: {cog_name}")
             bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
 
 
@@ -144,24 +145,21 @@ async def send_embed(ctx, embed, dm=False):
         else:
             await ctx.send(embed=embed)
     except (discord.Forbidden, discord.HTTPException):
-        msg = "Direct messages are disable in your configuration.\n" \
-              "If you want to receive messages from Bots, " \
-              "you need to enable this option under Privacy & Safety:\n" \
-              "\"Allow direct messages from server members.\"\n"
-        await send_error_msg(ctx, msg)
+        await send_error_msg(ctx, messages.DISABLED_DM)
     except Exception as e:
         ctx.bot.logger.error(e)
 
 
 async def delete_message(ctx, warning=False):
     if not is_private_message(ctx):
+        color = None
+        msg = messages.MESSAGE_REMOVED_FOR_PRIVACY
+
         try:
-            color = None
-            msg = "Your message was removed for privacy."
             await ctx.message.delete()
         except Exception as e:
             color = discord.Color.red()
-            msg = "Bot does not have permission to delete messages."
+            msg = messages.DELETE_MESSAGE_NO_PERMISSION
             ctx.bot.log.error(f"{str(e)}: {msg}")
         finally:
             if warning:
@@ -197,15 +195,15 @@ def get_current_date_time_str_long():
 
 
 def convert_datetime_to_str_long(date: datetime):
-    return date.strftime(constants.DATE_TIME_FORMATTER_STR)
+    return date.strftime(variables.DATE_TIME_FORMATTER_STR)
 
 
 def convert_datetime_to_str_short(date: datetime):
-    return date.strftime(f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
+    return date.strftime(f"{variables.DATE_FORMATTER} {variables.TIME_FORMATTER}")
 
 
 def convert_str_to_datetime_short(date_str: str):
-    return datetime.strptime(date_str, f"{constants.DATE_FORMATTER} {constants.TIME_FORMATTER}")
+    return datetime.strptime(date_str, f"{variables.DATE_FORMATTER} {variables.TIME_FORMATTER}")
 
 
 def get_object_member_by_str(ctx, member_str: str):

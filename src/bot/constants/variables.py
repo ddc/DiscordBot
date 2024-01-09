@@ -5,9 +5,9 @@ import sys
 from pathlib import Path
 
 
-IS_DEBUG = False
+IS_DEBUG = True
 DEFAULT_PREFIX = "!"
-ALLOWED_PREFIXES = ["!", "?", "$", "%", "&", "."]
+ALLOWED_PREFIXES = ("!", "?", "$", "%", "&", ".")
 TIME_BEFORE_START = 5 if IS_DEBUG is False else 0
 INTERACTIVE_MODE = len(sys.argv) <= 1
 PYTHON_OK = sys.version_info >= (3, 6)
@@ -29,14 +29,13 @@ AUTHOR_ID = "195615080665055232"
 PAYPAL_URL = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=38E66BHC4623Y"
 BOT_WEBPAGE_URL = "https://ddc.github.io/DiscordBot"
 DISCORDPY_URL = "https://github.com/Rapptz/discord.py"
+LMGTFY_URL = "https://lmgtfy.com"
 ###############################################################################
 DATE_TIME_FORMATTER_STR = "%a %b %m %Y %X"
 DATE_FORMATTER = "%Y-%m-%d"
 TIME_FORMATTER = "%H:%M:%S.%f"
 ###############################################################################
 GAMES_INCLUDED = ("Guild Wars 2",)
-###############################################################################
-APIS_INCLUDED = ()
 ###############################################################################
 _bot_cogs = [os.path.join("src", "bot", "admin", "admin.py")] # loading admin group cog first
 _bot_cogs += [x for x in glob.glob(os.path.join("src", "bot", "*.py"))]

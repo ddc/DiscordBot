@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from discord.ext import commands
-from src.bot.utils import bot_utils
+from src.bot.tools import bot_utils
 from src.database.dal.bot.servers_dal import ServersDal
+from src.bot.constants import messages
 
 
 class OnUserUpdate(commands.Cog):
@@ -24,27 +25,27 @@ class OnUserUpdate(commands.Cog):
             if after.bot:
                 return
 
-            msg = "Profile Changes:\n\n"
+            msg = f"{messages.PROFILE_CHANGES}:\n\n"
             embed = bot_utils.get_embed(self)
             embed.set_author(name=after.display_name, icon_url=after.avatar.url)
             embed.set_footer(icon_url=self.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
 
             if str(before.avatar.url) != str(after.avatar.url):
                 embed.set_thumbnail(url=after.avatar.url)
-                embed.add_field(name="New Avatar", value="-->")
-                msg += f"New Avatar: \n{after.avatar.url}\n"
+                embed.add_field(name=messages.NEW_AVATAR, value="-->")
+                msg += f"{messages.NEW_AVATAR}: \n{after.avatar.url}\n"
 
             if str(before.name) != str(after.name):
                 if before.name is not None:
-                    embed.add_field(name="Previous Name", value=str(before.name))
-                embed.add_field(name="New Name", value=str(after.name))
-                msg += f"New Name: `{after.name}`\n"
+                    embed.add_field(name=messages.PREVIOUS_NAME, value=str(before.name))
+                embed.add_field(name=messages.NEW_NAME, value=str(after.name))
+                msg += f"{messages.NEW_NAME}: `{after.name}`\n"
 
             if str(before.discriminator) != str(after.discriminator):
                 if before.name is not None:
-                    embed.add_field(name="Previous Discriminator", value=str(before.discriminator))
-                embed.add_field(name="New Discriminator", value=str(after.discriminator))
-                msg += f"New Discriminator: `{after.discriminator}`\n"
+                    embed.add_field(name=messages.PREVIOUS_DISCRIMINATOR, value=str(before.discriminator))
+                embed.add_field(name=messages.NEW_DISCRIMINATOR, value=str(after.discriminator))
+                msg += f"{messages.NEW_DISCRIMINATOR}: `{after.discriminator}`\n"
 
             if len(embed.fields) > 0:
                 servers_dal = ServersDal(bot.db_session, bot.log)

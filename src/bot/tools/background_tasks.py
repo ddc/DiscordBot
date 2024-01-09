@@ -2,7 +2,7 @@
 import asyncio
 import random
 import discord
-from src.bot.utils.constants import GAMES_INCLUDED
+from src.bot.constants.variables import GAMES_INCLUDED
 
 
 class BackGroundTasks:

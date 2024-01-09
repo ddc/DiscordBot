@@ -2,7 +2,8 @@
 import discord
 from discord.ext import commands
 from src.database.dal.bot.servers_dal import ServersDal
-from src.bot.utils import bot_utils
+from src.bot.tools import bot_utils
+from src.bot.constants import messages
 
 
 class OnMemberRemove(commands.Cog):
@@ -20,9 +21,9 @@ class OnMemberRemove(commands.Cog):
                 now = bot_utils.get_current_date_time_str_long()
                 embed = discord.Embed(color=discord.Color.red(), description=str(member))
                 embed.set_thumbnail(url=member.avatar.url)
-                embed.set_author(name="Left the Server")
+                embed.set_author(name=messages.LEFT_THE_SERVER)
                 embed.set_footer(icon_url=self.bot.user.avatar.url, text=f"{now} UTC")
-                msg = f"{member.name} Left the Server\n{now}"
+                msg = f"{member.name} {messages.LEFT_THE_SERVER}\n{now}"
                 await bot_utils.send_msg_to_system_channel(self.bot.log, member.guild, embed, msg)
 
 

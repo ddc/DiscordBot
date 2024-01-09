@@ -2,13 +2,13 @@
 from datetime import datetime, timedelta
 from enum import Enum
 import discord
-from src.bot.utils import bot_utils
-from src.bot.utils.bot_utils import Object
+from src.bot.tools import bot_utils
 from src.database.dal.gw2.gw2_configs_dal import Gw2ConfigsDal
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
-from src.gw2.utils.gw2_api import Gw2Api
+from src.gw2.tools.gw2_api import Gw2Api
+from src.gw2.constants import gw2_messages
 
 
 class Gw2Servers(Enum):
@@ -164,11 +164,9 @@ async def delete_api_key(ctx, message=False):
         try:
             await ctx.message.delete()
             if message:
-                await send_msg(ctx, "Your message with your API Key was removed for privacy.")
+                await send_msg(ctx, gw2_messages.API_KEY_MESSAGE_REMOVED)
         except:
-            await bot_utils.send_error_msg(ctx,
-                                           "Bot does not have permission to delete the message with your API key.\n"
-                                           "Missing bot permission: `Manage Messages`")
+            await bot_utils.send_error_msg(ctx, gw2_messages.API_KEY_MESSAGE_REMOVED_DENIED)
 
 
 def is_private_message(ctx):
@@ -412,7 +410,7 @@ def get_time_passed(start_time: datetime, end_time: datetime):
 
 
 def convert_timedelta_to_obj(time_delta: timedelta):
-    obj = Object()
+    obj = bot_utils.Object()
     obj.timedelta = time_delta
     if "," in str(time_delta):
         obj.days = int(str(time_delta).split()[0].strip())

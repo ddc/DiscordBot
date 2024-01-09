@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 from discord.ext import commands
-from src.bot.utils import bot_utils
+from src.bot.tools import bot_utils
 
 
 class Checks:
-    def __init__(self):
-        pass
-
     @staticmethod
     def check_is_admin():
         def wrapper(*args, **kwargs):

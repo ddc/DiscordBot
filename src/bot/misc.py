@@ -7,9 +7,10 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from gtts import gTTS
-from src.bot.utils.pepe import pepedatabase
-from src.bot.utils import bot_utils, chat_formatting, constants
-from src.bot.utils.cooldowns import CoolDowns
+from src.bot.tools.pepe import pepedatabase
+from src.bot.tools import bot_utils, chat_formatting
+from src.bot.tools.cooldowns import CoolDowns
+from src.bot.constants import variables, messages
 
 
 class Misc(commands.Cog):
@@ -33,7 +34,7 @@ class Misc(commands.Cog):
         async with aiohttp.ClientSession() as session:
             async with session.get(pepe_url) as resp:
                 if resp.status != 200:
-                    return await bot_utils.send_error_msg(ctx, "Could not download pepe file...")
+                    return await bot_utils.send_error_msg(ctx, messages.PEPE_DOWNLOAD_ERROR)
                 data = BytesIO(await resp.read())
                 data.seek(0)
                 name = pepe_url.split("/")[3]
@@ -76,7 +77,7 @@ class Misc(commands.Cog):
             tts = gTTS(text=new_tts_msg, lang="en")
             tts.write_to_fp(mp3_fp)
         except AssertionError:
-            await bot_utils.send_error_msg(ctx, "No text to send to TTS API")
+            await bot_utils.send_error_msg(ctx, messages.INVALID_MESSAGE)
 
         mp3_fp.seek(0)
         await ctx.send(file=discord.File(mp3_fp, display_filename))
@@ -119,8 +120,8 @@ class Misc(commands.Cog):
         """
 
         await ctx.message.channel.typing()
-        search_terms = chat_formatting.escape_mass_mentions(user_msg.replace(" ", "+"))
-        msg = f"https://lmgtfy.com/?q={search_terms}"
+        search_terms = user_msg.replace(" ", "+")
+        msg = f"{variables.LMGTFY_URL}/?q={search_terms}"
         await ctx.message.channel.typing()
         await bot_utils.send_msg(ctx, msg)
 
@@ -145,20 +146,20 @@ class Misc(commands.Cog):
         limited_invites = ["[`{0.code}`]({0.url}): `{0.channel}` created by `{0.inviter}`".format(x) for x in
                            active_invites if x.max_age != 0 and x not in revoked_invites]
 
-        embed = discord.Embed(title="Invite Links")
+        embed = discord.Embed(title=messages.INVITE_TITLE)
         embed.set_thumbnail(url=server.icon.url)
 
         if unlimited_invites:
-            embed.add_field(name=f"Unlimited Invites ({len(unlimited_invites)})",
+            embed.add_field(name=f"{messages.UNLIMITED_INVITES} ({len(unlimited_invites)})",
                             value="\n".join(unlimited_invites[:5]))
         if limited_invites:
-            embed.add_field(name=f"Temporary Invites ({len(limited_invites)})", value="\n".join(limited_invites))
+            embed.add_field(name=f"{messages.TEMPORARY_INVITES} ({len(limited_invites)})", value="\n".join(limited_invites))
         if revoked_invites:
-            embed.add_field(name=f"Revoked Invites ({len(revoked_invites)})", value="\n".join(revoked_invites))
+            embed.add_field(name=f"{messages.REVOKED_INVITES} ({len(revoked_invites)})", value="\n".join(revoked_invites))
         if len(unlimited_invites) > 0 or len(limited_invites) > 0 or len(revoked_invites) > 0:
             await bot_utils.send_embed(ctx, embed)
         else:
-            await bot_utils.send_msg(ctx, chat_formatting.inline("No current invites on any channel."))
+            await bot_utils.send_msg(ctx, chat_formatting.inline(messages.NO_INVITES))
 
     @commands.command()
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
@@ -245,7 +246,7 @@ class Misc(commands.Cog):
                 case _:
                     description = user.status.name
         elif user.status.name == "dnd":
-            description = "Do Not Disturb"
+            description = messages.DO_NOT_DISTURB
         else:
             description = user.status.name
 
@@ -253,8 +254,8 @@ class Misc(commands.Cog):
         roles_str = ",".join(roles_lst) if roles_lst else None
 
         embed = discord.Embed(description=description, color=user.color)
-        embed.add_field(name="Joined Discord on", value=created_on)
-        embed.add_field(name="Joined this server on", value=joined_on)
+        embed.add_field(name=messages.JOINED_DISCORD_ON, value=created_on)
+        embed.add_field(name=messages.JOINED_THIS_SERVER_ON, value=joined_on)
         embed.add_field(name="Roles", value=roles_str.replace("@", ""), inline=False)
         embed.set_footer(text=f"Member #{member_number} | User ID:{user.id} | {bot_utils.get_current_date_time_str_long()}")
 
@@ -279,16 +280,12 @@ class Misc(commands.Cog):
             raise commands.BadArgument(message="BadArgument")
 
         await ctx.message.channel.typing()
-        bot_webpage_url = constants.BOT_WEBPAGE_URL
+        bot_webpage_url = variables.BOT_WEBPAGE_URL
         bot_avatar = self.bot.user.avatar.url
         author = self.bot.get_user(self.bot.owner_id)
         python_version = "Python {}.{}.{}".format(*sys.version_info[:3])
-
-        apis_included = self._get_apis_included(constants.APIS_INCLUDED)
-        games_included = self._get_apis_included(constants.GAMES_INCLUDED)
-
-        dev_info_msg = (f"Developed as an open source project and hosted on [GitHub]({bot_webpage_url})\n"
-                        f"A python discord api wrapper: [discord.py]({constants.DISCORDPY_URL})\n""")
+        games_included = self._get_games_included(variables.GAMES_INCLUDED)
+        dev_info_msg = messages.DEV_INFO_MSG.format(bot_webpage_url, variables.DISCORDPY_URL)
 
         bot_stats = bot_utils.get_bot_stats(self.bot)
         servers = bot_stats["servers"]
@@ -296,7 +293,7 @@ class Misc(commands.Cog):
         channels = bot_stats["channels"]
 
         embed = discord.Embed(description=str(self.bot.description))
-        embed.set_author(name=f"{self.bot.user.name} v{constants.VERSION}", icon_url=bot_avatar, url=bot_webpage_url)
+        embed.set_author(name=f"{self.bot.user.name} v{variables.VERSION}", icon_url=bot_avatar, url=bot_webpage_url)
         embed.set_thumbnail(url=bot_avatar)
         embed.set_footer(icon_url=author.avatar.url, text=f"Developed by {str(author)} | {python_version}")
 
@@ -304,17 +301,15 @@ class Misc(commands.Cog):
         embed.add_field(name="Servers", value=f"{servers}")
         embed.add_field(name="Users", value=f"{users}")
         embed.add_field(name="Channels", value=f"{channels}")
-        if apis_included is not None:
-            embed.add_field(name="APIs Included", value=apis_included, inline=False)
         if games_included is not None:
             embed.add_field(name="Games Included", value=games_included, inline=False)
-        embed.add_field(name="Download", value=f"[Version {constants.VERSION}]({bot_webpage_url})")
-        embed.add_field(name="Donations", value=f"[Paypal]({constants.PAYPAL_URL})")
-        embed.add_field(name="Help", value=f"For a list of command categories, type `{ctx.prefix}help`", inline=False)
+        embed.add_field(name="Download", value=f"[Version {variables.VERSION}]({bot_webpage_url})")
+        embed.add_field(name="Donations", value=f"[Paypal]({variables.PAYPAL_URL})")
+        embed.add_field(name="Help", value=f"{messages.LIST_COMMAND_CATEGORIES}: `{ctx.prefix}help`", inline=False)
         await bot_utils.send_embed(ctx, embed)
 
     @staticmethod
-    def _get_apis_included(apis_const: tuple):
+    def _get_games_included(apis_const: tuple):
         result = None
         if apis_const is not None:
             if len(apis_const) == 1:

@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import discord
 from discord.ext import commands
-from src.bot.utils import bot_utils, constants
+from src.bot.tools import bot_utils
+from src.bot.constants import variables, messages
+from src.gw2.constants import gw2_messages
 
 
 class Errors(commands.Cog):
@@ -50,8 +52,8 @@ class Errors(commands.Cog):
     async def _get_error_msg(error):
         if hasattr(error, "args"):
             if len(error.args) > 0:
-                if "Command raised an exception:" in str(error.args[0]):
-                    error_msg = error.args[0].split("Command raised an exception:")[1]
+                if "Command raised an exception" in str(error.args[0]):
+                    error_msg = error.args[0].split(f"{messages.COMMAND_RAISED_EXCEPTION}:")[1]
                 else:
                     error_msg = error.args[0]
             else:
@@ -76,19 +78,19 @@ class Errors(commands.Cog):
         await self._send_error_message(ctx, self.error["error_msg"], log)
 
     async def _command_not_found(self, ctx, log):
-        error_msg = f"Command not found:\n`{self.error['command']}`"
+        error_msg = f"{messages.COMMAND_NOT_FOUND}:\n`{self.error['command']}`"
         await self._send_error_message(ctx, error_msg, log)
 
     async def _missing_required_argument(self, ctx, log):
-        error_msg = f"Missing required argument!!!\nFor more info on this command: `{self.error['help_command']}`"
+        error_msg = f"{messages.MISSING_REQUIRED_ARGUMENT_HELP_MESSAGE}: `{self.error['help_command']}`"
         await self._send_error_message(ctx, error_msg, log)
 
     async def _check_failure(self, ctx, log):
         match self.error["error_msg"]:
             case str(x) if "not admin" in x:
-                error_msg = f"You are not an Admin to use this command: `{self.error['command']}`"
+                error_msg = f"{messages.NOT_ADMIN_USE_COMMAND}: `{self.error['command']}`"
             case str(x) if "not owner" in x:
-                error_msg = f"Only bot owners can use this command: `{self.error['command']}`"
+                error_msg = f"{messages.BOT_OWNERS_ONLY_COMMAND}: `{self.error['command']}`"
             case _:
                 error_msg = self.error["error_msg"]
         await self._send_error_message(ctx, error_msg, log)
@@ -105,14 +107,14 @@ class Errors(commands.Cog):
 
         match self.error["error_msg"]:
             case str(x) if "bot_prefix" in x:
-                error_msg = f"Prefixes can only be one of: {' '.join(constants.ALLOWED_PREFIXES)}"
+                error_msg = f"{messages.PREFIXES_CHOICE}: {' '.join(variables.ALLOWED_PREFIXES)}"
             case str(x) if "Gw2ConfigServer" in x:
-                error_msg = (f"Guild Wars 2 server not found: `{self.error['bad_argument']}`\n"
-                       f"For more info on gw2 server names: `{ctx.prefix}gw2 worlds`")
+                error_msg = (f"{gw2_messages.GW2_SERVER_NOT_FOUND}: `{self.error['bad_argument']}`\n"
+                             f"{gw2_messages.GW2_SERVER_MORE_INFO}: `{ctx.prefix}gw2 worlds`")
             case _:
-                error_msg = f"Unknown option: `{self.error['bad_argument']}`"
+                error_msg = f"{messages.UNKNOWN_OPTION}: `{self.error['bad_argument']}`"
 
-        error_msg += f"\nFor more info on this command: `{self.error['help_command']}`"
+        error_msg += f"\n{messages.HELP_COMMAND_MORE_INFO}: `{self.error['help_command']}`"
         await self._send_error_message(ctx, error_msg, log)
 
     async def _command_error(self, ctx, log):
@@ -123,25 +125,22 @@ class Errors(commands.Cog):
 
         match self.error["error_msg"]:
             case str(x) if any(z in x for z in ["Cannot send messages to this user", "status code: 403"]):
-                error_msg = "Direct messages are disable in your configuration.\n" \
-                      "If you want to receive messages from Bots, " \
-                      "you need to enable this option under Privacy & Safety:" \
-                      "\"Allow direct messages from server members.\""
+                error_msg = messages.DIRECT_MESSAGES_DISABLED
             case str(x) if "AttributeError" in x:
-                error_msg = f"Command error: `{cmd}`"
+                error_msg = f"{messages.COMMAND_ERROR}: `{cmd}`"
             case str(x) if "Missing Permissions" in x:
-                error_msg = f"Bot does not have permission to execute this command: `{cmd}`"
+                error_msg = f"{messages.NO_PERMISSION_EXECUTE_COMMAND}: `{cmd}`"
             case str(x) if "NoOptionError" in x:
                 option_not_found = self.error["error_msg"].split()[7]
-                error_msg = f"No option found: `{option_not_found}`"
+                error_msg = f"{messages.NO_OPTION_FOUND}: `{option_not_found}`"
             case str(x) if "GW2 API" in x:
                 error_msg = str(self.error["error_msg"]).split(',')[1].strip().split('?')[0]
             case str(x) if "No text to send to TTS API" in x:
-                error_msg = "Invalid message."
+                error_msg = messages.INVALID_MESSAGE
             case _:
-                error_msg = f"There was an internal error with command: `{cmd}`"
+                error_msg = f"{messages.COMMAND_INTERNAL_ERROR}: `{cmd}`"
 
-        error_msg += f"\nFor more info on this command: `{self.error['help_command']}`"
+        error_msg += f"\n{messages.HELP_COMMAND_MORE_INFO}: `{self.error['help_command']}`"
         await self._send_error_message(ctx, error_msg, log)
 
     async def _command_on_cooldown(self, ctx, log):
@@ -163,14 +162,15 @@ class Errors(commands.Cog):
         await self._send_error_message(ctx, error_msg, log)
 
     async def _too_many_arguments(self, ctx, log):
-        error_msg = f"Command ERROR!\nFor more info on this command: `{self.error['help_command']}`"
+        error_msg = (f"{messages.COMMAND_ERROR}!\n"
+                     f"{messages.HELP_COMMAND_MORE_INFO}: `{self.error['help_command']}`")
         await self._send_error_message(ctx, error_msg, log)
 
     async def _forbidden(self, ctx, log):
         if "Cannot execute action on a DM channel" in self.error["error_msg"]:
-            error_msg = "Cannot execute that command on a DM channel"
+            error_msg = messages.DM_CANNOT_EXECUTE_COMMAND
         else:
-            error_msg = "Your Privilege is too low."
+            error_msg = messages.PRIVILEGE_LOW
         await self._send_error_message(ctx, error_msg, log)
 
 

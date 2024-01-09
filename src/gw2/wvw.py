@@ -2,13 +2,14 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-from src.bot.utils import bot_utils, chat_formatting
+from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.gw2.gw2 import GuildWars2
-from src.gw2.utils import gw2_utils
-from src.gw2.utils.gw2_api import Gw2Api
-from src.gw2.utils.gw2_cooldowns import GW2CoolDowns
-from src.gw2.utils.gw2_exceptions import APIKeyError
+from src.gw2.tools import gw2_utils
+from src.gw2.tools.gw2_api import Gw2Api
+from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
+from src.gw2.tools.gw2_exceptions import APIKeyError
+from src.gw2.constants import gw2_messages
 
 
 class GW2WvW(GuildWars2):
@@ -34,23 +35,22 @@ async def info(ctx, *, world: str = None):
     await ctx.message.channel.typing()
     gw2_api = Gw2Api(ctx.bot)
 
+    no_api_key_msg = gw2_messages.NO_API_KEY
+    no_api_key_msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
+    no_api_key_msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
+
     if not world:
         try:
             gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
             rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
             if not rs:
-                return await bot_utils.send_error_msg(
-                    ctx,
-                    "You dont have an API key registered.\n"
-                    f"To add or replace an API key send a DM with: `{ctx.prefix}gw2 key add <api_key>`\n"
-                    f"To check your API key: `{ctx.prefix}gw2 key info`"
-                )
+                return await bot_utils.send_error_msg(ctx, no_api_key_msg)
 
             api_key = rs[0]["key"]
             results = await gw2_api.call_api("account", api_key)
             wid = results["world"]
         except APIKeyError:
-            return await bot_utils.send_error_msg(ctx, "No world name or key associated with your account")
+            return await bot_utils.send_error_msg(ctx, no_api_key_msg)
         except Exception as e:
             await bot_utils.send_error_msg(ctx, e)
             return ctx.bot.log.error(ctx, e)
@@ -58,7 +58,7 @@ async def info(ctx, *, world: str = None):
         wid = await gw2_utils.get_world_id(ctx, world)
 
     if not wid:
-        return await bot_utils.send_error_msg(ctx, f"Invalid world name\n{world}")
+        return await bot_utils.send_error_msg(ctx, f"{gw2_messages.INVALID_WORLD_NAME}\n{world}")
 
     try:
         await ctx.message.channel.typing()
@@ -80,7 +80,7 @@ async def info(ctx, *, world: str = None):
         if wid in value:
             worldcolor = key
     if not worldcolor:
-        return await bot_utils.send_error_msg(ctx, "Could not resolve world's color")
+        return await bot_utils.send_error_msg(ctx, gw2_messages.WORLD_COLOR_ERROR)
 
     match worldcolor:
         case "red":
@@ -151,19 +151,17 @@ async def match(ctx, *, world: str = None):
             gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
             rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
             if not rs:
-                return await bot_utils.send_error_msg(
-                    ctx,
-                    "Missing World Name\n"
-                    f"Use `{ctx.prefix}gw2 match <world_name>`\n"
-                    "Or register an API key on your account.\n"
-                    f"To add or replace an API key send a DM with: `{ctx.prefix}gw2 key add <api_key>`\n"
-                )
+                msg = gw2_messages.MISSING_WORLD_NAME
+                msg += gw2_messages.MATCH_WORLD_NAME_HELP.format(ctx.prefix)
+                msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
+                msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
+                return await bot_utils.send_error_msg(ctx, msg)
 
             api_key = rs[0]["key"]
             results = await gw2_api.call_api("account", api_key)
             wid = results["world"]
         except APIKeyError:
-            return await bot_utils.send_error_msg(ctx, "No world name or API key associated with your account.")
+            return await bot_utils.send_error_msg(ctx, gw2_messages.NO_API_KEY)
         except Exception as e:
             await bot_utils.send_error_msg(ctx, e)
             return ctx.bot.log.error(ctx, e)
@@ -171,7 +169,7 @@ async def match(ctx, *, world: str = None):
         wid = await gw2_utils.get_world_id(ctx, world)
 
     if not wid:
-        return await bot_utils.send_error_msg(ctx, f"Invalid world: {world}")
+        return await bot_utils.send_error_msg(ctx, f"{gw2_messages.INVALID_WORLD_NAME}: {world}")
 
     try:
         await ctx.message.channel.typing()
@@ -222,14 +220,16 @@ async def kdr(ctx, *, world: str = None):
             gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
             rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
             if not rs:
-                return await bot_utils.send_error_msg(ctx, "Invalid World Name\n"
-                                                           f"Use {ctx.prefix}gw2 match <world_name> "
-                                                           "Or register an API key on your account.")
+                msg = gw2_messages.INVALID_WORLD_NAME
+                msg += gw2_messages.MATCH_WORLD_NAME_HELP.format(ctx.prefix)
+                msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
+                msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
+                return await bot_utils.send_error_msg(ctx, msg)
             api_key = rs[0]["key"]
             results = await gw2_api.call_api("account", api_key)
             wid = results["world"]
         except APIKeyError:
-            return await bot_utils.send_error_msg(ctx, "No world name or key associated with your account")
+            return await bot_utils.send_error_msg(ctx, gw2_messages.NO_API_KEY)
         except Exception as e:
             await bot_utils.send_error_msg(ctx, e)
             return ctx.bot.log.error(ctx, e)
@@ -237,7 +237,7 @@ async def kdr(ctx, *, world: str = None):
         wid = await gw2_utils.get_world_id(ctx, world)
 
     if not wid:
-        return await bot_utils.send_error_msg(ctx, f"Invalid world: {world}")
+        return await bot_utils.send_error_msg(ctx, f"{gw2_messages.INVALID_WORLD_NAME}: {world}")
 
     try:
         await ctx.message.channel.typing()
@@ -245,10 +245,10 @@ async def kdr(ctx, *, world: str = None):
 
         if wid < 2001:
             tier_number = matches["id"].replace("1-", "")
-            tier = f"North America Tier {tier_number}"
+            tier = f"{gw2_messages.NA_TIER_TITLE} {tier_number}"
         else:
             tier_number = matches["id"].replace("2-", "")
-            tier = f"Europe Tier {tier_number}"
+            tier = f"{gw2_messages.EU_TIER_TITLE}{tier_number}"
 
         green_worlds_names = await _get_map_names_embed_values(ctx, "green", matches)
         blue_worlds_names = await _get_map_names_embed_values(ctx, "blue", matches)
@@ -262,7 +262,7 @@ async def kdr(ctx, *, world: str = None):
         return ctx.bot.log.error(ctx, e)
 
     color = ctx.bot.settings["gw2"]["EmbedColor"]
-    embed = discord.Embed(title="WvW Kills/Death Ratings", description=tier, color=color)
+    embed = discord.Embed(title=gw2_messages.WVW_KDR_TITLE, description=tier, color=color)
     embed.add_field(name="Green", value=green_worlds_names)
     embed.add_field(name="Blue", value=blue_worlds_names)
     embed.add_field(name="Red", value=red_worlds_names)

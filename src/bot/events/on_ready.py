@@ -2,7 +2,8 @@
 import sys
 import discord
 from discord.ext import commands
-from src.bot.utils import bot_utils, constants
+from src.bot.tools import bot_utils
+from src.bot.constants import variables, messages
 
 
 class OnReady(commands.Cog):
@@ -12,7 +13,7 @@ class OnReady(commands.Cog):
         @self.bot.event
         async def on_ready():
             bot_stats = bot_utils.get_bot_stats(bot)
-            print(f"\n{20*'='}\nDiscord Bot v{constants.VERSION}\n{20*'='}")
+            print(f"\n{20*'='}\nDiscord Bot v{variables.VERSION}\n{20*'='}")
             print("Python v{}.{}.{}".format(*sys.version_info[:3]))
             print(f"Discord API v{discord.__version__}")
             print("--------------------")
@@ -23,7 +24,7 @@ class OnReady(commands.Cog):
             print(f"Channels: {bot_stats['channels']}")
             print("--------------------")
             print(f"{bot_utils.get_current_date_time_str_long()}")
-            bot.log.info(f"====> {bot.user} IS ONLINE AND CONNECTED TO DISCORD <====")
+            bot.log.info(messages.BOT_ONLINE.format(bot.user))
 
 
 async def setup(bot):

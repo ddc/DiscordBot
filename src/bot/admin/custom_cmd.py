@@ -3,8 +3,9 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from src.bot.admin.admin import Admin
-from src.bot.utils import bot_utils, chat_formatting
-from src.bot.utils.cooldowns import CoolDowns
+from src.bot.constants import messages
+from src.bot.tools import bot_utils, chat_formatting
+from src.bot.tools.cooldowns import CoolDowns
 from src.database.dal.bot.custom_commands_dal import CustomCommandsDal
 
 
@@ -39,27 +40,25 @@ async def add_custom_command(ctx, *, subcommand_passed):
     new_cmd_description = " ".join(subcommand_passed.split()[1:])
 
     if not new_cmd_name or len(new_cmd_description) == 0:
-        return await bot_utils.send_error_msg(ctx, "Missing required argument!!!\n"
-                                                   "For more info on this command: "
+        return await bot_utils.send_error_msg(ctx, f"{messages.MISSING_REQUIRED_ARGUMENT_HELP_MESSAGE}: "
                                                    f"{chat_formatting.inline(f'{ctx.prefix}help admin cc add')}")
 
     for cmd in ctx.bot.commands:
         if str(new_cmd_name) == str(cmd.name).lower():
-            await bot_utils.send_error_msg(ctx, f"`{ctx.prefix}{new_cmd_name}` is already a standard command.")
+            await bot_utils.send_error_msg(ctx, f"`{ctx.prefix}{new_cmd_name}` {messages.ALREADY_A_STANDARD_COMMAND}.")
             return
 
     if len(new_cmd_name) > 20:
-        await bot_utils.send_error_msg(ctx, "Command names cannot exceed 20 characters.\n"
-                                            "Please try again with another name.")
+        await bot_utils.send_error_msg(ctx, messages.COMMAND_LENGHT_ERROR)
         return
 
     commands_dal = CustomCommandsDal(ctx.bot.db_session, ctx.bot.log)
     rs = await commands_dal.get_command(ctx.guild.id, str(new_cmd_name))
     if not rs:
         await commands_dal.insert_command(ctx.guild.id, ctx.author.id, new_cmd_name, new_cmd_description)
-        await bot_utils.send_msg(ctx, f"Custom command successfully added:\n`{ctx.prefix}{new_cmd_name}`")
+        await bot_utils.send_msg(ctx, f"{messages.CUSTOM_COMMAND_ADDED}:\n`{ctx.prefix}{new_cmd_name}`")
     else:
-        await bot_utils.send_warning_msg(ctx, f"Command already exists: `{ctx.prefix}{new_cmd_name}`\n"
+        await bot_utils.send_warning_msg(ctx, f"{messages.COMMAND_ALREADY_EXISTS}: `{ctx.prefix}{new_cmd_name}`\n"
                                               f"To edit: `{ctx.prefix}admin cc edit {new_cmd_name} <text>`")
 
 
@@ -75,20 +74,19 @@ async def edit_custom_command(ctx, *, subcommand_passed):
     new_cmd_description = " ".join(subcommand_passed.split()[1:])
 
     if not cmd_name or len(new_cmd_description) == 0:
-        return await bot_utils.send_error_msg(ctx, "Missing required argument!!!\n"
-                                                   "For more info on this command: "
+        return await bot_utils.send_error_msg(ctx, f"{messages.MISSING_REQUIRED_ARGUMENT_HELP_MESSAGE}: "
                                                    f"{chat_formatting.inline(f'{ctx.prefix}help admin cc edit')}")
 
     commands_dal = CustomCommandsDal(ctx.bot.db_session, ctx.bot.log)
     rs = await commands_dal.get_all_server_commands(ctx.guild.id)
     if not rs:
-        return await bot_utils.send_error_msg(ctx, "There are no custom commands in this server.")
+        return await bot_utils.send_error_msg(ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
 
     if cmd_name in [x.name for x in rs]:
         await commands_dal.update_command_description(ctx.guild.id, ctx.author.id, cmd_name, new_cmd_description)
-        await bot_utils.send_msg(ctx, f"Custom command successfully edited:\n`{ctx.prefix}{cmd_name}`")
+        await bot_utils.send_msg(ctx, f"{messages.CUSTOM_COMMAND_EDITED}:\n`{ctx.prefix}{cmd_name}`")
     else:
-        await bot_utils.send_error_msg(ctx, f"Command doesn't exist:\n`{ctx.prefix}{cmd_name}`")
+        await bot_utils.send_error_msg(ctx, f"{messages.COMMAND_NOT_FOUND}:\n`{ctx.prefix}{cmd_name}`")
 
 
 @custom_command.command(name="remove")
@@ -99,21 +97,20 @@ async def remove_custom_command(ctx, cmd_name):
     """
 
     if not cmd_name:
-        return await bot_utils.send_error_msg(ctx, "Missing required argument!!!\n"
-                                                   "For more info on this command: "
+        return await bot_utils.send_error_msg(ctx, f"{messages.MISSING_REQUIRED_ARGUMENT_HELP_MESSAGE}: "
                                                    f"{chat_formatting.inline(f'{ctx.prefix}help admin cc remove')}")
 
     commands_dal = CustomCommandsDal(ctx.bot.db_session, ctx.bot.log)
     rs = await commands_dal.get_all_server_commands(ctx.guild.id)
     if not rs:
-        return await bot_utils.send_warning_msg(ctx, "There are no custom commands in this server.")
+        return await bot_utils.send_warning_msg(ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
 
     if cmd_name in [x.name for x in rs]:
         await commands_dal.delete_server_command(ctx.guild.id, str(cmd_name))
-        await bot_utils.send_msg(ctx, f"Custom command successfully removed:\n`{ctx.prefix}{cmd_name}`")
+        await bot_utils.send_msg(ctx, f"{messages.CUSTOM_COMMAND_REMOVED}:\n`{ctx.prefix}{cmd_name}`")
     else:
-        await bot_utils.send_error_msg(ctx, f"Unable to remove!!!\n"
-                                            f"Command doesn't exist: {chat_formatting.inline(cmd_name)}")
+        await bot_utils.send_error_msg(ctx, f"{messages.CUSTOM_COMMAND_UNABLE_REMOVE}\n"
+                                            f"{messages.COMMAND_NOT_FOUND}: {chat_formatting.inline(cmd_name)}")
 
 
 @custom_command.command(name="removeall")
@@ -126,10 +123,10 @@ async def remove_all_custom_commands(ctx):
     commands_dal = CustomCommandsDal(ctx.bot.db_session, ctx.bot.log)
     rs = await commands_dal.get_all_server_commands(ctx.guild.id)
     if not rs:
-        return await bot_utils.send_error_msg(ctx, "There are no custom commands in this server.")
+        return await bot_utils.send_error_msg(ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
 
     await commands_dal.delete_all_commands(ctx.guild.id)
-    await bot_utils.send_msg(ctx, "All custom commands from this server were successfully removed.")
+    await bot_utils.send_msg(ctx, messages.CUSTOM_COMMAND_ALL_REMOVED)
 
 
 @custom_command.command(name="list")
@@ -142,7 +139,7 @@ async def list_custom_commands(ctx):
     commands_dal = CustomCommandsDal(ctx.bot.db_session, ctx.bot.log)
     rs = await commands_dal.get_all_server_commands(ctx.guild.id)
     if not rs:
-        return await bot_utils.send_warning_msg(ctx, "There are no custom commands in this server.")
+        return await bot_utils.send_warning_msg(ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
 
     command = []
     author = []
@@ -158,7 +155,7 @@ async def list_custom_commands(ctx):
     dates = "\n".join(date)
 
     embed = discord.Embed()
-    embed.set_author(name="Custom commands in this server", icon_url=f"{ctx.guild.icon.url}")
+    embed.set_author(name=messages.CUSTOM_COMMANDS_SERVER, icon_url=f"{ctx.guild.icon.url}")
     embed.add_field(name="Command", value=chat_formatting.inline(cmd))
     embed.add_field(name="Created by", value=chat_formatting.inline(authors))
     embed.add_field(name="Created at", value=chat_formatting.inline(dates))
