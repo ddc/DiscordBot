@@ -8,13 +8,13 @@ import traceback
 import discord
 from aiohttp import ClientSession
 from better_profanity import profanity
+from ddcUtils.databases import DBPostgresAsync
 from discord.ext import commands
 from src.bot.tools import bot_utils
 from src.bot.constants import variables, messages
-from src.bot.tools.log import Log
 from src.database.dal.bot.bot_configs_dal import BotConfigsDal
-from src.database.db import Database
 from src.gw2.constants import gw2_variables
+from ddcUtils import FileUtils, Log
 
 
 class Bot(commands.Bot):
@@ -47,12 +47,13 @@ class Bot(commands.Bot):
 async def main():
     # run alembic migrations
     await bot_utils.run_alembic_migrations()
-    database = Database()
-    database_engine = database.get_db_engine()
+    db_configs = FileUtils().get_all_file_section_values(variables.SETTINGS_FILENAME, "Database")
+    database = DBPostgresAsync(**db_configs)
 
-    async with ClientSession() as client_session, database.get_db_session(database_engine) as db_session:
+    async with ClientSession() as client_session, database.session() as db_session:
         # init log
-        log = Log(variables.LOGS_DIR, variables.IS_DEBUG).setup_logging()
+        level = "debug" if variables.IS_DEBUG else "info"
+        log = Log(dir_logs=variables.LOGS_DIR, level=level, filename="bot").setup_logging()
 
         # check BOT_TOKEN env
         if not os.environ.get("BOT_TOKEN"):

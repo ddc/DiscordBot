@@ -250,71 +250,23 @@ async def get_server_system_channel(server: discord.Guild):
     return None
 
 
-def get_all_ini_file_settings(file_name: str):
-    final_data = {}
+def _get_default_parser():
     parser = configparser.ConfigParser(delimiters="=", allow_no_value=True)
     parser.optionxform = str
     parser._interpolation = configparser.ExtendedInterpolation()
+    return parser
+
+
+def _get_parser_value(parser, section: str, config_name: str):
     try:
-        parser.read(file_name)
-        for section in parser.sections():
-            for option in parser.options(section):
-                try:
-                    value = parser.get(section, option).replace("\"", "")
-                    lst_value = list(value.split(","))
-                    if len(lst_value) > 1:
-                        values = []
-                        for each in lst_value:
-                            values.append(int(each.strip()) if each.strip().isnumeric() else each.strip())
-                        value = values
-                    if value is not None and type(value) is str:
-                        if len(value) == 0:
-                            value = None
-                        elif value.isnumeric():
-                            value = int(value)
-                        elif "," in value:
-                            value = sorted([x.strip() for x in value.split(",")])
-                except:
-                    value = None
-                final_data[option] = value
-        return final_data
-    except Exception as e:
-        sys.stderr.write(str(e))
-
-
-def get_ini_section_settings(file_name, section):
-    final_data = {}
-    parser = configparser.ConfigParser(delimiters="=", allow_no_value=True)
-    parser.optionxform = str
-    parser._interpolation = configparser.ExtendedInterpolation()
-    try:
-        parser.read(file_name)
-        for option in parser.options(section):
-            try:
-                value = parser.get(section, option).replace("\"", "")
-                if value is not None and type(value) is str:
-                    if len(value) == 0:
-                        value = None
-                    elif value.isnumeric():
-                        value = int(value)
-                    elif "," in value:
-                        value = sorted([x.strip() for x in value.split(",")])
-            except:
-                value = None
-            final_data[option] = value
-        return final_data
-    except Exception as e:
-        sys.stderr.write(str(e))
-
-
-def get_ini_settings(file_name: str, section: str, config_name: str):
-    parser = configparser.ConfigParser(delimiters="=", allow_no_value=True)
-    parser.optionxform = str
-    parser._interpolation = configparser.ExtendedInterpolation()
-    try:
-        parser.read(file_name)
         value = parser.get(section, config_name).replace("\"", "")
-        if value is not None and type(value) is str:
+        lst_value = list(value.split(","))
+        if len(lst_value) > 1:
+            values = []
+            for each in lst_value:
+                values.append(int(each.strip()) if each.strip().isnumeric() else each.strip())
+            value = values
+        elif value is not None and type(value) is str:
             if len(value) == 0:
                 value = None
             elif value.isnumeric():
@@ -323,6 +275,40 @@ def get_ini_settings(file_name: str, section: str, config_name: str):
                 value = sorted([x.strip() for x in value.split(",")])
     except:
         value = None
+    return value
+
+
+def get_all_ini_file_settings(file_name: str):
+    final_data = {}
+    parser = _get_default_parser()
+    try:
+        parser.read(file_name)
+        for section in parser.sections():
+            for config_name in parser.options(section):
+                value = _get_parser_value(parser, section, config_name)
+                final_data[config_name] = value
+        return final_data
+    except Exception as e:
+        sys.stderr.write(str(e))
+
+
+def get_ini_section_settings(file_name: str, section: str):
+    final_data = {}
+    parser = _get_default_parser()
+    try:
+        parser.read(file_name)
+        for config_name in parser.options(section):
+            value = _get_parser_value(parser, section, config_name)
+            final_data[config_name] = value
+        return final_data
+    except Exception as e:
+        sys.stderr.write(str(e))
+
+
+def get_ini_settings(file_name: str, section: str, config_name: str):
+    parser = _get_default_parser()
+    parser.read(file_name)
+    value = _get_parser_value(parser, section, config_name)
     return value
 
 

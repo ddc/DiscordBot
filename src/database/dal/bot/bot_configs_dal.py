@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 import sqlalchemy as sa
+from ddcUtils.databases import DBUtilsAsync
 from sqlalchemy.future import select
-from src.database.db_utils_async import DBUtilsAsync
 from src.database.models.bot_models import BotConfigs
 
 
 class BotConfigsDal:
     def __init__(self, db_session, log):
         self.columns = [x for x in BotConfigs.__table__.columns]
-        self.db_utils = DBUtilsAsync(db_session, log)
+        self.db_utils = DBUtilsAsync(db_session)
+        self.log = log
 
     async def update_bot_prefix(self, prefix: str, updated_by: int):
         stmt = sa.update(BotConfigs).where(BotConfigs.id == 1).values(prefix=prefix, updated_by=updated_by)
