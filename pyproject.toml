@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "DiscordBot"
-version = "2.0.1"
+version = "2.0.3"
 description = "A Bot for Discord"
 authors = ["ddc <ddc@users.noreply.github.com>"]
 readme = "README.md"
@@ -22,7 +22,7 @@ alembic = "^1.13.0"
 sqlalchemy = "^2.0.23"
 psycopg2-binary = "^2.9.9"
 better-profanity = "^0.7.0"
-ddcutils = "^1.0.15"
+ddcutils = {path = "/home/ddc/Workspaces/Python/Personal/ddcUtils/dist/ddcutils-1.0.16.tar.gz"}
 
 [build-system]
 requires = ["poetry-core>=1.5.0"]

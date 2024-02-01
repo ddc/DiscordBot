@@ -50,54 +50,53 @@ async def main():
     db_configs = FileUtils().get_all_file_section_values(variables.SETTINGS_FILENAME, "Database")
     database = DBPostgresAsync(**db_configs)
 
-    async with ClientSession() as client_session, database.session() as db_session:
-        # init log
-        level = "debug" if variables.IS_DEBUG else "info"
-        log = Log(dir_logs=variables.LOGS_DIR, level=level, filename="bot").setup_logging()
+    async with ClientSession() as client_session:
+        async with database.session() as database_session:
+            # init log
+            level = "debug" if variables.DEBUG else "info"
+            log = Log(dir_logs=variables.LOGS_DIR, level=level, filename="bot").setup_logging()
 
-        # check BOT_TOKEN env
-        if not os.environ.get("BOT_TOKEN"):
-            log.error(messages.BOT_TOKEN_NOT_FOUND)
-            sys.exit(1)
+            # check BOT_TOKEN env
+            if not os.environ.get("BOT_TOKEN"):
+                log.error(messages.BOT_TOKEN_NOT_FOUND)
+                sys.exit(1)
 
-        # get prefix from database and set it
-        bot_configs_sql = BotConfigsDal(db_session, log)
-        db_prefix = await bot_configs_sql.get_bot_prefix()
-        command_prefix = variables.DEFAULT_PREFIX if not db_prefix else db_prefix
-        intents = discord.Intents.all()
+            # get prefix from database and set it
+            bot_configs_sql = BotConfigsDal(database_session, log)
+            db_prefix = await bot_configs_sql.get_bot_prefix()
+            command_prefix = variables.DEFAULT_PREFIX if not db_prefix else db_prefix
+            intents = discord.Intents.all()
 
-        # set bot description
-        help_cmd = f"{command_prefix}help"
-        system_random = random.SystemRandom()
-        game = system_random.choice(variables.GAMES_INCLUDED)
-        random_game_desc = f"{game} | {help_cmd}"
-        exclusive_users = bot_utils.get_ini_settings(variables.SETTINGS_FILENAME, "Bot", "ExclusiveUsers")
-        bot_game_desc = f"PRIVATE BOT | {help_cmd}" if exclusive_users is not None else random_game_desc
-        activity = discord.Game(name=bot_game_desc)
+            # set bot description
+            help_cmd = f"{command_prefix}help"
+            system_random = random.SystemRandom()
+            game = system_random.choice(variables.GAMES_INCLUDED)
+            random_game_desc = f"{game} | {help_cmd}"
+            exclusive_users = bot_utils.get_ini_settings(variables.SETTINGS_FILENAME, "Bot", "ExclusiveUsers")
+            bot_game_desc = f"PRIVATE BOT | {help_cmd}" if exclusive_users is not None else random_game_desc
+            activity = discord.Game(name=bot_game_desc)
 
-        bot_kwargs = {
-            "command_prefix": command_prefix,
-            "description": variables.DESCRIPTION,
-            "activity": activity,
-            "intents": intents,
-            "aiosession": client_session,
-            "db_session": db_session,
-            "owner_id": int(variables.AUTHOR_ID),
-            "log": log,
-        }
-        async with Bot(**bot_kwargs) as bot:
-            try:
-                await bot_utils.init_background_tasks(bot)
-                await bot.start(os.environ.get("BOT_TOKEN"))
-            except discord.LoginFailure:
-                formatted_lines = traceback.format_exc().splitlines()
-                [bot.log.error(x) for x in formatted_lines if x.startswith("discord")]
-            except Exception as ex:
-                bot.log.error(f"{messages.BOT_TERMINATED} | {ex}]")
-            finally:
-                await bot.close()
-
-    await database_engine.dispose()
+            bot_kwargs = {
+                "command_prefix": command_prefix,
+                "description": variables.DESCRIPTION,
+                "activity": activity,
+                "intents": intents,
+                "aiosession": client_session,
+                "db_session": database_session,
+                "owner_id": int(variables.AUTHOR_ID),
+                "log": log,
+            }
+            async with Bot(**bot_kwargs) as bot:
+                try:
+                    await bot_utils.init_background_tasks(bot)
+                    await bot.start(os.environ.get("BOT_TOKEN"))
+                except discord.LoginFailure:
+                    formatted_lines = traceback.format_exc().splitlines()
+                    [bot.log.error(x) for x in formatted_lines if x.startswith("discord")]
+                except Exception as ex:
+                    bot.log.error(f"{messages.BOT_TERMINATED} | {ex}]")
+                finally:
+                    await bot.close()
 
 
 if __name__ == "__main__":
