@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 import sqlalchemy as sa
+from ddcUtils.databases import DBUtilsAsync
 from sqlalchemy.future import select
-from src.database.db_utils_async import DBUtilsAsync
 from src.database.models.gw2_models import Gw2Configs
 
 
 class Gw2ConfigsDal:
     def __init__(self, db_session, log):
         self.columns = [x for x in Gw2Configs.__table__.columns]
-        self.db_utils = DBUtilsAsync(db_session, log)
+        self.db_utils = DBUtilsAsync(db_session)
+        self.log = log
 
     async def insert_gw2_server_configs(self, server_id: int):
         stmt = Gw2Configs(server_id=server_id)
