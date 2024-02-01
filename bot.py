@@ -35,19 +35,19 @@ class Bot(commands.Bot):
         await bot_utils.load_cogs(self)
 
     def set_bot_custom_settings(self, *args, **kwargs):
-        self.settings["bot"] = bot_utils.get_ini_section_settings(variables.SETTINGS_FILENAME, "Bot")
+        self.settings["bot"] = FileUtils().get_file_section_values(variables.SETTINGS_FILENAME, "Bot")
         self.settings["bot"]["EmbedColor"] = bot_utils.get_color_settings(self.settings["bot"]["EmbedColor"])
         self.settings["bot"]["EmbedOwnerColor"] = bot_utils.get_color_settings(self.settings["bot"]["EmbedOwnerColor"])
 
     def set_other_cogs_settings(self, *args, **kwargs):
-        self.settings["gw2"] = bot_utils.get_ini_section_settings(gw2_variables.GW2_SETTINGS_FILENAME, "Gw2")
+        self.settings["gw2"] = FileUtils().get_file_section_values(gw2_variables.GW2_SETTINGS_FILENAME, "Gw2")
         self.settings["gw2"]["EmbedColor"] = bot_utils.get_color_settings(self.settings["gw2"]["EmbedColor"])
 
 
 async def main():
     # run alembic migrations
     await bot_utils.run_alembic_migrations()
-    db_configs = FileUtils().get_all_file_section_values(variables.SETTINGS_FILENAME, "Database")
+    db_configs = FileUtils().get_file_section_values(variables.SETTINGS_FILENAME, "Database")
     database = DBPostgresAsync(**db_configs)
 
     async with ClientSession() as client_session:
@@ -72,7 +72,7 @@ async def main():
             system_random = random.SystemRandom()
             game = system_random.choice(variables.GAMES_INCLUDED)
             random_game_desc = f"{game} | {help_cmd}"
-            exclusive_users = bot_utils.get_ini_settings(variables.SETTINGS_FILENAME, "Bot", "ExclusiveUsers")
+            exclusive_users = FileUtils().get_file_value(variables.SETTINGS_FILENAME, "Bot", "ExclusiveUsers")
             bot_game_desc = f"PRIVATE BOT | {help_cmd}" if exclusive_users is not None else random_game_desc
             activity = discord.Game(name=bot_game_desc)
 

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
-from src.bot.tools import bot_utils
+from ddcUtils import FileUtils
 from src.bot.constants import variables
 from src.gw2.constants import gw2_variables
 
 
-file_values = bot_utils.get_ini_section_settings(gw2_variables.GW2_SETTINGS_FILENAME, "Cooldowns")
+file_values = FileUtils().get_file_section_values(gw2_variables.GW2_SETTINGS_FILENAME, "Cooldowns")
 
 
 class GW2CoolDowns(Enum):

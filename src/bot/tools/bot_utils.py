@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
-import configparser
 from datetime import datetime, timezone
 from enum import Enum
-import json
 from operator import attrgetter
 import random
-import sys
 from alembic import command
 from alembic.config import Config
 import discord
@@ -13,19 +10,6 @@ from src.bot.tools import chat_formatting
 from src.bot.constants import variables, messages
 from src.bot.tools.background_tasks import BackGroundTasks
 from src.database.dal.bot.servers_dal import ServersDal
-
-
-class Object(object):
-    def __init__(self):
-        self._created = datetime.now(timezone.utc).isoformat()
-
-    def to_json(self):
-        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-
-    def to_dict(self):
-        json_string = json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-        json_dict = json.loads(json_string)
-        return json_dict
 
 
 class Colors(Enum):
@@ -239,77 +223,13 @@ async def send_msg_to_system_channel(log, server, embed, plain_msg=None):
 async def get_server_system_channel(server: discord.Guild):
     if server.system_channel:
         return server.system_channel
-
     sorted_text_channels = sorted(server.text_channels, key=attrgetter("position"))
     for channel in sorted_text_channels:
         if hasattr(channel, "overwrites"):
             for key, value in channel.overwrites.items():
-                if hasattr(key, "name") and key.name == "@everyone":
-                    if value.read_messages in (True, None):
-                        return channel
+                if hasattr(key, "name") and key.name == "@everyone" and value.read_messages in (True, None):
+                    return channel
     return None
-
-
-def _get_default_parser():
-    parser = configparser.ConfigParser(delimiters="=", allow_no_value=True)
-    parser.optionxform = str
-    parser._interpolation = configparser.ExtendedInterpolation()
-    return parser
-
-
-def _get_parser_value(parser, section: str, config_name: str):
-    try:
-        value = parser.get(section, config_name).replace("\"", "")
-        lst_value = list(value.split(","))
-        if len(lst_value) > 1:
-            values = []
-            for each in lst_value:
-                values.append(int(each.strip()) if each.strip().isnumeric() else each.strip())
-            value = values
-        elif value is not None and type(value) is str:
-            if len(value) == 0:
-                value = None
-            elif value.isnumeric():
-                value = int(value)
-            elif "," in value:
-                value = sorted([x.strip() for x in value.split(",")])
-    except:
-        value = None
-    return value
-
-
-def get_all_ini_file_settings(file_name: str):
-    final_data = {}
-    parser = _get_default_parser()
-    try:
-        parser.read(file_name)
-        for section in parser.sections():
-            for config_name in parser.options(section):
-                value = _get_parser_value(parser, section, config_name)
-                final_data[config_name] = value
-        return final_data
-    except Exception as e:
-        sys.stderr.write(str(e))
-
-
-def get_ini_section_settings(file_name: str, section: str):
-    final_data = {}
-    parser = _get_default_parser()
-    try:
-        parser.read(file_name)
-        for config_name in parser.options(section):
-            value = _get_parser_value(parser, section, config_name)
-            final_data[config_name] = value
-        return final_data
-    except Exception as e:
-        sys.stderr.write(str(e))
-
-
-def get_ini_settings(file_name: str, section: str, config_name: str):
-    parser = _get_default_parser()
-    parser.read(file_name)
-    value = _get_parser_value(parser, section, config_name)
-    return value
 
 
 def get_color_settings(color: str):

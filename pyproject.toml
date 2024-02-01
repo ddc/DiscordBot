@@ -22,7 +22,7 @@ alembic = "^1.13.0"
 sqlalchemy = "^2.0.23"
 psycopg2-binary = "^2.9.9"
 better-profanity = "^0.7.0"
-ddcutils = {path = "/home/ddc/Workspaces/Python/Personal/ddcUtils/dist/ddcutils-1.0.16.tar.gz"}
+ddcutils = "^1.0.16"
 
 [build-system]
 requires = ["poetry-core>=1.5.0"]

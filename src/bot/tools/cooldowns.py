@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from enum import Enum
-from src.bot.tools import bot_utils
+from ddcUtils import FileUtils
 from src.bot.constants import variables
 
 
-file_values = bot_utils.get_ini_section_settings(variables.SETTINGS_FILENAME, "Cooldowns")
+file_values = FileUtils().get_file_section_values(variables.SETTINGS_FILENAME, "Cooldowns")
 
 
 class CoolDowns(Enum):
