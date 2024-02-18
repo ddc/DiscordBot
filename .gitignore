@@ -8,3 +8,4 @@ dist/
 .idea/
 /config/token
 /config/token.txt
+/logs/*
