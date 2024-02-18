@@ -4,7 +4,7 @@ from sqlalchemy import pool
 from alembic import context
 from src.database.models.bot_models import BotBase
 from src.database.models.gw2_models import Gw2Base
-from ddcUtils import FileUtils
+from ddcUtils import ConfFileUtils
 from src.bot.constants import variables
 
 
@@ -29,7 +29,7 @@ target_metadata = [
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
-db_configs = FileUtils().get_file_section_values(variables.SETTINGS_FILENAME, "Database")
+db_configs = ConfFileUtils().get_section_values(variables.SETTINGS_FILENAME, "Database")
 config.set_main_option(
     "sqlalchemy.url",
     f"postgresql://{db_configs['username']}:{db_configs['password']}@{db_configs['host']}:{db_configs['port']}/{db_configs['database']}"
