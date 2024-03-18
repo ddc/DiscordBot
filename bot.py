@@ -8,13 +8,14 @@ import traceback
 import discord
 from aiohttp import ClientSession
 from better_profanity import profanity
+from ddcUtils import ConfFileUtils, TimedRotatingLog
 from ddcUtils.databases import DBPostgresAsync
 from discord.ext import commands
+from src.bot.constants import messages, variables
+from src.bot.constants.configs import Configs
 from src.bot.tools import bot_utils
-from src.bot.constants import variables, messages
 from src.database.dal.bot.bot_configs_dal import BotConfigsDal
 from src.gw2.constants import gw2_variables
-from ddcUtils import ConfFileUtils, TimedRotatingLog
 
 
 class Bot(commands.Bot):
@@ -47,7 +48,14 @@ class Bot(commands.Bot):
 async def main():
     # run alembic migrations
     await bot_utils.run_alembic_migrations()
-    db_configs = ConfFileUtils().get_section_values(variables.SETTINGS_FILENAME, "Database")
+    env_configs = Configs()
+    db_configs = {
+        "username": env_configs.db_username,
+        "password": env_configs.db_password,
+        "host": env_configs.db_host,
+        "port": env_configs.db_port,
+        "database": env_configs.db_database,
+    }
     database = DBPostgresAsync(**db_configs)
 
     async with ClientSession() as client_session:
