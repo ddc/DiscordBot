@@ -4,9 +4,9 @@ x-common-variables: &common-variables
     TZ: "UTC"
 
 services:
-    database:
+    bot_database:
         image: postgres:latest
-        container_name: postgres_bot
+        container_name: bot_database
         restart: always
         env_file:
           - .env
@@ -34,7 +34,7 @@ services:
         volumes:
             - .:/opt/DiscordBot
         depends_on:
-            - database
+            - bot_database
         networks:
             - network
         command: "python bot.py"

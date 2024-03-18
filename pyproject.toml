@@ -19,10 +19,10 @@ colorama = "^0.4.6"
 typing_extensions = "^4.8.0"
 six = "^1.16.0"
 alembic = "^1.13.0"
-sqlalchemy = "^2.0.2"
+sqlalchemy = "^2.0.28"
 psycopg2-binary = "^2.9.9"
 better-profanity = "^0.7.0"
-ddcutils = "^1.0.21"
+ddcutils = "^1.0.22"
 
 [build-system]
 requires = ["poetry-core>=1.5.0"]

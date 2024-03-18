@@ -3,10 +3,11 @@ import glob
 import os
 import sys
 from pathlib import Path
+from src.bot.constants.configs import Configs
 
-
-DEBUG = False
-DEFAULT_PREFIX = "!"
+_env_configs = Configs()
+DEBUG = _env_configs.debug
+DEFAULT_PREFIX = _env_configs.default_prefix
 ALLOWED_PREFIXES = ("!", "?", "$", "%", "&", ".")
 TIME_BEFORE_START = 5 if DEBUG is False else 0
 INTERACTIVE_MODE = len(sys.argv) <= 1
