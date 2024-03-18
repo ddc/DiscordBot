@@ -105,9 +105,10 @@ def earned_ap(ach, res):
     earned = 0
     repeats = res["repeated"] if "repeated" in res else 0
     max_possible = max_ap(ach, repeats)
-    for tier in ach["tiers"]:
-        if res["current"] >= tier["count"]:
-            earned += tier["points"]
+    if ach is not None and hasattr(ach, "tiers"):
+        for tier in ach["tiers"]:
+            if res["current"] >= tier["count"]:
+                earned += tier["points"]
     earned += max_ap(ach) * repeats
     if earned > max_possible:
         earned = max_possible
