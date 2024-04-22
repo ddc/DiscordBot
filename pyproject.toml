@@ -1,9 +1,14 @@
+[build-system]
+requires = ["poetry-core>=1.5.0"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "DiscordBot"
-version = "2.0.4"
+version = "2.0.5"
 description = "A Bot for Discord"
 authors = ["ddc <ddc@users.noreply.github.com>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -19,11 +24,7 @@ colorama = "^0.4.6"
 typing_extensions = "^4.8.0"
 six = "^1.16.0"
 alembic = "^1.13.0"
-sqlalchemy = "^2.0.28"
+sqlalchemy = "^2.0.29"
 psycopg2-binary = "^2.9.9"
 better-profanity = "^0.7.0"
 ddcutils = "^1.0.23"
-
-[build-system]
-requires = ["poetry-core>=1.5.0"]
-build-backend = "poetry.core.masonry.api"
