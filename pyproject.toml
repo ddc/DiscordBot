@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "DiscordBot"
-version = "2.0.5"
+version = "2.0.7"
 description = "A Bot for Discord"
 authors = ["ddc <ddc@users.noreply.github.com>"]
 readme = "README.md"
