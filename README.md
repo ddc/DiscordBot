@@ -5,6 +5,8 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-yellow.svg?style=plastic)](https://www.postgresql.org)
 [![python](https://img.shields.io/badge/python-3.12-lightgrey.svg?style=plastic)](https://www.python.org/downloads/release)
 [![Release](https://img.shields.io/github/release/ddc/DiscordBot.svg?style=plastic)](https://github.com/ddc/DiscordBot/releases/latest)
+[![Build Status](https://img.shields.io/endpoint.svg?url=https://actions-badge.atrox.dev/ddc/DiscordBot/badge?ref=master&style=plastic&label=build&logo=none)](https://actions-badge.atrox.dev/ddc/DiscordBot/goto?ref=master)
+
 
 <!--
 ### [Invitation Link](https://discordapp.com/api/oauth2/authorize?client_id=427992048088383518&permissions=8&scope=bot)
