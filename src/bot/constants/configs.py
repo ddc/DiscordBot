@@ -21,24 +21,24 @@ class Configs:
         return self.environ.get("DEFAULT_PREFIX", '!')
 
     @property
-    def db_username(self):
-        return self.environ.get("DB_USERNAME", "postgres")
+    def postgres_user(self):
+        return self.environ.get("POSTGRES_USER", "postgres")
 
     @property
-    def db_password(self):
-        return self.environ.get("DB_PASSWORD", "postgres")
+    def postgres_password(self):
+        return self.environ.get("POSTGRES_PASSWORD", "postgres")
 
     @property
-    def db_host(self):
-        return self.environ.get("DB_HOST", "bot_database")
+    def postgres_host(self):
+        return self.environ.get("POSTGRES_HOST", "bot_database")
 
     @property
-    def db_port(self):
-        return int(self.environ.get("DB_PORT", 5432))
+    def postgres_port(self):
+        return int(self.environ.get("POSTGRES_PORT", 5432))
 
     @property
-    def db_database(self):
-        return self.environ.get("DB_DATABASE", "discordbot")
+    def postgres_db(self):
+        return self.environ.get("POSTGRES_DB", "discordbot")
 
     @property
     def bot_token(self):

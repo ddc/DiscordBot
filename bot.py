@@ -50,11 +50,11 @@ async def main():
     await bot_utils.run_alembic_migrations()
     env_configs = Configs()
     db_configs = {
-        "username": env_configs.db_username,
-        "password": env_configs.db_password,
-        "host": env_configs.db_host,
-        "port": env_configs.db_port,
-        "database": env_configs.db_database,
+        "database": env_configs.postgres_db,
+        "username": env_configs.postgres_user,
+        "password": env_configs.postgres_password,
+        "host": env_configs.postgres_host,
+        "port": env_configs.postgres_port,
     }
     database = DBPostgresAsync(**db_configs)
 
