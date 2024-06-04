@@ -18,8 +18,8 @@
 + Using Docker
     + git clone https://github.com/ddc/DiscordBot.git
       + BOT_TOKEN variable needs to be inside the .env file
-    + docker-compose up --build -d
     + sudo systemctl enable docker
+    + docker-compose up --build -d
 
 ## Games Included
 + [Guild Wars 2](https://www.guildwars2.com)
