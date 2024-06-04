@@ -23,19 +23,16 @@ RUN mkdir -p /opt/DiscordBot/logs
 
 RUN set -ex \
     && apt-get update \
-    && apt-get install --no-install-recommends -y build-essential curl \
+    && apt-get install --no-install-recommends -y curl \
     && curl -sSL https://install.python-poetry.org | python3 - --version "$POETRY_VERSION" \
-    && poetry config virtualenvs.create false \
-    && apt-get purge --auto-remove -y build-essential \
     && apt-get autoremove -y \
     && apt-get clean
 
 RUN useradd -ms /bin/bash discordbot
 
 COPY --chown=discordbot:discordbot pyproject.toml poetry.lock .env /opt/DiscordBot/
-RUN poetry install --no-interaction --no-ansi $(test "$CONFIG_ENV" == prod && echo "--no-dev")
+RUN poetry install --no-interaction --no-ansi --sync $(if [ "$CONFIG_ENV" = 'prod' ]; then echo '--only main'; fi)
 
-USER discordbot
 EXPOSE 5432
-
+USER discordbot
 CMD ["python", "bot.py"]
