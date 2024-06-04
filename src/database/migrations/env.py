@@ -31,11 +31,11 @@ target_metadata = [
 # my_important_option = config.get_main_option("my_important_option")
 env_configs = Configs()
 db_configs = {
-    "username": env_configs.db_username,
-    "password": env_configs.db_password,
-    "host": env_configs.db_host,
-    "port": env_configs.db_port,
-    "database": env_configs.db_database,
+    "database": env_configs.postgres_db,
+    "username": env_configs.postgres_user,
+    "password": env_configs.postgres_password,
+    "host": env_configs.postgres_host,
+    "port": env_configs.postgres_port,
 }
 config.set_main_option(
     "sqlalchemy.url",

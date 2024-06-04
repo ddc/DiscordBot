@@ -17,7 +17,8 @@
 ### [Install Guide - Wiki](https://ddc.github.io/DiscordBot)
 + Using Docker
     + git clone https://github.com/ddc/DiscordBot.git
-    + BOT_TOKEN variable needs to be inside the .env file
+      + BOT_TOKEN variable needs to be inside the .env file
+    + sudo systemctl enable docker
     + docker-compose up --build -d
 
 ## Games Included
@@ -84,7 +85,7 @@
 
 
 ## License
-Released under the [GNU GPL v3](LICENSE).
+Released under the [MIT](LICENSE).
 
 
 ## Buy me a cup of coffee
