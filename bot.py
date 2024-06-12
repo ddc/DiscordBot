@@ -8,8 +8,9 @@ import traceback
 import discord
 from aiohttp import ClientSession
 from better_profanity import profanity
-from ddcUtils import ConfFileUtils, TimedRotatingLog
-from ddcUtils.databases import DBPostgresAsync
+from ddcDatabases import DBPostgresAsync
+from ddcLogs import TimedRotatingLog
+from ddcUtils import ConfFileUtils
 from discord.ext import commands
 from src.bot.constants import messages, variables
 from src.bot.constants.configs import Configs

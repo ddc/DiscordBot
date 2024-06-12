@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "DiscordBot"
-version = "2.0.8"
+version = "2.0.9"
 description = "A Bot for Discord"
 license = "MIT"
 authors = ["Daniel Costa <danieldcsta@gmail.com>"]
@@ -31,4 +31,6 @@ alembic = "^1.13.1"
 sqlalchemy = "^2.0.30"
 psycopg2-binary = "^2.9.9"
 better-profanity = "^0.7.0"
-ddcutils = "^1.0.25"
+ddcUtils = "^1.0.26"
+ddcLogs = "^1.0.1"
+ddcDatabases = "^1.0.2"
