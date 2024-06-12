@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import discord
 import sqlalchemy as sa
-from ddcUtils.databases import DBUtilsAsync
+from ddcDatabases import DBUtilsAsync
 from sqlalchemy.future import select
 from src.database.models.bot_models import ProfanityFilters, Servers
 

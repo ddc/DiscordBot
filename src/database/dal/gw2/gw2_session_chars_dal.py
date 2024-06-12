@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ddcUtils.databases import DBUtilsAsync
+from ddcDatabases import DBUtilsAsync
 from sqlalchemy.future import select
 from src.database.models.gw2_models import Gw2SessionChars
 
