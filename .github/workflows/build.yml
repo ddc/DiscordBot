@@ -35,7 +35,7 @@ jobs:
     needs:
       - build
     env:
-      GITHUB_TOKEN: ${{ secrets.GIT_HUB_ACTIONS_RELEASE_TOKEN }}
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - id: release
         uses: rymndhng/release-on-push-action@master

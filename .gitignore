@@ -1,11 +1,12 @@
 **/__pycache__/
- *.pyc
 .git/
-Pipfile*
-*.manifest
+.idea/
+logs/*
+.venv/
 build/
 dist/
-.idea/
 /config/token
 /config/token.txt
-/logs/*
+*.pyc
+*.manifest
+.env
