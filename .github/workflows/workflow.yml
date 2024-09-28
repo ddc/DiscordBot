@@ -24,7 +24,6 @@ jobs:
         run: |  
           python -m pip install --upgrade pip setuptools wheel
           python -m pip install poetry
-          python -m poetry update
 
       - name: Install Poetry Dependencies
         run: |  
