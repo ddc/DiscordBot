@@ -25,11 +25,11 @@ services:
     deploy:
         resources:
             limits:
-              cpus: '2'
-              memory: 2Gb
+              cpus: '4'
+              memory: 4GB
             reservations:
-              cpus: '1'
-              memory: 1GB
+              cpus: '2'
+              memory: 2GB
 
 
   alembic:
