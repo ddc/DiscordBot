@@ -11,7 +11,11 @@ authors = ["Daniel Costa <danieldcsta@gmail.com>"]
 repository = "https://github.com/ddc/DiscordBot"
 homepage = "https://ddc.github.io/DiscordBot/"
 readme = "README.md"
-keywords = ["DiscordBot", "bot"]
+keywords = [
+    "python3", "python-3", "python",
+    "DiscordBot", "discord-bots", "bot",
+    "discord-py",
+]
 package-mode = false
 
 [tool.poetry.dependencies]
