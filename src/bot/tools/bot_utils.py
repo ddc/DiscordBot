@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
+import random
 from datetime import datetime, timezone
 from enum import Enum
 from operator import attrgetter
-import random
-from alembic import command
-from alembic.config import Config
 import discord
+from src.bot.constants import messages, variables
 from src.bot.tools import chat_formatting
-from src.bot.constants import variables, messages
 from src.bot.tools.background_tasks import BackGroundTasks
 from src.database.dal.bot.servers_dal import ServersDal
 
@@ -36,11 +34,6 @@ class Colors(Enum):
     darker_grey = discord.Color.darker_grey()
     blurple = discord.Color.blurple()
     greyple = discord.Color.greyple()
-
-
-async def run_alembic_migrations():
-    alembic_cfg = Config(variables.ALEMBIC_CONFIG_FILE_PATH)
-    command.upgrade(alembic_cfg, "head")
 
 
 async def insert_server(bot, server: discord.Guild):

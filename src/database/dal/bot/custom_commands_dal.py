@@ -18,7 +18,7 @@ class CustomCommandsDal:
            name=cmd_name,
            description=description,
         )
-        await self.db_utils.add(stmt)
+        await self.db_utils.insert(stmt)
 
     async def update_command_description(self, server_id: int, user_id: int, cmd_name: str, description: str):
         stmt = sa.update(CustomCommands).where(
@@ -55,5 +55,5 @@ class CustomCommandsDal:
             CustomCommands.server_id == server_id,
             CustomCommands.name == cmd_name,
         ).order_by(CustomCommands.name.asc())
-        results = await self.db_utils.fetchone(stmt)
+        results = await self.db_utils.fetchvalue(stmt)
         return results

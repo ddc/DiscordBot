@@ -26,5 +26,5 @@ class BotConfigsDal:
 
     async def get_bot_prefix(self):
         stmt = select(BotConfigs.prefix).where(BotConfigs.id == 1)
-        results = await self.db_utils.fetch_value(stmt)
+        results = await self.db_utils.fetchvalue(stmt)
         return results

@@ -3,8 +3,7 @@ import sys
 import discord
 from discord.ext import commands
 from src.bot.tools import bot_utils
-from src.bot.constants import variables
-from src.bot.constants import messages
+from src.bot.constants import variables, messages
 
 
 class OnGuildJoin(commands.Cog):

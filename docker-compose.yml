@@ -1,32 +1,65 @@
 services:
-    bot_database:
-        image: postgres:latest
-        container_name: bot_database
-        restart: always
-        env_file:
-          - .env
-        ports:
-            - "5432:5432"
-        expose:
-            - 5432/tcp
-        volumes:
-            - ./postgresql:/var/lib/postgresql/data:rw
-        networks:
-            - network
-    bot:
-        build: .
-        container_name: discord_bot
-        restart: always
-        env_file:
-          - .env
-        volumes:
-            - .:/opt/DiscordBot
-        depends_on:
-            - bot_database
-        networks:
-            - network
-        command: "python bot.py"
+  bot_db:
+    image: postgres:latest
+    restart: always
+    container_name: bot_db
+    user: root
+    privileged: true
+    env_file: ".env"
+    environment:
+        TZ: UTC
+        POSTGRES_USER: ${POSTGRESQL_USERNAME}
+        PGUSER: ${POSTGRESQL_USERNAME}
+        POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
+        POSTGRES_DB: ${POSTGRESQL_DATABASE}
+    volumes:
+        - ./postgresql_data:/var/lib/postgresql/data:rw
+    ports:
+        - ${POSTGRESQL_PORT}:${POSTGRESQL_PORT}
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRESQL_USERNAME} -d ${POSTGRESQL_DATABASE}'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 80s
+    deploy:
+        resources:
+            limits:
+              cpus: '2'
+              memory: 2Gb
+            reservations:
+              cpus: '1'
+              memory: 1GB
 
-networks:
-    network:
-        driver: bridge
+
+  alembic:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alembic
+    user: root
+    privileged: true
+    env_file: ".env"
+    volumes:
+      - .:/app:ro
+    depends_on:
+      bot_db:
+        condition: service_healthy
+    command: ["python", "-m", "alembic", "-c", "./config/alembic.ini", "upgrade", "head"]
+
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    container_name: bot
+    user: root
+    privileged: true
+    env_file: ".env"
+    volumes:
+        - .:/app:rw
+        - ${LOG_DIRECTORY}:${LOG_DIRECTORY}
+    depends_on:
+      - alembic
+    command: ["python", "bot.py"]

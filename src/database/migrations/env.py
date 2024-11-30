@@ -1,10 +1,9 @@
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
 from alembic import context
+from ddcDatabases.settings import PostgreSQLSettings
+from sqlalchemy import engine_from_config, pool
 from src.database.models.bot_models import BotBase
 from src.database.models.gw2_models import Gw2Base
-from src.bot.constants.configs import Configs
 
 
 # this is the Alembic Config object, which provides
@@ -28,13 +27,13 @@ target_metadata = [
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
-env_configs = Configs()
+env_configs = PostgreSQLSettings()
 db_configs = {
-    "database": env_configs.postgres_db,
-    "username": env_configs.postgres_user,
-    "password": env_configs.postgres_password,
-    "host": env_configs.postgres_host,
-    "port": env_configs.postgres_port,
+    "database": env_configs.database,
+    "username": env_configs.username,
+    "password": env_configs.password,
+    "host": env_configs.host,
+    "port": env_configs.port,
 }
 config.set_main_option(
     "sqlalchemy.url",
