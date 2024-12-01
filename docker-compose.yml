@@ -33,6 +33,7 @@ services:
       retries: 3
       start_period: 80s
 
+
   alembic:
     build:
       context: .
@@ -40,9 +41,7 @@ services:
     container_name: alembic
     user: root
     privileged: true
-    env_file: ".env"
-    volumes:
-      - .:/app:ro
+    env_file: .env
     depends_on:
       bot_db:
         condition: service_healthy
@@ -53,14 +52,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    restart: always
+      args:
+        - LOG_DIRECTORY=${LOG_DIRECTORY}
     container_name: bot
+    restart: always
     user: root
     privileged: true
-    env_file: ".env"
+    env_file: .env
     volumes:
-        - .:/app:rw
         - ${LOG_DIRECTORY}:${LOG_DIRECTORY}
     depends_on:
       - alembic
-    command: ["python", "bot.py"]
+    command: ["python", "/app/bot.py"]

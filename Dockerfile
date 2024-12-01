@@ -1,9 +1,11 @@
-FROM python:3.12-slim-bookworm AS python-base
+FROM python:3.13-slim-bookworm AS python-base
 
 LABEL Description="DiscordBot"
 
+ARG LOG_DIRECTORY="/app/logs"
+ENV LOG_DIRECTORY="${LOG_DIRECTORY}"
+
 ENV WORKDIR=/app
-ENV USER=discordbot
 
 ENV TERM=xterm \
     TZ="UTC" \
@@ -30,18 +32,15 @@ RUN set -ex && \
     python3 -m pip install --upgrade pip && \
     curl -ksSL https://install.python-poetry.org | python3 - --version "$POETRY_VERSION"
 
-RUN useradd -ms /bin/bash ${USER}
+COPY config ${WORKDIR}/config
+COPY src ${WORKDIR}/src
+COPY tests ${WORKDIR}/tests
+COPY bot.py ${WORKDIR}
+COPY pyproject.toml ${WORKDIR}
+COPY poetry.lock ${WORKDIR}
+COPY .env ${WORKDIR}
 
-COPY --chown=${USER}:${USER} config ${WORKDIR}/config
-COPY --chown=${USER}:${USER} src ${WORKDIR}/src
-COPY --chown=${USER}:${USER} tests ${WORKDIR}/tests
-COPY --chown=${USER}:${USER} pyproject.toml ${WORKDIR}
-COPY --chown=${USER}:${USER} poetry.lock ${WORKDIR}
-COPY --chown=${USER}:${USER} .env ${WORKDIR}
-
-RUN mkdir -p $${LOG_DIRECTORY} && \
-    chown -R ${USER}:${USER} $${LOG_DIRECTORY} && \
-    chmod -R 755 $${LOG_DIRECTORY}
+RUN mkdir -p ${LOG_DIRECTORY}
 
 RUN poetry install --no-interaction --no-ansi --sync && \
     poetry cache clear pypi --all -n
@@ -51,6 +50,3 @@ RUN set -ex && \
     apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
-USER ${USER}
-CMD ["python", "bot.py"]
