@@ -52,6 +52,5 @@ RUN set -ex && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-#EXPOSE 5432
 USER ${USER}
 CMD ["python", "bot.py"]

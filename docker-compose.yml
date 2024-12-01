@@ -16,21 +16,22 @@ services:
         - ./postgresql_data:/var/lib/postgresql/data:rw
     ports:
         - ${POSTGRESQL_PORT}:${POSTGRESQL_PORT}
+    expose:
+        - ${POSTGRESQL_PORT}/tcp
+    deploy:
+        resources:
+            limits:
+              cpus: "4"
+              memory: 4GB
+            reservations:
+              cpus: "2"
+              memory: 2GB
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRESQL_USERNAME} -d ${POSTGRESQL_DATABASE}'"]
       interval: 10s
       timeout: 3s
       retries: 3
       start_period: 80s
-    deploy:
-        resources:
-            limits:
-              cpus: '4'
-              memory: 4GB
-            reservations:
-              cpus: '2'
-              memory: 2GB
-
 
   alembic:
     build:

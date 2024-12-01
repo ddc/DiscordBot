@@ -1,6 +1,21 @@
 Single-database configuration
 
-Specifying the revision number
-    cd DiscordBot
-    alembic -c './config/alembic.ini' revision --autogenerate -m "test" --rev-id=1000
-    alembic -c './config/alembic.ini' upgrade head
+
+Create version file
+```bash
+alembic -c './config/alembic.ini' revision --autogenerate -m "name of the file"
+alembic -c './config/alembic.ini' upgrade head
+```
+
+
+Apply all migration files to the database
+```bash
+alembic -c './config/alembic.ini' upgrade head
+```
+
+
+Downgrade one revision
+This will revert the last file that was applied to the datatabse, file still going to be present
+```bash
+alembic -c './config/alembic.ini' downgrade head-1
+```
