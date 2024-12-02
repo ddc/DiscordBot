@@ -39,6 +39,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: alembic
+    restart: on-failure:10
     user: root
     privileged: true
     env_file: .env
