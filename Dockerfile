@@ -44,7 +44,6 @@ COPY pyproject.toml ${WORKDIR}
 COPY poetry.lock ${WORKDIR}
 COPY .env ${WORKDIR}
 
-RUN mkdir -p ${LOG_DIRECTORY}
-
-RUN poetry install --no-interaction --no-ansi --sync && \
+RUN mkdir -p ${LOG_DIRECTORY} && \
+    poetry install --no-interaction --no-ansi --sync && \
     poetry cache clear pypi --all -n
