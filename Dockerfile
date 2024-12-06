@@ -30,7 +30,11 @@ RUN set -ex && \
     apt-get update && \
     apt-get install --no-install-recommends -y ca-certificates curl && \
     python3 -m pip install --upgrade pip && \
-    curl -sSL https://install.python-poetry.org | python3 - --version "$POETRY_VERSION"
+    curl -sSL https://install.python-poetry.org | python3 - --version "$POETRY_VERSION" && \
+    apt-get purge curl -y && \
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY config ${WORKDIR}/config
 COPY src ${WORKDIR}/src
@@ -44,9 +48,3 @@ RUN mkdir -p ${LOG_DIRECTORY}
 
 RUN poetry install --no-interaction --no-ansi --sync && \
     poetry cache clear pypi --all -n
-
-RUN set -ex && \
-    apt-get purge curl -y && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
