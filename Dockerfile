@@ -30,7 +30,7 @@ RUN set -ex && \
     apt-get update && \
     apt-get install --no-install-recommends -y ca-certificates curl && \
     python3 -m pip install --upgrade pip && \
-    curl -ksSL https://install.python-poetry.org | python3 - --version "$POETRY_VERSION"
+    curl -sSL https://install.python-poetry.org | python3 - --version "$POETRY_VERSION"
 
 COPY config ${WORKDIR}/config
 COPY src ${WORKDIR}/src
