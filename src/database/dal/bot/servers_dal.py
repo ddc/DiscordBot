@@ -17,7 +17,7 @@ class ServersDal:
             id=server_id,
             name=name,
         )
-        await self.db_utils.add(stmt)
+        await self.db_utils.insert(stmt)
 
     async def update_server(self, before: discord.Guild, after: discord.Guild):
         if str(before.name) != str(after.name):
@@ -85,7 +85,8 @@ class ServersDal:
         if server_id:
             stmt = stmt.where(Servers.id == server_id)
             stmt = stmt.order_by(Servers.name.asc())
-            results = await self.db_utils.fetchone(stmt)
+            resp = await self.db_utils.fetchall(stmt)
+            results = resp[0] if len(resp) > 0 else None
         else:
             stmt = stmt.order_by(Servers.name.asc())
             results = await self.db_utils.fetchall(stmt)

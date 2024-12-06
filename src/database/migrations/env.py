@@ -1,46 +1,47 @@
-import os
+# -*- coding: utf-8 -*-
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from urllib.parse import quote_plus
 from alembic import context
+from alembic.script import ScriptDirectory
+from ddcDatabases.settings import PostgreSQLSettings
+from sqlalchemy import engine_from_config, pool
 from src.database.models.bot_models import BotBase
 from src.database.models.gw2_models import Gw2Base
-from src.bot.constants.configs import Configs
 
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
 config = context.config
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
+
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
+
 target_metadata = [
     BotBase.metadata,
     Gw2Base.metadata,
 ]
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-env_configs = Configs()
-db_configs = {
-    "database": env_configs.postgres_db,
-    "username": env_configs.postgres_user,
-    "password": env_configs.postgres_password,
-    "host": env_configs.postgres_host,
-    "port": env_configs.postgres_port,
-}
-config.set_main_option(
-    "sqlalchemy.url",
-    f"postgresql://{db_configs['username']}:{db_configs['password']}@{db_configs['host']}:{db_configs['port']}/{db_configs['database']}"
-)
+
+_settings = PostgreSQLSettings()
+_password = quote_plus(_settings.password).replace("%", "%%")
+_conn_url = (f"{_settings.sync_driver}://"
+             f"{_settings.username}:"
+             f"{_password}@"
+             f"{_settings.host}:"
+             f"{_settings.port}/"
+             f"{_settings.database}")
+config.set_main_option("sqlalchemy.url", _conn_url)
+
+
+def _process_revision_directives(ctx, revision, directives):
+    migration_script = directives[0]
+    head_revision = ScriptDirectory.from_config(ctx.config).get_current_head()
+    if head_revision is None:
+        new_rev_id = 1
+    else:
+        last_rev_id = int(head_revision.lstrip('0'))
+        new_rev_id = last_rev_id + 1
+    migration_script.rev_id = '{0:04}'.format(new_rev_id)
 
 
 def run_migrations_offline() -> None:
@@ -61,6 +62,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        process_revision_directives=_process_revision_directives,
     )
 
     with context.begin_transaction():
@@ -83,7 +85,8 @@ def run_migrations_online() -> None:
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
-            target_metadata=target_metadata
+            target_metadata=target_metadata,
+            process_revision_directives=_process_revision_directives,
         )
 
         with context.begin_transaction():

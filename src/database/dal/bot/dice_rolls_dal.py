@@ -18,7 +18,7 @@ class DiceRollsDal:
            dice_size=dice_size,
            roll=roll,
         )
-        await self.db_utils.add(stmt)
+        await self.db_utils.insert(stmt)
 
     async def update_user_roll(self, server_id: int, user_id: int, dice_size: int, roll: int):
         stmt = sa.update(DiceRolls).where(

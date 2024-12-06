@@ -14,24 +14,24 @@
     + [Invitation Link](https://discordapp.com/api/oauth2/authorize?client_id=427992048088383518&permissions=8&scope=bot)
 -->
 
-### [Install Guide - Wiki](https://ddc.github.io/DiscordBot)
+# [Install Guide - Wiki](https://ddc.github.io/DiscordBot)
 + Using Docker
     + git clone https://github.com/ddc/DiscordBot.git
       + BOT_TOKEN variable needs to be inside the .env file
     + sudo systemctl enable docker
     + docker-compose up --build -d
 
-## Games Included
+# Games Included
 + [Guild Wars 2](https://www.guildwars2.com)
 
 
-## Admin/Mod Commands
+# Admin/Mod Commands
 | Commands                               | Description                         |
 |:---------------------------------------|:------------------------------------|
 | admin cc [add,edit,remove] <_command_> | Add, edit or remove custom commands |
 | admin botgame <_new game_>             | Change game that bot is playing     |
 
-## Config Commands
+# Config Commands
 | Commands                                         | Description                                   |
 |:-------------------------------------------------|:----------------------------------------------|
 | admin config list                                | List all bot configurations                   |
@@ -43,7 +43,7 @@
 | admin config botreactions    [on , off]          | Bot will react to member words                |
 | admin config pfilter [on , off]	<_channel name_> | Profanity Filter (blocks swear words)         |
 
-## Misc Commands
+# Misc Commands
 | Commands                 | Description                              |
 |:-------------------------|:-----------------------------------------|
 | about                    | Displays bot info                        |
@@ -57,14 +57,14 @@
 | lmgtfy <_link_>          | Creates a lmgtfy link	                   |
 | invites                  | List active invites link for the server  |
 
-## Bot Owner Commands
+# Bot Owner Commands
 | Commands                                  | Description                     |
 |:------------------------------------------|:--------------------------------|
 | owner servers                             | Display all servers in database |
 | owner prefix <_new prefix_>               | Change bot prefix for commands  |
 | owner botdescription <_new description_>	 | Change bot description          |
 
-## GW2 Commands
+# GW2 Commands
 | Commands                                  | Description                                |
 |:------------------------------------------|:-------------------------------------------|
 | gw2 config list                           | List all gw2 configurations in the server  |
@@ -77,18 +77,21 @@
 | gw2 info <_info to search_>               | Information about a given name/skill/rune  |
 
 
-## Acknowledgements
+
+# Acknowledgements
 + [Guild Wars 2 API](https://wiki.guildwars2.com/wiki/API:2)
 + [Discord Bot Api](https://discordapp.com/developers/applications/me)
 + [PostgreSQL](https://www.postgresql.org)
 + [Git](https://git-scm.com/download)
 
 
-## License
+
+# License
 Released under the [MIT](LICENSE).
 
 
-## Buy me a cup of coffee
-This bot is open source and always will be, even if I don't get donations. That said, I know there are people out there that may still want to donate just to show their appreciation so this is for you guys. Thanks in advance!
 
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=38E66BHC4623Y)
+# Buy me a cup of coffee
++ [GitHub Sponsor](https://github.com/sponsors/ddc)
++ [ko-fi](https://ko-fi.com/ddcsta)
++ [Paypal](https://www.paypal.com/ncp/payment/6G9Z78QHUD4RJ)

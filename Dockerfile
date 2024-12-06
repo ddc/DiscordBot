@@ -1,6 +1,11 @@
-FROM python:3.12-slim-bookworm AS python-base
+FROM python:3.13-slim-bookworm AS python-base
 
 LABEL Description="DiscordBot"
+
+ARG LOG_DIRECTORY="/app/logs"
+ENV LOG_DIRECTORY="${LOG_DIRECTORY}"
+
+ENV WORKDIR=/app
 
 ENV TERM=xterm \
     TZ="UTC" \
@@ -13,26 +18,32 @@ ENV TERM=xterm \
     PIP_DEFAULT_TIMEOUT=100 \
     PIP_ROOT_USER_ACTION=ignore \
     POETRY_HOME="/opt/poetry" \
-    POETRY_VERSION=1.8.3 \
+    POETRY_VERSION=1.8.4 \
     POETRY_NO_INTERACTION=1 \
     POETRY_VIRTUALENVS_CREATE=false \
+    PYTHONPATH="$PYTHONPATH:${WORKDIR}/src" \
     PATH=/opt/poetry/bin:$PATH
 
-WORKDIR /opt/DiscordBot
-RUN mkdir -p /opt/DiscordBot/logs
+WORKDIR ${WORKDIR}
 
-RUN set -ex \
-    && apt-get update \
-    && apt-get install --no-install-recommends -y curl \
-    && curl -sSL https://install.python-poetry.org | python3 - --version "$POETRY_VERSION" \
-    && apt-get autoremove -y \
-    && apt-get clean
+RUN set -ex && \
+    apt-get update && \
+    apt-get install --no-install-recommends -y ca-certificates curl && \
+    python3 -m pip install --upgrade pip && \
+    curl -sSL https://install.python-poetry.org | python3 - --version "$POETRY_VERSION" && \
+    apt-get purge curl -y && \
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN useradd -ms /bin/bash discordbot
+COPY config ${WORKDIR}/config
+COPY src ${WORKDIR}/src
+COPY tests ${WORKDIR}/tests
+COPY bot.py ${WORKDIR}
+COPY pyproject.toml ${WORKDIR}
+COPY poetry.lock ${WORKDIR}
+COPY .env ${WORKDIR}
 
-COPY --chown=discordbot:discordbot pyproject.toml poetry.lock .env /opt/DiscordBot/
-RUN poetry install --no-interaction --no-ansi --sync $(if [ "$CONFIG_ENV" = 'prod' ]; then echo '--only main'; fi)
-
-EXPOSE 5432
-USER discordbot
-CMD ["python", "bot.py"]
+RUN mkdir -p ${LOG_DIRECTORY} && \
+    poetry install --no-interaction --no-ansi --sync && \
+    poetry cache clear pypi --all -n

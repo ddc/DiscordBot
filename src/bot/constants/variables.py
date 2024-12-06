@@ -3,16 +3,16 @@ import glob
 import os
 import sys
 from pathlib import Path
-from src.bot.constants.configs import Configs
+from src.bot.constants.settings import BotSettings
+from ddcLogs.settings import LogSettings
 from ddcUtils import ConfFileUtils
 
 
-_env_configs = Configs()
-DEBUG = _env_configs.debug
+DEBUG = True if LogSettings().level == "DEBUG" else False
 ###############################################################################
 DESCRIPTION = "A Bot for Discord"
 AUTHOR_ID = "195615080665055232"
-PAYPAL_URL = "https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=38E66BHC4623Y"
+PAYPAL_URL = "https://www.paypal.com/ncp/payment/6G9Z78QHUD4RJ"
 BOT_WEBPAGE_URL = "https://ddc.github.io/DiscordBot"
 DISCORDPY_URL = "https://github.com/Rapptz/discord.py"
 LMGTFY_URL = "https://lmgtfy.com"
@@ -23,16 +23,16 @@ TIME_FORMATTER = "%H:%M:%S.%f"
 ###############################################################################
 GAMES_INCLUDED = ("Guild Wars 2",)
 ###############################################################################
-DEFAULT_PREFIX = _env_configs.default_prefix
+DEFAULT_PREFIX = BotSettings().default_prefix
 ALLOWED_PREFIXES = ("!", "?", "$", "%", "&", ".")
-TIME_BEFORE_START = 5 if DEBUG is False else 0
+TIME_BEFORE_START = 0 if DEBUG else 5
 INTERACTIVE_MODE = len(sys.argv) <= 1
 IS_WINDOWS = os.name == "nt"
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 ###############################################################################
 _python_req_version = ConfFileUtils().get_value(os.path.join(BASE_DIR, "pyproject.toml"), "tool.poetry.dependencies", "python")
-_major = int(_python_req_version.split(".")[0].replace("^", ""))
-_minor = int(_python_req_version.split(".")[1])
+_major = int(_python_req_version[0].split(".")[0].replace(">=", ""))
+_minor = int(_python_req_version[0].split(".")[1])
 PYTHON_OK = sys.version_info >= (_major, _minor)
 ###############################################################################
 VERSION = ConfFileUtils().get_value(os.path.join(BASE_DIR, "pyproject.toml"), "tool.poetry", "version")

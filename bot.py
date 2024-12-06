@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import asyncio
-import os
 import random
 import sys
 import time
@@ -8,12 +7,12 @@ import traceback
 import discord
 from aiohttp import ClientSession
 from better_profanity import profanity
-from ddcDatabases import DBPostgresAsync
+from ddcDatabases import PostgreSQL
 from ddcLogs import TimedRotatingLog
 from ddcUtils import ConfFileUtils
 from discord.ext import commands
 from src.bot.constants import messages, variables
-from src.bot.constants.configs import Configs
+from src.bot.constants.settings import BotSettings
 from src.bot.tools import bot_utils
 from src.database.dal.bot.bot_configs_dal import BotConfigsDal
 from src.gw2.constants import gw2_variables
@@ -47,30 +46,16 @@ class Bot(commands.Bot):
 
 
 async def main():
-    # run alembic migrations
-    await bot_utils.run_alembic_migrations()
-    env_configs = Configs()
-    db_configs = {
-        "database": env_configs.postgres_db,
-        "username": env_configs.postgres_user,
-        "password": env_configs.postgres_password,
-        "host": env_configs.postgres_host,
-        "port": env_configs.postgres_port,
-    }
-    database = DBPostgresAsync(**db_configs)
-
     async with ClientSession() as client_session:
-        async with database.session() as database_session:
-            # init log
-            level = "debug" if variables.DEBUG else "info"
-            log = TimedRotatingLog(directory=variables.LOGS_DIR, level=level, filename="bot.log").init()
+        async with PostgreSQL() as database_session:
+            log = TimedRotatingLog().init()
 
             # check BOT_TOKEN env
-            if not os.environ.get("BOT_TOKEN"):
+            if not BotSettings().token:
                 log.error(messages.BOT_TOKEN_NOT_FOUND)
                 sys.exit(1)
 
-            # get prefix from database and set it
+            # get prefix from the database and set it
             bot_configs_sql = BotConfigsDal(database_session, log)
             db_prefix = await bot_configs_sql.get_bot_prefix()
             command_prefix = variables.DEFAULT_PREFIX if not db_prefix else db_prefix
@@ -98,7 +83,7 @@ async def main():
             async with Bot(**bot_kwargs) as bot:
                 try:
                     await bot_utils.init_background_tasks(bot)
-                    await bot.start(os.environ.get("BOT_TOKEN"))
+                    await bot.start(BotSettings().token)
                 except discord.LoginFailure:
                     formatted_lines = traceback.format_exc().splitlines()
                     [bot.log.error(x) for x in formatted_lines if x.startswith("discord")]
@@ -113,6 +98,7 @@ if __name__ == "__main__":
     try:
         print(messages.BOT_STARTING.format(variables.TIME_BEFORE_START))
         time.sleep(variables.TIME_BEFORE_START)
+        asyncio.set_event_loop(loop)
         loop.run_until_complete(main())
     except KeyboardInterrupt:
         print(messages.BOT_STOPPED_CTRTC)

@@ -22,7 +22,7 @@ class ProfanityFilterDal:
            channel_name=channel_name,
            created_by=created_by
         )
-        await self.db_utils.add(stmt)
+        await self.db_utils.insert(stmt)
 
     async def delete_profanity_filter_channel(self, channel_id: int):
         stmt = sa.delete(ProfanityFilters).where(
