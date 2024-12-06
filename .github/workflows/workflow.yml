@@ -1,4 +1,4 @@
-name: Build and release distribution
+name: Build and Release
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
 
       - name: Install Poetry Dependencies
         run: |  
-          python -m poetry update
+          python -m poetry update --with test
 
   release:
     runs-on: ubuntu-latest
