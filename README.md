@@ -2,8 +2,8 @@
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-brightgreen.svg?style=plastic)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=38E66BHC4623Y)
 [![license](https://img.shields.io/github/license/ddc/DiscordBot.svg?style=plastic)](https://github.com/ddc/DiscordBot/blob/master/LICENSE) 
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-yellow.svg?style=plastic)](https://www.postgresql.org)
-[![python](https://img.shields.io/badge/python-3.12-lightgrey.svg?style=plastic)](https://www.python.org/downloads/release)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-yellow.svg?style=plastic)](https://www.postgresql.org)
+[![python](https://img.shields.io/badge/python-3.13-lightgrey.svg?style=plastic)](https://www.python.org/downloads/release)
 [![Release](https://img.shields.io/github/release/ddc/DiscordBot.svg?style=plastic)](https://github.com/ddc/DiscordBot/releases/latest)
 [![Build Status](https://img.shields.io/endpoint.svg?url=https://actions-badge.atrox.dev/ddc/DiscordBot/badge?ref=master&style=plastic&label=build&logo=none)](https://actions-badge.atrox.dev/ddc/DiscordBot/goto?ref=master)
 
