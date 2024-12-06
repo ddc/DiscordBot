@@ -28,10 +28,10 @@ services:
               memory: 2GB
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRESQL_USERNAME} -d ${POSTGRESQL_DATABASE}'"]
+      retries: 5
       interval: 10s
-      timeout: 3s
-      retries: 3
-      start_period: 80s
+      timeout: 10s
+      start_period: 10s
 
 
   alembic:
@@ -39,7 +39,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: alembic
-    restart: on-failure:10
+    restart: on-failure:5
     user: root
     privileged: true
     env_file: .env
