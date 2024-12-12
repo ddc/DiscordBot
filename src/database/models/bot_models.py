@@ -15,7 +15,7 @@ class BotBase(AsyncAttrs, DeclarativeBase):
 class BotConfigs(BotBase):
     __tablename__ = "bot_configs"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, unique=True)
-    prefix: Mapped[CHAR] = mapped_column(CHAR(1), server_default=variables.DEFAULT_PREFIX)
+    prefix: Mapped[CHAR] = mapped_column(CHAR(1), server_default=variables.PREFIX)
     author_id: Mapped[int] = mapped_column(BigInteger, server_default=variables.AUTHOR_ID)
     url: Mapped[str] = mapped_column(server_default=variables.BOT_WEBPAGE_URL)
     description: Mapped[str] = mapped_column(server_default=variables.DESCRIPTION)

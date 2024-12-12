@@ -58,7 +58,7 @@ async def main():
             # get prefix from the database and set it
             bot_configs_sql = BotConfigsDal(database_session, log)
             db_prefix = await bot_configs_sql.get_bot_prefix()
-            command_prefix = variables.DEFAULT_PREFIX if not db_prefix else db_prefix
+            command_prefix = variables.PREFIX if not db_prefix else db_prefix
             intents = discord.Intents.all()
 
             # set bot description

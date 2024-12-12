@@ -1,4 +1,4 @@
-FROM python:3.13-slim-bookworm AS python-base
+FROM python:3.13.1-slim-bookworm AS python-base
 
 LABEL Description="DiscordBot"
 

@@ -5,11 +5,11 @@ services:
     container_name: bot_db
     user: root
     privileged: true
-    env_file: ".env"
+    env_file: .env
     environment:
         TZ: UTC
-        POSTGRES_USER: ${POSTGRESQL_USERNAME}
-        PGUSER: ${POSTGRESQL_USERNAME}
+        POSTGRES_USER: ${POSTGRESQL_USER}
+        PGUSER: ${POSTGRESQL_USER}
         POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
         POSTGRES_DB: ${POSTGRESQL_DATABASE}
     volumes:
@@ -27,7 +27,7 @@ services:
               cpus: "2"
               memory: 2GB
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRESQL_USERNAME} -d ${POSTGRESQL_DATABASE}'"]
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRESQL_USER} -d ${POSTGRESQL_DATABASE}'"]
       retries: 5
       interval: 10s
       timeout: 10s

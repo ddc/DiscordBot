@@ -23,7 +23,7 @@ TIME_FORMATTER = "%H:%M:%S.%f"
 ###############################################################################
 GAMES_INCLUDED = ("Guild Wars 2",)
 ###############################################################################
-DEFAULT_PREFIX = BotSettings().default_prefix
+PREFIX = BotSettings().prefix
 ALLOWED_PREFIXES = ("!", "?", "$", "%", "&", ".")
 TIME_BEFORE_START = 0 if DEBUG else 5
 INTERACTIVE_MODE = len(sys.argv) <= 1
@@ -31,8 +31,8 @@ IS_WINDOWS = os.name == "nt"
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
 ###############################################################################
 _python_req_version = ConfFileUtils().get_value(os.path.join(BASE_DIR, "pyproject.toml"), "tool.poetry.dependencies", "python")
-_major = int(_python_req_version[0].split(".")[0].replace(">=", ""))
-_minor = int(_python_req_version[0].split(".")[1])
+_major = int(_python_req_version.split(".")[0].replace("^", ""))
+_minor = int(_python_req_version.split(".")[1])
 PYTHON_OK = sys.version_info >= (_major, _minor)
 ###############################################################################
 VERSION = ConfFileUtils().get_value(os.path.join(BASE_DIR, "pyproject.toml"), "tool.poetry", "version")
