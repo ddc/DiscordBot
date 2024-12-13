@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from src.bot.tools import bot_utils, chat_formatting
-from src.gw2.gw2 import GuildWars2
+from src.gw2.cogs.gw2 import GuildWars2
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 from src.gw2.tools.gw2_api import Gw2Api
 from src.gw2.tools import gw2_utils

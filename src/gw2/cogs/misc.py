@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from src.bot.tools import bot_utils
 from src.gw2.tools import gw2_utils
 from src.gw2.constants import gw2_variables
-from src.gw2.gw2 import GuildWars2
+from src.gw2.cogs.gw2 import GuildWars2
 from discord.ext import commands
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 from discord.ext.commands.cooldowns import BucketType

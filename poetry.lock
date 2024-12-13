@@ -624,13 +624,13 @@ toml = ["tomli"]
 
 [[package]]
 name = "ddcdatabases"
-version = "1.0.16"
+version = "1.0.17"
 description = "Databases Connection and Queries"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "ddcdatabases-1.0.16-py3-none-any.whl", hash = "sha256:5e2bd2baded141992409e2883b4ae4295a2c59f8b18e2446326608f1cebeb363"},
-    {file = "ddcdatabases-1.0.16.tar.gz", hash = "sha256:97f075067484d11d6c112bdd8691967b962b6e6d6e683073b57c8a4552bd9ce2"},
+    {file = "ddcdatabases-1.0.17-py3-none-any.whl", hash = "sha256:9a441aefd8b815a0b20d80512e442a00b4858f83cd298142952f576ed787999f"},
+    {file = "ddcdatabases-1.0.17.tar.gz", hash = "sha256:4658cc3c36ac79bdb350a321d6e53b5f7710a1fe733662d88ea5e1f3992cfb86"},
 ]
 
 [package.dependencies]
@@ -1469,13 +1469,13 @@ typing-extensions = ">=4.6.0,<4.7.0 || >4.7.0"
 
 [[package]]
 name = "pydantic-settings"
-version = "2.6.1"
+version = "2.7.0"
 description = "Settings management using Pydantic"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pydantic_settings-2.6.1-py3-none-any.whl", hash = "sha256:7fb0637c786a558d3103436278a7c4f1cfd29ba8973238a50c5bb9a55387da87"},
-    {file = "pydantic_settings-2.6.1.tar.gz", hash = "sha256:e0f92546d8a9923cb8941689abf85d6601a8c19a23e97a34b2964a2e3f813ca0"},
+    {file = "pydantic_settings-2.7.0-py3-none-any.whl", hash = "sha256:e00c05d5fa6cbbb227c84bd7487c5c1065084119b750df7c8c1a554aed236eb5"},
+    {file = "pydantic_settings-2.7.0.tar.gz", hash = "sha256:ac4bfd4a36831a48dbf8b2d9325425b549a0a6f18cea118436d728eb4f1c4d66"},
 ]
 
 [package.dependencies]
@@ -1854,4 +1854,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.13"
-content-hash = "34d5896fae0c8ecf10237b6090fa37e71232006f2142e2201d53a2939b050bb1"
+content-hash = "7c6eb8a924bb79b3d53df6aa0c571faf635099797b48ada8245a6e570831bd9f"

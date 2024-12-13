@@ -2,7 +2,7 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-from src.bot.admin.admin import Admin
+from src.bot.cogs.admin.admin import Admin
 from src.bot.constants import messages
 from src.bot.tools import bot_utils, chat_formatting
 from src.bot.tools.cooldowns import CoolDowns

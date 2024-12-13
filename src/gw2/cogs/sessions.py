@@ -7,7 +7,7 @@ from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
 from src.database.dal.gw2.gw2_configs_dal import Gw2ConfigsDal
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
-from src.gw2.gw2 import GuildWars2
+from src.gw2.cogs.gw2 import GuildWars2
 from src.gw2.tools import gw2_utils
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 from src.gw2.constants import gw2_messages

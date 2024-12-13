@@ -42,13 +42,13 @@ DATABASE_FILENAME = os.path.join(BASE_DIR, "data", "database.db")
 LOGS_DIR = os.path.join(BASE_DIR, "logs")
 SQL_DIRPATH = os.path.join(BASE_DIR, "data", "sql")
 ###############################################################################
-_bot_cogs = [os.path.join("src", "bot", "admin", "admin.py")] # loading admin group cog first
-_bot_cogs += [x for x in glob.glob(os.path.join("src", "bot", "*.py"))]
-_bot_cogs += [x for x in glob.glob(os.path.join("src", "bot", "events", "*.py"))]
-_bot_cogs += [x for x in glob.glob(os.path.join("src", "bot", "admin", "*.py")) if x not in _bot_cogs]
+_bot_cogs = [os.path.join("src", "bot", "cogs", "admin", "admin.py")] # loading admin group cog first
+_bot_cogs += [x for x in glob.glob(os.path.join("src", "bot", "cogs", "*.py"))]
+_bot_cogs += [x for x in glob.glob(os.path.join("src", "bot", "cogs", "events", "*.py"))]
+_bot_cogs += [x for x in glob.glob(os.path.join("src", "bot", "cogs", "admin", "*.py")) if x not in _bot_cogs]
 ###############################################################################
-_gw2_cogs = [os.path.join("src", "gw2", "gw2.py")] # loading gw2 group cog first
-_gw2_cogs += [x for x in glob.glob(os.path.join("src", "gw2", "*.py")) if x not in _gw2_cogs]
+_gw2_cogs = [os.path.join("src", "gw2", "cogs", "gw2.py")] # loading gw2 group cog first
+_gw2_cogs += [x for x in glob.glob(os.path.join("src", "gw2", "cogs", "*.py")) if x not in _gw2_cogs]
 ###############################################################################
 ALL_COGS = _bot_cogs + _gw2_cogs
 ###############################################################################
