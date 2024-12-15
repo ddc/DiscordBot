@@ -18,14 +18,6 @@ services:
         - ${POSTGRESQL_PORT}:${POSTGRESQL_PORT}
     expose:
         - ${POSTGRESQL_PORT}/tcp
-    deploy:
-        resources:
-            limits:
-              cpus: "4"
-              memory: 4GB
-            reservations:
-              cpus: "2"
-              memory: 2GB
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRESQL_USER} -d ${POSTGRESQL_DATABASE}'"]
       retries: 5
