@@ -13,7 +13,7 @@ services:
         POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
         POSTGRES_DB: ${POSTGRESQL_DATABASE}
     volumes:
-        - ./postgresql_data:/var/lib/postgresql/data:rw
+        - bot_db_data:/var/lib/postgresql/data:rw
     ports:
         - ${POSTGRESQL_PORT}:${POSTGRESQL_PORT}
     expose:
@@ -57,3 +57,8 @@ services:
     depends_on:
       - alembic
     command: ["python", "/app/bot.py"]
+
+
+volumes:
+  bot_db_data:
+    name: "bot_db_data"

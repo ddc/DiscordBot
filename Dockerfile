@@ -34,7 +34,7 @@ RUN set -ex && \
     apt-get purge curl -y && \
     apt-get autoremove -y && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/cache/apt/archives /var/lib/apt/lists/*
 
 COPY config ${WORKDIR}/config
 COPY src ${WORKDIR}/src
