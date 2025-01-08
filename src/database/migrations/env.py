@@ -25,7 +25,7 @@ target_metadata = [
 _settings = PostgreSQLSettings()
 _password = quote_plus(_settings.password).replace("%", "%%")
 _conn_url = (f"{_settings.sync_driver}://"
-             f"{_settings.username}:"
+             f"{_settings.user}:"
              f"{_password}@"
              f"{_settings.host}:"
              f"{_settings.port}/"
