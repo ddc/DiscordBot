@@ -26,11 +26,11 @@ services:
       start_period: 10s
 
 
-  alembic:
+  bot_alembic:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: alembic
+    container_name: bot_alembic
     restart: on-failure:5
     user: root
     privileged: true
@@ -55,7 +55,7 @@ services:
     volumes:
         - ${LOG_DIRECTORY}:${LOG_DIRECTORY}
     depends_on:
-      - alembic
+      - bot_alembic
     command: ["python", "/app/bot.py"]
 
 
