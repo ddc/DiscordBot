@@ -8,9 +8,9 @@ import discord
 from aiohttp import ClientSession
 from better_profanity import profanity
 from ddcDatabases import PostgreSQL
-from ddcLogs import TimedRotatingLog
 from ddcUtils import ConfFileUtils
 from discord.ext import commands
+from pythonLogs import TimedRotatingLog
 from src.bot.constants import messages, variables
 from src.bot.constants.settings import BotSettings
 from src.bot.tools import bot_utils
@@ -22,25 +22,25 @@ class Bot(commands.Bot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         profanity.load_censor_words()
-        self.aiosession = kwargs.get("aiosession")
-        self.db_session = kwargs.get("db_session")
+        self.aiosession = kwargs.pop("aiosession")
+        self.db_session = kwargs.pop("db_session")
         self.start_time = bot_utils.get_current_date_time()
-        self.log = kwargs.get("log")
+        self.log = kwargs.pop("log")
         self.profanity = profanity
         self.settings = {}
-        self.set_bot_custom_settings(*args, **kwargs)
-        self.set_other_cogs_settings(*args, **kwargs)
+        self._set_custom_settings(*args, **kwargs)
+        self._set_cogs_settings(*args, **kwargs)
 
     async def setup_hook(self):
         """ This will be called after login"""
         await bot_utils.load_cogs(self)
 
-    def set_bot_custom_settings(self, *args, **kwargs):
+    def _set_custom_settings(self, *args, **kwargs):
         self.settings["bot"] = ConfFileUtils().get_section_values(variables.SETTINGS_FILENAME, "Bot")
         self.settings["bot"]["EmbedColor"] = bot_utils.get_color_settings(self.settings["bot"]["EmbedColor"])
         self.settings["bot"]["EmbedOwnerColor"] = bot_utils.get_color_settings(self.settings["bot"]["EmbedOwnerColor"])
 
-    def set_other_cogs_settings(self, *args, **kwargs):
+    def _set_cogs_settings(self, *args, **kwargs):
         self.settings["gw2"] = ConfFileUtils().get_section_values(gw2_variables.GW2_SETTINGS_FILENAME, "Gw2")
         self.settings["gw2"]["EmbedColor"] = bot_utils.get_color_settings(self.settings["gw2"]["EmbedColor"])
 
@@ -72,9 +72,10 @@ async def main():
 
             bot_kwargs = {
                 "command_prefix": command_prefix,
-                "description": variables.DESCRIPTION,
                 "activity": activity,
                 "intents": intents,
+                "help_command": commands.DefaultHelpCommand(dm_help=variables.DM_HELP_COMMAND),
+                "description": variables.DESCRIPTION,
                 "aiosession": client_session,
                 "db_session": database_session,
                 "owner_id": int(variables.AUTHOR_ID),

@@ -53,7 +53,7 @@ class Owner(commands.Cog):
         color = self.bot.settings["bot"]["EmbedOwnerColor"]
         msg = f"{messages.BOT_PREFIX_CHANGED}: `{new_prefix}`"
         embed = discord.Embed(description=msg, color=color)
-        await bot_utils.send_embed(ctx, embed,)
+        await bot_utils.send_embed(ctx, embed)
 
     @owner.command(name="botdescription")
     async def owner_description(self, ctx, *, desc: str):

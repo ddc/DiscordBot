@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "DiscordBot"
-version = "2.0.17"
+version = "2.0.18"
 description = "A Bot for Discord"
 license = "MIT"
 readme = "README.md"
@@ -31,12 +31,12 @@ better-profanity = "^0.7.0"
 colorama = "^0.4.6"
 chardet = "^5.2.0"
 ddcDatabases = {extras = ["pgsql"], version = "^1.0.21"}
-ddcLogs = "^3.0.11"
 ddcUtils = "^1.0.39"
 discord-py = "^2.4.0"
 greenlet = "^3.1.1"
 gTTS = "^2.5.4"
 PyNaCl = "^1.5.0"
+pythonLogs = "^3.0.13"
 six = "^1.17.0"
 sqlalchemy = "^2.0.36"
 typing_extensions = "^4.12.2"
@@ -44,10 +44,10 @@ urllib3 = "^2.3.0"
 
 [tool.poetry.group.test.dependencies]
 coverage = "^7.6.10"
-faker = "^33.1.0"
-poethepoet = "^0.32.0"
+faker = "^33.3.1"
+poethepoet = "^0.32.1"
 pytest = "^8.3.4"
-pytest-asyncio = "^0.25.0"
+pytest-asyncio = "^0.25.2"
 
 [tool.coverage.run]
 omit = [

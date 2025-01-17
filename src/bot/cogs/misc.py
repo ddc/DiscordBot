@@ -205,7 +205,7 @@ class Misc(commands.Cog):
         else:
             embed.set_author(name=server.name)
 
-        await bot_utils.send_embed(ctx, embed)
+        await bot_utils.send_embed(ctx, embed, True)
 
     @commands.command()
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
@@ -268,7 +268,7 @@ class Misc(commands.Cog):
         else:
             embed.set_author(name=name)
 
-        await bot_utils.send_embed(ctx, embed)
+        await bot_utils.send_embed(ctx, embed, True)
 
     @commands.command()
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
@@ -306,7 +306,7 @@ class Misc(commands.Cog):
         embed.add_field(name="Download", value=f"[Version {variables.VERSION}]({bot_webpage_url})")
         embed.add_field(name="Donations", value=f"[Paypal]({variables.PAYPAL_URL})")
         embed.add_field(name="Help", value=f"{messages.LIST_COMMAND_CATEGORIES}: `{ctx.prefix}help`", inline=False)
-        await bot_utils.send_embed(ctx, embed)
+        await bot_utils.send_embed(ctx, embed, True)
 
     @staticmethod
     def _get_games_included(apis_const: tuple):

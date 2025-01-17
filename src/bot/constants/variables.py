@@ -3,9 +3,9 @@ import glob
 import os
 import sys
 from pathlib import Path
-from src.bot.constants.settings import BotSettings
-from ddcLogs.settings import LogSettings
 from ddcUtils import ConfFileUtils
+from pythonLogs.settings import LogSettings
+from src.bot.constants.settings import BotSettings
 
 
 DEBUG = True if LogSettings().level == "DEBUG" else False
@@ -24,6 +24,7 @@ TIME_FORMATTER = "%H:%M:%S.%f"
 GAMES_INCLUDED = ("Guild Wars 2",)
 ###############################################################################
 PREFIX = BotSettings().prefix
+DM_HELP_COMMAND = True
 ALLOWED_PREFIXES = ("!", "?", "$", "%", "&", ".")
 TIME_BEFORE_START = 0 if DEBUG else 5
 INTERACTIVE_MODE = len(sys.argv) <= 1

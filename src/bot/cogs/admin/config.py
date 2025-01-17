@@ -235,7 +235,7 @@ def _get_switch_status(status: str) -> tuple:
         case "on" | "ON":
             new_status = True
             color = discord.Color.green()
-        case "off | OFF":
+        case "off" | "OFF":
             new_status = False
             color = discord.Color.red()
         case _:
