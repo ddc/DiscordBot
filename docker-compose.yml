@@ -38,7 +38,7 @@ services:
     depends_on:
       bot_db:
         condition: service_healthy
-    command: ["python", "-m", "alembic", "-c", "./config/alembic.ini", "upgrade", "head"]
+    command: ["poetry", "run", "alembic", "-c", "config/alembic.ini", "upgrade", "head"]
 
 
   bot:

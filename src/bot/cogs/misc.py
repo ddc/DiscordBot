@@ -2,19 +2,19 @@
 import random
 import sys
 from io import BytesIO
-import aiohttp
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from gtts import gTTS
-from src.bot.tools.pepe import pepedatabase
+from src.bot.constants import messages, variables
 from src.bot.tools import bot_utils, chat_formatting
 from src.bot.tools.cooldowns import CoolDowns
-from src.bot.constants import variables, messages
+from src.bot.tools.pepe import pepedatabase
 
 
 class Misc(commands.Cog):
     """(Misc commands)"""
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -30,16 +30,8 @@ class Misc(commands.Cog):
 
         await ctx.message.channel.typing()
         system_random = random.SystemRandom()
-        pepe_url = f"{system_random.choice(pepedatabase)[:-1]}.jpg"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(pepe_url) as resp:
-                if resp.status != 200:
-                    return await bot_utils.send_error_msg(ctx, messages.PEPE_DOWNLOAD_ERROR)
-                data = BytesIO(await resp.read())
-                data.seek(0)
-                name = pepe_url.split("/")[3]
-                await ctx.send(file=discord.File(data, name))
-                data.close()
+        pepe_url = system_random.choice(pepedatabase)
+        await ctx.send(pepe_url)
 
     @commands.command()
     @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
@@ -150,12 +142,19 @@ class Misc(commands.Cog):
         embed.set_thumbnail(url=server.icon.url)
 
         if unlimited_invites:
-            embed.add_field(name=f"{messages.UNLIMITED_INVITES} ({len(unlimited_invites)})",
-                            value="\n".join(unlimited_invites[:5]))
+            embed.add_field(
+                name=f"{messages.UNLIMITED_INVITES} ({len(unlimited_invites)})", value="\n".join(unlimited_invites[:5])
+                )
         if limited_invites:
-            embed.add_field(name=f"{messages.TEMPORARY_INVITES} ({len(limited_invites)})", value="\n".join(limited_invites))
+            embed.add_field(
+                name=f"{messages.TEMPORARY_INVITES} ({len(limited_invites)})",
+                value="\n".join(limited_invites)
+                )
         if revoked_invites:
-            embed.add_field(name=f"{messages.REVOKED_INVITES} ({len(revoked_invites)})", value="\n".join(revoked_invites))
+            embed.add_field(
+                name=f"{messages.REVOKED_INVITES} ({len(revoked_invites)})",
+                value="\n".join(revoked_invites)
+                )
         if len(unlimited_invites) > 0 or len(limited_invites) > 0 or len(revoked_invites) > 0:
             await bot_utils.send_embed(ctx, embed)
         else:
@@ -173,9 +172,9 @@ class Misc(commands.Cog):
 
         await ctx.message.channel.typing()
         server = ctx.guild
-        online = len([m.status for m in server.members
-                      if m.status == discord.Status.online
-                      or m.status == discord.Status.idle])
+        online = len(
+            [m.status for m in server.members if m.status == discord.Status.online or m.status == discord.Status.idle]
+            )
 
         total_users = len([x.bot for x in server.members if x.bot is False])
         total_bots = len([x.bot for x in server.members if x.bot is True])
@@ -257,7 +256,9 @@ class Misc(commands.Cog):
         embed.add_field(name=messages.JOINED_DISCORD_ON, value=created_on)
         embed.add_field(name=messages.JOINED_THIS_SERVER_ON, value=joined_on)
         embed.add_field(name="Roles", value=roles_str.replace("@", ""), inline=False)
-        embed.set_footer(text=f"Member #{member_number} | User ID:{user.id} | {bot_utils.get_current_date_time_str_long()}")
+        embed.set_footer(
+            text=f"Member #{member_number} | User ID:{user.id} | {bot_utils.get_current_date_time_str_long()}"
+            )
 
         name = str(user)
         name = " ~ ".join((name, user.nick)) if user.nick else name
@@ -320,16 +321,7 @@ class Misc(commands.Cog):
                     result += f"({apis}) "
         return result
 
-    # @commands.command()
-    # async def test(self, ctx):
-    #     """(test)"""
-    #
-    #     msg = "test"
-    #     color = discord.Color.red()
-    #     embed = discord.Embed(color=color, description=msg)
-    #     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
-    #     embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
-    #     await bot_utils.send_embed(ctx, embed, True)
+    # @commands.command()  # async def test(self, ctx):  #     """(test)"""  #  #     msg = "test"  #     color = discord.Color.red()  #     embed = discord.Embed(color=color, description=msg)  #     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)  #     embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")  #     await bot_utils.send_embed(ctx, embed, True)
 
 
 async def setup(bot):
