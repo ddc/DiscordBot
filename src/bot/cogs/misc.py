@@ -14,7 +14,6 @@ from src.bot.tools.pepe import pepedatabase
 
 class Misc(commands.Cog):
     """(Misc commands)"""
-
     def __init__(self, bot):
         self.bot = bot
 
@@ -142,19 +141,12 @@ class Misc(commands.Cog):
         embed.set_thumbnail(url=server.icon.url)
 
         if unlimited_invites:
-            embed.add_field(
-                name=f"{messages.UNLIMITED_INVITES} ({len(unlimited_invites)})", value="\n".join(unlimited_invites[:5])
-                )
+            embed.add_field(name=f"{messages.UNLIMITED_INVITES} ({len(unlimited_invites)})",
+                            value="\n".join(unlimited_invites[:5]))
         if limited_invites:
-            embed.add_field(
-                name=f"{messages.TEMPORARY_INVITES} ({len(limited_invites)})",
-                value="\n".join(limited_invites)
-                )
+            embed.add_field(name=f"{messages.TEMPORARY_INVITES} ({len(limited_invites)})", value="\n".join(limited_invites))
         if revoked_invites:
-            embed.add_field(
-                name=f"{messages.REVOKED_INVITES} ({len(revoked_invites)})",
-                value="\n".join(revoked_invites)
-                )
+            embed.add_field(name=f"{messages.REVOKED_INVITES} ({len(revoked_invites)})", value="\n".join(revoked_invites))
         if len(unlimited_invites) > 0 or len(limited_invites) > 0 or len(revoked_invites) > 0:
             await bot_utils.send_embed(ctx, embed)
         else:
@@ -172,9 +164,9 @@ class Misc(commands.Cog):
 
         await ctx.message.channel.typing()
         server = ctx.guild
-        online = len(
-            [m.status for m in server.members if m.status == discord.Status.online or m.status == discord.Status.idle]
-            )
+        online = len([m.status for m in server.members
+                      if m.status == discord.Status.online
+                      or m.status == discord.Status.idle])
 
         total_users = len([x.bot for x in server.members if x.bot is False])
         total_bots = len([x.bot for x in server.members if x.bot is True])
@@ -256,9 +248,7 @@ class Misc(commands.Cog):
         embed.add_field(name=messages.JOINED_DISCORD_ON, value=created_on)
         embed.add_field(name=messages.JOINED_THIS_SERVER_ON, value=joined_on)
         embed.add_field(name="Roles", value=roles_str.replace("@", ""), inline=False)
-        embed.set_footer(
-            text=f"Member #{member_number} | User ID:{user.id} | {bot_utils.get_current_date_time_str_long()}"
-            )
+        embed.set_footer(text=f"Member #{member_number} | User ID:{user.id} | {bot_utils.get_current_date_time_str_long()}")
 
         name = str(user)
         name = " ~ ".join((name, user.nick)) if user.nick else name
@@ -321,7 +311,16 @@ class Misc(commands.Cog):
                     result += f"({apis}) "
         return result
 
-    # @commands.command()  # async def test(self, ctx):  #     """(test)"""  #  #     msg = "test"  #     color = discord.Color.red()  #     embed = discord.Embed(color=color, description=msg)  #     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)  #     embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")  #     await bot_utils.send_embed(ctx, embed, True)
+    # @commands.command()
+    # async def test(self, ctx):
+    #     """(test)"""
+    #
+    #     msg = "test"
+    #     color = discord.Color.red()
+    #     embed = discord.Embed(color=color, description=msg)
+    #     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
+    #     embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
+    #     await bot_utils.send_embed(ctx, embed, True)
 
 
 async def setup(bot):
