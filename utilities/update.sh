@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-PROJECT_DIR=/opt/DiscordBot
 PROJECT_USERNAME=ddc
+PROJECT_DIR=/opt/DiscordBot
 
 pushd "$PROJECT_DIR" || exit
 

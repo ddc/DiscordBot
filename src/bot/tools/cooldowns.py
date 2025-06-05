@@ -9,8 +9,9 @@ file_values = ConfFileUtils().get_section_values(variables.SETTINGS_FILENAME, "C
 
 class CoolDowns(Enum):
     Admin = 1 if variables.DEBUG else int(file_values["Admin"])
-    CustomComand = 1 if variables.DEBUG else int(file_values["CustomCmd"])
     Config = 1 if variables.DEBUG else int(file_values["Config"])
-    Misc = 1 if variables.DEBUG else int(file_values["Misc"])
-    Owner = 1 if variables.DEBUG else int(file_values["Owner"])
+    CustomComand = 1 if variables.DEBUG else int(file_values["CustomCmd"])
     DiceRolls = 1 if variables.DEBUG else int(file_values["DiceRolls"])
+    Misc = 1 if variables.DEBUG else int(file_values["Misc"])
+    OpenAI = 1 if variables.DEBUG else int(file_values["OpenAI"])
+    Owner = 1 if variables.DEBUG else int(file_values["Owner"])

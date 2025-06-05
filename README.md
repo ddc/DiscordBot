@@ -25,6 +25,12 @@
 + [Guild Wars 2](https://www.guildwars2.com)
 
 
+# OpenAI Command
+| Commands       | Description                                     |
+|:---------------|:------------------------------------------------|
+| ai <_message_> | Asks OpenAI, message will be on discord embeded |
+
+
 # Admin/Mod Commands
 | Commands                               | Description                         |
 |:---------------------------------------|:------------------------------------|
