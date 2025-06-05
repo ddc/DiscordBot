@@ -85,6 +85,7 @@
 
 
 # Acknowledgements
++ [OpenAI API](https://openai.com/api)
 + [Guild Wars 2 API](https://wiki.guildwars2.com/wiki/API:2)
 + [Discord Bot Api](https://discordapp.com/developers/applications/me)
 + [PostgreSQL](https://www.postgresql.org)
