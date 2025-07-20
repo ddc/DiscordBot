@@ -41,7 +41,7 @@ jobs:
 #            slug: ddc/pythonLogs
 
   build:
-    name: Build Test Package
+    name: Test Package
     runs-on: ubuntu-latest
     needs: test
     steps:

@@ -11,6 +11,7 @@ jobs:
     name: Build and Release
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
+    environment: release
     permissions:
       contents: write
     steps:
