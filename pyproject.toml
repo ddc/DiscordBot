@@ -1,10 +1,10 @@
 [build-system]
-requires = ["poetry-core>=2.1.2"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "DiscordBot"
-version = "2.0.20"
+version = "2.0.21"
 description = "A Bot for Discord"
 license = "MIT"
 readme = "README.md"
@@ -19,12 +19,9 @@ keywords = [
     "discord-py",
 ]
 
-[tool.poetry.group.test]
-optional = true
-
 [tool.poetry.dependencies]
 python = "^3.13"
-alembic = "^1.16.1"
+alembic = "^1.16.4"
 audioop-lts = "^0.2.1"
 beautifulsoup4 = "^4.13.4"
 better-profanity = "^0.7.0"
@@ -35,26 +32,20 @@ ddcUtils = "^1.0.39"
 discord-py = "^2.5.2"
 greenlet = "^3.2.3"
 gTTS = "^2.5.4"
-openai = "^1.84.0"
+openai = "^1.97.0"
 PyNaCl = "^1.5.0"
-pythonLogs = "^3.0.13"
+pythonLogs = "^4.0.5"
 six = "^1.17.0"
 sqlalchemy = "^2.0.41"
 typing_extensions = "^4.13.2"
-urllib3 = "^2.4.0"
-poetry-core = ">=2.1.2"
+urllib3 = "^2.5.0"
 
 [tool.poetry.group.test.dependencies]
-coverage = "^7.8.2"
-faker = "^37.3.0"
-poethepoet = "^0.34.0"
-pytest = "^8.4.0"
-pytest-asyncio = "^1.0.0"
-
-[tool.coverage.run]
-omit = [
-    "tests/*",
-]
+coverage = "^7.9.2"
+faker = "^37.4.2"
+poethepoet = "^0.36.0"
+pytest = "^8.4.1"
+pytest-asyncio = "^1.1.0"
 
 [tool.poe.tasks]
 _test = "coverage run -m pytest -v"
@@ -62,3 +53,20 @@ _coverage_report = "coverage report"
 _coverage_xml = "coverage xml"
 tests = ["_test", "_coverage_report", "_coverage_xml"]
 test = ["tests"]
+
+[tool.poetry.group.test]
+optional = true
+
+[tool.black]
+line-length = 120
+skip-string-normalization = true
+
+[tool.coverage.run]
+omit = [
+    "tests/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+]
