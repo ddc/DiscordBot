@@ -10,7 +10,7 @@ from better_profanity import profanity
 from ddcDatabases import PostgreSQL
 from ddcUtils import ConfFileUtils
 from discord.ext import commands
-from pythonLogs import TimedRotatingLog
+from pythonLogs import timed_rotating_logger
 from src.bot.constants import messages, variables
 from src.bot.constants.settings import BotSettings
 from src.bot.tools import bot_utils
@@ -48,7 +48,7 @@ class Bot(commands.Bot):
 async def main():
     async with ClientSession() as client_session:
         async with PostgreSQL() as database_session:
-            log = TimedRotatingLog().init()
+            log = timed_rotating_logger()
 
             # check BOT_TOKEN env
             if not BotSettings().token:
