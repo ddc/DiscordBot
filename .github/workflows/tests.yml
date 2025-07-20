@@ -60,6 +60,3 @@ jobs:
 
       - name: Install build dependencies only
         run: poetry install --only main --no-interaction --no-ansi
-
-      - name: Build package
-        run: poetry build
