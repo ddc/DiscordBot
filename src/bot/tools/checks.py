@@ -1,25 +1,49 @@
-# -*- coding: utf-8 -*-
+"""Discord command permission checks."""
+
+from typing import Any, Callable, TYPE_CHECKING
 from discord.ext import commands
 from src.bot.tools import bot_utils
 
 
+if TYPE_CHECKING:
+    from discord.ext.commands import Context
+
+
 class Checks:
-    @staticmethod
-    def check_is_admin():
-        def wrapper(*args, **kwargs):
-            ctx = args[0]
-            if bot_utils.is_member_admin(ctx.message.author):
-                return True
-            else:
-                raise commands.CheckFailure(message="not admin")
-        return commands.check(wrapper)
+    """Collection of Discord command permission checks."""
 
     @staticmethod
-    def check_is_bot_owner():
-        def wrapper(*args, **kwargs):
-            ctx = args[0]
+    def check_is_admin() -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+        """Check if the command invoker is a server administrator.
+
+        Returns:
+            Command check decorator that raises CheckFailure if user is not admin
+
+        Raises:
+            commands.CheckFailure: When the user is not an administrator
+        """
+
+        def predicate(ctx: "Context") -> bool:
+            if bot_utils.is_member_admin(ctx.message.author):
+                return True
+            raise commands.CheckFailure(message="User is not an administrator")
+
+        return commands.check(predicate)
+
+    @staticmethod
+    def check_is_bot_owner() -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+        """Check if the command invoker is the bot owner.
+
+        Returns:
+            Command check decorator that raises CheckFailure if user is not owner
+
+        Raises:
+            commands.CheckFailure: When the user is not the bot owner
+        """
+
+        def predicate(ctx: "Context") -> bool:
             if bot_utils.is_bot_owner(ctx, ctx.message.author):
                 return True
-            else:
-                raise commands.CheckFailure(message="not owner")
-        return commands.check(wrapper)
+            raise commands.CheckFailure(message="User is not the bot owner")
+
+        return commands.check(predicate)

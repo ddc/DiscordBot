@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 class APIError(Exception):
     def __init__(self, bot, msg):
         self.bot = bot

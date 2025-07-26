@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 from discord.ext import commands
+from src.bot.constants import messages
 from src.bot.tools import bot_utils
 from src.database.dal.bot.servers_dal import ServersDal
-from src.bot.constants import messages
 
 
 class OnUserUpdate(commands.Cog):
@@ -12,15 +11,15 @@ class OnUserUpdate(commands.Cog):
         @self.bot.event
         async def on_user_update(before, after):
             """
-                Called when a User updates their profile.
-                This is called before on_member_update event is triggered
-                This is called when one or more of the following things change:
-                    avatar
-                    username
-                    discriminator
-                :param before: discord.Member
-                :param after: discord.Member
-                :return: None
+            Called when a User updates their profile.
+            This is called before on_member_update event is triggered
+            This is called when one or more of the following things change:
+                avatar
+                username
+                discriminator
+            :param before: discord.Member
+            :param after: discord.Member
+            :return: None
             """
             if after.bot:
                 return
@@ -28,7 +27,10 @@ class OnUserUpdate(commands.Cog):
             msg = f"{messages.PROFILE_CHANGES}:\n\n"
             embed = bot_utils.get_embed(self)
             embed.set_author(name=after.display_name, icon_url=after.avatar.url)
-            embed.set_footer(icon_url=self.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
+            embed.set_footer(
+                icon_url=self.bot.user.avatar.url,
+                text=f"{bot_utils.get_current_date_time_str_long()} UTC",
+            )
 
             if str(before.avatar.url) != str(after.avatar.url):
                 embed.set_thumbnail(url=after.avatar.url)

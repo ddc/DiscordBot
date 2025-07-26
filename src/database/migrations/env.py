@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 from logging.config import fileConfig
 from urllib.parse import quote_plus
 from alembic import context
 from alembic.script import ScriptDirectory
-from ddcDatabases.settings import PostgreSQLSettings
+from ddcDatabases.settings import get_postgresql_settings
 from sqlalchemy import engine_from_config, pool
 from src.database.models.bot_models import BotBase
 from src.database.models.gw2_models import Gw2Base
@@ -22,14 +21,16 @@ target_metadata = [
 ]
 
 
-_settings = PostgreSQLSettings()
+_settings = get_postgresql_settings()
 _password = quote_plus(_settings.password).replace("%", "%%")
-_conn_url = (f"{_settings.sync_driver}://"
-             f"{_settings.user}:"
-             f"{_password}@"
-             f"{_settings.host}:"
-             f"{_settings.port}/"
-             f"{_settings.database}")
+_conn_url = (
+    f"{_settings.sync_driver}://"
+    f"{_settings.user}:"
+    f"{_password}@"
+    f"{_settings.host}:"
+    f"{_settings.port}/"
+    f"{_settings.database}"
+)
 config.set_main_option("sqlalchemy.url", _conn_url)
 
 
@@ -49,7 +50,8 @@ def run_migrations_offline() -> None:
 
     This configures the context with just a URL
     and not an Engine, though an Engine is acceptable
-    here as well.  By skipping the Engine creation
+    here as well.
+    By skipping the Engine creation,
     we don't even need a DBAPI to be available.
 
     Calls to context.execute() here emit the given string to the
@@ -72,7 +74,7 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
-    In this scenario we need to create an Engine
+    In this scenario, we need to create an Engine
     and associate a connection with the context.
 
     """

@@ -1,7 +1,9 @@
-# -*- coding: utf-8 -*-
+"""Admin commands for bot administration and game status management."""
+
+from typing import Optional
 import discord
 from discord.ext import commands
-from discord.ext.commands.cooldowns import BucketType
+from discord.ext.commands import BucketType
 from src.bot.constants import messages
 from src.bot.tools import bot_utils
 from src.bot.tools.checks import Checks
@@ -9,40 +11,67 @@ from src.bot.tools.cooldowns import CoolDowns
 
 
 class Admin(commands.Cog):
-    """(Admin Commands)"""
-    def __init__(self, bot):
+    """Admin commands for bot configuration and status management."""
+
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
     @commands.group(aliases=["mod"])
     @Checks.check_is_admin()
-    async def admin(self, ctx):
-        """(Admin Commands)
-                admin botgame <game>
-        """
+    async def admin(self, ctx: commands.Context) -> Optional[commands.Command]:
+        """Admin commands for bot administration.
 
-        await bot_utils.invoke_subcommand(ctx, "admin")
+        Available subcommands:
+            admin botgame <game> - Change the game that bot is playing
+        """
+        return await bot_utils.invoke_subcommand(ctx, "admin")
 
     @admin.command(name="botgame")
     @commands.cooldown(1, CoolDowns.Admin.value, BucketType.user)
-    async def botgame(self, ctx, *, game: str):
-        """(Change game that bot is playing)
-                admin botgame <game>
+    async def botgame(self, ctx: commands.Context, *, game: str) -> None:
+        """Change the game that bot is playing.
+
+        Updates the bot's activity status to show it's playing the specified game.
+        If the background activity timer is enabled, shows a warning about the setting.
+
+        Usage:
+            admin botgame Minecraft
+            admin botgame Reading documentation
         """
 
+        await ctx.message.channel.typing()
+
+        # Update bot game status
         prefix = self.bot.command_prefix[0]
         bot_game_desc = f"{game} | {prefix}help"
-        await self.bot.change_presence(activity=discord.Game(name=bot_game_desc))
+        activity = discord.Game(name=bot_game_desc)
+        await self.bot.change_presence(activity=activity)
 
-        embed = discord.Embed(description=f"```{messages.BOT_ANNOUNCE_PLAYING.format(game)}```")
-        embed.set_author(name=self.bot.user.display_name, icon_url=self.bot.user.avatar.url)
+        # Create success embed
+        embed = self._create_admin_embed(f"```{messages.BOT_ANNOUNCE_PLAYING.format(game)}```")
+        embed.set_author(
+            name=self.bot.user.display_name,
+            icon_url=self.bot.user.avatar.url if self.bot.user.avatar else None,
+        )
         await bot_utils.send_embed(ctx, embed)
 
+        # Warn about background activity timer if enabled
+        await self._warn_about_bg_activity_timer(ctx)
+
+    async def _warn_about_bg_activity_timer(self, ctx: commands.Context) -> None:
+        """Show warning if background activity timer will override the game status."""
         bg_activity_timer = self.bot.settings["bot"]["BGActivityTimer"]
         if bg_activity_timer and bg_activity_timer > 0:
             bg_task_warning = messages.BG_TASK_WARNING.format(bg_activity_timer)
-            embed.description = bg_task_warning
-            await bot_utils.send_embed(ctx, embed, False)
+            warning_embed = self._create_admin_embed(bg_task_warning)
+            await bot_utils.send_embed(ctx, warning_embed, False)
+
+    @staticmethod
+    def _create_admin_embed(description: str) -> discord.Embed:
+        """Create a standardized embed for admin commands."""
+        return discord.Embed(description=description)
 
 
-async def setup(bot):
+async def setup(bot: commands.Bot) -> None:
+    """Setup function to add the Admin cog to the bot."""
     await bot.add_cog(Admin(bot))

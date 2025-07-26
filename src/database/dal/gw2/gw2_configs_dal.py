@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sqlalchemy as sa
 from ddcDatabases import DBUtilsAsync
 from sqlalchemy.future import select
@@ -13,12 +12,13 @@ class Gw2ConfigsDal:
 
     async def insert_gw2_server_configs(self, server_id: int):
         stmt = Gw2Configs(server_id=server_id)
-        await self.db_utils.add(stmt)
+        await self.db_utils.insert(stmt)
 
     async def update_gw2_session_config(self, server_id: int, new_status: bool, updated_by: int):
-        stmt = sa.update(Gw2Configs).where(Gw2Configs.server_id == server_id).values(
-            session=new_status,
-            updated_by=updated_by
+        stmt = (
+            sa.update(Gw2Configs)
+            .where(Gw2Configs.server_id == server_id)
+            .values(session=new_status, updated_by=updated_by)
         )
         await self.db_utils.execute(stmt)
 
