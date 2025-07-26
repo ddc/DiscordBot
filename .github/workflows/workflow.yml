@@ -32,16 +32,14 @@ jobs:
 
       - name: Install dependencies
         run: poetry install --with test --no-interaction --no-ansi
-        shell: bash
 
       - name: Run tests with coverage
         run: poetry run poe tests
-        shell: bash
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-            token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload test results to Codecov
         uses: codecov/test-results-action@v1
