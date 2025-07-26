@@ -52,7 +52,6 @@ line-length = 120
 skip-string-normalization = true
 
 [tool.coverage.run]
-source = ["src"]
 omit = [
     "tests/*",
     "src/database/migrations/*",
