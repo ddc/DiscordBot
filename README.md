@@ -1,17 +1,23 @@
 # A Bot for Discord
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-brightgreen.svg?style=plastic)](https://www.paypal.com/ncp/payment/6G9Z78QHUD4RJ)
-[![license](https://img.shields.io/github/license/ddc/DiscordBot.svg?style=plastic)](https://github.com/ddc/DiscordBot/blob/master/LICENSE) 
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-yellow.svg?style=plastic)](https://www.postgresql.org)
-[![python](https://img.shields.io/badge/python-3.13-lightgrey.svg?style=plastic)](https://www.python.org/downloads/release)
-[![codecov](https://codecov.io/gh/ddc/DiscordBot/graph/badge.svg?token=K2SSZ142O1)](https://codecov.io/gh/ddc/DiscordBot)
-[![Release](https://img.shields.io/github/release/ddc/DiscordBot.svg?style=plastic)](https://github.com/ddc/DiscordBot/releases/latest)
-[![Build Status](https://img.shields.io/endpoint.svg?url=https://actions-badge.atrox.dev/ddc/DiscordBot/badge?ref=master&style=plastic&label=build&logo=none)](https://actions-badge.atrox.dev/ddc/DiscordBot/goto?ref=master)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPi](https://img.shields.io/pypi/v/DiscordBot.svg)](https://pypi.python.org/pypi/DiscordBot)
+[![PyPI Downloads](https://static.pepy.tech/badge/DiscordBot)](https://pepy.tech/projects/DiscordBot)
+[![codecov](https://codecov.io/gh/ddc/DiscordBot/graph/badge.svg?token=E942EZII4Q)](https://codecov.io/gh/ddc/DiscordBot)
+[![CI/CD Pipeline](https://github.com/ddc/DiscordBot/actions/workflows/workflow.yml/badge.svg)](https://github.com/ddc/DiscordBot/actions/workflows/workflow.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ddc_DiscordBot&metric=alert_status)](https://sonarcloud.io/dashboard?id=ddc_DiscordBot)  
+[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A//actions-badge.atrox.dev/ddc/DiscordBot/badge?ref=main&label=build&logo=none)](https://actions-badge.atrox.dev/ddc/DiscordBot/goto?ref=main)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Python](https://img.shields.io/pypi/pyversions/DiscordBot.svg)](https://www.python.org/downloads)
+
+[![Support me on GitHub](https://img.shields.io/badge/Support_me_on_GitHub-154c79?style=for-the-badge&logo=github)](https://github.com/sponsors/ddc)
+
 
 
 <!--
 ### [Invitation Link](https://discordapp.com/api/oauth2/authorize?client_id=427992048088383518&permissions=8&scope=bot)
-+ Use the link bellow to invite this bot into your server, or install your own using the install guide
++ Use the link bellow to invite this bot into your server, or install your own using the installation guide
     + [Invitation Link](https://discordapp.com/api/oauth2/authorize?client_id=427992048088383518&permissions=8&scope=bot)
 -->
 
