@@ -40,7 +40,7 @@ pytest-asyncio = "^1.1.0"
 pytest-cov = "^6.2.1"
 
 [tool.poe.tasks]
-_test = "python -m pytest --cov --junitxml=junit.xml -o junit_family=legacy"
+_test = "python -m pytest -v --cov --cov-report=xml --junitxml=junit.xml -o junit_family=legacy"
 tests = ["_test"]
 test = ["tests"]
 
