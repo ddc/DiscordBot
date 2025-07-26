@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from ddcDatabases import DBUtilsAsync
 from sqlalchemy.future import select
 from src.database.models.gw2_models import Gw2SessionChars
@@ -20,11 +19,11 @@ class Gw2SessionCharsDal:
             deaths = current_char["deaths"]
 
             stmt = Gw2SessionChars(
-               session_id=insert_args["session_id"],
-               user_id=insert_args["user_id"],
-               name=name,
-               profession=profession,
-               deaths=deaths,
+                session_id=insert_args["session_id"],
+                user_id=insert_args["user_id"],
+                name=name,
+                profession=profession,
+                deaths=deaths,
             )
             self.db_session.add(stmt)
         await self.db_session.commit()

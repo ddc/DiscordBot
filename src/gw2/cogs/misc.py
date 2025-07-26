@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import re
 import discord
 from bs4 import BeautifulSoup
@@ -167,7 +166,7 @@ async def info(ctx, *, skill):
 # async def api_test(self, ctx):
 #     from src.database.dal.gw2.gw2_key_sql import Gw2KeyDal
 #     user_id = ctx.message.author.id
-#     gw2Api = Gw2Api(self.bot)
+#     gw2Api = Gw2Client(self.bot)
 #     gw2KeySql = Gw2KeyDal(self.bot.db_session, self.bot.log)
 #     rs = await gw2KeySql.get_server_user_api_key(ctx.guild.id, user_id)
 #     api_key = rs[0]["key"]

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
@@ -6,7 +5,7 @@ from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.gw2.cogs.gw2 import GuildWars2
 from src.gw2.tools import gw2_utils
-from src.gw2.tools.gw2_api import Gw2Api
+from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 from src.gw2.tools.gw2_exceptions import APIKeyError
 from src.gw2.constants import gw2_messages
@@ -33,7 +32,7 @@ async def wvw(ctx):
 @commands.cooldown(1, GW2CoolDowns.Wvw.value, BucketType.user)
 async def info(ctx, *, world: str = None):
     await ctx.message.channel.typing()
-    gw2_api = Gw2Api(ctx.bot)
+    gw2_api = Gw2Client(ctx.bot)
 
     no_api_key_msg = gw2_messages.NO_API_KEY
     no_api_key_msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
@@ -144,7 +143,7 @@ async def match(ctx, *, world: str = None):
     """
 
     await ctx.message.channel.typing()
-    gw2_api = Gw2Api(ctx.bot)
+    gw2_api = Gw2Client(ctx.bot)
 
     if not world:
         try:
@@ -213,7 +212,7 @@ async def kdr(ctx, *, world: str = None):
     """
 
     await ctx.message.channel.typing()
-    gw2_api = Gw2Api(ctx.bot)
+    gw2_api = Gw2Client(ctx.bot)
 
     if not world:
         try:

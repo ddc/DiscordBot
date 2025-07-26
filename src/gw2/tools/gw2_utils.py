@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 from enum import Enum
 import discord
@@ -7,7 +6,7 @@ from src.database.dal.gw2.gw2_configs_dal import Gw2ConfigsDal
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
-from src.gw2.tools.gw2_api import Gw2Api
+from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.constants import gw2_messages
 
 
@@ -80,7 +79,7 @@ async def calculate_user_achiev_points(ctx, api_req_acc_achiev, api_req_acc):
     doc_user_achiev_id = []
     temp_achiv = []
     counter = 0
-    gw2_api = Gw2Api(ctx.bot)
+    gw2_api = Gw2Client(ctx.bot)
     total = api_req_acc["daily_ap"] + api_req_acc["monthly_ap"]
 
     for ach in api_req_acc_achiev:
@@ -126,7 +125,7 @@ def max_ap(ach, repeatable=False):
 async def get_world_id(self, world):
     if world is None:
         return None
-    gw2_api = Gw2Api(self.bot)
+    gw2_api = Gw2Client(self.bot)
     results = await gw2_api.call_api("worlds?ids=all")
     for name in results:
         if name["name"].lower() == world.lower():
@@ -137,7 +136,7 @@ async def get_world_id(self, world):
 async def get_world_name_population(ctx, wids: str):
     try:
         name = []
-        gw2_api = Gw2Api(ctx.bot)
+        gw2_api = Gw2Client(ctx.bot)
         rs = await gw2_api.call_api(f"worlds?ids={wids}")
         if not rs:
             return None
@@ -152,7 +151,7 @@ async def get_world_name_population(ctx, wids: str):
 
 async def get_world_name(self, wids: str):
     try:
-        gw2_api = Gw2Api(self.bot)
+        gw2_api = Gw2Client(self.bot)
         rs = await gw2_api.call_api(f"worlds?ids={wids}")
         name = None if not rs else rs["name"]
     except:
@@ -219,7 +218,7 @@ async def end_session(bot, before: discord.Member, api_key):
 
 
 async def get_user_stats(bot, api_key):
-    gw2_api = Gw2Api(bot)
+    gw2_api = Gw2Client(bot)
     try:
         api_req_acc = await gw2_api.call_api("account", api_key)
         api_req_wallet = await gw2_api.call_api("account/wallet", api_key)
@@ -288,7 +287,7 @@ async def get_user_stats(bot, api_key):
 
 async def insert_session_char(self, member: discord.Member, api_key, session_id, session_type: str):
     try:
-        gw2_api = Gw2Api(self.bot)
+        gw2_api = Gw2Client(self.bot)
         api_req_characters = await gw2_api.call_api("characters", api_key)
         insert_args = {
             "api_key": api_key,
@@ -429,7 +428,7 @@ def convert_timedelta_to_obj(time_delta: timedelta):
 async def get_worlds_ids(ctx):
     try:
         await ctx.message.channel.typing()
-        gw2_api = Gw2Api(ctx.bot)
+        gw2_api = Gw2Client(ctx.bot)
         results = await gw2_api.call_api("worlds?ids=all")
         return True, results
     except Exception as e:

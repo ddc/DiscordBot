@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.gw2.cogs.gw2 import GuildWars2
-from src.gw2.tools.gw2_api import Gw2Api
+from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 from src.gw2.constants import gw2_messages
 
@@ -44,7 +43,7 @@ async def add(ctx, api_key: str):
     embed_color = ctx.bot.settings["gw2"]["EmbedColor"]
 
     # checking API Key with gw2 servers
-    gw2_api = Gw2Api(ctx.bot)
+    gw2_api = Gw2Client(ctx.bot)
     is_valid_key = await gw2_api.check_api_key(api_key)
     if not isinstance(is_valid_key, dict):
         return await bot_utils.send_error_msg(ctx, f"{is_valid_key.args[1]}\n`{api_key}`", True)
@@ -130,7 +129,7 @@ async def info(ctx, key_name: str = None):
     author_icon_url = ctx.message.author.avatar.url
     color = ctx.bot.settings["gw2"]["EmbedColor"]
     gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
-    gw2_api = Gw2Api(ctx.bot)
+    gw2_api = Gw2Client(ctx.bot)
     msg = gw2_messages.NO_API_KEY
     msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
     msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)

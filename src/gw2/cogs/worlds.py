@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from src.bot.tools import bot_utils, chat_formatting
 from src.gw2.cogs.gw2 import GuildWars2
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
-from src.gw2.tools.gw2_api import Gw2Api
+from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools import gw2_utils
 from src.gw2.constants import gw2_messages
 
@@ -37,7 +36,7 @@ async def worlds_na(ctx):
     if not result:
         return
 
-    gw2_api = Gw2Api(ctx.bot)
+    gw2_api = Gw2Client(ctx.bot)
     embed_na = discord.Embed(description=chat_formatting.inline(gw2_messages.NA_SERVERS_TITLE))
 
     for world in worlds_ids:
@@ -67,7 +66,7 @@ async def worlds_eu(ctx):
     if not result:
         return
 
-    gw2_api = Gw2Api(ctx.bot)
+    gw2_api = Gw2Client(ctx.bot)
     embed_eu = discord.Embed(description=chat_formatting.inline(gw2_messages.EU_SERVERS_TITLE))
 
     for world in worlds_ids:

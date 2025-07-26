@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sqlalchemy as sa
 from ddcDatabases import DBUtilsAsync
 from sqlalchemy.future import select

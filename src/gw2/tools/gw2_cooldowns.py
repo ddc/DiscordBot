@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from enum import Enum
 from ddcUtils import ConfFileUtils
 from src.bot.constants import variables

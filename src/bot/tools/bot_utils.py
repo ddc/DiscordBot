@@ -1,13 +1,17 @@
-# -*- coding: utf-8 -*-
 import random
 from datetime import datetime, timezone
 from enum import Enum
 from operator import attrgetter
+from typing import Optional, TYPE_CHECKING
 import discord
 from src.bot.constants import messages, variables
 from src.bot.tools import chat_formatting
-from src.bot.tools.background_tasks import BackGroundTasks
+from src.bot.tools.background_tasks import BackgroundTasks
 from src.database.dal.bot.servers_dal import ServersDal
+
+
+if TYPE_CHECKING:
+    from discord.ext import commands
 
 
 class Colors(Enum):
@@ -36,19 +40,22 @@ class Colors(Enum):
     greyple = discord.Color.greyple()
 
 
-async def insert_server(bot, server: discord.Guild):
+async def insert_server(bot: "commands.Bot", server: discord.Guild) -> None:
+    """Insert server information into database and initialize GW2 configs."""
     servers_dal = ServersDal(bot.db_session, bot.log)
     await servers_dal.insert_server(server.id, server.name)
 
     from src.gw2.tools import gw2_utils
+
     await gw2_utils.insert_gw2_server_configs(bot, server)
 
 
-async def init_background_tasks(bot):
+async def init_background_tasks(bot: "commands.Bot") -> None:
+    """Initialize bot background tasks if configured."""
     bg_activity_timer = bot.settings["bot"]["BGActivityTimer"]
     if bg_activity_timer and bg_activity_timer > 0:
-        bg_tasks = BackGroundTasks(bot)
-        bot.loop.create_task(bg_tasks.bgtask_change_presence(bg_activity_timer))
+        bg_tasks = BackgroundTasks(bot)
+        bot.loop.create_task(bg_tasks.change_presence_task(bg_activity_timer))
 
 
 async def load_cogs(bot):
@@ -143,24 +150,24 @@ async def delete_message(ctx, warning=False):
                 await send_msg(ctx, msg, False, color)
 
 
-def is_member_admin(member: discord.Member):
-    if member is not None \
-            and hasattr(member, "guild_permissions") \
-            and member.guild_permissions.administrator:
-        return True
-    return False
+def is_member_admin(member: Optional[discord.Member]) -> bool:
+    """Check if a member has administrator permissions."""
+    return member is not None and hasattr(member, "guild_permissions") and member.guild_permissions.administrator
 
 
-def is_bot_owner(ctx, member: discord.Member):
-    return True if ctx.bot.owner_id == member.id else False
+def is_bot_owner(ctx: "commands.Context", member: discord.Member) -> bool:
+    """Check if a member is the bot owner."""
+    return ctx.bot.owner_id == member.id
 
 
-def is_server_owner(ctx, member: discord.Member):
-    return True if member.id == ctx.guild.owner_id else False
+def is_server_owner(ctx: "commands.Context", member: discord.Member) -> bool:
+    """Check if a member is the server owner."""
+    return member.id == ctx.guild.owner_id
 
 
-def is_private_message(ctx):
-    return True if isinstance(ctx.channel, discord.DMChannel) else False
+def is_private_message(ctx: "commands.Context") -> bool:
+    """Check if the context is a private/DM message."""
+    return isinstance(ctx.channel, discord.DMChannel)
 
 
 def get_current_date_time():
@@ -179,27 +186,33 @@ def convert_datetime_to_str_short(date: datetime):
     return date.strftime(f"{variables.DATE_FORMATTER} {variables.TIME_FORMATTER}")
 
 
-def convert_str_to_datetime_short(date_str: str):
+def convert_str_to_datetime_short(date_str: str) -> datetime:
+    """Convert short format string to datetime."""
     return datetime.strptime(date_str, f"{variables.DATE_FORMATTER} {variables.TIME_FORMATTER}")
 
 
-def get_object_member_by_str(ctx, member_str: str):
-    if not is_private_message(ctx):
-        for member in ctx.guild.members:
-            if (member_str in (member.name, member.display_name) or
-                    (member.nick is not None and str(member.nick.lower()) == str(member_str.lower()))):
-                return member
+def get_object_member_by_str(ctx: "commands.Context", member_str: str) -> Optional[discord.Member]:
+    """Find a guild member by name, display name, or nickname."""
+    if is_private_message(ctx):
+        return None
+
+    for member in ctx.guild.members:
+        if member_str in (member.name, member.display_name) or (
+            member.nick is not None and member.nick.lower() == member_str.lower()
+        ):
+            return member
+
     return None
 
 
-def get_user_by_id(bot, user_id: int):
-    user = bot.get_user(int(user_id))
-    return user
+def get_user_by_id(bot: "commands.Bot", user_id: int) -> Optional[discord.User]:
+    """Get a user by their ID."""
+    return bot.get_user(int(user_id))
 
 
-def get_member_by_id(guild: discord.Guild, member_id: int):
-    member = guild.get_member(int(member_id))
-    return member
+def get_member_by_id(guild: discord.Guild, member_id: int) -> Optional[discord.Member]:
+    """Get a guild member by their ID."""
+    return guild.get_member(int(member_id))
 
 
 async def send_msg_to_system_channel(log, server, embed, plain_msg=None):
@@ -213,56 +226,59 @@ async def send_msg_to_system_channel(log, server, embed, plain_msg=None):
                 await channel_to_send_msg.send(plain_msg)
 
 
-async def get_server_system_channel(server: discord.Guild):
+async def get_server_system_channel(server: discord.Guild) -> Optional[discord.TextChannel]:
+    """Get the server's system channel or find the first readable text channel."""
     if server.system_channel:
         return server.system_channel
-    sorted_text_channels = sorted(server.text_channels, key=attrgetter("position"))
-    for channel in sorted_text_channels:
-        if hasattr(channel, "overwrites"):
-            for key, value in channel.overwrites.items():
-                if hasattr(key, "name") and key.name == "@everyone" and value.read_messages in (True, None):
-                    return channel
+
+    # Find the first publicly readable text channel
+    sorted_channels = sorted(server.text_channels, key=attrgetter("position"))
+
+    for channel in sorted_channels:
+        if not hasattr(channel, "overwrites"):
+            continue
+
+        for target, permissions in channel.overwrites.items():
+            if hasattr(target, "name") and target.name == "@everyone" and permissions.read_messages in (True, None):
+                return channel
+
     return None
 
 
-def get_color_settings(color: str):
-    if str(color).lower() == "random":
+def get_color_settings(color: str) -> Optional[discord.Color]:
+    """Get a Discord color from string name or generate random color."""
+    color_lower = color.lower()
+
+    if color_lower == "random":
         system_random = random.SystemRandom()
-        color = "".join([system_random.choice("0123456789ABCDEF") for _ in range(6)])
-        color = int(color, 16)
-        return color
-    for cor in Colors:
-        if cor.name.lower() == color.lower():
-            return cor.value
+        hex_color = "".join(system_random.choice("0123456789ABCDEF") for _ in range(6))
+        return discord.Color(int(hex_color, 16))
+
+    for color_enum in Colors:
+        if color_enum.name.lower() == color_lower:
+            return color_enum.value
+
+    return None
 
 
-def get_bot_stats(bot):
-    result = {}
-    unique_users = 0
-    bot_users = 0
-    text_channels = 0
-    voice_channels = 0
+def get_bot_stats(bot: "commands.Bot") -> dict[str, str | datetime]:
+    """Get comprehensive bot statistics."""
+    unique_users = sum(1 for user in bot.users if not user.bot)
+    bot_users = sum(1 for user in bot.users if user.bot)
 
-    for u in bot.users:
-        if u.bot is False:
-            unique_users += 1
-        if u.bot is True:
-            bot_users += 1
+    text_channels = sum(
+        1 for guild in bot.guilds for channel in guild.channels if isinstance(channel, discord.TextChannel)
+    )
 
-    for g in bot.guilds:
-        for c in g.channels:
-            if isinstance(c, discord.TextChannel):
-                text_channels += 1
-            elif isinstance(c, discord.VoiceChannel):
-                voice_channels += 1
+    voice_channels = sum(
+        1 for guild in bot.guilds for channel in guild.channels if isinstance(channel, discord.VoiceChannel)
+    )
 
-    result["servers"] = f"{len(bot.guilds)} servers"
-    result["users"] = f"({unique_users} users)({bot_users} bots)[{len(bot.users)} total]"
-    result["channels"] = f"({text_channels} text)({voice_channels} voice)[{int(text_channels + voice_channels)} total]"
+    total_channels = text_channels + voice_channels
 
-    if bot.start_time is None:
-        result["start_time"] = get_current_date_time()
-    else:
-        result["start_time"] = bot.start_time
-
-    return result
+    return {
+        "servers": f"{len(bot.guilds)} servers",
+        "users": f"({unique_users} users)({bot_users} bots)[{len(bot.users)} total]",
+        "channels": f"({text_channels} text)({voice_channels} voice)[{total_channels} total]",
+        "start_time": bot.start_time if bot.start_time else get_current_date_time(),
+    }

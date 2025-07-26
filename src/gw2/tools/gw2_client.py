@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from src.gw2.constants import gw2_variables, gw2_messages
 from src.gw2.tools.gw2_exceptions import (
     APIBadRequest, APIConnectionError, APIError, APIForbidden,
@@ -6,7 +5,7 @@ from src.gw2.tools.gw2_exceptions import (
 )
 
 
-class Gw2Api:
+class Gw2Client:
     def __init__(self, bot):
         self.bot = bot
 

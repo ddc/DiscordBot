@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sqlalchemy as sa
 from ddcDatabases import DBUtilsAsync
 from sqlalchemy.future import select
@@ -20,17 +19,21 @@ class Gw2KeyDal:
             permissions=insert_args["permissions"],
             key=insert_args["api_key"],
         )
-        await self.db_utils.add(stmt)
+        await self.db_utils.insert(stmt)
 
     async def update_api_key(self, update_args: dict):
-        stmt = sa.update(Gw2Keys).where(
-            Gw2Keys.user_id == update_args["user_id"],
-        ).values(
-            name=update_args["key_name"],
-            gw2_acc_name=update_args["gw2_acc_name"],
-            server=update_args["server_name"],
-            permissions=update_args["permissions"],
-            key=update_args["api_key"],
+        stmt = (
+            sa.update(Gw2Keys)
+            .where(
+                Gw2Keys.user_id == update_args["user_id"],
+            )
+            .values(
+                name=update_args["key_name"],
+                gw2_acc_name=update_args["gw2_acc_name"],
+                server=update_args["server_name"],
+                permissions=update_args["permissions"],
+                key=update_args["api_key"],
+            )
         )
         await self.db_utils.execute(stmt)
 
@@ -39,12 +42,14 @@ class Gw2KeyDal:
         await self.db_utils.execute(stmt)
 
     async def get_api_key(self, api_key: str):
-        stmt = select(*self.columns).where(Gw2Keys.key == api_key,)
+        stmt = select(*self.columns).where(
+            Gw2Keys.key == api_key,
+        )
         results = await self.db_utils.fetchall(stmt)
         return results
 
     async def get_api_key_by_name(self, key_name: str):
-        stmt = select(*self.columns).where(Gw2Keys.name == key_name,)
+        stmt = select(*self.columns).where(Gw2Keys.name == key_name)
         results = await self.db_utils.fetchall(stmt)
         return results
 

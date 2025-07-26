@@ -4,6 +4,7 @@
 [![license](https://img.shields.io/github/license/ddc/DiscordBot.svg?style=plastic)](https://github.com/ddc/DiscordBot/blob/master/LICENSE) 
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-yellow.svg?style=plastic)](https://www.postgresql.org)
 [![python](https://img.shields.io/badge/python-3.13-lightgrey.svg?style=plastic)](https://www.python.org/downloads/release)
+[![codecov](https://codecov.io/gh/ddc/DiscordBot/graph/badge.svg?token=K2SSZ142O1)](https://codecov.io/gh/ddc/DiscordBot)
 [![Release](https://img.shields.io/github/release/ddc/DiscordBot.svg?style=plastic)](https://github.com/ddc/DiscordBot/releases/latest)
 [![Build Status](https://img.shields.io/endpoint.svg?url=https://actions-badge.atrox.dev/ddc/DiscordBot/badge?ref=master&style=plastic&label=build&logo=none)](https://actions-badge.atrox.dev/ddc/DiscordBot/goto?ref=master)
 

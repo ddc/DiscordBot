@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "DiscordBot"
-version = "2.0.21"
+version = "3.0.0"
 description = "A Bot for Discord"
 license = "MIT"
 readme = "README.md"
@@ -22,36 +22,26 @@ keywords = [
 [tool.poetry.dependencies]
 python = "^3.13"
 alembic = "^1.16.4"
-audioop-lts = "^0.2.1"
 beautifulsoup4 = "^4.13.4"
-better-profanity = "^0.7.0"
-colorama = "^0.4.6"
-chardet = "^5.2.0"
-ddcDatabases = {extras = ["pgsql"], version = "^1.0.24"}
-ddcUtils = "^1.0.39"
+ddcDatabases = {extras = ["pgsql"], version = "^2.0.2"}
+ddcUtils = "^1.0.40"
 discord-py = "^2.5.2"
-greenlet = "^3.2.3"
 gTTS = "^2.5.4"
-openai = "^1.97.0"
+openai = "^1.97.1"
 PyNaCl = "^1.5.0"
-pythonLogs = "^4.0.5"
-six = "^1.17.0"
-sqlalchemy = "^2.0.41"
-typing_extensions = "^4.13.2"
-urllib3 = "^2.5.0"
+pythonLogs = "^5.0.1"
 
 [tool.poetry.group.test.dependencies]
-coverage = "^7.9.2"
+coverage = "^7.10.0"
 faker = "^37.4.2"
 poethepoet = "^0.36.0"
 pytest = "^8.4.1"
 pytest-asyncio = "^1.1.0"
+pytest-cov = "^6.2.1"
 
 [tool.poe.tasks]
-_test = "coverage run -m pytest -v"
-_coverage_report = "coverage report"
-_coverage_xml = "coverage xml"
-tests = ["_test", "_coverage_report", "_coverage_xml"]
+_test = "python -m pytest -v --cov=src --cov-report=term --cov-report=xml --junitxml=junit.xml -o junit_family=legacy"
+tests = ["_test"]
 test = ["tests"]
 
 [tool.poetry.group.test]
@@ -62,11 +52,25 @@ line-length = 120
 skip-string-normalization = true
 
 [tool.coverage.run]
+source = ["src"]
 omit = [
     "tests/*",
+    "src/database/migrations/*",
+    "*/__init__.py",
 ]
 
 [tool.coverage.report]
 exclude_lines = [
     "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
 ]
+show_missing = false
+skip_covered = false

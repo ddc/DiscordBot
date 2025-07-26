@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from datetime import datetime
 from sqlalchemy import BigInteger, Boolean, CHAR, DateTime, ForeignKey
 from sqlalchemy.ext.asyncio import AsyncAttrs

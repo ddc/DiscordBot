@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.gw2.cogs.gw2 import GuildWars2
-from src.gw2.tools.gw2_api import Gw2Api
+from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 from src.gw2.constants import gw2_messages
 
@@ -34,7 +33,7 @@ async def characters(ctx):
         return await bot_utils.send_error_msg(ctx, msg)
 
     api_key = str(rs[0]["key"])
-    gw2_api = Gw2Api(ctx.bot)
+    gw2_api = Gw2Client(ctx.bot)
     is_valid_key = await gw2_api.check_api_key(api_key)
     if not isinstance(is_valid_key, dict):
         msg = f"{is_valid_key.args[1]}\n"

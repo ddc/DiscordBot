@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from datetime import datetime
 from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB

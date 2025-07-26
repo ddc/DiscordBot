@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sqlalchemy as sa
 from ddcDatabases import DBUtilsAsync
 from sqlalchemy.future import select
@@ -12,10 +11,14 @@ class Gw2SessionsDal:
         self.log = log
 
     async def insert_start_session(self, session: dict):
-        stmt = sa.delete(Gw2Sessions).where(Gw2Sessions.user_id == session["user_id"],)
+        stmt = sa.delete(Gw2Sessions).where(
+            Gw2Sessions.user_id == session["user_id"],
+        )
         await self.db_utils.execute(stmt)
 
-        stmt = sa.delete(Gw2SessionChars).where(Gw2SessionChars.user_id == session["user_id"],)
+        stmt = sa.delete(Gw2SessionChars).where(
+            Gw2SessionChars.user_id == session["user_id"],
+        )
         await self.db_utils.execute(stmt)
 
         stmt = Gw2Sessions(
@@ -23,14 +26,16 @@ class Gw2SessionsDal:
             acc_name=session["acc_name"],
             start=session,
         )
-        await self.db_utils.add(stmt)
+        await self.db_utils.insert(stmt)
         return stmt.id
 
     async def update_end_session(self, session: dict):
-        stmt = sa.update(Gw2Sessions).where(
-            Gw2Sessions.user_id == session["user_id"],
-        ).values(
-            end=session
+        stmt = (
+            sa.update(Gw2Sessions)
+            .where(
+                Gw2Sessions.user_id == session["user_id"],
+            )
+            .values(end=session)
         )
         await self.db_utils.execute(stmt)
 
