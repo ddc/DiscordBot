@@ -600,7 +600,7 @@ class TestGetWorldsIds:
             mock_client = mock_client_class.return_value
             
             async def mock_call_api(*args, **kwargs):
-                raise Exception("API Error")
+                raise ConnectionError("API Error")
             
             mock_client.call_api = MagicMock(side_effect=mock_call_api)
             

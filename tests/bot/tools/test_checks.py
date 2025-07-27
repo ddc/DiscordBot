@@ -108,7 +108,7 @@ class TestCheckIsAdmin:
         """Test that check_is_admin uses commands.check."""
         mock_commands_check.return_value = lambda f: f  # Return identity function
 
-        decorator = Checks.check_is_admin()
+        Checks.check_is_admin()
 
         # Verify commands.check was called
         mock_commands_check.assert_called_once()

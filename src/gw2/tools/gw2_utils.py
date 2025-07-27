@@ -244,7 +244,7 @@ async def check_gw2_game_activity(bot: "commands.Bot", before: discord.Member, a
     after_activity = _get_non_custom_activity(after.activities)
 
     if _is_gw2_activity_detected(before_activity, after_activity):
-        await _handle_gw2_activity_change(bot, after, before_activity, after_activity)
+        await _handle_gw2_activity_change(bot, after, after_activity)
 
 
 def _get_non_custom_activity(activities) -> Optional[discord.Activity]:
@@ -265,7 +265,6 @@ def _is_gw2_activity_detected(before_activity, after_activity) -> bool:
 async def _handle_gw2_activity_change(
     bot: "commands.Bot",
     member: discord.Member,
-    before_activity,
     after_activity,
 ) -> None:
     """Handle GW2 activity changes and manage session tracking."""

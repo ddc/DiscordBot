@@ -432,7 +432,7 @@ class TestExceptionHandling:
         """Test that exception messages are properly formatted in logs."""
         error_message = "API call failed with status 500"
         
-        error = APIInactiveError(mock_bot, error_message)
+        _ = APIInactiveError(mock_bot, error_message)
         
         expected_log_message = f"GW2 API Error: {error_message}"
         mock_bot.log.error.assert_called_once_with(expected_log_message)
