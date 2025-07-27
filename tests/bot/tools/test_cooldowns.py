@@ -160,7 +160,7 @@ class TestCoolDownsEnumBehavior:
                 assert admin != other
 
         # Values should be comparable numerically
-        assert admin.value == admin.value
+        assert admin.value == admin.seconds
         assert admin.value >= 0
 
     def test_cooldowns_iteration(self):

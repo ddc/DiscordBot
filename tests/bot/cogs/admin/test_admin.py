@@ -24,7 +24,7 @@ def mock_bot():
     bot.user = MagicMock()
     bot.user.display_name = "TestBot"
     bot.user.avatar = MagicMock()
-    bot.user.avatar.url = "http://example.com/bot_avatar.png"
+    bot.user.avatar.url = "https://example.com/bot_avatar.png"
     bot.command_prefix = ("!",)
     bot.settings = {"bot": {"BGActivityTimer": 0}}
     return bot
@@ -44,13 +44,13 @@ def mock_ctx():
     ctx.guild.id = 12345
     ctx.guild.name = "Test Server"
     ctx.guild.icon = MagicMock()
-    ctx.guild.icon.url = "http://example.com/icon.png"
+    ctx.guild.icon.url = "https://example.com/icon.png"
 
     author = MagicMock()
     author.id = 67890
     author.display_name = "TestUser"
     author.avatar = MagicMock()
-    author.avatar.url = "http://example.com/avatar.png"
+    author.avatar.url = "https://example.com/avatar.png"
 
     ctx.author = author
     ctx.message = MagicMock()
@@ -105,7 +105,7 @@ class TestAdmin:
         embed = embed_call[0][1]
         assert messages.BOT_ANNOUNCE_PLAYING.format(game) in embed.description
         assert embed.author.name == "TestBot"
-        assert embed.author.icon_url == "http://example.com/bot_avatar.png"
+        assert embed.author.icon_url == "https://example.com/bot_avatar.png"
 
     @pytest.mark.asyncio
     @patch('src.bot.cogs.admin.admin.bot_utils.send_embed')

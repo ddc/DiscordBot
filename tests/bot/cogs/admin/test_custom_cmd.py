@@ -42,7 +42,7 @@ def mock_ctx():
     ctx.guild.id = 12345
     ctx.guild.name = "Test Server"
     ctx.guild.icon = MagicMock()
-    ctx.guild.icon.url = "http://example.com/icon.png"
+    ctx.guild.icon.url = "https://example.com/icon.png"
     
     author = MagicMock()
     author.id = 67890
@@ -392,7 +392,7 @@ class TestCustomCommand:
         
         embed = mock_send_embed.call_args[0][1]
         assert embed.author.name == messages.CUSTOM_COMMANDS_SERVER
-        assert embed.author.icon_url == "http://example.com/icon.png"
+        assert embed.author.icon_url == "https://example.com/icon.png"
         assert len(embed.fields) == 3  # Command, Created by, Created at
         assert embed.footer.text == "For more info: !help admin cc"
     

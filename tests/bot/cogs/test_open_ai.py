@@ -21,7 +21,7 @@ def mock_bot():
     bot.log = MagicMock()
     bot.user = MagicMock()
     bot.user.avatar = MagicMock()
-    bot.user.avatar.url = "http://example.com/bot_avatar.png"
+    bot.user.avatar.url = "https://example.com/bot_avatar.png"
     return bot
 
 
@@ -43,7 +43,7 @@ def mock_ctx():
     author.id = 67890
     author.display_name = "TestUser"
     author.avatar = MagicMock()
-    author.avatar.url = "http://example.com/avatar.png"
+    author.avatar.url = "https://example.com/avatar.png"
     
     ctx.author = author
     ctx.message = MagicMock()
@@ -121,7 +121,7 @@ class TestOpenAi:
             assert embed.color == discord.Color.green()
             assert embed.description == "AI response here"
             assert embed.author.name == "TestUser"
-            assert embed.author.icon_url == "http://example.com/avatar.png"
+            assert embed.author.icon_url == "https://example.com/avatar.png"
     
     @pytest.mark.asyncio
     @patch('src.bot.cogs.open_ai.get_bot_settings')
@@ -168,7 +168,7 @@ class TestOpenAi:
         
         assert call_args[1]['model'] == "gpt-3.5-turbo"
         assert call_args[1]['max_tokens'] == 1000
-        assert call_args[1]['temperature'] == 0.7
+        assert call_args[1]['temperature'] == pytest.approx(0.7)
         
         # Verify message types and content
         messages = call_args[1]['messages']
@@ -205,11 +205,11 @@ class TestOpenAi:
         assert embed.color == color
         assert embed.description == description
         assert embed.author.name == "TestUser"
-        assert embed.author.icon_url == "http://example.com/avatar.png"
+        assert embed.author.icon_url == "https://example.com/avatar.png"
     
     def test_create_ai_embed_long_description(self, openai_cog, mock_ctx):
         """Test _create_ai_embed with description exceeding 2000 characters."""
-        long_description = "a" * 2010  # Exceeds 2000 character limit
+        long_description = "a" * 2010  # Exceeds 2000-character limit
         color = discord.Color.green()
         
         embed = openai_cog._create_ai_embed(mock_ctx, long_description, color)
@@ -339,7 +339,7 @@ class TestOpenAi:
         
         call_args = mock_client.chat.completions.create.call_args[1]
         assert call_args['max_tokens'] == 1000
-        assert call_args['temperature'] == 0.7
+        assert call_args['temperature'] == pytest.approx(0.7)
         assert call_args['model'] == "gpt-3.5-turbo"
     
     @patch('src.bot.cogs.open_ai.bot_utils.get_current_date_time_str_long')

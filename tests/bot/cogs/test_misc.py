@@ -25,7 +25,7 @@ def mock_bot():
     bot.user.name = "TestBot"
     bot.user.display_name = "TestBot"
     bot.user.avatar = MagicMock()
-    bot.user.avatar.url = "http://example.com/bot_avatar.png"
+    bot.user.avatar.url = "https://example.com/bot_avatar.png"
     bot.owner_id = 123456
     bot.description = "Test bot description"
     bot.start_time = datetime.now(timezone.utc)
@@ -48,7 +48,7 @@ def mock_ctx():
     ctx.guild.id = 12345
     ctx.guild.name = "Test Server"
     ctx.guild.icon = MagicMock()
-    ctx.guild.icon.url = "http://example.com/icon.png"
+    ctx.guild.icon.url = "https://example.com/icon.png"
     ctx.guild.members = []
     ctx.guild.text_channels = []
     ctx.guild.voice_channels = []
@@ -63,7 +63,7 @@ def mock_ctx():
     author.display_name = "TestUser"
     author.nick = None
     author.avatar = MagicMock()
-    author.avatar.url = "http://example.com/avatar.png"
+    author.avatar.url = "https://example.com/avatar.png"
     author.created_at = datetime.now(timezone.utc)
     author.joined_at = datetime.now(timezone.utc)
     author.color = discord.Color.blue()
@@ -90,7 +90,7 @@ def mock_member():
     member.display_name = "TestMember"
     member.nick = "Nickname"
     member.avatar = MagicMock()
-    member.avatar.url = "http://example.com/member_avatar.png"
+    member.avatar.url = "https://example.com/member_avatar.png"
     member.created_at = datetime.now(timezone.utc)
     member.joined_at = datetime.now(timezone.utc)
     member.color = discord.Color.green()
@@ -112,16 +112,16 @@ class TestMisc:
     
     # Test pepe command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.pepedatabase', ['http://example.com/pepe1.jpg', 'http://example.com/pepe2.jpg'])
+    @patch('src.bot.cogs.misc.pepedatabase', ['https://example.com/pepe1.jpg', 'https://example.com/pepe2.jpg'])
     async def test_pepe_command_success(self, misc_cog, mock_ctx):
         """Test successful pepe command execution."""
         mock_ctx.subcommand_passed = None
         
-        with patch.object(misc_cog._random, 'choice', return_value='http://example.com/pepe1.jpg'):
+        with patch.object(misc_cog._random, 'choice', return_value='https://example.com/pepe1.jpg'):
             await misc_cog.pepe.callback(misc_cog, mock_ctx)
             
             mock_ctx.message.channel.typing.assert_called_once()
-            mock_ctx.send.assert_called_once_with('http://example.com/pepe1.jpg')
+            mock_ctx.send.assert_called_once_with('https://example.com/pepe1.jpg')
     
     @pytest.mark.asyncio
     async def test_pepe_command_with_subcommand(self, misc_cog, mock_ctx):
@@ -441,7 +441,7 @@ class TestMisc:
         # Setup bot owner - make get_user return a regular mock, not coroutine
         mock_owner = MagicMock()
         mock_owner.avatar = MagicMock()
-        mock_owner.avatar.url = "http://example.com/owner_avatar.png"
+        mock_owner.avatar.url = "https://example.com/owner_avatar.png"
         misc_cog.bot.get_user = MagicMock(return_value=mock_owner)  # Not AsyncMock
         
         await misc_cog.about.callback(misc_cog, mock_ctx)

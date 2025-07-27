@@ -31,14 +31,14 @@ def mock_ctx():
     ctx.guild.id = 12345
     ctx.guild.name = "Test Server"
     ctx.guild.icon = MagicMock()
-    ctx.guild.icon.url = "http://example.com/icon.png"
+    ctx.guild.icon.url = "https://example.com/icon.png"
     
     # Set author as the actual attributes, not AsyncMock
     author = MagicMock()
     author.id = 67890
     author.display_name = "TestUser"
     author.avatar = MagicMock()
-    author.avatar.url = "http://example.com/avatar.png"
+    author.avatar.url = "https://example.com/avatar.png"
     
     ctx.author = author  # Direct assignment
     ctx.message = MagicMock()
@@ -445,7 +445,7 @@ class TestDiceRolls:
         
         # Check embed author
         assert embed.author.name == "Test Server (Dice Size: 100)"
-        assert embed.author.icon_url == "http://example.com/icon.png"
+        assert embed.author.icon_url == "https://example.com/icon.png"
         
         # Check fields
         assert len(embed.fields) == 2
@@ -478,5 +478,5 @@ class TestDiceRolls:
         embed = mock_send_embed.call_args[0][1]
         assert embed.color == discord.Color.red()
         assert embed.author.name == "TestUser"
-        assert embed.author.icon_url == "http://example.com/avatar.png"
+        assert embed.author.icon_url == "https://example.com/avatar.png"
         assert ":game_die: 42 :game_die:" in embed.description

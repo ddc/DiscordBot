@@ -23,7 +23,7 @@ def mock_bot():
     bot.user = MagicMock()
     bot.user.display_name = "TestBot"
     bot.user.avatar = MagicMock()
-    bot.user.avatar.url = "http://example.com/bot_avatar.png"
+    bot.user.avatar.url = "https://example.com/bot_avatar.png"
     bot.user.activity = MagicMock()
     bot.user.activity.type = discord.ActivityType.playing
     bot.user.activity.name = "Test Game | !help"

@@ -467,9 +467,9 @@ class TestOnGuildUpdate:
         mock_dal.get_server.return_value = {"msg_on_server_update": True}
 
         # Set guild to have different icon URL
-        mock_guild_before.icon.url = "http://example.com/old_icon.png"
+        mock_guild_before.icon.url = "https://example.com/old_icon.png"
         mock_guild.icon = MagicMock()
-        mock_guild.icon.url = "http://example.com/new_icon.png"  # Different URL to trigger change
+        mock_guild.icon.url = "https://example.com/new_icon.png"  # Different URL to trigger change
         mock_guild_before.name = mock_guild.name
         mock_guild_before.owner_id = mock_guild.owner_id
 

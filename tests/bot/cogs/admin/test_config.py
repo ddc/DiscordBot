@@ -42,7 +42,7 @@ def mock_ctx():
     ctx.guild.id = 12345
     ctx.guild.name = "Test Server"
     ctx.guild.icon = MagicMock()
-    ctx.guild.icon.url = "http://example.com/icon.png"
+    ctx.guild.icon.url = "https://example.com/icon.png"
     ctx.guild.text_channels = []
     ctx.guild.me = MagicMock()
     ctx.guild.me.guild_permissions = MagicMock()
