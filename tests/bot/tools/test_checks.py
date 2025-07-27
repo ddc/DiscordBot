@@ -191,7 +191,7 @@ class TestCheckIsBotOwner:
         """Test that check_is_bot_owner uses commands.check."""
         mock_commands_check.return_value = lambda f: f  # Return identity function
 
-        decorator = Checks.check_is_bot_owner()
+        Checks.check_is_bot_owner()
 
         # Verify commands.check was called
         mock_commands_check.assert_called_once()

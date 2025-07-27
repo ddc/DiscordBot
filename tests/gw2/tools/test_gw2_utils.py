@@ -8,6 +8,8 @@ from typing import Dict, List, Optional
 import discord
 from discord.ext import commands
 
+from src.gw2.tools.gw2_exceptions import APIConnectionError
+
 from src.gw2.tools.gw2_utils import (
     send_msg,
     insert_gw2_server_configs,
@@ -600,7 +602,7 @@ class TestGetWorldsIds:
             mock_client = mock_client_class.return_value
             
             async def mock_call_api(*args, **kwargs):
-                raise ConnectionError("API Error")
+                raise APIConnectionError(mock_ctx.bot, "API Error")
             
             mock_client.call_api = MagicMock(side_effect=mock_call_api)
             
@@ -610,7 +612,7 @@ class TestGetWorldsIds:
                 assert success is False
                 assert results is None
                 mock_error.assert_called_once()
-                mock_ctx.bot.log.error.assert_called_once()
+                assert mock_ctx.bot.log.error.call_count == 2  # APIConnectionError logs + get_worlds_ids logs
 
 
 class TestActivityHelpers:
