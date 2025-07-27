@@ -55,11 +55,11 @@ class TestSendMsg:
             mock_send.assert_called_once()
             # send_embed is called with (ctx, embed, dm) as positional args
             args = mock_send.call_args[0]
-            ctx, embed, dm = args[0], args[1], args[2]
+            ctx, _, dm = args[0], args[1], args[2]
             
             assert ctx == mock_ctx
-            assert embed.description == "Test message"
-            assert embed.color.value == 0x123456
+            assert args[1].description == "Test message"
+            assert args[1].color.value == 0x123456
             assert dm is False
 
     @pytest.mark.asyncio
@@ -71,7 +71,7 @@ class TestSendMsg:
             mock_send.assert_called_once()
             # send_embed is called with (ctx, embed, dm) as positional args
             args = mock_send.call_args[0]
-            ctx, embed, dm = args[0], args[1], args[2]
+            ctx, _, dm = args[0], args[1], args[2]
             assert dm is True
 
 
@@ -99,15 +99,9 @@ class TestInsertGw2ServerConfigs:
         with patch('src.gw2.tools.gw2_utils.Gw2ConfigsDal') as mock_dal:
             mock_instance = mock_dal.return_value
             
-            # Use regular MagicMock with async return values to avoid cleanup warnings
-            async def mock_get_configs(*args, **kwargs):
-                return None
-            
-            async def mock_insert_configs(*args, **kwargs):
-                return None
-            
-            mock_instance.get_gw2_server_configs = MagicMock(side_effect=mock_get_configs)
-            mock_instance.insert_gw2_server_configs = MagicMock(side_effect=mock_insert_configs)
+            # Use AsyncMock for async functions
+            mock_instance.get_gw2_server_configs = AsyncMock(return_value=None)
+            mock_instance.insert_gw2_server_configs = AsyncMock(return_value=None)
             
             await insert_gw2_server_configs(mock_bot, mock_server)
             
@@ -120,15 +114,9 @@ class TestInsertGw2ServerConfigs:
         with patch('src.gw2.tools.gw2_utils.Gw2ConfigsDal') as mock_dal:
             mock_instance = mock_dal.return_value
             
-            # Use regular MagicMock with async return values to avoid cleanup warnings
-            async def mock_get_configs(*args, **kwargs):
-                return {"existing": "config"}
-            
-            async def mock_insert_configs(*args, **kwargs):
-                return None
-            
-            mock_instance.get_gw2_server_configs = MagicMock(side_effect=mock_get_configs)
-            mock_instance.insert_gw2_server_configs = MagicMock(side_effect=mock_insert_configs)
+            # Use AsyncMock for async functions
+            mock_instance.get_gw2_server_configs = AsyncMock(return_value={"existing": "config"})
+            mock_instance.insert_gw2_server_configs = AsyncMock(return_value=None)
             
             await insert_gw2_server_configs(mock_bot, mock_server)
             
@@ -275,13 +263,10 @@ class TestGetWorldId:
         with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
             mock_client = mock_client_class.return_value
             
-            async def mock_call_api(*args, **kwargs):
-                return [
-                    {"id": 1001, "name": "Anvil Rock"},
-                    {"id": 1002, "name": "Borlis Pass"}
-                ]
-            
-            mock_client.call_api = MagicMock(side_effect=mock_call_api)
+            mock_client.call_api = AsyncMock(return_value=[
+                {"id": 1001, "name": "Anvil Rock"},
+                {"id": 1002, "name": "Borlis Pass"}
+            ])
             
             result = await get_world_id(mock_bot, "Anvil Rock")
             assert result == 1001
@@ -292,10 +277,7 @@ class TestGetWorldId:
         with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
             mock_client = mock_client_class.return_value
             
-            async def mock_call_api(*args, **kwargs):
-                return [{"id": 1001, "name": "Anvil Rock"}]
-            
-            mock_client.call_api = MagicMock(side_effect=mock_call_api)
+            mock_client.call_api = AsyncMock(return_value=[{"id": 1001, "name": "Anvil Rock"}])
             
             result = await get_world_id(mock_bot, "Non-existent World")
             assert result is None
@@ -333,10 +315,7 @@ class TestDeleteApiKey:
         ctx.message = MagicMock()
         
         # Create proper async mock to avoid cleanup warnings
-        async def mock_delete():
-            return None
-        
-        ctx.message.delete = MagicMock(side_effect=mock_delete)
+        ctx.message.delete = AsyncMock(return_value=None)
         return ctx
 
     @pytest.fixture
@@ -366,10 +345,7 @@ class TestDeleteApiKey:
     async def test_delete_api_key_http_exception(self, mock_ctx_guild):
         """Test handling HTTP exception when deleting."""
         # Create proper async mock that raises exception to avoid cleanup warnings
-        async def mock_delete_with_exception():
-            raise discord.HTTPException(response=MagicMock(), message="Forbidden")
-        
-        mock_ctx_guild.message.delete = MagicMock(side_effect=mock_delete_with_exception)
+        mock_ctx_guild.message.delete = AsyncMock(side_effect=discord.HTTPException(response=MagicMock(), message="Forbidden"))
         
         with patch('src.gw2.tools.gw2_utils.bot_utils.send_error_msg') as mock_error:
             await delete_api_key(mock_ctx_guild, message=True)
@@ -572,10 +548,7 @@ class TestGetWorldsIds:
         ctx.message = MagicMock()
         ctx.message.channel = MagicMock()
         
-        async def mock_typing():
-            return None
-        
-        ctx.message.channel.typing = MagicMock(side_effect=mock_typing)
+        ctx.message.channel.typing = AsyncMock(return_value=None)
         return ctx
 
     @pytest.mark.asyncio
@@ -584,10 +557,7 @@ class TestGetWorldsIds:
         with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
             mock_client = mock_client_class.return_value
             
-            async def mock_call_api(*args, **kwargs):
-                return [{"id": 1001, "name": "Anvil Rock"}]
-            
-            mock_client.call_api = MagicMock(side_effect=mock_call_api)
+            mock_client.call_api = AsyncMock(return_value=[{"id": 1001, "name": "Anvil Rock"}])
             
             success, results = await get_worlds_ids(mock_ctx)
             
@@ -601,10 +571,7 @@ class TestGetWorldsIds:
         with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
             mock_client = mock_client_class.return_value
             
-            async def mock_call_api(*args, **kwargs):
-                raise APIConnectionError(mock_ctx.bot, "API Error")
-            
-            mock_client.call_api = MagicMock(side_effect=mock_call_api)
+            mock_client.call_api = AsyncMock(side_effect=APIConnectionError(mock_ctx.bot, "API Error"))
             
             with patch('src.gw2.tools.gw2_utils.bot_utils.send_error_msg') as mock_error:
                 success, results = await get_worlds_ids(mock_ctx)
