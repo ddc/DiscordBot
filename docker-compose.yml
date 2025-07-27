@@ -55,7 +55,8 @@ services:
     volumes:
         - ${LOG_DIRECTORY}:${LOG_DIRECTORY}
     depends_on:
-      - bot_alembic
+      bot_alembic:
+        condition: service_completed_successfully
     command: ["python", "/app/bot.py"]
 
 

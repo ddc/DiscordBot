@@ -11,10 +11,9 @@ from discord.ext import commands
 from pythonLogs import timed_rotating_logger
 from src.bot.constants import messages, variables
 from src.bot.constants.settings import get_bot_settings
-from src.gw2.constants.gw2_settings import get_gw2_settings
 from src.bot.tools import bot_utils
 from src.database.dal.bot.bot_configs_dal import BotConfigsDal
-from src.gw2.constants import gw2_variables
+from src.gw2.constants.gw2_settings import get_gw2_settings
 
 
 class Bot(commands.Bot):
@@ -54,7 +53,7 @@ class Bot(commands.Bot):
 
             # Load bot settings from environment variables
             self.settings["bot"] = {
-                "BGActivityTimer": str(bot_settings.bg_activity_timer),
+                "BGActivityTimer": bot_settings.bg_activity_timer,
                 "AllowedDMCommands": bot_settings.allowed_dm_commands,
                 "BotReactionWords": bot_settings.bot_reaction_words,
                 "EmbedColor": bot_utils.get_color_settings(bot_settings.embed_color),

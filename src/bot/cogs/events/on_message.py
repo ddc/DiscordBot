@@ -164,10 +164,10 @@ class ExclusiveUsersChecker:
     
     @staticmethod
     async def check_exclusive_users(bot: commands.Bot, ctx: commands.Context) -> bool:
-        """Check if user is in exclusive users list."""
+        """Check if user is in the exclusive users list."""
         exclusive_users = bot.settings["bot"]["ExclusiveUsers"]
 
-        if exclusive_users is None:
+        if exclusive_users is None or exclusive_users == "":
             return True
 
         user_id = ctx.message.author.id
