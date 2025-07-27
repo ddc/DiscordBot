@@ -47,10 +47,6 @@ _test = "python -m pytest -v --cov --cov-report=term --cov-report=xml --junitxml
 tests = ["_test"]
 test = ["tests"]
 
-[tool.black]
-line-length = 120
-skip-string-normalization = true
-
 [tool.coverage.run]
 omit = [
     "tests/*",
@@ -73,3 +69,7 @@ exclude_lines = [
 ]
 show_missing = false
 skip_covered = false
+
+[tool.black]
+line-length = 120
+skip-string-normalization = true

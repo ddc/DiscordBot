@@ -663,19 +663,19 @@ toml = ["tomli ; python_full_version <= \"3.11.0a6\""]
 
 [[package]]
 name = "ddcdatabases"
-version = "2.0.2"
+version = "2.0.3"
 description = "Database ORM Connections and Queries"
 optional = false
 python-versions = "<4.0,>=3.12"
 groups = ["main"]
 files = [
-    {file = "ddcdatabases-2.0.2-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:ed01861848ae0c1ea211785c331b58b06f7cef5461dbf26bcffddb2946aac123"},
-    {file = "ddcdatabases-2.0.2-cp312-cp312-manylinux_2_39_x86_64.whl", hash = "sha256:2ba089adbc8f1054e5a2cd468ba9470e52d9c39ed058c2e30d0075f9020f125e"},
-    {file = "ddcdatabases-2.0.2-cp312-cp312-win_amd64.whl", hash = "sha256:d3fc501dbc04705d217f77b66a3b3f1db993b436753a90e5928f9e0770733b34"},
-    {file = "ddcdatabases-2.0.2-cp313-cp313-macosx_14_0_arm64.whl", hash = "sha256:c18d37ca45c40b44b3d0a0f47247cbaf824044c4e53bf1b0645284e83c4d1948"},
-    {file = "ddcdatabases-2.0.2-cp313-cp313-manylinux_2_39_x86_64.whl", hash = "sha256:044f01bd7be15beabe3ccb2f73d657e90419b53e1e588ce413a6f0a3f3d5f354"},
-    {file = "ddcdatabases-2.0.2-cp313-cp313-win_amd64.whl", hash = "sha256:3ced4fe3071509d366a4144394f1fdfc23e97dedf3eb82da4ca7b8fae3194176"},
-    {file = "ddcdatabases-2.0.2.tar.gz", hash = "sha256:d69ca59e88e06e43e56058adc94984edcc55585ecfaf6c82ca879cdb18159531"},
+    {file = "ddcdatabases-2.0.3-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:f89996cc116d6de6edc968e744106b5cd642a1d2cd8dfb4feed8e48e6ca0262e"},
+    {file = "ddcdatabases-2.0.3-cp312-cp312-manylinux_2_39_x86_64.whl", hash = "sha256:c06ae982dd5f0db1724b8aed84e2296de4ce5f63a7d30db307598536117935d6"},
+    {file = "ddcdatabases-2.0.3-cp312-cp312-win_amd64.whl", hash = "sha256:435fa2b9235d42e8b8fa5fc9c1c338ecf29ba439b6015d990ebeb0c80cde9452"},
+    {file = "ddcdatabases-2.0.3-cp313-cp313-macosx_14_0_arm64.whl", hash = "sha256:7b59c243ba678659b0a75f059a60fcc2c84f1750cd6b92038defe64b0f75b748"},
+    {file = "ddcdatabases-2.0.3-cp313-cp313-manylinux_2_39_x86_64.whl", hash = "sha256:3589d771e08bd839262223d775ebf75793a9282f6cf52d0a1b70867f7eb1f4ce"},
+    {file = "ddcdatabases-2.0.3-cp313-cp313-win_amd64.whl", hash = "sha256:95a676d05cebd3727eb262a173eece8c043c5136d1bcb2942d21a4f01a0d4088"},
+    {file = "ddcdatabases-2.0.3.tar.gz", hash = "sha256:aa091cf4141d07996ca653a98cc6f3df66d3d84231d91d843f6cca5c1ffe854d"},
 ]
 
 [package.dependencies]
@@ -2336,4 +2336,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.13"
-content-hash = "d712803d6b9382601d19a8c379d28ee735fc92cfcb1d385f69671195dcc22ae1"
+content-hash = "f42f9b41a700141e7fcc1f4fef3de936f9e52ca7718f45f3e573e1c2205f35df"
