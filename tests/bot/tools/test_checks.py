@@ -286,8 +286,7 @@ class TestChecksErrorMessages:
         from src.bot.tools.checks import Checks
 
         # Since we can't easily test the predicate, just verify the decorator works
-        decorator = Checks.check_is_admin()
-        assert callable(decorator)
+        assert callable(Checks.check_is_admin())
 
     def test_owner_check_error_message_content(self):
         """Test the error message creation logic."""
@@ -295,8 +294,7 @@ class TestChecksErrorMessages:
         from src.bot.tools.checks import Checks
 
         # Since we can't easily test the predicate, just verify the decorator works
-        decorator = Checks.check_is_bot_owner()
-        assert callable(decorator)
+        assert callable(Checks.check_is_bot_owner())
 
     def test_error_messages_are_different(self):
         """Test that admin and owner check create different decorators."""
