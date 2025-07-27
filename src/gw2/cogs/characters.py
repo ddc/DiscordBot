@@ -17,7 +17,7 @@ class GW2Characters(GuildWars2):
 
 
 @GW2Characters.gw2.command()
-@commands.cooldown(1, GW2CoolDowns.Characters.value, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Characters.seconds, BucketType.user)
 async def characters(ctx):
     """(General information about your GW2 characters)
     Required API permissions: account

@@ -30,7 +30,7 @@ async def wvw(ctx):
 
 
 @wvw.command(name="info")
-@commands.cooldown(1, GW2CoolDowns.Wvw.value, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Wvw.seconds, BucketType.user)
 async def info(ctx, *, world: str = None):
     await ctx.message.channel.typing()
     gw2_api = Gw2Client(ctx.bot)
@@ -136,7 +136,7 @@ async def info(ctx, *, world: str = None):
 
 
 @wvw.command(name="match")
-@commands.cooldown(1, GW2CoolDowns.Wvw.value, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Wvw.seconds, BucketType.user)
 async def match(ctx, *, world: str = None):
     """(Info about a wvw match. Defaults to account's world)
 
@@ -207,7 +207,7 @@ async def match(ctx, *, world: str = None):
 
 
 @wvw.command(name="kdr")
-@commands.cooldown(1, GW2CoolDowns.Wvw.value, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Wvw.seconds, BucketType.user)
 async def kdr(ctx, *, world: str = None):
     """(Info about a wvw kdr match. Defaults to account's world)
     gw2 kdr

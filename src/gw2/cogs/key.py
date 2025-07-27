@@ -32,7 +32,7 @@ async def key(ctx):
 
 
 @key.command(name="add")
-@commands.cooldown(1, GW2CoolDowns.ApiKeys.value, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.ApiKeys.seconds, BucketType.user)
 async def add(ctx, api_key: str):
     """(Adds a key and associates it with your discord account)
     Required API permissions: account
@@ -101,7 +101,7 @@ async def add(ctx, api_key: str):
 
 
 @key.command(name="remove")
-@commands.cooldown(1, GW2CoolDowns.ApiKeys.value, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.ApiKeys.seconds, BucketType.user)
 async def remove(ctx):
     """(Removes your GW2 API key from the bot)
     gw2 key remove
@@ -124,7 +124,7 @@ async def remove(ctx):
 
 
 @key.command(name="info", aliases=["list"])
-@commands.cooldown(1, GW2CoolDowns.ApiKeys.value, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.ApiKeys.seconds, BucketType.user)
 async def info(ctx, key_name: str = None):
     """(Removes your GW2 API key from the bot)
     gw2 key remove

@@ -27,7 +27,7 @@ async def worlds(ctx):
 
 
 @worlds.command(name="na")
-@commands.cooldown(1, GW2CoolDowns.Worlds.value, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Worlds.seconds, BucketType.user)
 async def worlds_na(ctx):
     """(List all NA worlds and wvw tier)
     gw2 worlds na
@@ -59,7 +59,7 @@ async def worlds_na(ctx):
 
 
 @worlds.command(name="eu")
-@commands.cooldown(1, GW2CoolDowns.Worlds.value, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Worlds.seconds, BucketType.user)
 async def worlds_eu(ctx):
     """(List all EU worlds and wvw tier)
     gw2 worlds eu

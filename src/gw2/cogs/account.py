@@ -18,7 +18,7 @@ class GW2Account(GuildWars2):
 
 
 @GW2Account.gw2.command()
-@commands.cooldown(1, GW2CoolDowns.Account.value, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Account.seconds, BucketType.user)
 async def account(ctx):
     """(General information about your GW2 account)
     Required API permissions: account

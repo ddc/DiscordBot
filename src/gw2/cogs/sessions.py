@@ -20,7 +20,7 @@ class GW2Session(GuildWars2):
 
 
 @GW2Session.gw2.command()
-@commands.cooldown(1, GW2CoolDowns.Session.value, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Session.seconds, BucketType.user)
 async def session(ctx):
     """(Info about the gw2 player last game session)
 

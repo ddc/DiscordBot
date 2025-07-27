@@ -277,9 +277,26 @@ class TestCoolDownsErrorHandling:
         with pytest.raises(AttributeError):
             _ = CoolDowns.NonExistentAttribute
 
-    @patch('src.bot.tools.cooldowns.variables.SETTINGS_FILENAME', None)
-    def test_missing_settings_file(self):
-        """Test behavior when settings file is not available."""
-        # This might cause issues during module import
-        # The actual behavior depends on how ConfFileUtils handles None filename
-        pass  # Placeholder for potential future test implementation
+    def test_cooldown_values_are_from_settings(self):
+        """Test that cooldown values are properly loaded from settings."""
+        from src.bot.tools.cooldowns import _bot_settings
+        from src.bot.constants import variables
+        
+        # In non-debug mode, values should come from settings
+        if not variables.DEBUG:
+            assert CoolDowns.Admin.value == _bot_settings.admin_cooldown
+            assert CoolDowns.Config.value == _bot_settings.config_cooldown
+            assert CoolDowns.CustomCommand.value == _bot_settings.custom_cmd_cooldown
+            assert CoolDowns.DiceRolls.value == _bot_settings.dice_rolls_cooldown
+            assert CoolDowns.Misc.value == _bot_settings.misc_cooldown
+            assert CoolDowns.OpenAI.value == _bot_settings.openai_cooldown
+            assert CoolDowns.Owner.value == _bot_settings.owner_cooldown
+        else:
+            # In debug mode, all cooldowns should be 1 second
+            assert CoolDowns.Admin.value == 1
+            assert CoolDowns.Config.value == 1
+            assert CoolDowns.CustomCommand.value == 1
+            assert CoolDowns.DiceRolls.value == 1
+            assert CoolDowns.Misc.value == 1
+            assert CoolDowns.OpenAI.value == 1
+            assert CoolDowns.Owner.value == 1

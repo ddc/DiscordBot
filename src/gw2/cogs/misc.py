@@ -18,7 +18,7 @@ class GW2Misc(GuildWars2):
 
 
 @GW2Misc.gw2.command()
-@commands.cooldown(1, GW2CoolDowns.Misc.value, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Misc.seconds, BucketType.user)
 async def wiki(ctx, *, search):
     """(Search the Guild wars 2 wiki)
     gw2 wiki name_to_search
@@ -85,7 +85,7 @@ async def wiki(ctx, *, search):
 
 
 @GW2Misc.gw2.command()
-@commands.cooldown(1, GW2CoolDowns.Misc.value, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Misc.seconds, BucketType.user)
 async def info(ctx, *, skill):
     """(Information about a given name/skill/rune)
     gw2 info info_to_search

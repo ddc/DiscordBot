@@ -82,7 +82,6 @@ PYTHON_OK: Final[bool] = sys.version_info >= (_PYTHON_MAJOR, _PYTHON_MINOR)
 VERSION: Final[str] = _get_project_version()
 
 # Configuration file paths
-SETTINGS_FILENAME: Final[str] = str(BASE_DIR / "config" / "bot_settings.ini")
 ALEMBIC_CONFIG_FILE_PATH: Final[str] = str(BASE_DIR / "config" / "alembic.ini")
 DATABASE_FILENAME: Final[str] = str(BASE_DIR / "data" / "database.db")
 LOGS_DIR: Final[str] = str(BASE_DIR / "logs")
