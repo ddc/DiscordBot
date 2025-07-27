@@ -694,26 +694,6 @@ oracle = ["cx-oracle (>=8.3.0,<9.0.0)"]
 pgsql = ["asyncpg (>=0.30.0,<0.31.0)", "psycopg2-binary (>=2.9.10,<3.0.0)"]
 
 [[package]]
-name = "ddcutils"
-version = "1.0.40"
-description = "Few File Utilities and some OS Functions"
-optional = false
-python-versions = "<4.0,>=3.12"
-groups = ["main"]
-files = [
-    {file = "ddcutils-1.0.40-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:de3be1b5fe76d991378baa100ea47c6365198fd56f69f5c7438a51a9aa15e9e5"},
-    {file = "ddcutils-1.0.40-cp312-cp312-manylinux_2_39_x86_64.whl", hash = "sha256:26b987ff98bfb3840c33486fb68c3a322c0e7649e032a9d62aa3f36ca603d86a"},
-    {file = "ddcutils-1.0.40-cp312-cp312-win_amd64.whl", hash = "sha256:1b31fd6e59625f3fa6d70f47f7fd3104a744bfbb6185f422144ad468a29ccc5b"},
-    {file = "ddcutils-1.0.40-cp313-cp313-macosx_14_0_arm64.whl", hash = "sha256:05d569123742811be557f2d985904da624fbfb8c1855b1bcbd61594c8e4698d3"},
-    {file = "ddcutils-1.0.40-cp313-cp313-manylinux_2_39_x86_64.whl", hash = "sha256:c9139797114fa0b9c1d1314a3e2b03806bf14a715181817fe897239ba37a0896"},
-    {file = "ddcutils-1.0.40-cp313-cp313-win_amd64.whl", hash = "sha256:09aa2b2615c664dab6aa5a522773b592b1b562f8e3badf09d869c3f885e4aa7a"},
-    {file = "ddcutils-1.0.40.tar.gz", hash = "sha256:9f66f018ba08db3e68a9508f476dda57901f5d2959f14205d05e0c9d1dd17fff"},
-]
-
-[package.dependencies]
-requests = ">=2.32.4,<3.0.0"
-
-[[package]]
 name = "discord-py"
 version = "2.5.2"
 description = "A Python wrapper for the Discord API"
@@ -2336,4 +2316,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.13"
-content-hash = "f42f9b41a700141e7fcc1f4fef3de936f9e52ca7718f45f3e573e1c2205f35df"
+content-hash = "907985be6e6ac3239252841522164d9fb1c281865b9a7238e75a98201d5eb2c5"
