@@ -150,12 +150,12 @@ class TestCoolDownsEnumBehavior:
         admin = CoolDowns.Admin
 
         # Enum members should be comparable by identity
-        assert admin == admin
+        assert admin == CoolDowns.Admin
 
         # If there are other members, test comparison
         all_members = list(CoolDowns)
         if len(all_members) > 1:
-            other = all_members[1] if len(all_members) > 1 else all_members[0]
+            other = all_members[1]
             if admin != other:
                 assert admin != other
 
