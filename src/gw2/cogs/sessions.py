@@ -2,18 +2,19 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 from src.bot.tools import bot_utils, chat_formatting
-from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
 from src.database.dal.gw2.gw2_configs_dal import Gw2ConfigsDal
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
+from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
 from src.gw2.cogs.gw2 import GuildWars2
+from src.gw2.constants import gw2_messages
 from src.gw2.tools import gw2_utils
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
-from src.gw2.constants import gw2_messages
 
 
 class GW2Session(GuildWars2):
     """(Commands related to GW2 player last game session)"""
+
     def __init__(self, bot):
         super().__init__(bot)
 
@@ -73,9 +74,11 @@ async def session(ctx):
         error_msg += "- characters is OK\n" if characters is True else "- characters is MISSING\n"
         error_msg += "- progression is OK\n" if progression is True else "- progression is MISSING\n"
         error_msg += "- wallet is OK\n" if wallet is True else "- wallet is MISSING\n"
-        error_msg += f"{gw2_messages.ADD_RIGHT_API_KEY_PERMISSIONS}\n" \
-                     f"{gw2_messages.KEY_ADD_INFO_HELP}" \
-                     f"{gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)}"
+        error_msg += (
+            f"{gw2_messages.ADD_RIGHT_API_KEY_PERMISSIONS}\n"
+            f"{gw2_messages.KEY_ADD_INFO_HELP}"
+            f"{gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)}"
+        )
         return await bot_utils.send_error_msg(ctx, error_msg)
 
     gw2_session_dal = Gw2SessionsDal(ctx.bot.db_session, ctx.bot.log)
@@ -99,14 +102,16 @@ async def session(ctx):
     if time_passed.hours == 0 and time_passed.minutes < player_wait_minutes:
         wait_time = str(player_wait_minutes - time_passed.minutes)
         m = "minute" if wait_time == "1" else "minutes"
-        return await gw2_utils.send_msg(ctx,
-                                        f"{gw2_messages.SESSION_BOT_STILL_UPDATING}\n"
-                                        f"{gw2_messages.WAITING_TIME}: `{wait_time} {m}`")
+        return await gw2_utils.send_msg(
+            ctx, f"{gw2_messages.SESSION_BOT_STILL_UPDATING}\n {gw2_messages.WAITING_TIME}: `{wait_time} {m}`"
+        )
 
     acc_name = rs_session[0]["acc_name"]
     embed = discord.Embed(color=color)
-    embed.set_author(name=f"{ctx.message.author.display_name}'s {gw2_messages.SESSION_TITLE} ({rs_start['date'].split()[0]})",
-                     icon_url=ctx.message.author.avatar.url)
+    embed.set_author(
+        name=f"{ctx.message.author.display_name}'s {gw2_messages.SESSION_TITLE} ({rs_start['date'].split()[0]})",
+        icon_url=ctx.message.author.avatar.url,
+    )
     embed.add_field(name=gw2_messages.ACCOUNT_NAME, value=chat_formatting.inline(acc_name))
     embed.add_field(name=gw2_messages.SERVER, value=chat_formatting.inline(gw2_server))
     embed.add_field(name=gw2_messages.TOTAL_PLAYED_TIME, value=chat_formatting.inline(str(time_passed.timedelta)))
@@ -115,7 +120,11 @@ async def session(ctx):
         full_gold = str(rs_end["gold"] - rs_start["gold"])
         formatted_gold = gw2_utils.format_gold(full_gold)
         if int(full_gold) > 0:
-            embed.add_field(name=gw2_messages.GAINED_GOLD, value=chat_formatting.inline(f"+{formatted_gold}"), inline=False)
+            embed.add_field(
+                name=gw2_messages.GAINED_GOLD,
+                value=chat_formatting.inline(f"+{formatted_gold}"),
+                inline=False,
+            )
         elif int(full_gold) < 0:
             final_result = f"{formatted_gold}"
             if formatted_gold[0] != "-":
@@ -202,19 +211,24 @@ async def session(ctx):
 
     if rs_start["guild_commendations"] != rs_end["guild_commendations"]:
         final_result = str(rs_end["guild_commendations"] - rs_start["guild_commendations"])
-        field_name = gw2_messages.GAINED_GUILD_COMMENDATIONS if int(final_result) > 0 else gw2_messages.LOST_GUILD_COMMENDATIONS
+        field_name = (
+            gw2_messages.GAINED_GUILD_COMMENDATIONS if int(final_result) > 0 else gw2_messages.LOST_GUILD_COMMENDATIONS
+        )
         embed.add_field(name=field_name, value=chat_formatting.inline(f"+{final_result}"))
 
-    if (not (isinstance(ctx.channel, discord.DMChannel))
-            and hasattr(ctx.message.author, "activity")
-            and ctx.message.author.activity is not None
-            and "guild wars 2" in str(ctx.message.author.activity.name).lower()):
+    if (
+        not (isinstance(ctx.channel, discord.DMChannel))
+        and hasattr(ctx.message.author, "activity")
+        and ctx.message.author.activity is not None
+        and "guild wars 2" in str(ctx.message.author.activity.name).lower()
+    ):
         still_playing_msg = f"{ctx.message.author.mention}\n {gw2_messages.SESSION_USER_STILL_PLAYING}"
         await ctx.message.channel.typing()
         await gw2_utils.end_session(ctx.bot, ctx.message.author, api_key)
         await ctx.send(still_playing_msg)
 
     await bot_utils.send_embed(ctx, embed)
+    return None
 
 
 async def setup(bot):

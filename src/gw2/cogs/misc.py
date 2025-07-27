@@ -1,18 +1,18 @@
 import re
 import discord
 from bs4 import BeautifulSoup
-from src.bot.tools import bot_utils
-from src.gw2.tools import gw2_utils
-from src.gw2.constants import gw2_variables
-from src.gw2.cogs.gw2 import GuildWars2
 from discord.ext import commands
-from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 from discord.ext.commands.cooldowns import BucketType
-from src.gw2.constants import gw2_messages
+from src.bot.tools import bot_utils
+from src.gw2.cogs.gw2 import GuildWars2
+from src.gw2.constants import gw2_messages, gw2_variables
+from src.gw2.tools import gw2_utils
+from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 
 
 class GW2Misc(GuildWars2):
     """(Commands related to GW2)"""
+
     def __init__(self, bot):
         super().__init__(bot)
 
@@ -20,8 +20,8 @@ class GW2Misc(GuildWars2):
 @GW2Misc.gw2.command()
 @commands.cooldown(1, GW2CoolDowns.Misc.value, BucketType.user)
 async def wiki(ctx, *, search):
-    """ (Search the Guild wars 2 wiki)
-            gw2 wiki name_to_search
+    """(Search the Guild wars 2 wiki)
+    gw2 wiki name_to_search
     """
 
     if len(search) > 300:
@@ -87,8 +87,8 @@ async def wiki(ctx, *, search):
 @GW2Misc.gw2.command()
 @commands.cooldown(1, GW2CoolDowns.Misc.value, BucketType.user)
 async def info(ctx, *, skill):
-    """ (Information about a given name/skill/rune)
-            gw2 info info_to_search
+    """(Information about a given name/skill/rune)
+    gw2 info info_to_search
     """
 
     await ctx.message.channel.typing()
@@ -138,28 +138,30 @@ async def info(ctx, *, skill):
                 gw2tp_url = f"https://www.gw2tp.com/item/{item_id}-{skill_sanitized.replace('_', '-').lower()}"
                 async with ctx.bot.aiosession.get(gw2tp_url) as tp_r:
                     if tp_r.status == 200:
-                        gw2bltc_url = f"https://www.gw2bltc.com/en/item/{item_id}-{skill_sanitized.replace('_', '-').lower()}"
+                        gw2bltc_url = (
+                            f"https://www.gw2bltc.com/en/item/{item_id}-{skill_sanitized.replace('_', '-').lower()}"
+                        )
                         tp_results = await tp_r.text()
                         sell_td = BeautifulSoup(tp_results, 'html.parser').findAll("td", {"id": "sell-price"})
                         buy_td = BeautifulSoup(tp_results, 'html.parser').findAll("td", {"id": "buy-price"})
                         tp_sell_price = gw2_utils.format_gold(sell_td[0]["data-price"])
                         tp_buy_price = gw2_utils.format_gold(buy_td[0]["data-price"])
-                        skill_description = f"{skill_description}\n" \
-                                            "**Trading Post:**\n" \
-                                            f"Sell: *{tp_sell_price}*\n" \
-                                            f"Buy: *{tp_buy_price}*\n" \
-                                            f"[Gw2tp]({gw2tp_url}) / [Gw2bltc]({gw2bltc_url})"
+                        skill_description = (
+                            f"{skill_description}\n"
+                            "**Trading Post:**\n"
+                            f"Sell: *{tp_sell_price}*\n"
+                            f"Buy: *{tp_buy_price}*\n"
+                            f"[Gw2tp]({gw2tp_url}) / [Gw2bltc]({gw2bltc_url})"
+                        )
         else:
             skill_description = gw2_messages.CLICK_ON_LINK
             color = discord.Color.red()
 
-        embed = discord.Embed(title=skill_name,
-                              description=skill_description,
-                              color=color,
-                              url=skill_url)
+        embed = discord.Embed(title=skill_name, description=skill_description, color=color, url=skill_url)
         embed.set_thumbnail(url=skill_icon_url)
         embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
         await bot_utils.send_embed(ctx, embed)
+        return None
 
 
 # @GW2Misc.gw2.command()

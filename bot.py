@@ -7,11 +7,11 @@ import discord
 from aiohttp import ClientSession
 from better_profanity import profanity
 from ddcDatabases import PostgreSQL
-from ddcUtils import ConfFileUtils
 from discord.ext import commands
 from pythonLogs import timed_rotating_logger
 from src.bot.constants import messages, variables
 from src.bot.constants.settings import get_bot_settings
+from src.gw2.constants.gw2_settings import get_gw2_settings
 from src.bot.tools import bot_utils
 from src.database.dal.bot.bot_configs_dal import BotConfigsDal
 from src.gw2.constants import gw2_variables
@@ -49,21 +49,22 @@ class Bot(commands.Bot):
     def _load_settings(self) -> None:
         """Load all bot and cog settings."""
         try:
-            conf_utils = ConfFileUtils()
+            bot_settings = get_bot_settings()
+            gw2_settings = get_gw2_settings()
 
-            # Load bot settings
-            bot_settings = conf_utils.get_section_values(variables.SETTINGS_FILENAME, "Bot")
+            # Load bot settings from environment variables
             self.settings["bot"] = {
-                **bot_settings,
-                "EmbedColor": bot_utils.get_color_settings(bot_settings["EmbedColor"]),
-                "EmbedOwnerColor": bot_utils.get_color_settings(bot_settings["EmbedOwnerColor"]),
+                "BGActivityTimer": str(bot_settings.bg_activity_timer),
+                "AllowedDMCommands": bot_settings.allowed_dm_commands,
+                "BotReactionWords": bot_settings.bot_reaction_words,
+                "EmbedColor": bot_utils.get_color_settings(bot_settings.embed_color),
+                "EmbedOwnerColor": bot_utils.get_color_settings(bot_settings.embed_owner_color),
+                "ExclusiveUsers": bot_settings.exclusive_users,
             }
 
-            # Load GW2 settings
-            gw2_settings = conf_utils.get_section_values(gw2_variables.GW2_SETTINGS_FILENAME, "Gw2")
+            # Load GW2 settings from environment variables
             self.settings["gw2"] = {
-                **gw2_settings,
-                "EmbedColor": bot_utils.get_color_settings(gw2_settings["EmbedColor"]),
+                "EmbedColor": bot_utils.get_color_settings(gw2_settings.embed_color),
             }
 
         except Exception as e:
@@ -87,10 +88,10 @@ def _create_bot_activity(command_prefix: str) -> discord.Game:
     help_cmd = f"{command_prefix}help"
 
     # Check if bot is in exclusive mode
-    conf_utils = ConfFileUtils()
-    exclusive_users = conf_utils.get_value(variables.SETTINGS_FILENAME, "Bot", "ExclusiveUsers")
+    bot_settings = get_bot_settings()
+    exclusive_users = bot_settings.exclusive_users
 
-    if exclusive_users is not None:
+    if exclusive_users:
         game_desc = f"PRIVATE BOT | {help_cmd}"
     else:
         system_random = random.SystemRandom()

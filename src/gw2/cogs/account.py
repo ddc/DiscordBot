@@ -4,14 +4,15 @@ from discord.ext.commands.cooldowns import BucketType
 from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.gw2.cogs.gw2 import GuildWars2
+from src.gw2.constants import gw2_messages
 from src.gw2.tools import gw2_utils
 from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
-from src.gw2.constants import gw2_messages
 
 
 class GW2Account(GuildWars2):
     """(Commands related to users account)"""
+
     def __init__(self, bot):
         super().__init__(bot)
 
@@ -20,8 +21,8 @@ class GW2Account(GuildWars2):
 @commands.cooldown(1, GW2CoolDowns.Account.value, BucketType.user)
 async def account(ctx):
     """(General information about your GW2 account)
-        Required API permissions: account
-            gw2 account
+    Required API permissions: account
+        gw2 account
     """
 
     await ctx.message.channel.typing()
@@ -125,11 +126,19 @@ async def account(ctx):
         if len(guilds_names) > 0:
             embed.add_field(name="Guilds", value=chat_formatting.inline("\n".join(guilds_names)), inline=False)
         if len(guild_leader_names) > 0:
-            embed.add_field(name="Guild Leader", value=chat_formatting.inline("\n".join(guild_leader_names)), inline=False)
+            embed.add_field(
+                name="Guild Leader",
+                value=chat_formatting.inline("\n".join(guild_leader_names)),
+                inline=False,
+            )
 
         days = (api_req_acc["age"] / 60) / 24
         created = api_req_acc["created"].split("T", 1)[0]
-        embed.add_field(name="Created", value=chat_formatting.inline(f"{created} ({round(days)} days ago)"), inline=False)
+        embed.add_field(
+            name="Created",
+            value=chat_formatting.inline(f"{created} ({round(days)} days ago)"),
+            inline=False,
+        )
 
         embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
         await bot_utils.send_embed(ctx, embed)

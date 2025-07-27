@@ -1,7 +1,13 @@
-from src.gw2.constants import gw2_variables, gw2_messages
+from src.gw2.constants import gw2_messages, gw2_variables
 from src.gw2.tools.gw2_exceptions import (
-    APIBadRequest, APIConnectionError, APIError, APIForbidden,
-    APIInactiveError, APIInvalidKey, APIKeyError, APINotFound
+    APIBadRequest,
+    APIConnectionError,
+    APIError,
+    APIForbidden,
+    APIInactiveError,
+    APIInvalidKey,
+    APIKeyError,
+    APINotFound,
 )
 
 
@@ -14,8 +20,16 @@ class Gw2Client:
 
         try:
             api_req_key_info = await self.call_api("tokeninfo", api_key)
-        except (APIBadRequest, APIConnectionError, APIError, APIForbidden,
-                APIInactiveError, APIInvalidKey, APIKeyError, APINotFound) as e:
+        except (
+            APIBadRequest,
+            APIConnectionError,
+            APIError,
+            APIForbidden,
+            APIInactiveError,
+            APIInvalidKey,
+            APIKeyError,
+            APINotFound,
+        ) as e:
             return e
 
         if "permissions" in api_req_key_info:
@@ -31,20 +45,17 @@ class Gw2Client:
         async with self.bot.aiosession.get(endpoint, headers=headers) as response:
             if response.status in (200, 206):
                 return await response.json()
-            
+
             await self._handle_api_error(response, endpoint)
+            return None
 
     def _build_headers(self, key=None):
         """Build HTTP headers for API request."""
-        headers = {
-            "User-Agent": self.bot.description,
-            "Accept": "application/json",
-            "lang": "en"
-        }
-        
+        headers = {"User-Agent": self.bot.description, "Accept": "application/json", "lang": "en"}
+
         if key:
             headers.update({"Authorization": f"Bearer {key}"})
-        
+
         return headers
 
     async def _handle_api_error(self, response, endpoint):
@@ -56,7 +67,7 @@ class Gw2Client:
             err_msg = ""
 
         init_msg = f"{response.status})({endpoint.split('?')[0]}"
-        
+
         if response.status == 400:
             self._handle_400_error(response.status, err_msg, init_msg)
         elif response.status == 403:

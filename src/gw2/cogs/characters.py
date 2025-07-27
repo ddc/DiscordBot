@@ -4,13 +4,14 @@ from discord.ext.commands.cooldowns import BucketType
 from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.gw2.cogs.gw2 import GuildWars2
+from src.gw2.constants import gw2_messages
 from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
-from src.gw2.constants import gw2_messages
 
 
 class GW2Characters(GuildWars2):
     """(Commands related to users characters)"""
+
     def __init__(self, bot):
         super().__init__(bot)
 
@@ -19,8 +20,8 @@ class GW2Characters(GuildWars2):
 @commands.cooldown(1, GW2CoolDowns.Characters.value, BucketType.user)
 async def characters(ctx):
     """(General information about your GW2 characters)
-        Required API permissions: account
-            gw2 characters
+    Required API permissions: account
+        gw2 characters
     """
 
     await ctx.message.channel.typing()
@@ -51,7 +52,11 @@ async def characters(ctx):
         api_req_acc = await gw2_api.call_api("account", api_key)
 
         color = ctx.bot.settings["gw2"]["EmbedColor"]
-        embed = discord.Embed(title="Account Name", description=chat_formatting.inline(api_req_acc["name"]), color=color)
+        embed = discord.Embed(
+            title="Account Name",
+            description=chat_formatting.inline(api_req_acc["name"]),
+            color=color,
+        )
         embed.set_thumbnail(url=ctx.message.author.avatar.url)
         embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
 
@@ -61,15 +66,18 @@ async def characters(ctx):
             current_char = await gw2_api.call_api(f"characters/{char_name}/core", api_key)
             days = (current_char["age"] / 60) / 24
             created = current_char["created"].split("T", 1)[0]
-            embed.add_field(name=char_name, value=chat_formatting.inline(
-                f"Race: {current_char['race']}\n"
-                f"Gender: {current_char['gender']}\n"
-                f"Profession: {current_char['profession']}\n"
-                f"Level: {current_char['level']}\n"
-                f"Deaths: {current_char['deaths']}\n"
-                f"Age: {round(days)} days\n"
-                f"Date: {created}\n"
-            ))
+            embed.add_field(
+                name=char_name,
+                value=chat_formatting.inline(
+                    f"Race: {current_char['race']}\n"
+                    f"Gender: {current_char['gender']}\n"
+                    f"Profession: {current_char['profession']}\n"
+                    f"Level: {current_char['level']}\n"
+                    f"Deaths: {current_char['deaths']}\n"
+                    f"Age: {round(days)} days\n"
+                    f"Date: {created}\n"
+                ),
+            )
 
         embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
         await bot_utils.send_embed(ctx, embed)

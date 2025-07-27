@@ -4,15 +4,16 @@ from discord.ext.commands.cooldowns import BucketType
 from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.gw2.cogs.gw2 import GuildWars2
+from src.gw2.constants import gw2_messages
 from src.gw2.tools import gw2_utils
 from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 from src.gw2.tools.gw2_exceptions import APIKeyError
-from src.gw2.constants import gw2_messages
 
 
 class GW2WvW(GuildWars2):
     """(Commands related to GW2 World versus World)"""
+
     def __init__(self, bot):
         super().__init__(bot)
 
@@ -20,9 +21,9 @@ class GW2WvW(GuildWars2):
 @GW2WvW.gw2.group()
 async def wvw(ctx):
     """(Guild Wars 2 Configuration Commands - Admin)
-            gw2 wvw info world_name
-            gw2 wvw match world_name
-            gw2 wvw kdr world_name
+    gw2 wvw info world_name
+    gw2 wvw match world_name
+    gw2 wvw kdr world_name
     """
 
     await bot_utils.invoke_subcommand(ctx, "gw2 wvw")
@@ -131,6 +132,7 @@ async def info(ctx, *, world: str = None):
     embed.add_field(name="K/D ratio", value=chat_formatting.inline(str(kd)))
     embed.add_field(name="Population", value=chat_formatting.inline(population), inline=False)
     await bot_utils.send_embed(ctx, embed)
+    return None
 
 
 @wvw.command(name="match")
@@ -201,14 +203,15 @@ async def match(ctx, *, world: str = None):
     embed.add_field(name="--------------------", value=blue_values)
     embed.add_field(name="--------------------", value=red_values)
     await bot_utils.send_embed(ctx, embed)
+    return None
 
 
 @wvw.command(name="kdr")
 @commands.cooldown(1, GW2CoolDowns.Wvw.value, BucketType.user)
 async def kdr(ctx, *, world: str = None):
     """(Info about a wvw kdr match. Defaults to account's world)
-        gw2 kdr
-        gw2 kdr world_name
+    gw2 kdr
+    gw2 kdr world_name
     """
 
     await ctx.message.channel.typing()
@@ -269,6 +272,7 @@ async def kdr(ctx, *, world: str = None):
     embed.add_field(name="--------------------", value=blue_values)
     embed.add_field(name="--------------------", value=red_values)
     await bot_utils.send_embed(ctx, embed)
+    return None
 
 
 async def _get_map_names_embed_values(ctx, map_color: str, matches):
@@ -297,10 +301,12 @@ async def _get_kdr_embed_values(map_color: str, matches):
     else:
         kd = round((kills / deaths), 3)
 
-    values = f"Kills: `{format(kills, ',d')}`\n" \
-             f"Deaths: `{format(deaths, ',d')}`\n" \
-             f"Activity: `{format(activity, ',d')}`\n" \
-             f"K/D: `{kd}`"
+    values = (
+        f"Kills: `{format(kills, ',d')}`\n"
+        f"Deaths: `{format(deaths, ',d')}`\n"
+        f"Activity: `{format(activity, ',d')}`\n"
+        f"K/D: `{kd}`"
+    )
 
     return values
 
@@ -336,49 +342,47 @@ async def _get_match_embed_values(map_color: str, matches):
         pppt = round((ppt_points * 100) / score, 3)
         pppk = round((2 * kills * 100) / score, 3)
 
-    if matches["maps"][0]["kills"][map_color] == 0 \
-            or matches["maps"][0]["deaths"][map_color] == 0:
+    if matches["maps"][0]["kills"][map_color] == 0 or matches["maps"][0]["deaths"][map_color] == 0:
         kd_blue = "0.0"
     else:
         kd_blue = round((matches["maps"][0]["kills"][map_color] / matches["maps"][0]["deaths"][map_color]), 3)
 
-    if matches["maps"][1]["kills"][map_color] == 0 \
-            or matches["maps"][1]["deaths"][map_color] == 0:
+    if matches["maps"][1]["kills"][map_color] == 0 or matches["maps"][1]["deaths"][map_color] == 0:
         kd_ebg = "0.0"
     else:
         kd_ebg = round((matches["maps"][1]["kills"][map_color] / matches["maps"][1]["deaths"][map_color]), 3)
 
-    if matches["maps"][2]["kills"][map_color] == 0 \
-            or matches["maps"][2]["deaths"][map_color] == 0:
+    if matches["maps"][2]["kills"][map_color] == 0 or matches["maps"][2]["deaths"][map_color] == 0:
         kd_green = "0.0"
     else:
         kd_green = round((matches["maps"][2]["kills"][map_color] / matches["maps"][2]["deaths"][map_color]), 3)
 
-    if matches["maps"][3]["kills"][map_color] == 0 \
-            or matches["maps"][3]["deaths"][map_color] == 0:
+    if matches["maps"][3]["kills"][map_color] == 0 or matches["maps"][3]["deaths"][map_color] == 0:
         kd_red = "0.0"
     else:
         kd_red = round((matches["maps"][3]["kills"][map_color] / matches["maps"][3]["deaths"][map_color]), 3)
 
-    values = f"Score: `{format(score, ',d')}`\n" \
-             f"Victory Pts: `{victoryp}`\n" \
-             f"PPT: `{ppt}`\n" \
-             "---\n" \
-             f"Skirmish: `{format(skirmish, ',d')}`\n" \
-             f"Yaks Dlv: `{format(yaks_delivered, ',d')}`\n" \
-             "---\n" \
-             f"Kills: `{format(kills, ',d')}`\n" \
-             f"Deaths: `{format(deaths, ',d')}`\n" \
-             f"Activity: `{format(activity, ',d')}`\n" \
-             f"K/D: `{kd}`\n" \
-             "---\n" \
-             f"K/D EBG: `{kd_ebg}`\n" \
-             f"K/D Green: `{kd_green}`\n" \
-             f"K/D Blue: `{kd_blue}`\n" \
-             f"K/D Red: `{kd_red}`\n" \
-             "---\n" \
-             f"%PPT~: `{pppt}`\n" \
-             f"%PPK~: `{pppk}`"
+    values = (
+        f"Score: `{format(score, ',d')}`\n"
+        f"Victory Pts: `{victoryp}`\n"
+        f"PPT: `{ppt}`\n"
+        "---\n"
+        f"Skirmish: `{format(skirmish, ',d')}`\n"
+        f"Yaks Dlv: `{format(yaks_delivered, ',d')}`\n"
+        "---\n"
+        f"Kills: `{format(kills, ',d')}`\n"
+        f"Deaths: `{format(deaths, ',d')}`\n"
+        f"Activity: `{format(activity, ',d')}`\n"
+        f"K/D: `{kd}`\n"
+        "---\n"
+        f"K/D EBG: `{kd_ebg}`\n"
+        f"K/D Green: `{kd_green}`\n"
+        f"K/D Blue: `{kd_blue}`\n"
+        f"K/D Red: `{kd_red}`\n"
+        "---\n"
+        f"%PPT~: `{pppt}`\n"
+        f"%PPK~: `{pppk}`"
+    )
 
     return values
 

@@ -94,7 +94,6 @@ class TestServerUtilities:
         # Verify GW2 configs were inserted
         mock_gw2_insert.assert_called_once_with(mock_bot, mock_server)
 
-    @pytest.mark.asyncio
     @patch('src.bot.tools.bot_utils.BackgroundTasks')
     def test_init_background_tasks_enabled(self, mock_bg_tasks_class, mock_bot):
         """Test background task initialization when enabled."""

@@ -10,8 +10,6 @@ from src.bot.tools import bot_utils
 from src.bot.tools.cooldowns import CoolDowns
 
 
-
-
 class OpenAi(commands.Cog):
     """OpenAI-powered commands for AI assistance and text generation."""
 
@@ -47,7 +45,8 @@ class OpenAi(commands.Cog):
     def openai_client(self) -> OpenAI:
         """Get or create OpenAI client instance."""
         if self._openai_client is None:
-            self._openai_client = OpenAI()
+            api_key = get_bot_settings().openai_api_key
+            self._openai_client = OpenAI(api_key=api_key)
         return self._openai_client
 
     async def _get_ai_response(self, message: str) -> str:
@@ -58,7 +57,7 @@ class OpenAi(commands.Cog):
         messages: list[ChatCompletionSystemMessageParam | ChatCompletionUserMessageParam] = [
             ChatCompletionSystemMessageParam(
                 role="system",
-                content="You are a helpful AI assistant. Provide clear, concise, and accurate responses."
+                content="You are a helpful AI assistant. Provide clear, concise, and accurate responses.",
             ),
             ChatCompletionUserMessageParam(role="user", content=message),
         ]

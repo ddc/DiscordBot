@@ -1,30 +1,28 @@
-"""Bot command cooldown configuration from settings file."""
+"""Bot command cooldown configuration from environment variables."""
 
 from enum import Enum
-from typing import Final
-from ddcUtils import ConfFileUtils
 from src.bot.constants import variables
+from src.bot.constants.settings import get_bot_settings
 
 
-# Load cooldown values from configuration file
-_conf_utils = ConfFileUtils()
-_cooldown_settings: Final[dict[str, str]] = _conf_utils.get_section_values(variables.SETTINGS_FILENAME, "Cooldowns")
+# Load cooldown values from environment variables
+_bot_settings = get_bot_settings()
 
 
 class CoolDowns(Enum):
     """Command cooldown durations in seconds.
 
     In debug mode, all cooldowns are set to 1 second for faster testing.
-    In production, values are loaded from the configuration file.
+    In production, values are loaded from environment variables.
     """
 
-    Admin = 1 if variables.DEBUG else int(_cooldown_settings["Admin"])
-    Config = 1 if variables.DEBUG else int(_cooldown_settings["Config"])
-    CustomCommand = 1 if variables.DEBUG else int(_cooldown_settings["CustomCmd"])
-    DiceRolls = 1 if variables.DEBUG else int(_cooldown_settings["DiceRolls"])
-    Misc = 1 if variables.DEBUG else int(_cooldown_settings["Misc"])
-    OpenAI = 1 if variables.DEBUG else int(_cooldown_settings["OpenAI"])
-    Owner = 1 if variables.DEBUG else int(_cooldown_settings["Owner"])
+    Admin = 1 if variables.DEBUG else _bot_settings.admin_cooldown
+    Config = 1 if variables.DEBUG else _bot_settings.config_cooldown
+    CustomCommand = 1 if variables.DEBUG else _bot_settings.custom_cmd_cooldown
+    DiceRolls = 1 if variables.DEBUG else _bot_settings.dice_rolls_cooldown
+    Misc = 1 if variables.DEBUG else _bot_settings.misc_cooldown
+    OpenAI = 1 if variables.DEBUG else _bot_settings.openai_cooldown
+    Owner = 1 if variables.DEBUG else _bot_settings.owner_cooldown
 
     def __str__(self) -> str:
         """Return the cooldown value as a string."""
