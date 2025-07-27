@@ -71,7 +71,7 @@ class TestSendMsg:
             mock_send.assert_called_once()
             # send_embed is called with (ctx, embed, dm) as positional args
             args = mock_send.call_args[0]
-            ctx, _, dm = args[0], args[1], args[2]
+            _, _, dm = args[0], args[1], args[2]
             assert dm is True
 
 
@@ -150,9 +150,7 @@ class TestCalculateUserAchievPoints:
     @pytest.mark.asyncio
     async def test_calculate_achievement_points(self, mock_ctx, sample_user_achievements, sample_account_data):
         """Test calculating achievement points."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
-            mock_client = mock_client_class.return_value
-            
+        with patch('src.gw2.tools.gw2_utils.Gw2Client'):
             with patch('src.gw2.tools.gw2_utils._fetch_achievement_data_in_batches') as mock_fetch:
                 mock_fetch.return_value = [
                     {"id": 1, "tiers": [{"count": 5, "points": 10}, {"count": 10, "points": 20}]},
