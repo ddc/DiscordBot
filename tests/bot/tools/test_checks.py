@@ -54,10 +54,10 @@ class TestCheckIsAdmin:
 
     def test_check_is_admin_returns_decorator(self):
         """Test that check_is_admin returns a decorator function."""
-        decorator = Checks.check_is_admin()
+        result = Checks.check_is_admin()
 
         # Should be a callable (decorator)
-        assert callable(decorator)
+        assert callable(result)
 
     def test_check_is_admin_predicate_success(self):
         """Test that check_is_admin returns a decorator."""

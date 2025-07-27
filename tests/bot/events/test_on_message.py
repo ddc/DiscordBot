@@ -548,7 +548,7 @@ class TestOnMessage:
         filter_obj = ProfanityFilter(mock_bot)
         error = Exception("Test error")
 
-        await filter_obj._log_filter_error(mock_ctx, "test message", error)
+        filter_obj._log_filter_error(mock_ctx, "test message", error)
 
         mock_bot.log.info.assert_called_once()
         log_call = mock_bot.log.info.call_args[0][0]

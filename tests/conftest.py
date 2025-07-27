@@ -26,7 +26,7 @@ def auto_import_modules():
         
         try:
             __import__(module_name)
-        except (ImportError, Exception):
+        except Exception:
             # Silently ignore import failures
             pass
 

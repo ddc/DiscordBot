@@ -216,7 +216,7 @@ def get_member_by_id(guild: discord.Guild, member_id: int) -> Optional[discord.M
 
 
 async def send_msg_to_system_channel(log, server, embed, plain_msg=None):
-    channel_to_send_msg = await get_server_system_channel(server)
+    channel_to_send_msg = get_server_system_channel(server)
     if channel_to_send_msg:
         try:
             await channel_to_send_msg.send(embed=embed)
@@ -226,7 +226,7 @@ async def send_msg_to_system_channel(log, server, embed, plain_msg=None):
                 await channel_to_send_msg.send(plain_msg)
 
 
-async def get_server_system_channel(server: discord.Guild) -> Optional[discord.TextChannel]:
+def get_server_system_channel(server: discord.Guild) -> Optional[discord.TextChannel]:
     """Get the server's system channel or find the first readable text channel."""
     if server.system_channel:
         return server.system_channel

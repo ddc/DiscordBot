@@ -67,7 +67,7 @@ class ProfanityFilter:
             await self._censor_message(ctx, user_msg)
             return True
         except Exception as e:
-            await self._log_filter_error(ctx, user_msg, e)
+            self._log_filter_error(ctx, user_msg, e)
             return True
 
     async def _censor_message(self, ctx: commands.Context, user_msg: str) -> None:
@@ -96,7 +96,7 @@ class ProfanityFilter:
             f"(Message:{user_msg})"
         )
 
-    async def _log_filter_error(self, ctx: commands.Context, user_msg: str, error: Exception) -> None:
+    def _log_filter_error(self, ctx: commands.Context, user_msg: str, error: Exception) -> None:
         """Log profanity filter error."""
         error_msg = f"Profanity filter is ON\nbut {messages.BOT_MISSING_MANAGE_MESSAGES_PERMISSION}"
         self.bot.log.info(
@@ -293,7 +293,7 @@ class ServerMessageHandler:
         if not is_command:
             await self._handle_server_non_command(ctx, configs)
         else:
-            await self._handle_server_command(ctx, configs)
+            await self._handle_server_command(ctx)
 
     async def _handle_invisible_member(self, ctx: commands.Context) -> None:
         """Handle message from invisible member."""
@@ -327,7 +327,7 @@ class ServerMessageHandler:
         if configs["bot_word_reactions"]:
             await self.reaction_handler.check_and_react(ctx.message)
 
-    async def _handle_server_command(self, ctx: commands.Context, configs: dict) -> None:
+    async def _handle_server_command(self, ctx: commands.Context) -> None:
         """Handle command in server."""
         # Check for double prefix (ignore)
         if MessageValidator.has_double_prefix(ctx.message):

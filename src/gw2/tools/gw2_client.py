@@ -26,45 +26,82 @@ class Gw2Client:
         """api languages can be ('en','es','de','fr','ko','zh')"""
 
         endpoint = f"{gw2_variables.API_URI}/{uri}"
+        headers = self._build_headers(key)
 
+        async with self.bot.aiosession.get(endpoint, headers=headers) as response:
+            if response.status in (200, 206):
+                return await response.json()
+            
+            await self._handle_api_error(response, endpoint)
+
+    def _build_headers(self, key=None):
+        """Build HTTP headers for API request."""
         headers = {
             "User-Agent": self.bot.description,
             "Accept": "application/json",
             "lang": "en"
         }
-
+        
         if key:
             headers.update({"Authorization": f"Bearer {key}"})
+        
+        return headers
 
-        async with self.bot.aiosession.get(endpoint, headers=headers) as response:
-            if response.status != 200 and response.status != 206:
-                try:
-                    err = await response.json()
-                    err_msg = err["text"]
-                except:
-                    err_msg = ""
+    async def _handle_api_error(self, response, endpoint):
+        """Handle API error responses by raising appropriate exceptions."""
+        try:
+            err = await response.json()
+            err_msg = err.get("text", "")
+        except (ValueError, KeyError):
+            err_msg = ""
 
-                init_msg = f"{response.status})({endpoint.split('?')[0]}"
+        init_msg = f"{response.status})({endpoint.split('?')[0]}"
+        
+        if response.status == 400:
+            self._handle_400_error(response.status, err_msg, init_msg)
+        elif response.status == 403:
+            self._handle_403_error(response.status, err_msg, init_msg)
+        elif response.status == 404:
+            self._handle_404_error(response.status, endpoint)
+        elif response.status == 429:
+            self._handle_429_error(init_msg)
+        elif response.status in (502, 504):
+            self._handle_502_504_error(init_msg)
+        elif response.status == 503:
+            self._handle_503_error(init_msg, err_msg)
+        else:
+            self._handle_other_error(response, init_msg, err_msg)
 
-                if response.status == 400:
-                    if err_msg == "invalid key":
-                        raise APIInvalidKey(self.bot, f"({response.status}) {gw2_messages.INVALID_API_KEY}")
-                    raise APIBadRequest(self.bot, f"({init_msg}) {gw2_messages.API_DOWN}")
-                elif response.status == 404:
-                    raise APINotFound(self.bot, f"({response.status})({endpoint.split('?')[0]}) {gw2_messages.API_NOT_FOUND}")
-                elif response.status == 403:
-                    if err_msg == "invalid key":
-                        raise APIInvalidKey(self.bot, f"({response.status}) {gw2_messages.INVALID_API_KEY}")
-                    raise APIForbidden(self.bot, f"({init_msg}) {gw2_messages.API_ACCESS_DENIED}")
-                elif response.status == 429:
-                    raise APIConnectionError(self.bot, f"({init_msg}) {gw2_messages.API_REQUEST_REACHED}")
-                elif response.status == 502 or response.status == 504:
-                    raise APIInactiveError(self.bot, f"({init_msg}) {gw2_messages.API_DOWN}")
-                elif response.status == 503:
-                    raise APIInactiveError(self.bot, f"({init_msg}) {err_msg}")
-                else:
-                    if len(err_msg) == 0:
-                        err_msg = str(response.reason)
-                    raise APIConnectionError(self.bot, f"{gw2_messages.API_ERROR} ({init_msg})({err_msg})")
+    def _handle_400_error(self, status, err_msg, init_msg):
+        """Handle 400 Bad Request errors."""
+        if err_msg == "invalid key":
+            raise APIInvalidKey(self.bot, f"({status}) {gw2_messages.INVALID_API_KEY}")
+        raise APIBadRequest(self.bot, f"({init_msg}) {gw2_messages.API_DOWN}")
 
-            return await response.json()
+    def _handle_403_error(self, status, err_msg, init_msg):
+        """Handle 403 Forbidden errors."""
+        if err_msg == "invalid key":
+            raise APIInvalidKey(self.bot, f"({status}) {gw2_messages.INVALID_API_KEY}")
+        raise APIForbidden(self.bot, f"({init_msg}) {gw2_messages.API_ACCESS_DENIED}")
+
+    def _handle_404_error(self, status, endpoint):
+        """Handle 404 Not Found errors."""
+        raise APINotFound(self.bot, f"({status})({endpoint.split('?')[0]}) {gw2_messages.API_NOT_FOUND}")
+
+    def _handle_429_error(self, init_msg):
+        """Handle 429 Too Many Requests errors."""
+        raise APIConnectionError(self.bot, f"({init_msg}) {gw2_messages.API_REQUEST_REACHED}")
+
+    def _handle_502_504_error(self, init_msg):
+        """Handle 502 Bad Gateway and 504 Gateway Timeout errors."""
+        raise APIInactiveError(self.bot, f"({init_msg}) {gw2_messages.API_DOWN}")
+
+    def _handle_503_error(self, init_msg, err_msg):
+        """Handle 503 Service Unavailable errors."""
+        raise APIInactiveError(self.bot, f"({init_msg}) {err_msg}")
+
+    def _handle_other_error(self, response, init_msg, err_msg):
+        """Handle other HTTP error statuses."""
+        if not err_msg:
+            err_msg = str(response.reason)
+        raise APIConnectionError(self.bot, f"{gw2_messages.API_ERROR} ({init_msg})({err_msg})")

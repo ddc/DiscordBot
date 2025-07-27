@@ -116,7 +116,7 @@ class TestGuildSynchronizer:
         # Setup mock to raise exception
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
-        mock_dal.get_server.side_effect = Exception("Database error")
+        mock_dal.get_server.side_effect = RuntimeError("Database error")
 
         result = await guild_synchronizer._get_database_server_ids()
 
@@ -146,7 +146,7 @@ class TestGuildSynchronizer:
         async def error_fetch_guilds(limit=None):
             if False:  # Make this an async generator
                 yield
-            raise Exception("Discord API error")
+            raise ConnectionError("Discord API error")
         
         guild_synchronizer.bot.fetch_guilds = error_fetch_guilds
 
@@ -187,7 +187,7 @@ class TestGuildSynchronizer:
         """Test adding missing guilds with insert error."""
         missing_guild_ids = {12345}
         guild_synchronizer.bot.get_guild.return_value = mock_guild
-        mock_insert_server.side_effect = Exception("Insert error")
+        mock_insert_server.side_effect = RuntimeError("Insert error")
 
         await guild_synchronizer._add_missing_guilds(missing_guild_ids)
 
@@ -223,7 +223,7 @@ class TestGuildSynchronizer:
     async def test_sync_guilds_with_database_error(self, guild_synchronizer):
         """Test guild synchronization with general error."""
         # Mock method to raise exception
-        guild_synchronizer._get_database_server_ids = AsyncMock(side_effect=Exception("General error"))
+        guild_synchronizer._get_database_server_ids = AsyncMock(side_effect=RuntimeError("General error"))
 
         await guild_synchronizer.sync_guilds_with_database()
 
@@ -255,7 +255,7 @@ class TestConnectionHandler:
     async def test_process_connection_error(self, connection_handler):
         """Test connection processing with error."""
         connection_handler.guild_synchronizer.sync_guilds_with_database = AsyncMock(
-            side_effect=Exception("Sync error")
+            side_effect=RuntimeError("Sync error")
         )
 
         await connection_handler.process_connection()
@@ -304,7 +304,7 @@ class TestOnConnect:
     async def test_on_connect_event_error(self, mock_bot):
         """Test on_connect event handler with error."""
         cog = OnConnect(mock_bot)
-        cog.connection_handler.process_connection = AsyncMock(side_effect=Exception("Critical error"))
+        cog.connection_handler.process_connection = AsyncMock(side_effect=RuntimeError("Critical error"))
 
         # Access the event handler directly
         on_connect_event = mock_bot.event.call_args_list[0][0][0]

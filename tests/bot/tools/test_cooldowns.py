@@ -26,8 +26,6 @@ class TestCoolDownsEnum:
 
     def test_cooldowns_enum_members_count(self):
         """Test that we have the expected number of cooldown members."""
-        expected_members = ['Admin', 'Config', 'CustomCommand', 'DiceRolls', 'Misc', 'OpenAI', 'Owner']
-
         actual_members = [member.name for member in CoolDowns]
         assert len(actual_members) >= 1  # At least Admin should exist
 
