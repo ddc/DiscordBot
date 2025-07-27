@@ -24,8 +24,8 @@ def mock_bot():
     # Configure fetch_guilds to return a proper async iterator
     async def mock_fetch_guilds(limit=None):
         # Return empty async iterator - no guilds by default
-        if False:  # Make this an async generator without unreachable code
-            yield
+        return
+        yield  # This makes it an async generator but is unreachable
     
     bot.fetch_guilds = mock_fetch_guilds
     # Ensure add_cog doesn't return a coroutine
@@ -144,9 +144,8 @@ class TestGuildSynchronizer:
         """Test getting Discord guild IDs with error."""
         # Setup mock to raise exception during iteration
         async def error_fetch_guilds(limit=None):
-            if False:  # Make this an async generator
-                yield
             raise ConnectionError("Discord API error")
+            yield  # This makes it an async generator but is unreachable
         
         guild_synchronizer.bot.fetch_guilds = error_fetch_guilds
 

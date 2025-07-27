@@ -132,7 +132,7 @@ async def main() -> None:
 
                 async with Bot(**bot_kwargs) as bot:
                     try:
-                        await bot_utils.init_background_tasks(bot)
+                        bot_utils.init_background_tasks(bot)
                         log.info("Bot starting...")
                         await bot.start(bot_token)
                     except discord.LoginFailure as e:

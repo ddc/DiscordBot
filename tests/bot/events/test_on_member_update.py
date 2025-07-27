@@ -128,7 +128,7 @@ class TestOnMemberUpdate:
     ):
         """Test on_member_update with bot member (should be skipped)."""
         mock_member.bot = True
-        cog = OnMemberUpdate(mock_bot)
+        OnMemberUpdate(mock_bot)
 
         # Access the event handler directly
         on_member_update_event = mock_bot.event.call_args_list[0][0][0]
@@ -172,7 +172,7 @@ class TestOnMemberUpdate:
         # Mock embed fields to simulate having fields after add_field is called
         mock_embed.fields = [MagicMock()]  # Simulate one field added
 
-        cog = OnMemberUpdate(mock_bot)
+        OnMemberUpdate(mock_bot)
         on_member_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_member_update_event(mock_member_before, mock_member)
@@ -228,7 +228,7 @@ class TestOnMemberUpdate:
         # Mock embed fields to simulate having fields after add_field is called
         mock_embed.fields = [MagicMock()]  # Simulate one field added
 
-        cog = OnMemberUpdate(mock_bot)
+        OnMemberUpdate(mock_bot)
         on_member_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_member_update_event(mock_member_before, mock_member)
@@ -270,7 +270,7 @@ class TestOnMemberUpdate:
         # Mock empty fields list
         mock_embed.fields = []
 
-        cog = OnMemberUpdate(mock_bot)
+        OnMemberUpdate(mock_bot)
         on_member_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_member_update_event(mock_member_before, mock_member)
@@ -311,7 +311,7 @@ class TestOnMemberUpdate:
         # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
-        cog = OnMemberUpdate(mock_bot)
+        OnMemberUpdate(mock_bot)
         on_member_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_member_update_event(mock_member_before, mock_member)
@@ -350,7 +350,7 @@ class TestOnMemberUpdate:
         # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
-        cog = OnMemberUpdate(mock_bot)
+        OnMemberUpdate(mock_bot)
         on_member_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_member_update_event(mock_member_before, mock_member)
@@ -380,7 +380,7 @@ class TestOnMemberUpdate:
         mock_member.nick = "NewNick"
         mock_member_before.roles = mock_member.roles
 
-        cog = OnMemberUpdate(mock_bot)
+        OnMemberUpdate(mock_bot)
         on_member_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_member_update_event(mock_member_before, mock_member)
@@ -410,7 +410,7 @@ class TestOnMemberUpdate:
         mock_member.nick = "NewNick"
         mock_member_before.roles = mock_member.roles
 
-        cog = OnMemberUpdate(mock_bot)
+        OnMemberUpdate(mock_bot)
         on_member_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_member_update_event(mock_member_before, mock_member)
@@ -449,7 +449,7 @@ class TestOnMemberUpdate:
         # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
-        cog = OnMemberUpdate(mock_bot)
+        OnMemberUpdate(mock_bot)
         on_member_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_member_update_event(mock_member_before, mock_member)
@@ -466,7 +466,7 @@ class TestOnMemberUpdate:
         # Setup embed to raise exception
         mock_get_embed.side_effect = Exception("General error")
 
-        cog = OnMemberUpdate(mock_bot)
+        OnMemberUpdate(mock_bot)
         on_member_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_member_update_event(mock_member_before, mock_member)
@@ -498,7 +498,7 @@ class TestOnMemberUpdate:
         mock_member.nick = "NewNick"
         mock_member_before.roles = mock_member.roles
 
-        cog = OnMemberUpdate(mock_bot)
+        OnMemberUpdate(mock_bot)
         on_member_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_member_update_event(mock_member_before, mock_member)
@@ -529,7 +529,7 @@ class TestOnMemberUpdate:
         mock_member.roles = [role1]
         mock_member_before.nick = mock_member.nick
 
-        cog = OnMemberUpdate(mock_bot)
+        OnMemberUpdate(mock_bot)
         on_member_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_member_update_event(mock_member_before, mock_member)

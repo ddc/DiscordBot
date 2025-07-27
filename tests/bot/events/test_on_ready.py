@@ -312,7 +312,7 @@ class TestOnReady:
         """Test on_ready event with custom bot online message."""
         mock_get_bot_stats.return_value = mock_bot_stats
 
-        cog = OnReady(mock_bot)
+        OnReady(mock_bot)
 
         # Access the event handler directly
         on_ready_event = mock_bot.event.call_args_list[0][0][0]

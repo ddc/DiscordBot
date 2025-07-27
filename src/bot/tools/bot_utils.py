@@ -50,7 +50,7 @@ async def insert_server(bot: "commands.Bot", server: discord.Guild) -> None:
     await gw2_utils.insert_gw2_server_configs(bot, server)
 
 
-async def init_background_tasks(bot: "commands.Bot") -> None:
+def init_background_tasks(bot: "commands.Bot") -> None:
     """Initialize bot background tasks if configured."""
     bg_activity_timer = bot.settings["bot"]["BGActivityTimer"]
     if bg_activity_timer and bg_activity_timer > 0:

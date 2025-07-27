@@ -128,7 +128,7 @@ class TestOnGuildUpdate:
         mock_guild_before.name = mock_guild.name  # Same name
         mock_guild_before.owner_id = mock_guild.owner_id  # Same owner
 
-        cog = OnGuildUpdate(mock_bot)
+        OnGuildUpdate(mock_bot)
         on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_guild_update_event(mock_guild_before, mock_guild)
@@ -176,7 +176,7 @@ class TestOnGuildUpdate:
         mock_guild_before.icon.url = mock_guild.icon.url  # Same icon
         mock_guild_before.owner_id = mock_guild.owner_id  # Same owner
 
-        cog = OnGuildUpdate(mock_bot)
+        OnGuildUpdate(mock_bot)
         on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_guild_update_event(mock_guild_before, mock_guild)
@@ -221,7 +221,7 @@ class TestOnGuildUpdate:
         mock_guild_before.name = mock_guild.name  # Same name
         mock_guild_before.icon.url = mock_guild.icon.url  # Same icon
 
-        cog = OnGuildUpdate(mock_bot)
+        OnGuildUpdate(mock_bot)
         on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_guild_update_event(mock_guild_before, mock_guild)
@@ -258,7 +258,7 @@ class TestOnGuildUpdate:
         # Mock empty fields list
         mock_embed.fields = []
 
-        cog = OnGuildUpdate(mock_bot)
+        OnGuildUpdate(mock_bot)
         on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_guild_update_event(mock_guild_before, mock_guild)
@@ -300,7 +300,7 @@ class TestOnGuildUpdate:
         # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
-        cog = OnGuildUpdate(mock_bot)
+        OnGuildUpdate(mock_bot)
         on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_guild_update_event(mock_guild_before, mock_guild)
@@ -340,7 +340,7 @@ class TestOnGuildUpdate:
         # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
-        cog = OnGuildUpdate(mock_bot)
+        OnGuildUpdate(mock_bot)
         on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_guild_update_event(mock_guild_before, mock_guild)
@@ -371,7 +371,7 @@ class TestOnGuildUpdate:
         mock_guild_before.icon.url = mock_guild.icon.url
         mock_guild_before.owner_id = mock_guild.owner_id
 
-        cog = OnGuildUpdate(mock_bot)
+        OnGuildUpdate(mock_bot)
         on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_guild_update_event(mock_guild_before, mock_guild)
@@ -411,7 +411,7 @@ class TestOnGuildUpdate:
         # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
-        cog = OnGuildUpdate(mock_bot)
+        OnGuildUpdate(mock_bot)
         on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_guild_update_event(mock_guild_before, mock_guild)
@@ -428,7 +428,7 @@ class TestOnGuildUpdate:
         # Setup embed to raise exception
         mock_get_embed.side_effect = Exception("General error")
 
-        cog = OnGuildUpdate(mock_bot)
+        OnGuildUpdate(mock_bot)
         on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_guild_update_event(mock_guild_before, mock_guild)
@@ -476,7 +476,7 @@ class TestOnGuildUpdate:
         # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
-        cog = OnGuildUpdate(mock_bot)
+        OnGuildUpdate(mock_bot)
         on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_guild_update_event(mock_guild_before, mock_guild)
@@ -503,7 +503,7 @@ class TestOnGuildUpdate:
         mock_guild_before.icon.url = mock_guild.icon.url
         mock_guild_before.owner_id = mock_guild.owner_id
 
-        cog = OnGuildUpdate(mock_bot)
+        OnGuildUpdate(mock_bot)
         on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_guild_update_event(mock_guild_before, mock_guild)
@@ -535,7 +535,7 @@ class TestOnGuildUpdate:
         mock_guild_before.name = mock_guild.name
         mock_guild_before.icon.url = mock_guild.icon.url
 
-        cog = OnGuildUpdate(mock_bot)
+        OnGuildUpdate(mock_bot)
         on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
 
         await on_guild_update_event(mock_guild_before, mock_guild)

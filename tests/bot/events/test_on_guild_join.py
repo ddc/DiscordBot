@@ -197,7 +197,7 @@ class TestOnGuildJoin:
     @patch('src.bot.cogs.events.on_guild_join.variables.GAMES_INCLUDED', ['GW2', 'WoW'])
     async def test_on_guild_join_success(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test successful guild join handling."""
-        cog = OnGuildJoin(mock_bot)
+        OnGuildJoin(mock_bot)
 
         # Access the event handler directly
         on_guild_join_event = mock_bot.event.call_args_list[0][0][0]
@@ -223,7 +223,7 @@ class TestOnGuildJoin:
     @patch('src.bot.cogs.events.on_guild_join.variables.GAMES_INCLUDED', ['GW2'])
     async def test_on_guild_join_with_games(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test guild join with specific games included."""
-        cog = OnGuildJoin(mock_bot)
+        OnGuildJoin(mock_bot)
 
         # Access the event handler directly
         on_guild_join_event = mock_bot.event.call_args_list[0][0][0]
@@ -243,7 +243,7 @@ class TestOnGuildJoin:
     async def test_on_guild_join_insert_server_error(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test guild join when server insertion fails."""
         mock_insert_server.side_effect = Exception("Database error")
-        cog = OnGuildJoin(mock_bot)
+        OnGuildJoin(mock_bot)
 
         # Access the event handler directly
         on_guild_join_event = mock_bot.event.call_args_list[0][0][0]
@@ -261,7 +261,7 @@ class TestOnGuildJoin:
     async def test_on_guild_join_send_message_error(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test guild join when sending message fails."""
         mock_send_msg.side_effect = Exception("Send error")
-        cog = OnGuildJoin(mock_bot)
+        OnGuildJoin(mock_bot)
 
         # Access the event handler directly
         on_guild_join_event = mock_bot.event.call_args_list[0][0][0]
@@ -286,7 +286,7 @@ class TestOnGuildJoin:
     @patch('src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel')
     async def test_on_guild_join_embed_properties(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test that the welcome embed has the correct properties."""
-        cog = OnGuildJoin(mock_bot)
+        OnGuildJoin(mock_bot)
 
         # Access the event handler directly
         on_guild_join_event = mock_bot.event.call_args_list[0][0][0]
@@ -316,7 +316,7 @@ class TestOnGuildJoin:
     @patch('src.bot.cogs.events.on_guild_join.variables.GAMES_INCLUDED', [])
     async def test_on_guild_join_no_games(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test guild join with no games included."""
-        cog = OnGuildJoin(mock_bot)
+        OnGuildJoin(mock_bot)
 
         # Access the event handler directly
         on_guild_join_event = mock_bot.event.call_args_list[0][0][0]

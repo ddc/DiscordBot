@@ -96,14 +96,14 @@ class TestServerUtilities:
 
     @pytest.mark.asyncio
     @patch('src.bot.tools.bot_utils.BackgroundTasks')
-    async def test_init_background_tasks_enabled(self, mock_bg_tasks_class, mock_bot):
+    def test_init_background_tasks_enabled(self, mock_bg_tasks_class, mock_bot):
         """Test background task initialization when enabled."""
         mock_bot.settings = {"bot": {"BGActivityTimer": 30}}
         mock_bot.loop = MagicMock()
         mock_bg_tasks = MagicMock()
         mock_bg_tasks_class.return_value = mock_bg_tasks
 
-        await bot_utils.init_background_tasks(mock_bot)
+        bot_utils.init_background_tasks(mock_bot)
 
         # Verify BackgroundTasks was created
         mock_bg_tasks_class.assert_called_once_with(mock_bot)
@@ -111,8 +111,7 @@ class TestServerUtilities:
         # Verify task was created
         mock_bot.loop.create_task.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_init_background_tasks_disabled(self, mock_bot):
+    def test_init_background_tasks_disabled(self, mock_bot):
         """Test background task initialization when disabled."""
         test_cases = [
             {"bot": {"BGActivityTimer": 0}},
@@ -125,7 +124,7 @@ class TestServerUtilities:
             mock_bot.settings = settings
             mock_bot.loop = MagicMock()
 
-            await bot_utils.init_background_tasks(mock_bot)
+            bot_utils.init_background_tasks(mock_bot)
 
             # Verify no task was created
             mock_bot.loop.create_task.assert_not_called()
