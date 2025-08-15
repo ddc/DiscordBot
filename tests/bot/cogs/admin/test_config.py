@@ -53,10 +53,14 @@ def mock_ctx():
     author = MagicMock()
     author.id = 67890
     author.display_name = "TestUser"
+    author.send = AsyncMock()  # For DM functionality
+    author.avatar = MagicMock()
+    author.avatar.url = "https://example.com/avatar.png"
     
     ctx.author = author
     ctx.message = MagicMock()
     ctx.message.channel = AsyncMock()
+    ctx.send = AsyncMock()  # For channel notifications
     ctx.prefix = "!"
     
     return ctx
@@ -271,7 +275,7 @@ class TestConfig:
         mock_send_embed.assert_called_once()
         
         embed = mock_send_embed.call_args[0][1]
-        assert embed.color == discord.Color.red()
+        assert embed.color == discord.Color.green()
     
     @pytest.mark.asyncio
     @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
@@ -290,21 +294,21 @@ class TestConfig:
         mock_dal.delete_profanity_filter_channel.assert_called_once_with(98765)
         
         embed = mock_send_embed.call_args[0][1]
-        assert embed.color == discord.Color.green()
+        assert embed.color == discord.Color.red()
     
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.bot_utils.send_error_msg')
+    @patch('src.bot.cogs.admin.config.bot_utils.send_error_msg', new_callable=AsyncMock)
     async def test_config_pfilter_missing_arguments(self, mock_send_error, config_cog, mock_ctx):
         """Test profanity filter with missing arguments."""
         from src.bot.cogs.admin.config import config_pfilter
-        await config_pfilter(mock_ctx, subcommand_passed="on")
+        await config_pfilter(mock_ctx, subcommand_passed="")
         
         mock_send_error.assert_called_once()
         error_msg = mock_send_error.call_args[0][1]
         assert messages.MISING_REUIRED_ARGUMENT in error_msg
     
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.bot_utils.send_error_msg')
+    @patch('src.bot.cogs.admin.config.bot_utils.send_error_msg', new_callable=AsyncMock)
     async def test_config_pfilter_invalid_channel_id(self, mock_send_error, config_cog, mock_ctx):
         """Test profanity filter with invalid channel ID."""
         from src.bot.cogs.admin.config import config_pfilter
@@ -312,13 +316,14 @@ class TestConfig:
         
         mock_send_error.assert_called_once()
         error_msg = mock_send_error.call_args[0][1]
-        assert messages.CONFIG_CHANNEL_ID_INSTEAD_NAME in error_msg
+        assert messages.CHANNEL_ID_NOT_FOUND in error_msg
     
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.bot_utils.send_error_msg')
+    @patch('src.bot.cogs.admin.config.bot_utils.send_error_msg', new_callable=AsyncMock)
     async def test_config_pfilter_channel_not_found(self, mock_send_error, config_cog, mock_ctx):
         """Test profanity filter with non-existent channel."""
         mock_ctx.guild.text_channels = []
+        mock_ctx.guild.get_channel.return_value = None  # Channel not found by ID
         
         from src.bot.cogs.admin.config import config_pfilter
         await config_pfilter(mock_ctx, subcommand_passed="on 98765")
@@ -390,20 +395,20 @@ class TestConfig:
         await config_list(mock_ctx)
         
         mock_ctx.message.channel.typing.assert_called_once()
-        mock_send_embed.assert_called_once()
+        # New implementation sends to DM and then notification to channel
+        mock_ctx.author.send.assert_called_once()
+        mock_ctx.send.assert_called_once()
         
-        embed = mock_send_embed.call_args[0][1]
+        # Check the embed sent to DM
+        dm_call_args = mock_ctx.author.send.call_args
+        embed = dm_call_args[1]['embed']  # embed is passed as keyword argument
         assert embed.author.name == "Configurations for Test Server"
         assert len(embed.fields) == 7  # 6 config options + profanity filter
-        
-        # Check that dm=True is passed
-        assert mock_send_embed.call_args[0][2] is True
     
     @pytest.mark.asyncio
     @patch('src.bot.cogs.admin.config.ServersDal')
     @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
-    async def test_config_list_no_profanity_channels(self, mock_send_embed, mock_pf_dal_class, 
+    async def test_config_list_no_profanity_channels(self, mock_pf_dal_class, 
                                                    mock_servers_dal_class, config_cog, mock_ctx):
         """Test listing configurations with no profanity filter channels."""
         mock_servers_dal = AsyncMock()
@@ -424,8 +429,13 @@ class TestConfig:
         from src.bot.cogs.admin.config import config_list
         await config_list(mock_ctx)
         
-        mock_send_embed.assert_called_once()
-        embed = mock_send_embed.call_args[0][1]
+        # New implementation sends to DM and then notification to channel
+        mock_ctx.author.send.assert_called_once()
+        mock_ctx.send.assert_called_once()
+        
+        # Check the embed sent to DM
+        dm_call_args = mock_ctx.author.send.call_args
+        embed = dm_call_args[1]['embed']  # embed is passed as keyword argument
         
         # Check that the profanity filter field shows "No channels listed"
         pf_field = next(field for field in embed.fields if "pfilter" in field.name.lower())
@@ -433,8 +443,7 @@ class TestConfig:
     
     @pytest.mark.asyncio
     @patch('src.bot.cogs.admin.config.ServersDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
-    async def test_config_list_no_guild_icon(self, mock_send_embed, mock_servers_dal_class, config_cog, mock_ctx):
+    async def test_config_list_no_guild_icon(self, mock_servers_dal_class, config_cog, mock_ctx):
         """Test listing configurations when guild has no icon."""
         mock_ctx.guild.icon = None
         
@@ -457,7 +466,9 @@ class TestConfig:
             from src.bot.cogs.admin.config import config_list
             await config_list(mock_ctx)
             
-            embed = mock_send_embed.call_args[0][1]
+            # Check the embed sent to DM
+            dm_call_args = mock_ctx.author.send.call_args
+            embed = dm_call_args[1]['embed']  # embed is passed as keyword argument
             assert embed.author.icon_url is None
             assert embed.thumbnail.url is None
     

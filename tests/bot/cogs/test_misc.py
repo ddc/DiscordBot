@@ -144,7 +144,7 @@ class TestMisc:
         await misc_cog.tts.callback(misc_cog, mock_ctx, tts_text="Hello world")
         
         mock_ctx.message.channel.typing.assert_called_once()
-        mock_gtts_class.assert_called_once_with(text="Hello world", lang="en")
+        mock_gtts_class.assert_called_once_with(text="Hello world", lang="en", slow=False, timeout=10)
         mock_tts.write_to_fp.assert_called_once()
         mock_ctx.send.assert_called_once()
         
@@ -650,8 +650,7 @@ class TestMisc:
     def test_get_activity_description_dnd(self, misc_cog, mock_member):
         """Test _get_activity_description with DND status."""
         mock_member.activity = None
-        mock_member.status = MagicMock()
-        mock_member.status.name = "dnd"
+        mock_member.status = discord.Status.dnd
         
         result = misc_cog._get_activity_description(mock_member)
         assert result == messages.DO_NOT_DISTURB
@@ -661,8 +660,7 @@ class TestMisc:
         mock_activity = MagicMock()
         mock_activity.type = discord.ActivityType.listening
         mock_member.activity = mock_activity
-        mock_member.status = MagicMock()
-        mock_member.status.name = "online"
+        mock_member.status = discord.Status.online
         
         result = misc_cog._get_activity_description(mock_member)
         assert result == "online"

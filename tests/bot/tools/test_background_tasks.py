@@ -25,8 +25,8 @@ class TestBackGroundTasks:
         bg_tasks = BackGroundTasks(mock_bot)
 
         assert bg_tasks.bot is mock_bot
-        assert hasattr(bg_tasks, '_random')
-        assert bg_tasks._random is not None
+        assert hasattr(bg_tasks, 'random')
+        assert bg_tasks.random is not None
 
     @pytest.mark.asyncio
     async def test_change_presence_task_single_iteration(self, mock_bot):
@@ -218,7 +218,7 @@ class TestBackGroundTasks:
         bg_tasks = BackGroundTasks(mock_bot)
 
         # Mock the random choice to raise IndexError
-        bg_tasks._random.choice = MagicMock(side_effect=IndexError("list index out of range"))
+        bg_tasks.random.choice = MagicMock(side_effect=IndexError("list index out of range"))
 
         with patch('asyncio.sleep', new_callable=AsyncMock):
             # Should not raise IndexError, should be caught and logged as an error
@@ -262,7 +262,7 @@ class TestBackGroundTasksLegacyAlias:
 
     def test_legacy_alias_exists(self):
         """Test that BackGroundTasks alias exists."""
-        assert BackGroundTasks is BackGroundTasks
+        assert BackGroundTasks is not None
 
     def test_legacy_alias_functionality(self):
         """Test that legacy alias works identically."""
@@ -288,9 +288,9 @@ class TestBackGroundTasksRandomness:
         bg_tasks2 = BackGroundTasks(mock_bot)
 
         # Should have different random instances
-        assert bg_tasks1._random is not bg_tasks2._random
-        assert type(bg_tasks1._random).__name__ == 'SystemRandom'
-        assert type(bg_tasks2._random).__name__ == 'SystemRandom'
+        assert bg_tasks1.random is not bg_tasks2.random
+        assert type(bg_tasks1.random).__name__ == 'SystemRandom'
+        assert type(bg_tasks2.random).__name__ == 'SystemRandom'
 
     def test_random_choice_usage(self):
         """Test that SystemRandom.choice is used correctly."""
@@ -298,14 +298,14 @@ class TestBackGroundTasksRandomness:
         bg_tasks = BackGroundTasks(mock_bot)
 
         # Mock the random choice method
-        bg_tasks._random.choice = MagicMock(return_value='SelectedGame')
+        bg_tasks.random.choice = MagicMock(return_value='SelectedGame')
 
         # Test the choice method directly with a test list
         test_games = ['Game1', 'Game2', 'Game3']
-        result = bg_tasks._random.choice(test_games)
+        result = bg_tasks.random.choice(test_games)
 
         assert result == 'SelectedGame'
-        bg_tasks._random.choice.assert_called_once_with(test_games)
+        bg_tasks.random.choice.assert_called_once_with(test_games)
 
 
 class TestBackGroundTasksIntegration:

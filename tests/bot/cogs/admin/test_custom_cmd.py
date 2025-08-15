@@ -64,17 +64,20 @@ def mock_ctx():
 @pytest.fixture
 def mock_command_data():
     """Create mock command data."""
-    hello_cmd = MagicMock()
-    hello_cmd.name = "hello"
-    hello_cmd.created_by = 67890
-    hello_cmd.created_at = datetime.now()
-    
-    rules_cmd = MagicMock()
-    rules_cmd.name = "rules"
-    rules_cmd.created_by = 11111
-    rules_cmd.created_at = datetime.now()
-    
-    return [hello_cmd, rules_cmd]
+    return [
+        {
+            "name": "hello",
+            "created_by": 67890,
+            "created_at": datetime.now(),
+            "description": "Hello command"
+        },
+        {
+            "name": "rules",
+            "created_by": 11111,
+            "created_at": datetime.now(),
+            "description": "Rules command"
+        }
+    ]
 
 
 class TestCustomCommand:

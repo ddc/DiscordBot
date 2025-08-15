@@ -172,12 +172,12 @@ class TestMessageValidator:
 
     def test_is_member_invisible_true(self, mock_ctx):
         """Test is_member_invisible with offline status."""
-        mock_ctx.author.status.name = "offline"
+        mock_ctx.author.status = discord.Status.offline
         assert MessageValidator.is_member_invisible(mock_ctx) is True
 
     def test_is_member_invisible_false(self, mock_ctx):
         """Test is_member_invisible with online status."""
-        mock_ctx.author.status.name = "online"
+        mock_ctx.author.status = discord.Status.online
         assert MessageValidator.is_member_invisible(mock_ctx) is False
 
     def test_has_double_prefix_true(self):
@@ -318,17 +318,20 @@ class TestCustomReactionHandler:
 
     def test_get_reaction_response_stupid(self):
         """Test reaction response for 'stupid'."""
-        response = CustomReactionHandler._get_reaction_response("you are stupid")
+        reaction_words = ["stupid", "retard"]
+        response = CustomReactionHandler._get_reaction_response("you are stupid", reaction_words)
         assert response == messages.BOT_REACT_STUPID
 
     def test_get_reaction_response_retard(self):
         """Test reaction response for 'retard'."""
-        response = CustomReactionHandler._get_reaction_response("you are retard")
+        reaction_words = ["stupid", "retard"]
+        response = CustomReactionHandler._get_reaction_response("you are retard", reaction_words)
         assert response == messages.BOT_REACT_RETARD
 
     def test_get_reaction_response_default(self):
         """Test default reaction response."""
-        response = CustomReactionHandler._get_reaction_response("you are bad")
+        reaction_words = ["stupid", "retard"]
+        response = CustomReactionHandler._get_reaction_response("you are bad", reaction_words)
         assert response == "fu ufk!!!"
 
 
@@ -458,8 +461,12 @@ class TestServerMessageHandler:
         """Test server message processing with invisible member blocked."""
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
-        mock_dal.get_server.return_value = {"block_invis_members": True}
-        mock_ctx.author.status.name = "offline"
+        mock_dal.get_server.return_value = {
+            "block_invis_members": True,
+            "profanity_filter": False,
+            "bot_word_reactions": False
+        }
+        mock_ctx.author.status = discord.Status.offline
 
         handler = ServerMessageHandler(mock_bot)
 

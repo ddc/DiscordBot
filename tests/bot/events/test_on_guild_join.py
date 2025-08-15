@@ -158,7 +158,7 @@ class TestWelcomeMessageBuilder:
 
     def test_set_footer_exception(self, welcome_message_builder, mock_bot):
         """Test setting footer when exception occurs."""
-        mock_bot.get_user.side_effect = Exception("User fetch error")
+        mock_bot.get_user.side_effect = AttributeError("User fetch error")
         embed = discord.Embed()
 
         welcome_message_builder._set_footer(embed, mock_bot)

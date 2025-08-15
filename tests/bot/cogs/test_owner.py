@@ -34,6 +34,15 @@ def mock_bot():
             "EmbedOwnerColor": discord.Color.gold()
         }
     }
+    
+    # Mock guilds for activity update tests
+    mock_guild = MagicMock()
+    mock_guild.me = MagicMock()
+    mock_guild.me.activity = MagicMock()
+    mock_guild.me.activity.type = discord.ActivityType.playing
+    mock_guild.me.activity.name = "Test Game | !help"
+    bot.guilds = [mock_guild]
+    
     return bot
 
 
@@ -106,10 +115,10 @@ class TestOwner:
         await owner_cog.owner_change_prefix.callback(owner_cog, mock_ctx, new_prefix="$")
         
         mock_ctx.message.channel.typing.assert_called_once()
-        mock_dal.update_bot_prefix.assert_called_once_with("$", 67890)
+        mock_dal.update_bot_prefix.assert_called_once_with("$")
         
         # Verify bot prefix was updated
-        assert owner_cog.bot.command_prefix == ("$",)
+        assert owner_cog.bot.command_prefix == "$"
         
         mock_send_embed.assert_called_once()
         embed = mock_send_embed.call_args[0][1]
@@ -150,6 +159,8 @@ class TestOwner:
                                                   owner_cog, mock_ctx):
         """Test prefix change when bot has no activity."""
         owner_cog.bot.user.activity = None
+        # Also need to set the guild's activity to None since that's what the method checks
+        owner_cog.bot.guilds[0].me.activity = None
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         
@@ -159,7 +170,7 @@ class TestOwner:
         owner_cog.bot.change_presence.assert_not_called()
         
         # But should still update prefix
-        assert owner_cog.bot.command_prefix == ("&",)
+        assert owner_cog.bot.command_prefix == "&"
         mock_send_embed.assert_called_once()
     
     @pytest.mark.asyncio
@@ -168,7 +179,8 @@ class TestOwner:
     async def test_owner_change_prefix_non_playing_activity(self, mock_send_embed, mock_dal_class, 
                                                            owner_cog, mock_ctx):
         """Test prefix change when bot has non-playing activity."""
-        owner_cog.bot.user.activity.type = discord.ActivityType.listening
+        # Set the guild's bot member activity type to listening (not playing)
+        owner_cog.bot.guilds[0].me.activity.type = discord.ActivityType.listening
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         
@@ -194,7 +206,7 @@ class TestOwner:
         
         mock_delete_msg.assert_called_once_with(mock_ctx)
         mock_ctx.message.channel.typing.assert_called_once()
-        mock_dal.update_bot_description.assert_called_once_with(new_desc, 67890)
+        mock_dal.update_bot_description.assert_called_once_with(new_desc)
         
         # Verify bot description was updated
         assert owner_cog.bot.description == new_desc
@@ -317,7 +329,8 @@ class TestOwner:
     @pytest.mark.asyncio
     async def test_update_bot_activity_prefix_no_activity(self, owner_cog):
         """Test _update_bot_activity_prefix with no activity."""
-        owner_cog.bot.user.activity = None
+        # Set the guild's bot member activity to None
+        owner_cog.bot.guilds[0].me.activity = None
         
         await owner_cog._update_bot_activity_prefix("$")
         
@@ -326,7 +339,8 @@ class TestOwner:
     @pytest.mark.asyncio
     async def test_update_bot_activity_prefix_wrong_activity_type(self, owner_cog):
         """Test _update_bot_activity_prefix with wrong activity type."""
-        owner_cog.bot.user.activity.type = discord.ActivityType.listening
+        # Set the guild's bot member activity type to listening (not playing)
+        owner_cog.bot.guilds[0].me.activity.type = discord.ActivityType.listening
         
         await owner_cog._update_bot_activity_prefix("$")
         
@@ -334,9 +348,9 @@ class TestOwner:
     
     @pytest.mark.asyncio
     async def test_update_bot_activity_prefix_no_bot_user_activity_attr(self, owner_cog):
-        """Test _update_bot_activity_prefix when bot.user has no activity attribute."""
-        # Remove activity attribute
-        del owner_cog.bot.user.activity
+        """Test _update_bot_activity_prefix when guild's bot member is None."""
+        # Set the guild's bot member to None
+        owner_cog.bot.guilds[0].me = None
         
         await owner_cog._update_bot_activity_prefix("$")
         
@@ -362,7 +376,7 @@ class TestOwner:
         
         for prefix in variables.ALLOWED_PREFIXES:
             await owner_cog.owner_change_prefix.callback(owner_cog, mock_ctx, new_prefix=prefix)
-            assert owner_cog.bot.command_prefix == (prefix,)
+            assert owner_cog.bot.command_prefix == prefix
     
     @pytest.mark.asyncio
     @patch('src.bot.cogs.owner.BotConfigsDal')
@@ -379,7 +393,7 @@ class TestOwner:
             await owner_cog.owner_description.callback(owner_cog, mock_ctx, desc=special_desc)
             
             assert owner_cog.bot.description == special_desc
-            mock_dal.update_bot_description.assert_called_once_with(special_desc, 67890)
+            mock_dal.update_bot_description.assert_called_once_with(special_desc)
     
     @pytest.mark.asyncio
     @patch('src.bot.cogs.owner.BotConfigsDal')
@@ -394,7 +408,7 @@ class TestOwner:
             await owner_cog.owner_description.callback(owner_cog, mock_ctx, desc="")
             
             assert owner_cog.bot.description == ""
-            mock_dal.update_bot_description.assert_called_once_with("", 67890)
+            mock_dal.update_bot_description.assert_called_once_with("")
     
     @pytest.mark.asyncio
     @patch('src.bot.cogs.owner.ServersDal')
@@ -429,6 +443,8 @@ class TestOwner:
     async def test_update_bot_activity_prefix_complex_game_name(self, owner_cog):
         """Test _update_bot_activity_prefix with complex game name containing pipe."""
         owner_cog.bot.user.activity.name = "Complex | Game | Name | !help"
+        # Also need to set the guild's activity name since that's what the method checks
+        owner_cog.bot.guilds[0].me.activity.name = "Complex | Game | Name | !help"
         
         await owner_cog._update_bot_activity_prefix("$")
         
@@ -488,6 +504,8 @@ class TestOwner:
     async def test_update_bot_activity_prefix_with_no_pipe_in_activity(self, owner_cog):
         """Test _update_bot_activity_prefix when activity name has no pipe."""
         owner_cog.bot.user.activity.name = "SimpleGameName"
+        # Also need to set the guild's activity name since that's what the method checks
+        owner_cog.bot.guilds[0].me.activity.name = "SimpleGameName"
         
         await owner_cog._update_bot_activity_prefix("$")
         

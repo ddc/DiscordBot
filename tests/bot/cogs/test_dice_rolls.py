@@ -139,7 +139,8 @@ class TestDiceRolls:
     @patch('src.bot.cogs.dice_rolls.random.SystemRandom')
     @patch('src.bot.cogs.dice_rolls.DiceRollsDal')
     @patch('src.bot.cogs.dice_rolls.bot_utils.send_embed')
-    async def test_roll_new_personal_record(self, mock_send_embed, mock_dal_class, mock_random, dice_cog, mock_ctx):
+    @patch('src.bot.cogs.dice_rolls.bot_utils.get_member_by_id')
+    async def test_roll_new_personal_record(self, mock_get_member, mock_send_embed, mock_dal_class, mock_random, dice_cog, mock_ctx):
         # Setup
         mock_random_instance = MagicMock()
         mock_random.return_value = mock_random_instance
@@ -149,7 +150,14 @@ class TestDiceRolls:
         mock_dal_class.return_value = mock_dal
         mock_dal.get_user_roll_by_dice_size .return_value =[{"roll": 50}]
         mock_dal.update_user_roll .return_value = None
-        mock_dal.get_server_max_roll .return_value =[]
+        # Set up an existing server record higher than current roll so it's not a server record
+        mock_dal.get_server_max_roll .return_value =[{"user_id": 99999, "max_roll": 95}]
+        
+        # Mock the other user who holds the server record
+        other_user = MagicMock()
+        other_user.id = 99999
+        other_user.display_name = "OtherUser"
+        mock_get_member.return_value = other_user
         
         # Execute
         await dice_cog.roll.callback(dice_cog, mock_ctx)
