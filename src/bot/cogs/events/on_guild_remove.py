@@ -1,5 +1,3 @@
-"""Bot guild removal event handler with database cleanup."""
-
 import discord
 from discord.ext import commands
 from src.database.dal.bot.servers_dal import ServersDal

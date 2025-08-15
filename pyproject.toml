@@ -1,5 +1,5 @@
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
@@ -26,17 +26,17 @@ optional = true
 python = "^3.13"
 alembic = "^1.16.4"
 beautifulsoup4 = "^4.13.4"
-ddcDatabases = {extras = ["pgsql"], version = "^2.0.3"}
+ddcDatabases = {extras = ["pgsql"], version = "^2.0.6"}
 discord-py = "^2.5.2"
 gTTS = "^2.5.4"
-openai = "^1.97.1"
+openai = "^1.99.9"
 PyNaCl = "^1.5.0"
 pythonLogs = "^5.0.1"
 
 [tool.poetry.group.test.dependencies]
-coverage = "^7.10.0"
-faker = "^37.4.2"
-poethepoet = "^0.36.0"
+coverage = "^7.10.3"
+faker = "^37.5.3"
+poethepoet = "^0.37.0"
 pytest = "^8.4.1"
 pytest-asyncio = "^1.1.0"
 pytest-cov = "^6.2.1"

@@ -1,8 +1,5 @@
-"""OpenAI integration for Discord bot commands."""
-
 import discord
 from discord.ext import commands
-from discord.ext.commands import BucketType
 from openai import OpenAI
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 from src.bot.constants.settings import get_bot_settings
@@ -18,7 +15,7 @@ class OpenAi(commands.Cog):
         self._openai_client: OpenAI | None = None
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.OpenAI.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.OpenAI.value, commands.BucketType.user)
     async def ai(self, ctx: commands.Context, *, msg_text: str) -> None:
         """Ask OpenAI for assistance with any question or task.
 
@@ -36,7 +33,7 @@ class OpenAi(commands.Cog):
         except Exception as e:
             self.bot.log.error(f"OpenAI API error: {e}")
             color = discord.Color.red()
-            description = f"Sorry, I encountered an error: {str(e)}"
+            description = f"Sorry, I encountered an error: {e}"
 
         embed = self._create_ai_embed(ctx, description, color)
         await bot_utils.send_embed(ctx, embed, False)

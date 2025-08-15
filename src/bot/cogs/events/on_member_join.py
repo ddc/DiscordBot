@@ -1,5 +1,3 @@
-"""Bot member join event handler with welcome message functionality."""
-
 import discord
 from discord.ext import commands
 from src.bot.constants import messages

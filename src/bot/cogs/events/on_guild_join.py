@@ -1,5 +1,3 @@
-"""Guild join event handler with welcome message functionality."""
-
 import sys
 import discord
 from discord.ext import commands
@@ -45,17 +43,17 @@ class WelcomeMessageBuilder:
             python_version = "Python {}.{}.{}".format(*sys.version_info[:3])
 
             if author and author.avatar:
-                embed.set_footer(icon_url=author.avatar.url, text=f"Developed by {str(author)} | {python_version}")
+                embed.set_footer(icon_url=author.avatar.url, text=f"Developed by {author} | {python_version}")
             else:
                 embed.set_footer(text=f"Developed by Bot Owner | {python_version}")
-        except Exception:
-            # Fallback if owner information is not available
+        except (AttributeError, discord.HTTPException):
+            # Fallback if owner information is not available or HTTP error occurs
             python_version = "Python {}.{}.{}".format(*sys.version_info[:3])
             embed.set_footer(text=f"Discord Bot | {python_version}")
 
 
 class OnGuildJoin(commands.Cog):
-    """Guild join event handler with improved welcome message system."""
+    """Guild join event handler"""
 
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot

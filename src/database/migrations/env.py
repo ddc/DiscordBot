@@ -4,8 +4,7 @@ from alembic import context
 from alembic.script import ScriptDirectory
 from ddcDatabases.settings import get_postgresql_settings
 from sqlalchemy import engine_from_config, pool
-from src.database.models.bot_models import BotBase
-from src.database.models.gw2_models import Gw2Base
+from src.database.models import BotBase
 
 
 config = context.config
@@ -17,7 +16,6 @@ if config.config_file_name is not None:
 
 target_metadata = [
     BotBase.metadata,
-    Gw2Base.metadata,
 ]
 
 

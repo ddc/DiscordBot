@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from discord.ext.commands.cooldowns import BucketType
 from src.bot.tools import bot_utils, chat_formatting
 from src.gw2.cogs.gw2 import GuildWars2
 from src.gw2.constants import gw2_messages
@@ -27,7 +26,7 @@ async def worlds(ctx):
 
 
 @worlds.command(name="na")
-@commands.cooldown(1, GW2CoolDowns.Worlds.seconds, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Worlds.seconds, commands.BucketType.user)
 async def worlds_na(ctx):
     """(List all NA worlds and wvw tier)
     gw2 worlds na
@@ -59,7 +58,7 @@ async def worlds_na(ctx):
 
 
 @worlds.command(name="eu")
-@commands.cooldown(1, GW2CoolDowns.Worlds.seconds, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Worlds.seconds, commands.BucketType.user)
 async def worlds_eu(ctx):
     """(List all EU worlds and wvw tier)
     gw2 worlds eu

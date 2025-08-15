@@ -5,8 +5,7 @@ from src.database.models.gw2_models import Gw2SessionChars
 
 class Gw2SessionCharsDal:
     def __init__(self, db_session, log):
-        self.db_session = db_session
-        self.columns = [x for x in Gw2SessionChars.__table__.columns]
+        self.columns = list(Gw2SessionChars.__table__.columns.values())
         self.db_utils = DBUtilsAsync(db_session)
         self.log = log
 
@@ -25,15 +24,14 @@ class Gw2SessionCharsDal:
                 profession=profession,
                 deaths=deaths,
             )
-            self.db_session.add(stmt)
-        await self.db_session.commit()
+            await self.db_utils.insert(stmt)
 
     async def get_all_start_characters(self, user_id: int):
         stmt = select(*self.columns).where(Gw2SessionChars.user_id == user_id, Gw2SessionChars.start is True)
-        results = await self.db_utils.fetchall(stmt)
+        results = await self.db_utils.fetchall(stmt, True)
         return results
 
     async def get_all_end_characters(self, user_id: int):
         stmt = select(*self.columns).where(Gw2SessionChars.user_id == user_id, Gw2SessionChars.end is True)
-        results = await self.db_utils.fetchall(stmt)
+        results = await self.db_utils.fetchall(stmt, True)
         return results

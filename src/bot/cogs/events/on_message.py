@@ -1,5 +1,3 @@
-"""Message event handling for Discord bot with improved structure and maintainability."""
-
 import discord
 from discord.ext import commands
 from src.bot.constants import messages
@@ -39,7 +37,7 @@ class MessageValidator:
     @staticmethod
     def is_member_invisible(ctx: commands.Context) -> bool:
         """Check if member status is offline/invisible."""
-        return ctx.author.status.name == "offline"
+        return ctx.author.status == discord.Status.offline
 
     @staticmethod
     def has_double_prefix(message: discord.Message) -> bool:
@@ -104,7 +102,7 @@ class ProfanityFilter:
             f"(Channel:{ctx.message.channel})"
             f"(Author:{ctx.message.author})"
             f"(Message:{user_msg})"
-            f"(Error:{error_msg} | {str(error)})"
+            f"(Error:{error_msg} | {error})"
         )
 
 
@@ -128,7 +126,7 @@ class CustomReactionHandler:
             has_bot_mention = True
 
         if has_reaction_word and has_bot_mention:
-            response = self._get_reaction_response(msg_content)
+            response = self._get_reaction_response(msg_content, reaction_words)
             await self._send_reaction_message(message, response)
             return True
 
@@ -140,14 +138,21 @@ class CustomReactionHandler:
         return any(word == "bot" or word == self.bot.user.mention.lower() for word in words)
 
     @staticmethod
-    def _get_reaction_response(msg_content: str) -> str:
+    def _get_reaction_response(msg_content: str, reaction_words: list) -> str:
         """Get appropriate reaction response based on message content."""
-        if "stupid" in msg_content:
-            return messages.BOT_REACT_STUPID
-        elif "retard" in msg_content:
-            return messages.BOT_REACT_RETARD
-        else:
-            return "fu ufk!!!"
+        # Check for specific reaction words and return appropriate responses
+        for word in reaction_words:
+            if word in msg_content:
+                if word == "stupid":
+                    return messages.BOT_REACT_STUPID
+                elif word == "retard":
+                    return messages.BOT_REACT_RETARD
+                else:
+                    # Generic response for other reaction words
+                    return "fu ufk!!!"
+        
+        # Default fallback response
+        return "fu ufk!!!"
 
     @staticmethod
     async def _send_reaction_message(message: discord.Message, response: str) -> None:
@@ -161,7 +166,7 @@ class CustomReactionHandler:
 
 class ExclusiveUsersChecker:
     """Utility class for checking exclusive users permissions."""
-    
+
     @staticmethod
     async def check_exclusive_users(bot: commands.Bot, ctx: commands.Context) -> bool:
         """Check if user is in the exclusive users list."""
@@ -347,7 +352,7 @@ class ServerMessageHandler:
     async def _try_custom_command(self, ctx: commands.Context) -> bool:
         """Try to execute custom command. Returns True if executed."""
         commands_dal = CustomCommandsDal(self.bot.db_session, self.bot.log)
-        command_data = await commands_dal.get_command(ctx.author.guild.id, str(ctx.invoked_with))
+        command_data = await commands_dal.get_command(ctx.guild.id, str(ctx.invoked_with))
 
         if command_data:
             await ctx.message.channel.typing()

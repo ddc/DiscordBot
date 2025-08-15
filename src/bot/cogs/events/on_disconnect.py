@@ -1,5 +1,3 @@
-"""Bot disconnect event handler with logging and proper error handling."""
-
 from discord.ext import commands
 from src.bot.constants import messages
 

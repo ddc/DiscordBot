@@ -1,15 +1,10 @@
-"""GW2 API exception classes with improved error handling."""
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from discord.ext import commands
+from discord.ext import commands
 
 
 class APIError(Exception):
     """Base exception for GW2 API errors."""
 
-    def __init__(self, bot: "commands.Bot", msg: str):
+    def __init__(self, bot: commands.Bot, msg: str):
         super().__init__(msg)
         self.bot = bot
         self.message = msg

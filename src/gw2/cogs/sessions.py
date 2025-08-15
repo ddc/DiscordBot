@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from discord.ext.commands.cooldowns import BucketType
 from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.gw2.gw2_configs_dal import Gw2ConfigsDal
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
@@ -20,7 +19,7 @@ class GW2Session(GuildWars2):
 
 
 @GW2Session.gw2.command()
-@commands.cooldown(1, GW2CoolDowns.Session.seconds, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Session.seconds, commands.BucketType.user)
 async def session(ctx):
     """(Info about the gw2 player last game session)
 

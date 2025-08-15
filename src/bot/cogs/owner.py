@@ -1,17 +1,12 @@
-"""Bot owner-only commands for administrative tasks and bot configuration."""
-
 from typing import Optional
 import discord
 from discord.ext import commands
-from discord.ext.commands import BucketType
 from src.bot.constants import messages, variables
 from src.bot.tools import bot_utils
 from src.bot.tools.checks import Checks
 from src.bot.tools.cooldowns import CoolDowns
 from src.database.dal.bot.bot_configs_dal import BotConfigsDal
 from src.database.dal.bot.servers_dal import ServersDal
-
-
 
 
 class Owner(commands.Cog):
@@ -22,7 +17,7 @@ class Owner(commands.Cog):
 
     @commands.group()
     @Checks.check_is_bot_owner()
-    @commands.cooldown(1, CoolDowns.Owner.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Owner.value, commands.BucketType.user)
     async def owner(self, ctx: commands.Context) -> Optional[commands.Command]:
         """Bot owner commands for administrative tasks.
 
@@ -50,13 +45,13 @@ class Owner(commands.Cog):
             allowed = ", ".join(variables.ALLOWED_PREFIXES)
             raise commands.BadArgument(f"Invalid prefix. Allowed prefixes: {allowed}")
 
-        # Update bot presence if it has an activity
-        await self._update_bot_activity_prefix(new_prefix)
-
         # Update prefix in database and bot instance
         bot_configs_dal = BotConfigsDal(self.bot.db_session, self.bot.log)
-        await bot_configs_dal.update_bot_prefix(new_prefix, ctx.author.id)
-        self.bot.command_prefix = (new_prefix,)
+        await bot_configs_dal.update_bot_prefix(new_prefix)
+        self.bot.command_prefix = new_prefix
+
+        # Update bot presence if it has an activity
+        await self._update_bot_activity_prefix(new_prefix)
 
         # Send confirmation
         embed = self._create_owner_embed(f"{messages.BOT_PREFIX_CHANGED}: `{new_prefix}`")
@@ -67,7 +62,6 @@ class Owner(commands.Cog):
         """Update the bot's description.
 
         This changes the description shown in the about command
-        and other bot information displays.
 
         Usage:
             owner botdescription A helpful Discord bot
@@ -77,7 +71,7 @@ class Owner(commands.Cog):
 
         # Update description in database and bot instance
         bot_configs_dal = BotConfigsDal(self.bot.db_session, self.bot.log)
-        await bot_configs_dal.update_bot_description(desc, ctx.author.id)
+        await bot_configs_dal.update_bot_description(desc)
         self.bot.description = desc
 
         # Send confirmation
@@ -105,7 +99,8 @@ class Owner(commands.Cog):
 
         embed = self._create_owner_embed("Database servers")
         embed.set_author(
-            name=self.bot.user.display_name, icon_url=self.bot.user.avatar.url if self.bot.user.avatar else None
+            name=self.bot.user.display_name,
+            icon_url=self.bot.user.avatar.url if self.bot.user.avatar else None,
         )
 
         # Split server data into ID and name lists
@@ -127,18 +122,19 @@ class Owner(commands.Cog):
 
     async def _update_bot_activity_prefix(self, new_prefix: str) -> None:
         """Update bot activity to reflect the new prefix."""
-        bot_user = self.bot.user
+        # Get the first available guild to check current activity
+        # Bot's activity is the same across all servers
+        if self.bot.guilds:
+            first_guild = self.bot.guilds[0]
+            current_activity = first_guild.me.activity if first_guild.me else None
 
-        if (
-            hasattr(bot_user, "activity")
-            and bot_user.activity is not None
-            and bot_user.activity.type == discord.ActivityType.playing
-        ):
-            game_name = str(bot_user.activity.name).split("|")[0].strip()
-            new_activity_desc = f"{game_name} | {new_prefix}help"
+            if current_activity and current_activity.type == discord.ActivityType.playing:
+                game_name = str(current_activity.name).split("|")[0].strip()
+                new_activity_desc = f"{game_name} | {new_prefix}help"
 
-            activity = discord.Game(name=new_activity_desc)
-            await self.bot.change_presence(status=discord.Status.online, activity=activity)
+                activity = discord.Game(name=new_activity_desc)
+                status = discord.Status.online
+                await self.bot.change_presence(status=status, activity=activity)
 
     def _create_owner_embed(self, description: str) -> discord.Embed:
         """Create a standardized embed for owner commands."""

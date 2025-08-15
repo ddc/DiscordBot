@@ -1,19 +1,14 @@
-"""Miscellaneous Discord bot commands including TTS, info commands, and utilities."""
-
 import random
 import sys
 from io import BytesIO
 from typing import Optional
 import discord
 from discord.ext import commands
-from discord.ext.commands import BucketType
 from gtts import gTTS
 from src.bot.constants import messages, variables
 from src.bot.tools import bot_utils, chat_formatting
 from src.bot.tools.cooldowns import CoolDowns
 from src.bot.tools.pepe import pepedatabase
-
-
 
 
 class Misc(commands.Cog):
@@ -24,7 +19,7 @@ class Misc(commands.Cog):
         self._random = random.SystemRandom()
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, commands.BucketType.user)
     async def pepe(self, ctx: commands.Context) -> None:
         """Post a random Pepe image from the database.
 
@@ -39,7 +34,7 @@ class Misc(commands.Cog):
         await ctx.send(pepe_url)
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, commands.BucketType.user)
     async def tts(self, ctx: commands.Context, *, tts_text: str) -> None:
         """Generate and send text-to-speech audio file.
 
@@ -59,7 +54,7 @@ class Misc(commands.Cog):
 
         mp3_buffer = BytesIO()
         try:
-            tts = gTTS(text=processed_text, lang="en")
+            tts = gTTS(text=processed_text, lang="en", slow=False, timeout=10)
             tts.write_to_fp(mp3_buffer)
             mp3_buffer.seek(0)
 
@@ -70,7 +65,7 @@ class Misc(commands.Cog):
             mp3_buffer.close()
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, commands.BucketType.user)
     async def echo(self, ctx: commands.Context, *, msg: str) -> None:
         """Echo a message back to the channel.
 
@@ -81,7 +76,7 @@ class Misc(commands.Cog):
         await bot_utils.send_msg(ctx, msg)
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, commands.BucketType.user)
     async def ping(self, ctx: commands.Context) -> None:
         """Test bot latency and response time.
 
@@ -99,7 +94,7 @@ class Misc(commands.Cog):
         await bot_utils.send_embed(ctx, embed)
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, commands.BucketType.user)
     async def lmgtfy(self, ctx: commands.Context, *, user_msg: str) -> None:
         """Create a 'Let Me Google That For You' link.
 
@@ -112,7 +107,7 @@ class Misc(commands.Cog):
         await bot_utils.send_msg(ctx, lmgtfy_url)
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, commands.BucketType.user)
     async def invites(self, ctx: commands.Context) -> None:
         """List all active invite links for the current server.
 
@@ -139,7 +134,7 @@ class Misc(commands.Cog):
         return None
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, commands.BucketType.user)
     async def serverinfo(self, ctx: commands.Context) -> None:
         """Display comprehensive information about the current server.
 
@@ -159,7 +154,7 @@ class Misc(commands.Cog):
         now = bot_utils.get_current_date_time()
         created_str = bot_utils.convert_datetime_to_str_long(server.created_at)
         days_ago = (now - server.created_at).days
-        created_at = f"Since {created_str[:-7]}. That's over {days_ago} days ago!"
+        created_at = f"Created {created_str}. That's over {days_ago} days ago!"
 
         embed = discord.Embed(description=created_at)
         self._add_server_info_fields(embed, server, stats)
@@ -172,10 +167,10 @@ class Misc(commands.Cog):
         else:
             embed.set_author(name=server.name)
 
-        await bot_utils.send_embed(ctx, embed, True)
+        await bot_utils.send_embed(ctx, embed)
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, commands.BucketType.user)
     async def userinfo(self, ctx: commands.Context, *, member_str: Optional[str] = None) -> None:
         """Display detailed information about a user.
 
@@ -208,10 +203,10 @@ class Misc(commands.Cog):
         else:
             embed.set_author(name=display_name)
 
-        await bot_utils.send_embed(ctx, embed, True)
+        await bot_utils.send_embed(ctx, embed)
 
     @commands.command()
-    @commands.cooldown(1, CoolDowns.Misc.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Misc.value, commands.BucketType.user)
     async def about(self, ctx: commands.Context) -> None:
         """Display comprehensive information about the bot.
 
@@ -243,25 +238,25 @@ class Misc(commands.Cog):
             embed.set_footer(icon_url=author.avatar.url, text=f"Developed by {author} | {python_version}")
 
         self._add_about_fields(embed, dev_info_msg, bot_stats, games_included, ctx.prefix)
-        await bot_utils.send_embed(ctx, embed, True)
+        await bot_utils.send_embed(ctx, embed)
 
     def _process_tts_text(self, ctx: commands.Context, text: str) -> str:
         """Process TTS text to convert mentions and emojis to readable format."""
         if not self._has_special_tokens(text):
             return text
-            
+
         processed_parts = []
         for word in text.split():
             processed_word = self._process_word(ctx, word)
             processed_parts.append(processed_word)
-        
+
         return " ".join(processed_parts)
-    
+
     @staticmethod
     def _has_special_tokens(text: str) -> bool:
         """Check if text contains mentions or custom emojis."""
         return "<@!" in text or "<:" in text
-    
+
     def _process_word(self, ctx: commands.Context, word: str) -> str:
         """Process a single word for mentions and emojis."""
         if self._is_user_mention(word):
@@ -270,17 +265,17 @@ class Misc(commands.Cog):
             return self._process_custom_emoji(word)
         else:
             return word
-    
+
     @staticmethod
     def _is_user_mention(word: str) -> bool:
         """Check if word is a user mention."""
         return word.startswith("<@!") and word.endswith(">")
-    
+
     @staticmethod
     def _is_custom_emoji(word: str) -> bool:
         """Check if word is a custom emoji."""
         return word.startswith("<:") and word.endswith(">") and ":" in word
-    
+
     @staticmethod
     def _process_user_mention(ctx: commands.Context, word: str) -> str:
         """Process user mention to readable format."""
@@ -290,7 +285,7 @@ class Misc(commands.Cog):
             return f"@{member.display_name}" if member else word
         except ValueError:
             return word
-    
+
     @staticmethod
     def _process_custom_emoji(word: str) -> str:
         """Process custom emoji to readable format."""
@@ -406,11 +401,11 @@ class Misc(commands.Cog):
                 case discord.ActivityType.streaming:
                     return f"Streaming: [{user.activity.name}]({user.activity.details})"
                 case _:
-                    return user.status.name
-        elif user.status.name == "dnd":
+                    return str(user.status)
+        elif user.status == discord.Status.dnd:
             return messages.DO_NOT_DISTURB
         else:
-            return user.status.name
+            return str(user.status)
 
     @staticmethod
     def _add_user_info_fields(embed: discord.Embed, user_info: dict) -> None:
@@ -419,7 +414,9 @@ class Misc(commands.Cog):
         embed.add_field(name=messages.JOINED_THIS_SERVER_ON, value=user_info["joined_on"])
         embed.add_field(name="Roles", value=user_info["roles"], inline=False)
         embed.set_footer(
-            text=f"Member #{user_info['member_number']} | User ID: {user_info['user_id']} | {bot_utils.get_current_date_time_str_long()}"
+            text=f"Member #{user_info['member_number']} | "
+            f"User ID: {user_info['user_id']} | "
+            f"{bot_utils.get_current_date_time_str_long()}"
         )
 
     @staticmethod

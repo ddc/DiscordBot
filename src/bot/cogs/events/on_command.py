@@ -1,5 +1,3 @@
-"""Bot command execution event handler with logging and monitoring."""
-
 from discord.ext import commands
 
 
@@ -21,12 +19,25 @@ class CommandLogger:
             ctx: The command context
         """
         try:
+            # Get the full command string including subcommands and arguments
+            command_parts = [ctx.command.name] if ctx.command else []
+            
+            # Add subcommand if it exists
+            if ctx.invoked_subcommand:
+                command_parts.append(ctx.invoked_subcommand.name)
+            
+            # Get the full message content after the prefix to include arguments
+            if ctx.prefix and ctx.message.content.startswith(ctx.prefix):
+                full_command = ctx.message.content[len(ctx.prefix):]
+            else:
+                full_command = " ".join(command_parts)
+            
             if ctx.guild:
                 self.bot.log.info(
-                    f"Command executed: '{ctx.command}' by {ctx.author} in {ctx.guild.name}#{ctx.channel.name}"
+                    f"Command executed in '{ctx.guild.name}#{ctx.channel.name}' by {ctx.author}: {full_command}"
                 )
             else:
-                self.bot.log.info(f"DM Command executed: '{ctx.command}' by {ctx.author}")
+                self.bot.log.info(f"DM Command executed by {ctx.author}: {full_command}")
         except Exception as e:
             self.bot.log.error(f"Failed to log command execution: {e}")
 

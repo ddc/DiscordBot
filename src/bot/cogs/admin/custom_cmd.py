@@ -1,9 +1,6 @@
-"""Custom command management for server administrators."""
-
 from typing import Optional
 import discord
 from discord.ext import commands
-from discord.ext.commands import BucketType
 from src.bot.cogs.admin.admin import Admin
 from src.bot.constants import messages
 from src.bot.tools import bot_utils, chat_formatting
@@ -33,7 +30,7 @@ async def custom_command(ctx: commands.Context) -> Optional[commands.Command]:
 
 
 @custom_command.command(name="add")
-@commands.cooldown(1, CoolDowns.CustomCommand.value, BucketType.user)
+@commands.cooldown(1, CoolDowns.CustomCommand.value, commands.BucketType.user)
 async def add_custom_command(ctx: commands.Context, *, subcommand_passed: str) -> None:
     """Add a new custom command to the server.
 
@@ -88,7 +85,7 @@ async def add_custom_command(ctx: commands.Context, *, subcommand_passed: str) -
 
 
 @custom_command.command(name="edit")
-@commands.cooldown(1, CoolDowns.CustomCommand.value, BucketType.user)
+@commands.cooldown(1, CoolDowns.CustomCommand.value, commands.BucketType.user)
 async def edit_custom_command(ctx: commands.Context, *, subcommand_passed: str) -> None:
     """Edit an existing custom command.
 
@@ -119,7 +116,7 @@ async def edit_custom_command(ctx: commands.Context, *, subcommand_passed: str) 
         return await bot_utils.send_error_msg(ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
 
     # Check if command exists
-    command_names = {cmd.name for cmd in server_commands}
+    command_names = {cmd["name"] for cmd in server_commands}
     if cmd_name not in command_names:
         error_msg = f"{messages.COMMAND_NOT_FOUND}:\n`{ctx.prefix}{cmd_name}`"
         return await bot_utils.send_error_msg(ctx, error_msg)
@@ -132,7 +129,7 @@ async def edit_custom_command(ctx: commands.Context, *, subcommand_passed: str) 
 
 
 @custom_command.command(name="remove")
-@commands.cooldown(1, CoolDowns.CustomCommand.value, BucketType.user)
+@commands.cooldown(1, CoolDowns.CustomCommand.value, commands.BucketType.user)
 async def remove_custom_command(ctx: commands.Context, cmd_name: str) -> None:
     """Remove a specific custom command.
 
@@ -149,7 +146,7 @@ async def remove_custom_command(ctx: commands.Context, cmd_name: str) -> None:
         return await bot_utils.send_warning_msg(ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
 
     # Check if command exists
-    command_names = {cmd.name for cmd in server_commands}
+    command_names = {cmd["name"] for cmd in server_commands}
     if cmd_name not in command_names:
         error_msg = (
             f"{messages.CUSTOM_COMMAND_UNABLE_REMOVE}\n"
@@ -165,7 +162,7 @@ async def remove_custom_command(ctx: commands.Context, cmd_name: str) -> None:
 
 
 @custom_command.command(name="removeall")
-@commands.cooldown(1, CoolDowns.CustomCommand.value, BucketType.user)
+@commands.cooldown(1, CoolDowns.CustomCommand.value, commands.BucketType.user)
 async def remove_all_custom_commands(ctx: commands.Context) -> None:
     """Remove all custom commands from the server.
 
@@ -187,7 +184,7 @@ async def remove_all_custom_commands(ctx: commands.Context) -> None:
 
 
 @custom_command.command(name="list")
-@commands.cooldown(1, CoolDowns.CustomCommand.value, BucketType.user)
+@commands.cooldown(1, CoolDowns.CustomCommand.value, commands.BucketType.user)
 async def list_custom_commands(ctx: commands.Context) -> None:
     """Display all custom commands for this server.
 

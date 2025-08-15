@@ -16,7 +16,7 @@ class BotSettings(BaseSettings):
     token: Optional[str] = Field(default=None)
     openai_model: Optional[str] = Field(default="gpt-4o-mini")
     openai_api_key: Optional[str] = Field(default=None)
-    
+
     # Bot configuration
     bg_activity_timer: Optional[int] = Field(default=0)
     allowed_dm_commands: Optional[str] = Field(default="owner, about, gw2")
@@ -24,7 +24,7 @@ class BotSettings(BaseSettings):
     embed_color: Optional[str] = Field(default="green")
     embed_owner_color: Optional[str] = Field(default="dark_purple")
     exclusive_users: Optional[str] = Field(default="")
-    
+
     # Cooldowns
     admin_cooldown: Optional[int] = Field(default=20)
     config_cooldown: Optional[int] = Field(default=20)

@@ -2,7 +2,6 @@ import random
 from typing import Optional
 import discord
 from discord.ext import commands
-from discord.ext.commands import BucketType
 from src.bot.constants import messages
 from src.bot.tools import bot_utils, chat_formatting
 from src.bot.tools.checks import Checks
@@ -17,7 +16,7 @@ class DiceRolls(commands.Cog):
         self.bot = bot
 
     @commands.group()
-    @commands.cooldown(1, CoolDowns.DiceRolls.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.DiceRolls.value, commands.BucketType.user)
     async def roll(self, ctx: commands.Context) -> Optional[commands.Command]:
         """Roll a die with specified size (defaults to 100).
 
@@ -25,7 +24,6 @@ class DiceRolls(commands.Cog):
             roll (default to 100)
             roll 500
             roll results
-            roll results user#1234
             roll reset
         """
 
@@ -179,15 +177,16 @@ class DiceRolls(commands.Cog):
         """Build message parts for roll result."""
         message_parts = []
 
-        # Check if new personal record
-        if roll == user_highest and roll > 0:
-            message_parts.append(messages.MEMBER_HIGHEST_ROLL)
-
         # Check if new server record
         if roll > server_record["roll"]:
             message_parts.append(messages.SERVER_HIGHEST_ROLL_ANOUNCE)
             server_record["roll"] = roll
             server_record["user"] = author
+
+        # Check if new personal record (but not if user is server winner)
+        is_server_winner = server_record["user"] == author
+        if roll == user_highest and roll > 0 and not is_server_winner:
+            message_parts.append(messages.MEMBER_HIGHEST_ROLL)
 
         # Add server record information
         if server_record["user"] is None or server_record["user"] == author:

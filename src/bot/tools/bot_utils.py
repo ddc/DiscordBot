@@ -2,16 +2,13 @@ import random
 from datetime import datetime, timezone
 from enum import Enum
 from operator import attrgetter
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 import discord
+from discord.ext import commands
 from src.bot.constants import messages, variables
 from src.bot.tools import chat_formatting
-from src.bot.tools.background_tasks import BackgroundTasks
+from src.bot.tools.background_tasks import BackGroundTasks
 from src.database.dal.bot.servers_dal import ServersDal
-
-
-if TYPE_CHECKING:
-    from discord.ext import commands
 
 
 class Colors(Enum):
@@ -40,7 +37,7 @@ class Colors(Enum):
     greyple = discord.Color.greyple()
 
 
-async def insert_server(bot: "commands.Bot", server: discord.Guild) -> None:
+async def insert_server(bot: commands.Bot, server: discord.Guild) -> None:
     """Insert server information into database and initialize GW2 configs."""
     servers_dal = ServersDal(bot.db_session, bot.log)
     await servers_dal.insert_server(server.id, server.name)
@@ -50,11 +47,11 @@ async def insert_server(bot: "commands.Bot", server: discord.Guild) -> None:
     await gw2_utils.insert_gw2_server_configs(bot, server)
 
 
-def init_background_tasks(bot: "commands.Bot") -> None:
+def init_background_tasks(bot: commands.Bot) -> None:
     """Initialize bot background tasks if configured."""
     bg_activity_timer = bot.settings["bot"]["BGActivityTimer"]
     if bg_activity_timer and bg_activity_timer > 0:
-        bg_tasks = BackgroundTasks(bot)
+        bg_tasks = BackGroundTasks(bot)
         bot.loop.create_task(bg_tasks.change_presence_task(bg_activity_timer))
 
 
@@ -64,10 +61,10 @@ async def load_cogs(bot):
         cog_name = ext.replace("/", ".").replace(".py", "")
         try:
             await bot.load_extension(cog_name)
-            bot.log.debug(f"\t {cog_name}")
+            bot.log.debug(f"{cog_name}")
         except Exception as e:
             bot.log.error(f"{messages.LOADING_EXTENSION_FAILED}: {cog_name}")
-            bot.log.error(f"\t{e.__class__.__name__}: {e}\n")
+            bot.log.error(f"{e.__class__.__name__}: {e}\n")
 
 
 async def invoke_subcommand(ctx, command_name: str):
@@ -80,6 +77,7 @@ async def invoke_subcommand(ctx, command_name: str):
         else:
             cmd = ctx.bot.get_command(command_name)
         await send_help_msg(ctx, cmd)
+        return None
 
 
 def get_embed(ctx, description=None, color=None):
@@ -124,9 +122,21 @@ async def send_embed(ctx, embed, dm=False):
             embed.color = ctx.bot.settings["bot"]["EmbedColor"]
         if not embed.author:
             embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
-        if is_private_message(ctx) or dm:
+
+        if is_private_message(ctx):
+            # Already in DM, just send the embed
             await ctx.author.send(embed=embed)
+        elif dm:
+            # Send to DM and notify in channel
+            await ctx.author.send(embed=embed)
+            notification_embed = discord.Embed(description="📬 Response sent to your DM", color=discord.Color.green())
+            notification_embed.set_author(
+                name=ctx.author.display_name,
+                icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url,
+            )
+            await ctx.send(embed=notification_embed)
         else:
+            # Send to channel
             await ctx.send(embed=embed)
     except (discord.Forbidden, discord.HTTPException):
         await send_error_msg(ctx, messages.DISABLED_DM)
@@ -144,7 +154,7 @@ async def delete_message(ctx, warning=False):
         except Exception as e:
             color = discord.Color.red()
             msg = messages.DELETE_MESSAGE_NO_PERMISSION
-            ctx.bot.log.error(f"{str(e)}: {msg}")
+            ctx.bot.log.error(f"{e}: {msg}")
         finally:
             if warning:
                 await send_msg(ctx, msg, False, color)
@@ -155,17 +165,17 @@ def is_member_admin(member: Optional[discord.Member]) -> bool:
     return member is not None and hasattr(member, "guild_permissions") and member.guild_permissions.administrator
 
 
-def is_bot_owner(ctx: "commands.Context", member: discord.Member) -> bool:
+def is_bot_owner(ctx: commands.Context, member: discord.Member) -> bool:
     """Check if a member is the bot owner."""
     return ctx.bot.owner_id == member.id
 
 
-def is_server_owner(ctx: "commands.Context", member: discord.Member) -> bool:
+def is_server_owner(ctx: commands.Context, member: discord.Member) -> bool:
     """Check if a member is the server owner."""
     return member.id == ctx.guild.owner_id
 
 
-def is_private_message(ctx: "commands.Context") -> bool:
+def is_private_message(ctx: commands.Context) -> bool:
     """Check if the context is a private/DM message."""
     return isinstance(ctx.channel, discord.DMChannel)
 
@@ -191,7 +201,7 @@ def convert_str_to_datetime_short(date_str: str) -> datetime:
     return datetime.strptime(date_str, f"{variables.DATE_FORMATTER} {variables.TIME_FORMATTER}")
 
 
-def get_object_member_by_str(ctx: "commands.Context", member_str: str) -> Optional[discord.Member]:
+def get_object_member_by_str(ctx: commands.Context, member_str: str) -> Optional[discord.Member]:
     """Find a guild member by name, display name, or nickname."""
     if is_private_message(ctx):
         return None
@@ -205,7 +215,7 @@ def get_object_member_by_str(ctx: "commands.Context", member_str: str) -> Option
     return None
 
 
-def get_user_by_id(bot: "commands.Bot", user_id: int) -> Optional[discord.User]:
+def get_user_by_id(bot: commands.Bot, user_id: int) -> Optional[discord.User]:
     """Get a user by their ID."""
     return bot.get_user(int(user_id))
 
@@ -261,7 +271,7 @@ def get_color_settings(color: str) -> Optional[discord.Color]:
     return None
 
 
-def get_bot_stats(bot: "commands.Bot") -> dict[str, str | datetime]:
+def get_bot_stats(bot: commands.Bot) -> dict[str, str | datetime]:
     """Get comprehensive bot statistics."""
     unique_users = sum(1 for user in bot.users if not user.bot)
     bot_users = sum(1 for user in bot.users if user.bot)
@@ -280,5 +290,5 @@ def get_bot_stats(bot: "commands.Bot") -> dict[str, str | datetime]:
         "servers": f"{len(bot.guilds)} servers",
         "users": f"({unique_users} users)({bot_users} bots)[{len(bot.users)} total]",
         "channels": f"({text_channels} text)({voice_channels} voice)[{total_channels} total]",
-        "start_time": bot.start_time if bot.start_time else get_current_date_time(),
+        "start_time": getattr(bot, 'start_time', None) or get_current_date_time(),
     }

@@ -1,5 +1,3 @@
-"""Bot member leave event handler with farewell message functionality."""
-
 import discord
 from discord.ext import commands
 from src.bot.constants import messages

@@ -12,7 +12,7 @@ class GW2CoolDowns(Enum):
 
     In debug mode, all cooldowns are set to 1 second for faster testing.
     In production, values are loaded from environment variables.
-    
+
     Note: To avoid enum value merging when multiple cooldowns have the same value,
     we use a tuple (value, unique_id) and access the actual cooldown via .value[0]
     """

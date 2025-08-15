@@ -6,7 +6,7 @@ from src.database.models.bot_models import DiceRolls
 
 class DiceRollsDal:
     def __init__(self, db_session, log):
-        self.columns = [x for x in DiceRolls.__table__.columns]
+        self.columns = list(DiceRolls.__table__.columns.values())
         self.db_utils = DBUtilsAsync(db_session)
         self.log = log
 
@@ -41,7 +41,7 @@ class DiceRollsDal:
             DiceRolls.user_id == user_id,
             DiceRolls.dice_size == dice_size,
         )
-        results = await self.db_utils.fetchall(stmt)
+        results = await self.db_utils.fetchall(stmt, True)
         return results
 
     async def get_user_rolls_all_dice_sizes(self, server_id: int, user_id: int):
@@ -53,7 +53,7 @@ class DiceRollsDal:
             )
             .order_by(DiceRolls.dice_size.asc())
         )
-        results = await self.db_utils.fetchall(stmt)
+        results = await self.db_utils.fetchall(stmt, True)
         return results
 
     async def get_all_server_rolls(self, server_id: int, dice_size: int):
@@ -65,7 +65,7 @@ class DiceRollsDal:
             )
             .order_by(DiceRolls.roll.desc())
         )
-        results = await self.db_utils.fetchall(stmt)
+        results = await self.db_utils.fetchall(stmt, True)
         return results
 
     async def get_server_max_roll(self, server_id: int, dice_size: int):
@@ -81,5 +81,5 @@ class DiceRollsDal:
             .order_by(DiceRolls.roll.desc())
             .limit(1)
         )
-        results = await self.db_utils.fetchall(stmt)
+        results = await self.db_utils.fetchall(stmt, True)
         return results

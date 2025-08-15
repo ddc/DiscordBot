@@ -6,7 +6,7 @@ from src.database.models.gw2_models import Gw2SessionChars, Gw2Sessions
 
 class Gw2SessionsDal:
     def __init__(self, db_session, log):
-        self.columns = [x for x in Gw2Sessions.__table__.columns]
+        self.columns = list(Gw2Sessions.__table__.columns.values())
         self.db_utils = DBUtilsAsync(db_session)
         self.log = log
 
@@ -41,5 +41,5 @@ class Gw2SessionsDal:
 
     async def get_user_last_session(self, user_id: int):
         stmt = select(*self.columns).where(Gw2Sessions.user_id == user_id)
-        results = await self.db_utils.fetchall(stmt)
+        results = await self.db_utils.fetchall(stmt, True)
         return results

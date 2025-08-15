@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from discord.ext.commands.cooldowns import BucketType
 from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.gw2.cogs.gw2 import GuildWars2
@@ -18,7 +17,7 @@ class GW2Account(GuildWars2):
 
 
 @GW2Account.gw2.command()
-@commands.cooldown(1, GW2CoolDowns.Account.seconds, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Account.seconds, commands.BucketType.user)
 async def account(ctx):
     """(General information about your GW2 account)
     Required API permissions: account
@@ -79,7 +78,7 @@ async def account(ctx):
 
         if "characters" in permissions:
             api_req_characters = await gw2_api.call_api("characters", api_key)
-            embed.add_field(name="Characters", value=chat_formatting.inline(len(api_req_characters)), inline=False)
+            embed.add_field(name="Characters", value=chat_formatting.inline(str(len(api_req_characters))), inline=False)
 
         if "progression" in permissions:
             await ctx.message.channel.typing()
@@ -88,7 +87,7 @@ async def account(ctx):
 
             api_req_acc_achiev = await gw2_api.call_api("account/achievements", api_key)
             achiev_points = await gw2_utils.calculate_user_achiev_points(ctx, api_req_acc_achiev, api_req_acc)
-            embed.add_field(name="Achievements Points", value=chat_formatting.inline(achiev_points), inline=False)
+            embed.add_field(name="Achievements Points", value=chat_formatting.inline(str(achiev_points)), inline=False)
 
             wvwrank = api_req_acc["wvw_rank"]
             wvw_title = gw2_utils.get_wvw_rank_title(int(wvwrank))

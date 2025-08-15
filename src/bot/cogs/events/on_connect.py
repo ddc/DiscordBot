@@ -1,9 +1,5 @@
-"""Bot connection event handler with database synchronization."""
-
 from typing import Set
-
 from discord.ext import commands
-
 from src.bot.tools import bot_utils
 from src.database.dal.bot.servers_dal import ServersDal
 

@@ -1,5 +1,3 @@
-"""Bot command cooldown configuration from environment variables."""
-
 from enum import Enum
 from src.bot.constants import variables
 from src.bot.constants.settings import get_bot_settings

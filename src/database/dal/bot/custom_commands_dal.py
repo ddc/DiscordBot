@@ -6,7 +6,7 @@ from src.database.models.bot_models import CustomCommands
 
 class CustomCommandsDal:
     def __init__(self, db_session, log):
-        self.columns = [x for x in CustomCommands.__table__.columns]
+        self.columns = list(CustomCommands.__table__.columns.values())
         self.db_utils = DBUtilsAsync(db_session)
         self.log = log
 
@@ -45,7 +45,7 @@ class CustomCommandsDal:
 
     async def get_all_server_commands(self, server_id: int):
         stmt = select(*self.columns).where(CustomCommands.server_id == server_id).order_by(CustomCommands.name.asc())
-        results = await self.db_utils.fetchall(stmt)
+        results = await self.db_utils.fetchall(stmt, True)
         return results
 
     async def get_command(self, server_id: int, cmd_name: str):
@@ -57,5 +57,5 @@ class CustomCommandsDal:
             )
             .order_by(CustomCommands.name.asc())
         )
-        results = await self.db_utils.fetchvalue(stmt)
-        return results
+        results = await self.db_utils.fetchall(stmt, True)
+        return results[0] if len(results) > 0 else None

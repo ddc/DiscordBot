@@ -1,5 +1,3 @@
-"""Command error handling for Discord bot events."""
-
 import discord
 from discord.ext import commands
 from src.bot.constants import messages, variables
@@ -19,6 +17,13 @@ class ErrorContext:
 
     def _build_command_string(self, ctx: commands.Context) -> str:
         """Build the full command string including subcommands."""
+        if ctx.command is None:
+            # For non-existent commands, extract from message content
+            message_parts = ctx.message.content.strip().split()
+            if message_parts:
+                return message_parts[0]  # Return the full command including prefix
+            return f"{ctx.prefix}unknown"
+
         command = str(ctx.command)
         if ctx.subcommand_passed is not None:
             command = f"{command} {ctx.subcommand_passed}"
@@ -87,8 +92,14 @@ class ErrorMessageBuilder:
             ("Cannot send messages to this user", "status code: 403"): messages.DIRECT_MESSAGES_DISABLED,
             ("AttributeError",): f"{messages.COMMAND_ERROR}: `{context.command}`",
             ("Missing Permissions",): f"{messages.NO_PERMISSION_EXECUTE_COMMAND}: `{context.command}`",
-            ("NoOptionError",): f"{messages.NO_OPTION_FOUND}: `{context.error_msg.split()[7] if len(context.error_msg.split()) > 7 else 'unknown'}`",
-            ("GW2 API",): str(context.error_msg).split(',')[1].strip().split('?')[0] if ',' in str(context.error_msg) and len(str(context.error_msg).split(',')) > 1 else str(context.error_msg),
+            (
+                "NoOptionError",
+            ): f"{messages.NO_OPTION_FOUND}: `{context.error_msg.split()[7] if len(context.error_msg.split()) > 7 else 'unknown'}`",
+            ("GW2 API",): (
+                str(context.error_msg).split(',')[1].strip().split('?')[0]
+                if ',' in str(context.error_msg) and len(str(context.error_msg).split(',')) > 1
+                else str(context.error_msg)
+            ),
             ("No text to send to TTS API",): messages.INVALID_MESSAGE,
         }
 

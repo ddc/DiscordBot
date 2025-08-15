@@ -6,7 +6,7 @@ from src.database.models.gw2_models import Gw2Keys
 
 class Gw2KeyDal:
     def __init__(self, db_session, log):
-        self.columns = [x for x in Gw2Keys.__table__.columns]
+        self.columns = list(Gw2Keys.__table__.columns.values())
         self.db_utils = DBUtilsAsync(db_session)
         self.log = log
 
@@ -45,7 +45,7 @@ class Gw2KeyDal:
         stmt = select(*self.columns).where(
             Gw2Keys.key == api_key,
         )
-        results = await self.db_utils.fetchall(stmt)
+        results = await self.db_utils.fetchall(stmt, True)
         return results
 
     async def get_api_key_by_name(self, key_name: str):
@@ -55,5 +55,5 @@ class Gw2KeyDal:
 
     async def get_api_key_by_user(self, user_id: int):
         stmt = select(*self.columns).where(Gw2Keys.user_id == user_id)
-        results = await self.db_utils.fetchall(stmt)
+        results = await self.db_utils.fetchall(stmt, True)
         return results

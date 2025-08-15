@@ -1,5 +1,3 @@
-"""Discord chat formatting utilities with emojis and text styling."""
-
 from typing import Final
 
 # Discord emoji constants

@@ -3,11 +3,11 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 import discord
 import pytest
-from src.bot.tools.background_tasks import BackgroundTasks, BackGroundTasks
+from src.bot.tools.background_tasks import BackGroundTasks
 
 
-class TestBackgroundTasks:
-    """Test cases for BackgroundTasks class."""
+class TestBackGroundTasks:
+    """Test cases for BackGroundTasks class."""
 
     @pytest.fixture
     def mock_bot(self):
@@ -21,8 +21,8 @@ class TestBackgroundTasks:
         return bot
 
     def test_init(self, mock_bot):
-        """Test BackgroundTasks initialization."""
-        bg_tasks = BackgroundTasks(mock_bot)
+        """Test BackGroundTasks initialization."""
+        bg_tasks = BackGroundTasks(mock_bot)
 
         assert bg_tasks.bot is mock_bot
         assert hasattr(bg_tasks, '_random')
@@ -41,7 +41,7 @@ class TestBackgroundTasks:
 
         mock_bot.is_closed.side_effect = mock_is_closed
 
-        bg_tasks = BackgroundTasks(mock_bot)
+        bg_tasks = BackGroundTasks(mock_bot)
 
         # Mock asyncio.sleep to prevent actual waiting
         with patch('asyncio.sleep', new_callable=AsyncMock) as mock_sleep:
@@ -84,7 +84,7 @@ class TestBackgroundTasks:
 
         mock_bot.is_closed.side_effect = mock_is_closed
 
-        bg_tasks = BackgroundTasks(mock_bot)
+        bg_tasks = BackGroundTasks(mock_bot)
 
         with patch('asyncio.sleep', new_callable=AsyncMock) as mock_sleep:
             await bg_tasks.change_presence_task(10)
@@ -111,7 +111,7 @@ class TestBackgroundTasks:
 
         mock_bot.is_closed.side_effect = mock_is_closed
 
-        bg_tasks = BackgroundTasks(mock_bot)
+        bg_tasks = BackGroundTasks(mock_bot)
 
         with patch('asyncio.sleep', new_callable=AsyncMock):
             await bg_tasks.change_presence_task(1)
@@ -142,7 +142,7 @@ class TestBackgroundTasks:
         # Make change_presence raise an exception on first call
         mock_bot.change_presence.side_effect = [Exception("Test error"), None]
 
-        bg_tasks = BackgroundTasks(mock_bot)
+        bg_tasks = BackGroundTasks(mock_bot)
 
         with patch('asyncio.sleep', new_callable=AsyncMock) as mock_sleep:
             await bg_tasks.change_presence_task(3)
@@ -163,7 +163,7 @@ class TestBackgroundTasks:
         mock_bot.wait_until_ready.side_effect = Exception("Ready error")
         mock_bot.is_closed.return_value = True  # Stop immediately
 
-        bg_tasks = BackgroundTasks(mock_bot)
+        bg_tasks = BackGroundTasks(mock_bot)
 
         # Should raise exception since wait_until_ready fails
         with patch('asyncio.sleep', new_callable=AsyncMock):
@@ -190,7 +190,7 @@ class TestBackgroundTasks:
 
             mock_bot.is_closed.side_effect = mock_is_closed
 
-            bg_tasks = BackgroundTasks(mock_bot)
+            bg_tasks = BackGroundTasks(mock_bot)
 
             with patch('asyncio.sleep', new_callable=AsyncMock):
                 await bg_tasks.change_presence_task(1)
@@ -215,7 +215,7 @@ class TestBackgroundTasks:
 
         mock_bot.is_closed.side_effect = mock_is_closed
 
-        bg_tasks = BackgroundTasks(mock_bot)
+        bg_tasks = BackGroundTasks(mock_bot)
 
         # Mock the random choice to raise IndexError
         bg_tasks._random.choice = MagicMock(side_effect=IndexError("list index out of range"))
@@ -245,7 +245,7 @@ class TestBackgroundTasks:
         # Make change_presence always raise exceptions
         mock_bot.change_presence.side_effect = Exception("Persistent error")
 
-        bg_tasks = BackgroundTasks(mock_bot)
+        bg_tasks = BackGroundTasks(mock_bot)
 
         with patch('asyncio.sleep', new_callable=AsyncMock) as mock_sleep:
             await bg_tasks.change_presence_task(2)
@@ -257,19 +257,19 @@ class TestBackgroundTasks:
         assert mock_sleep.call_count == 3
 
 
-class TestBackgroundTasksLegacyAlias:
+class TestBackGroundTasksLegacyAlias:
     """Test legacy alias for backward compatibility."""
 
     def test_legacy_alias_exists(self):
         """Test that BackGroundTasks alias exists."""
-        assert BackGroundTasks is BackgroundTasks
+        assert BackGroundTasks is BackGroundTasks
 
     def test_legacy_alias_functionality(self):
         """Test that legacy alias works identically."""
         mock_bot = MagicMock()
 
         # Create instances using both names
-        bg_tasks_new = BackgroundTasks(mock_bot)
+        bg_tasks_new = BackGroundTasks(mock_bot)
         bg_tasks_legacy = BackGroundTasks(mock_bot)
 
         # Verify they're the same class
@@ -277,15 +277,15 @@ class TestBackgroundTasksLegacyAlias:
         assert bg_tasks_new.__class__.__name__ == bg_tasks_legacy.__class__.__name__
 
 
-class TestBackgroundTasksRandomness:
-    """Test randomness behavior in BackgroundTasks."""
+class TestBackGroundTasksRandomness:
+    """Test randomness behavior in BackGroundTasks."""
 
     def test_random_instance_creation(self):
-        """Test that each BackgroundTasks instance has its own random instance."""
+        """Test that each BackGroundTasks instance has its own random instance."""
         mock_bot = MagicMock()
 
-        bg_tasks1 = BackgroundTasks(mock_bot)
-        bg_tasks2 = BackgroundTasks(mock_bot)
+        bg_tasks1 = BackGroundTasks(mock_bot)
+        bg_tasks2 = BackGroundTasks(mock_bot)
 
         # Should have different random instances
         assert bg_tasks1._random is not bg_tasks2._random
@@ -295,7 +295,7 @@ class TestBackgroundTasksRandomness:
     def test_random_choice_usage(self):
         """Test that SystemRandom.choice is used correctly."""
         mock_bot = MagicMock()
-        bg_tasks = BackgroundTasks(mock_bot)
+        bg_tasks = BackGroundTasks(mock_bot)
 
         # Mock the random choice method
         bg_tasks._random.choice = MagicMock(return_value='SelectedGame')
@@ -308,8 +308,8 @@ class TestBackgroundTasksRandomness:
         bg_tasks._random.choice.assert_called_once_with(test_games)
 
 
-class TestBackgroundTasksIntegration:
-    """Integration tests for BackgroundTasks."""
+class TestBackGroundTasksIntegration:
+    """Integration tests for BackGroundTasks."""
 
     @pytest.mark.asyncio
     async def test_full_integration_scenario(self):
@@ -333,7 +333,7 @@ class TestBackgroundTasksIntegration:
 
         mock_bot.is_closed = mock_is_closed
 
-        bg_tasks = BackgroundTasks(mock_bot)
+        bg_tasks = BackGroundTasks(mock_bot)
 
         with patch('asyncio.sleep', new_callable=AsyncMock) as mock_sleep:
             await bg_tasks.change_presence_task(5)

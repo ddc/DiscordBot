@@ -12,13 +12,13 @@ from pythonLogs import timed_rotating_logger
 from src.bot.constants import messages, variables
 from src.bot.constants.settings import get_bot_settings
 from src.bot.tools import bot_utils
+from src.bot.tools.custom_help import CustomHelpCommand
 from src.database.dal.bot.bot_configs_dal import BotConfigsDal
 from src.gw2.constants.gw2_settings import get_gw2_settings
 
 
 class Bot(commands.Bot):
     def __init__(self, *args, **kwargs):
-        # Extract custom kwargs before calling super()
         self.aiosession = kwargs.pop("aiosession")
         self.db_session = kwargs.pop("db_session")
         self.log = kwargs.pop("log")
@@ -40,9 +40,9 @@ class Bot(commands.Bot):
         """Called after login - loads all cogs."""
         try:
             await bot_utils.load_cogs(self)
-            self.log.info("Successfully loaded all cogs")
+            self.log.info(messages.BOT_LOADED_ALL_COGS_SUCCESS)
         except Exception as e:
-            self.log.error(f"Failed to load cogs: {e}")
+            self.log.error(f"{messages.BOT_LOAD_COGS_FAILED}: {e}")
             raise
 
     def _load_settings(self) -> None:
@@ -67,7 +67,7 @@ class Bot(commands.Bot):
             }
 
         except Exception as e:
-            self.log.error(f"Failed to load settings: {e}")
+            self.log.error(f"{messages.BOT_LOAD_SETTINGS_FAILED}: {e}")
             raise
 
 
@@ -78,7 +78,7 @@ async def _get_command_prefix(database_session, log) -> str:
         db_prefix = await bot_configs_dal.get_bot_prefix()
         return db_prefix or variables.PREFIX
     except Exception as e:
-        log.warning(f"Failed to get prefix from database, using default: {e}")
+        log.warning(f"{messages.BOT_INIT_PREFIX_FAILED}: {e}")
         return variables.PREFIX
 
 
@@ -122,7 +122,7 @@ async def main() -> None:
                     "command_prefix": command_prefix,
                     "activity": activity,
                     "intents": discord.Intents.all(),
-                    "help_command": commands.DefaultHelpCommand(dm_help=variables.DM_HELP_COMMAND),
+                    "help_command": CustomHelpCommand(dm_help=variables.DM_HELP_COMMAND),
                     "description": variables.DESCRIPTION,
                     "owner_id": int(variables.AUTHOR_ID),
                     "aiosession": client_session,
@@ -133,10 +133,9 @@ async def main() -> None:
                 async with Bot(**bot_kwargs) as bot:
                     try:
                         bot_utils.init_background_tasks(bot)
-                        log.info("Bot starting...")
                         await bot.start(bot_token)
                     except discord.LoginFailure as e:
-                        log.error(f"Discord login failed: {e}")
+                        log.error(f"{messages.BOT_LOGIN_FAILED}: {e}")
                         formatted_lines = traceback.format_exc().splitlines()
                         for line in formatted_lines:
                             if line.startswith("discord"):
@@ -145,11 +144,11 @@ async def main() -> None:
                         log.error(f"{messages.BOT_TERMINATED} | {e}")
                         raise
                     finally:
-                        log.info("Closing bot...")
+                        log.info(messages.BOT_CLOSING)
                         await bot.close()
 
     except Exception as e:
-        log.error(f"Fatal error in main(): {e}")
+        log.error(f"{messages.BOT_FATAL_ERROR_MAIN}: {e}")
         raise
 
 
@@ -162,7 +161,7 @@ def run_bot() -> None:
     except KeyboardInterrupt:
         print(messages.BOT_STOPPED_CTRTC)
     except Exception as ex:
-        print(f"Bot crashed: {ex}")
+        print(f"{messages.BOT_CRASHED}: {ex}")
         sys.exit(1)
 
 

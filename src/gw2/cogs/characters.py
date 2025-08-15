@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-from discord.ext.commands.cooldowns import BucketType
 from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.gw2.cogs.gw2 import GuildWars2
@@ -17,7 +16,7 @@ class GW2Characters(GuildWars2):
 
 
 @GW2Characters.gw2.command()
-@commands.cooldown(1, GW2CoolDowns.Characters.seconds, BucketType.user)
+@commands.cooldown(1, GW2CoolDowns.Characters.seconds, commands.BucketType.user)
 async def characters(ctx):
     """(General information about your GW2 characters)
     Required API permissions: account

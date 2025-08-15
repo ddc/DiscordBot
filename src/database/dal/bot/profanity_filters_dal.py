@@ -6,7 +6,7 @@ from src.database.models.bot_models import ProfanityFilters
 
 class ProfanityFilterDal:
     def __init__(self, db_session, log):
-        self.columns = [x for x in ProfanityFilters.__table__.columns]
+        self.columns = list(ProfanityFilters.__table__.columns.values())
         self.db_utils = DBUtilsAsync(db_session)
         self.log = log
 
@@ -35,10 +35,10 @@ class ProfanityFilterDal:
             .where(ProfanityFilters.server_id == server_id)
             .order_by(ProfanityFilters.channel_name.asc())
         )
-        results = await self.db_utils.fetchall(stmt)
+        results = await self.db_utils.fetchall(stmt, True)
         return results
 
     async def get_profanity_filter_channel(self, channel_id: int):
         stmt = select(*self.columns).where(ProfanityFilters.channel_id == channel_id)
-        results = await self.db_utils.fetchall(stmt)
+        results = await self.db_utils.fetchall(stmt, True)
         return results

@@ -1,5 +1,3 @@
-"""Bot ready event handler with startup information display."""
-
 import sys
 import discord
 from discord.ext import commands
@@ -74,7 +72,7 @@ class OnReady(commands.Cog):
                 self.info_display.print_version_info()
                 self.info_display.print_bot_info(bot)
                 self.info_display.print_timestamp()
-                
+
                 # Log error and bot online status
                 bot.log.error(f"Failed to get bot stats during startup: {e}")
                 bot.log.info(messages.BOT_ONLINE.format(bot.user))

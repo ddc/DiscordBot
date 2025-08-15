@@ -1,12 +1,6 @@
-"""Discord command permission checks."""
-
-from typing import Any, Callable, TYPE_CHECKING
+from typing import Any, Callable
 from discord.ext import commands
 from src.bot.tools import bot_utils
-
-
-if TYPE_CHECKING:
-    from discord.ext.commands import Context
 
 
 class Checks:
@@ -23,7 +17,7 @@ class Checks:
             commands.CheckFailure: When the user is not an administrator
         """
 
-        def predicate(ctx: "Context") -> bool:
+        def predicate(ctx: commands.Context) -> bool:
             if bot_utils.is_member_admin(ctx.message.author):
                 return True
             raise commands.CheckFailure(message="User is not an administrator")
@@ -41,7 +35,7 @@ class Checks:
             commands.CheckFailure: When the user is not the bot owner
         """
 
-        def predicate(ctx: "Context") -> bool:
+        def predicate(ctx: commands.Context) -> bool:
             if bot_utils.is_bot_owner(ctx, ctx.message.author):
                 return True
             raise commands.CheckFailure(message="User is not the bot owner")

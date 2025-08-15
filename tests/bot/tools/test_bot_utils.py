@@ -94,7 +94,7 @@ class TestServerUtilities:
         # Verify GW2 configs were inserted
         mock_gw2_insert.assert_called_once_with(mock_bot, mock_server)
 
-    @patch('src.bot.tools.bot_utils.BackgroundTasks')
+    @patch('src.bot.tools.bot_utils.BackGroundTasks')
     def test_init_background_tasks_enabled(self, mock_bg_tasks_class, mock_bot):
         """Test background task initialization when enabled."""
         mock_bot.settings = {"bot": {"BGActivityTimer": 30}}
@@ -104,7 +104,7 @@ class TestServerUtilities:
 
         bot_utils.init_background_tasks(mock_bot)
 
-        # Verify BackgroundTasks was created
+        # Verify BackGroundTasks was created
         mock_bg_tasks_class.assert_called_once_with(mock_bot)
 
         # Verify task was created

@@ -1,9 +1,6 @@
-"""Admin commands for bot administration and game status management."""
-
 from typing import Optional
 import discord
 from discord.ext import commands
-from discord.ext.commands import BucketType
 from src.bot.constants import messages
 from src.bot.tools import bot_utils
 from src.bot.tools.checks import Checks
@@ -27,7 +24,7 @@ class Admin(commands.Cog):
         return await bot_utils.invoke_subcommand(ctx, "admin")
 
     @admin.command(name="botgame")
-    @commands.cooldown(1, CoolDowns.Admin.value, BucketType.user)
+    @commands.cooldown(1, CoolDowns.Admin.value, commands.BucketType.user)
     async def botgame(self, ctx: commands.Context, *, game: str) -> None:
         """Change the game that bot is playing.
 
@@ -36,7 +33,6 @@ class Admin(commands.Cog):
 
         Usage:
             admin botgame Minecraft
-            admin botgame Reading documentation
         """
 
         await ctx.message.channel.typing()

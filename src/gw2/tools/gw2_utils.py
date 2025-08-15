@@ -1,9 +1,8 @@
-"""GW2 utilities module with improved structure and error handling."""
-
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, List, Optional, Tuple
 import discord
+from discord.ext import commands
 from src.bot.tools import bot_utils
 
 
@@ -24,9 +23,6 @@ from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
 from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.constants import gw2_messages
-
-if TYPE_CHECKING:
-    from discord.ext import commands
 
 
 class Gw2Servers(Enum):
@@ -81,14 +77,14 @@ class Gw2Servers(Enum):
     Millers_Sound = "Miller's Sound [DE]"
 
 
-async def send_msg(ctx: "commands.Context", description: str, dm: bool = False) -> None:
+async def send_msg(ctx: commands.Context, description: str, dm: bool = False) -> None:
     """Send a GW2-themed embed message."""
     color = ctx.bot.settings["gw2"]["EmbedColor"]
     embed = discord.Embed(color=color, description=description)
     await bot_utils.send_embed(ctx, embed, dm)
 
 
-async def insert_gw2_server_configs(bot: "commands.Bot", server: discord.Guild) -> None:
+async def insert_gw2_server_configs(bot: commands.Bot, server: discord.Guild) -> None:
     """Insert GW2 server configs if they don't exist."""
     gw2_configs_dal = Gw2ConfigsDal(bot.db_session, bot.log)
     server_config = await gw2_configs_dal.get_gw2_server_configs(server.id)
@@ -97,7 +93,7 @@ async def insert_gw2_server_configs(bot: "commands.Bot", server: discord.Guild) 
 
 
 async def calculate_user_achiev_points(
-    ctx: "commands.Context", api_req_acc_achiev: List[Dict], api_req_acc: Dict
+    ctx: commands.Context, api_req_acc_achiev: List[Dict], api_req_acc: Dict
 ) -> int:
     """Calculate total achievement points for a user."""
     gw2_api = Gw2Client(ctx.bot)
@@ -175,7 +171,7 @@ def max_ap(achievement: Optional[Dict], repeatable: bool = False) -> int:
     return sum(tier.get("points", 0) for tier in tiers)
 
 
-async def get_world_id(bot: "commands.Bot", world: Optional[str]) -> Optional[int]:
+async def get_world_id(bot: commands.Bot, world: Optional[str]) -> Optional[int]:
     """Get world ID by world name."""
     if not world:
         return None
@@ -194,7 +190,7 @@ async def get_world_id(bot: "commands.Bot", world: Optional[str]) -> Optional[in
     return None
 
 
-async def get_world_name_population(ctx: "commands.Context", world_ids: str) -> Optional[List[str]]:
+async def get_world_name_population(ctx: commands.Context, world_ids: str) -> Optional[List[str]]:
     """Get world names and population data."""
     try:
         gw2_api = Gw2Client(ctx.bot)
@@ -210,7 +206,7 @@ async def get_world_name_population(ctx: "commands.Context", world_ids: str) -> 
         return None
 
 
-async def get_world_name(bot: "commands.Bot", world_ids: str) -> Optional[str]:
+async def get_world_name(bot: commands.Bot, world_ids: str) -> Optional[str]:
     """Get world name by world ID."""
     try:
         gw2_api = Gw2Client(bot)
@@ -222,7 +218,7 @@ async def get_world_name(bot: "commands.Bot", world_ids: str) -> Optional[str]:
         return None
 
 
-async def delete_api_key(ctx: "commands.Context", message: bool = False) -> None:
+async def delete_api_key(ctx: commands.Context, message: bool = False) -> None:
     """Delete message containing API key for privacy."""
     if not isinstance(ctx.channel, discord.DMChannel):
         try:
@@ -233,12 +229,12 @@ async def delete_api_key(ctx: "commands.Context", message: bool = False) -> None
             await bot_utils.send_error_msg(ctx, gw2_messages.API_KEY_MESSAGE_REMOVED_DENIED)
 
 
-def is_private_message(ctx: "commands.Context") -> bool:
+def is_private_message(ctx: commands.Context) -> bool:
     """Check if the context is a private message."""
     return isinstance(ctx.channel, discord.DMChannel)
 
 
-async def check_gw2_game_activity(bot: "commands.Bot", before: discord.Member, after: discord.Member) -> None:
+async def check_gw2_game_activity(bot: commands.Bot, before: discord.Member, after: discord.Member) -> None:
     """Check for GW2 game activity changes and manage sessions accordingly."""
     before_activity = _get_non_custom_activity(before.activities)
     after_activity = _get_non_custom_activity(after.activities)
@@ -263,7 +259,7 @@ def _is_gw2_activity_detected(before_activity, after_activity) -> bool:
 
 
 async def _handle_gw2_activity_change(
-    bot: "commands.Bot",
+    bot: commands.Bot,
     member: discord.Member,
     after_activity,
 ) -> None:
@@ -288,7 +284,7 @@ async def _handle_gw2_activity_change(
         await end_session(bot, member, api_key)
 
 
-async def start_session(bot: "commands.Bot", member: discord.Member, api_key: str) -> None:
+async def start_session(bot: commands.Bot, member: discord.Member, api_key: str) -> None:
     """Start a new GW2 session for a member."""
     session = await get_user_stats(bot, api_key)
     if not session:
@@ -302,7 +298,7 @@ async def start_session(bot: "commands.Bot", member: discord.Member, api_key: st
     await insert_session_char(bot, member, api_key, session_id, "start")
 
 
-async def end_session(bot: "commands.Bot", member: discord.Member, api_key: str) -> None:
+async def end_session(bot: commands.Bot, member: discord.Member, api_key: str) -> None:
     """End a GW2 session for a member."""
     session = await get_user_stats(bot, api_key)
     if not session:
@@ -316,7 +312,7 @@ async def end_session(bot: "commands.Bot", member: discord.Member, api_key: str)
     await insert_session_char(bot, member, api_key, session_id, "end")
 
 
-async def get_user_stats(bot: "commands.Bot", api_key: str) -> Optional[Dict]:
+async def get_user_stats(bot: commands.Bot, api_key: str) -> Optional[Dict]:
     """Get comprehensive user statistics from GW2 API."""
     gw2_api = Gw2Client(bot)
 
@@ -402,7 +398,7 @@ def _update_achievement_stats(user_stats: Dict, achievements_data: List[Dict]) -
 
 
 async def insert_session_char(
-    bot: "commands.Bot", member: discord.Member, api_key: str, session_id: int, session_type: str
+    bot: commands.Bot, member: discord.Member, api_key: str, session_id: int, session_type: str
 ) -> None:
     """Insert session character data."""
     try:
@@ -576,7 +572,7 @@ def convert_timedelta_to_obj(time_delta: timedelta) -> TimeObject:
     return obj
 
 
-async def get_worlds_ids(ctx: "commands.Context") -> Tuple[bool, Optional[List[Dict]]]:
+async def get_worlds_ids(ctx: commands.Context) -> Tuple[bool, Optional[List[Dict]]]:
     """Get all world IDs from the GW2 API.
 
     Returns:
