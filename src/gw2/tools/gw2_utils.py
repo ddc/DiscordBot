@@ -180,9 +180,20 @@ async def get_world_id(bot: commands.Bot, world: Optional[str]) -> Optional[int]
         gw2_api = Gw2Client(bot)
         results = await gw2_api.call_api("worlds?ids=all")
 
-        for world_data in results:
-            if world_data["name"].lower() == world.lower():
-                return world_data["id"]
+        # Create a dictionary for O(1) lookup instead of O(n) linear search
+        # Also support partial matches as a fallback
+        world_lower = world.lower()
+        world_map = {w["name"].lower(): w["id"] for w in results}
+        
+        # Try exact match first (O(1))
+        if world_lower in world_map:
+            return world_map[world_lower]
+        
+        # If no exact match, try partial match (case-insensitive)
+        # This allows users to type "jade" instead of "Jade Quarry" for example
+        for world_name, world_id in world_map.items():
+            if world_lower in world_name:
+                return world_id
 
     except Exception as e:
         bot.log.error(f"Error fetching world ID for {world}: {e}")
