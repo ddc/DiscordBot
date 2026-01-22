@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from discord.ext import commands
 
 
@@ -9,9 +8,9 @@ class OnGuildChannelDelete(commands.Cog):
         @self.bot.event
         async def on_guild_channel_delete(channel):
             """
-                Called when a channel gets deleted
-                :param channel: abc.GuildChannel
-                :return: None
+            Called when a channel gets deleted
+            :param channel: abc.GuildChannel
+            :return: None
             """
             pass
 

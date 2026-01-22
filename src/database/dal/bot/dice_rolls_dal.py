@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sqlalchemy as sa
 from ddcDatabases import DBUtilsAsync
 from sqlalchemy.future import select
@@ -7,26 +6,28 @@ from src.database.models.bot_models import DiceRolls
 
 class DiceRollsDal:
     def __init__(self, db_session, log):
-        self.columns = [x for x in DiceRolls.__table__.columns]
+        self.columns = list(DiceRolls.__table__.columns.values())
         self.db_utils = DBUtilsAsync(db_session)
         self.log = log
 
     async def insert_user_roll(self, server_id: int, user_id: int, dice_size: int, roll: int):
         stmt = DiceRolls(
-           server_id=server_id,
-           user_id=user_id,
-           dice_size=dice_size,
-           roll=roll,
+            server_id=server_id,
+            user_id=user_id,
+            dice_size=dice_size,
+            roll=roll,
         )
         await self.db_utils.insert(stmt)
 
     async def update_user_roll(self, server_id: int, user_id: int, dice_size: int, roll: int):
-        stmt = sa.update(DiceRolls).where(
-            DiceRolls.server_id == server_id,
-            DiceRolls.user_id == user_id,
-            DiceRolls.dice_size == dice_size,
-        ).values(
-            roll=roll
+        stmt = (
+            sa.update(DiceRolls)
+            .where(
+                DiceRolls.server_id == server_id,
+                DiceRolls.user_id == user_id,
+                DiceRolls.dice_size == dice_size,
+            )
+            .values(roll=roll)
         )
         await self.db_utils.execute(stmt)
 
@@ -40,34 +41,45 @@ class DiceRollsDal:
             DiceRolls.user_id == user_id,
             DiceRolls.dice_size == dice_size,
         )
-        results = await self.db_utils.fetchall(stmt)
+        results = await self.db_utils.fetchall(stmt, True)
         return results
 
     async def get_user_rolls_all_dice_sizes(self, server_id: int, user_id: int):
-        stmt = select(*self.columns).where(
-            DiceRolls.server_id == server_id,
-            DiceRolls.user_id == user_id,
-        ).order_by(DiceRolls.dice_size.asc())
-        results = await self.db_utils.fetchall(stmt)
+        stmt = (
+            select(*self.columns)
+            .where(
+                DiceRolls.server_id == server_id,
+                DiceRolls.user_id == user_id,
+            )
+            .order_by(DiceRolls.dice_size.asc())
+        )
+        results = await self.db_utils.fetchall(stmt, True)
         return results
 
     async def get_all_server_rolls(self, server_id: int, dice_size: int):
-        stmt = select(*self.columns).where(
-            DiceRolls.server_id == server_id,
-            DiceRolls.dice_size == dice_size,
-        ).order_by(DiceRolls.roll.desc())
-        results = await self.db_utils.fetchall(stmt)
+        stmt = (
+            select(*self.columns)
+            .where(
+                DiceRolls.server_id == server_id,
+                DiceRolls.dice_size == dice_size,
+            )
+            .order_by(DiceRolls.roll.desc())
+        )
+        results = await self.db_utils.fetchall(stmt, True)
         return results
 
     async def get_server_max_roll(self, server_id: int, dice_size: int):
-        stmt = select(
-            DiceRolls.user_id,
-            DiceRolls.roll.label("max_roll"),
-        ).where(
-            DiceRolls.server_id == server_id,
-            DiceRolls.dice_size == dice_size,
-        ).order_by(
-            DiceRolls.roll.desc()
-        ).limit(1)
-        results = await self.db_utils.fetchall(stmt)
+        stmt = (
+            select(
+                DiceRolls.user_id,
+                DiceRolls.roll.label("max_roll"),
+            )
+            .where(
+                DiceRolls.server_id == server_id,
+                DiceRolls.dice_size == dice_size,
+            )
+            .order_by(DiceRolls.roll.desc())
+            .limit(1)
+        )
+        results = await self.db_utils.fetchall(stmt, True)
         return results

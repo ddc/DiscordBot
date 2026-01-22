@@ -1,18 +1,40 @@
-# A Bot for Discord
+<div align="center">
+  <h1>A Bot for Discord</h1>
+</div>
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-brightgreen.svg?style=plastic)](https://www.paypal.com/ncp/payment/6G9Z78QHUD4RJ)
-[![license](https://img.shields.io/github/license/ddc/DiscordBot.svg?style=plastic)](https://github.com/ddc/DiscordBot/blob/master/LICENSE) 
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-yellow.svg?style=plastic)](https://www.postgresql.org)
-[![python](https://img.shields.io/badge/python-3.13-lightgrey.svg?style=plastic)](https://www.python.org/downloads/release)
-[![Release](https://img.shields.io/github/release/ddc/DiscordBot.svg?style=plastic)](https://github.com/ddc/DiscordBot/releases/latest)
-[![Build Status](https://img.shields.io/endpoint.svg?url=https://actions-badge.atrox.dev/ddc/DiscordBot/badge?ref=master&style=plastic&label=build&logo=none)](https://actions-badge.atrox.dev/ddc/DiscordBot/goto?ref=master)
+<div align="center">
+    <a href="https://www.paypal.com/ncp/payment/6G9Z78QHUD4RJ">
+        <img src="https://img.shields.io/badge/Donate-PayPal-brightgreen.svg?style=plastic" alt="Donate"/>
+    </a>
+    <a href="https://github.com/sponsors/ddc">
+        <img src="https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=ff69b4" alt="Sponsor"/>
+    </a>
+</div>
 
+<div align="center">
+    <a href="https://www.python.org/downloads">
+        <img src="https://img.shields.io/badge/python-3.14-blue.svg?style=plastic" alt="Python"/>
+    </a>
+    <a href="https://opensource.org/licenses/MIT">
+        <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"/>
+    </a>
+    <a href="https://github.com/psf/black">
+        <img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black"/>
+    </a>
+</div>
 
-<!--
-### [Invitation Link](https://discordapp.com/api/oauth2/authorize?client_id=427992048088383518&permissions=8&scope=bot)
-+ Use the link bellow to invite this bot into your server, or install your own using the install guide
-    + [Invitation Link](https://discordapp.com/api/oauth2/authorize?client_id=427992048088383518&permissions=8&scope=bot)
--->
+<div align="center">
+    <a href="https://codecov.io/gh/ddc/DiscordBot">
+        <img src="https://codecov.io/gh/ddc/DiscordBot/graph/badge.svg?token=E942EZII4Q" alt="codecov"/>
+    </a>
+    <a href="https://sonarcloud.io/dashboard?id=ddc_DiscordBot">
+        <img src="https://sonarcloud.io/api/project_badges/measure?project=ddc_DiscordBot&metric=alert_status" alt="Quality Gate Status"/>
+    </a>
+    <a href="https://github.com/ddc/DiscordBot/actions/workflows/workflow.yml">
+        <img src="https://github.com/ddc/DiscordBot/actions/workflows/workflow.yml/badge.svg" alt="CI/CD Pipeline"/>
+    </a>
+</div>
+
 
 # [Install Guide - Wiki](https://ddc.github.io/DiscordBot)
 + Using Docker
@@ -68,19 +90,19 @@
 |:------------------------------------------|:--------------------------------|
 | owner servers                             | Display all servers in database |
 | owner prefix <_new prefix_>               | Change bot prefix for commands  |
-| owner botdescription <_new description_>	 | Change bot description          |
+| owner botdescription <_new description_>  | Change bot description          |
 
 # GW2 Commands
-| Commands                                  | Description                                |
-|:------------------------------------------|:-------------------------------------------|
-| gw2 config list                           | List all gw2 configurations in the server  |
-| gw2 config session [on , off]             | Bot should record users last sessions      |
-| gw2 wvw [match, info, kdr] <_world name_> | Info about a wvw match                     |
-| gw2 key [add , remove , info] <_api key_> | Add/Remove/Info - GW2 APIkey managing      |
-| gw2 account                               | General information about your GW2 account |
-| gw2 worlds [na, eu]                       | List all worlds by timezone                |
-| gw2 wiki <_name to search_>               | Search the Guild wars 2 wiki               |
-| gw2 info <_info to search_>               | Information about a given name/skill/rune  |
+| Commands                                        | Description                                  |
+|:------------------------------------------------|:---------------------------------------------|
+| gw2 config list                                 | List all gw2 configurations in the server    |
+| gw2 config session [on , off]                   | Bot should record users last sessions        |
+| gw2 wvw [match, info, kdr] <_world name_>       | Info about a wvw match                       |
+| gw2 key [add, update, remove, info] <_api key_> | Add/Update/Remove/Info - GW2 APIkey managing |
+| gw2 account                                     | General information about your GW2 account   |
+| gw2 worlds [na, eu]                             | List all worlds by timezone                  |
+| gw2 wiki <_name to search_>                     | Search the Guild wars 2 wiki                 |
+| gw2 info <_info to search_>                     | Information about a given name/skill/rune    |
 
 
 
@@ -90,6 +112,18 @@
 + [Discord Bot Api](https://discordapp.com/developers/applications/me)
 + [PostgreSQL](https://www.postgresql.org)
 + [Git](https://git-scm.com/download)
+
+
+
+## Development
+Must have UV installed. See [UV Installation Guide](https://uv.run/docs/getting-started/installation)
+
+### Building DEV Environment and Running Tests
+```shell
+uv venv
+uv sync --all-extras
+poe test
+```
 
 
 

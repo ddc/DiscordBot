@@ -11,3 +11,5 @@ dist/
 *.manifest
 .env
 /.coverage
+/coverage.xml
+/junit.xml

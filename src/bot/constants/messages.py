@@ -1,13 +1,19 @@
-# -*- encoding: utf-8 -*-
 #################################
 # BOT
 #################################
 BOT_ONLINE = "====> {0} IS ONLINE AND CONNECTED TO DISCORD <===="
-BOT_TOKEN_NOT_FOUND = "BOT_TOKEN env not found"
+BOT_TOKEN_NOT_FOUND = "BOT_TOKEN variable not found"
 BOT_STARTING = "Starting Bot in {0} secs"
 BOT_TERMINATED = "Bot has been terminated."
 BOT_STOPPED_CTRTC = "Bot stopped with Ctrl+C"
-CLOSING_LOOP = "Closing the loop"
+BOT_FATAL_ERROR_MAIN = "Fatal error in main()"
+BOT_CRASHED = "Bot crashed"
+BOT_CLOSING = "Closing bot..."
+BOT_LOGIN_FAILED = "Bot login failed"
+BOT_INIT_PREFIX_FAILED = "Failed to get prefix from database, using default"
+BOT_LOAD_SETTINGS_FAILED = "Failed to load settings"
+BOT_LOAD_COGS_FAILED = "Failed to load cogs"
+BOT_LOADED_ALL_COGS_SUCCESS = "Successfully loaded all cogs"
 #################################
 # EVENT ADMIN
 #################################
@@ -21,7 +27,7 @@ CONFIG_LEAVE = "Display a message when a member leaves the server"
 CONFIG_SERVER = "Display a message when server gets updated"
 CONFIG_MEMBER = "Display a message when someone changes profile"
 CONFIG_BLOCK_INVIS_MEMBERS = "Block messages from invisible members"
-CONFIG_BOT_WORD_REACTIONS = "Bot Reactions: `{0}`"
+CONFIG_BOT_WORD_REACTIONS = "Bot word reactions"
 CONFIG_PFILTER = "Profanity Filter `{0}`\nChannel: `{1}`"
 CONFIG_PFILTER_CHANNELS = "Channels with profanity filter activated"
 CONFIG_CHANNEL_ID_INSTEAD_NAME = "Chnanel id should be used instead of its name!!!"
@@ -143,7 +149,7 @@ DICE_SIZE_NOT_VALID = "Thats not a valid dice size.\nPlease try again."
 MEMBER_HIGHEST_ROLL_ANOUNCE = ":star2: This is now your highest roll :star2:"
 SERVER_HIGHEST_ROLL_ANOUNCE = ":crown: This is now the server highest roll :crown:"
 MEMBER_SERVER_WINNER_ANOUNCE = ":crown: You are the server winner with"
-MEMBER_HIGHEST_ROLL = "Your highest roll is"
+MEMBER_HIGHEST_ROLL = "Your highest roll is now:"
 MEMBER_HAS_HIGHEST_ROLL = "has the server highest roll with"
 DICE_SIZE_HIGHER_ONE = "Dice size needs to be higher than 1"
 NO_DICE_SIZE_ROLLS = "There are no dice rolls of the size {0} in this server."

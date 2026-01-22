@@ -1,21 +1,41 @@
-# -*- coding: utf-8 -*-
 import asyncio
 import random
 import discord
+from discord.ext import commands
 from src.bot.constants.variables import GAMES_INCLUDED
 
 
 class BackGroundTasks:
-    """(BackGround Tasks)"""
-    def __init__(self, bot):
-        self.bot = bot
+    """Manages bot background tasks for dynamic presence updates."""
 
-    async def bgtask_change_presence(self, task_timer: int):
+    def __init__(self, bot: commands.Bot) -> None:
+        self.bot = bot
+        self.random = random.SystemRandom()
+
+    async def change_presence_task(self, interval_seconds: int) -> None:
+        """Background task to periodically change bot presence.
+
+        Args:
+            interval_seconds: Time in seconds between presence changes
+        """
         await self.bot.wait_until_ready()
+
         while not self.bot.is_closed():
-            system_random = random.SystemRandom()
-            game = str(system_random.choice(GAMES_INCLUDED))
-            bot_game_desc = f"{game} | {self.bot.command_prefix[0]}help"
-            self.bot.log.info(f"(Background task {task_timer}s)(Change activity: {game})")
-            await self.bot.change_presence(status=discord.Status.online, activity=discord.Game(name=bot_game_desc))
-            await asyncio.sleep(int(task_timer))
+            try:
+                game_name = self.random.choice(GAMES_INCLUDED)
+                prefix = (
+                    self.bot.command_prefix if isinstance(self.bot.command_prefix, str) else self.bot.command_prefix[0]
+                )
+                activity_description = f"{game_name} | {prefix}help"
+
+                self.bot.log.info(f"Background task ({interval_seconds}s) - Changing activity: {game_name}")
+
+                activity = discord.Game(name=activity_description)
+                status = discord.Status.online
+                await self.bot.change_presence(status=status, activity=activity)
+
+                await asyncio.sleep(interval_seconds)
+
+            except Exception as e:
+                self.bot.log.error(f"Error in background presence task: {e}")
+                await asyncio.sleep(interval_seconds)

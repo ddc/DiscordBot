@@ -5,6 +5,7 @@ Revises:
 Create Date: 2023-11-22 21:37:13.445078
 
 """
+
 from typing import Sequence, Union
 from alembic import op
 
@@ -19,14 +20,16 @@ def upgrade() -> None:
     """
     This function is responsible for update the column 'updated_at'
     """
-    op.execute("""
+    op.execute(
+        """
         CREATE or REPLACE FUNCTION updated_at_column_func()
             RETURNS TRIGGER LANGUAGE plpgsql AS $$
             BEGIN
                 NEW.updated_at = now() at time zone 'utc';
                 return NEW;
             END $$;
-    """)
+    """
+    )
 
 
 def downgrade() -> None:

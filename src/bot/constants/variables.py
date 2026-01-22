@@ -1,55 +1,92 @@
-# -*- coding: utf-8 -*-
-import glob
 import os
 import sys
+import tomllib
 from pathlib import Path
-from ddcUtils import ConfFileUtils
-from pythonLogs.settings import LogSettings
-from src.bot.constants.settings import BotSettings
+from typing import Final
+from pythonLogs.settings import get_log_settings
+from src.bot.constants.settings import get_bot_settings
 
 
-DEBUG = True if LogSettings().level == "DEBUG" else False
-###############################################################################
-DESCRIPTION = "A Bot for Discord"
-AUTHOR_ID = "195615080665055232"
-PAYPAL_URL = "https://www.paypal.com/ncp/payment/6G9Z78QHUD4RJ"
-BOT_WEBPAGE_URL = "https://ddc.github.io/DiscordBot"
-DISCORDPY_URL = "https://github.com/Rapptz/discord.py"
-LMGTFY_URL = "https://lmgtfy.com"
-###############################################################################
-DATE_TIME_FORMATTER_STR = "%a %b %m %Y %X"
-DATE_FORMATTER = "%Y-%m-%d"
-TIME_FORMATTER = "%H:%M:%S.%f"
-###############################################################################
-GAMES_INCLUDED = ("Guild Wars 2",)
-###############################################################################
-PREFIX = BotSettings().prefix
-DM_HELP_COMMAND = True
-ALLOWED_PREFIXES = ("!", "?", "$", "%", "&", ".")
-TIME_BEFORE_START = 0 if DEBUG else 5
-INTERACTIVE_MODE = len(sys.argv) <= 1
-IS_WINDOWS = os.name == "nt"
-BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
-###############################################################################
-_python_req_version = ConfFileUtils().get_value(os.path.join(BASE_DIR, "pyproject.toml"), "tool.poetry.dependencies", "python")
-_major = int(_python_req_version.split(".")[0].replace("^", ""))
-_minor = int(_python_req_version.split(".")[1])
-PYTHON_OK = sys.version_info >= (_major, _minor)
-###############################################################################
-VERSION = ConfFileUtils().get_value(os.path.join(BASE_DIR, "pyproject.toml"), "tool.poetry", "version")
-SETTINGS_FILENAME = os.path.join(BASE_DIR, "config", "bot_settings.ini")
-ALEMBIC_CONFIG_FILE_PATH = os.path.join(BASE_DIR, "config", "alembic.ini")
-DATABASE_FILENAME = os.path.join(BASE_DIR, "data", "database.db")
-LOGS_DIR = os.path.join(BASE_DIR, "logs")
-SQL_DIRPATH = os.path.join(BASE_DIR, "data", "sql")
-###############################################################################
-_bot_cogs = [os.path.join("src", "bot", "cogs", "admin", "admin.py")] # loading admin group cog first
-_bot_cogs += [x for x in glob.glob(os.path.join("src", "bot", "cogs", "*.py"))]
-_bot_cogs += [x for x in glob.glob(os.path.join("src", "bot", "cogs", "events", "*.py"))]
-_bot_cogs += [x for x in glob.glob(os.path.join("src", "bot", "cogs", "admin", "*.py")) if x not in _bot_cogs]
-###############################################################################
-_gw2_cogs = [os.path.join("src", "gw2", "cogs", "gw2.py")] # loading gw2 group cog first
-_gw2_cogs += [x for x in glob.glob(os.path.join("src", "gw2", "cogs", "*.py")) if x not in _gw2_cogs]
-###############################################################################
-ALL_COGS = _bot_cogs + _gw2_cogs
-###############################################################################
+def _get_python_version_info() -> tuple[int, int]:
+    """Extract required Python version from pyproject.toml."""
+    with open(BASE_DIR / "pyproject.toml", "rb") as f:
+        pyproject_data = tomllib.load(f)
+
+    python_req = pyproject_data["project"]["requires-python"]
+    version_str = python_req.lstrip("><=!~")
+    version_parts = version_str.split(".")
+    return int(version_parts[0]), int(version_parts[1])
+
+
+def _get_project_version() -> str:
+    """Extract project version from pyproject.toml."""
+    with open(BASE_DIR / "pyproject.toml", "rb") as f:
+        pyproject_data = tomllib.load(f)
+    return pyproject_data["project"]["version"]
+
+
+def _discover_cogs() -> list[str]:
+    """Discover and return all cog file paths in the correct loading order."""
+    bot_cogs_dir = Path("src") / "bot" / "cogs"
+    # Bot cogs - admin.py loads first for command group registration
+    bot_cogs = [str(bot_cogs_dir / "admin" / "admin.py")]
+    bot_cogs.extend(str(p) for p in bot_cogs_dir.glob("*.py"))
+    bot_cogs.extend(str(p) for p in (bot_cogs_dir / "events").glob("*.py"))
+    # Add remaining admin cogs (excluding admin.py already added)
+    admin_cogs = [str(p) for p in (bot_cogs_dir / "admin").glob("*.py")]
+    bot_cogs.extend(cog for cog in admin_cogs if cog not in bot_cogs)
+
+    # GW2 cogs - gw2.py loads first for command group registration
+    gw2_cogs_dir = Path("src") / "gw2" / "cogs"
+    gw2_cogs = [str(gw2_cogs_dir / "gw2.py")]
+    remaining_gw2 = [str(p) for p in gw2_cogs_dir.glob("*.py")]
+    gw2_cogs.extend(cog for cog in remaining_gw2 if cog not in gw2_cogs)
+
+    return bot_cogs + gw2_cogs
+
+
+# Base directory (needed by functions above)
+BASE_DIR: Final[Path] = Path(__file__).resolve().parent.parent.parent.parent
+
+# Debug and basic configuration
+DEBUG: Final[bool] = get_log_settings().level == "DEBUG"
+
+# Bot metadata
+DESCRIPTION: Final[str] = "A Bot for Discord"
+AUTHOR_ID: Final[str] = "195615080665055232"
+PAYPAL_URL: Final[str] = "https://www.paypal.com/ncp/payment/6G9Z78QHUD4RJ"
+BOT_WEBPAGE_URL: Final[str] = "https://ddc.github.io/DiscordBot"
+DISCORDPY_URL: Final[str] = "https://github.com/Rapptz/discord.py"
+LMGTFY_URL: Final[str] = "https://lmgtfy.com"
+
+# Date and time formatting
+DATE_TIME_FORMATTER_STR: Final[str] = "%a %b %m %Y %X"
+DATE_FORMATTER: Final[str] = "%Y-%m-%d"
+TIME_FORMATTER: Final[str] = "%H:%M:%S.%f"
+
+# Games and command configuration
+PREFIX: Final[str] = get_bot_settings().prefix
+DM_HELP_COMMAND: Final[bool] = True
+ALLOWED_PREFIXES: Final[tuple[str, ...]] = ("!", "?", "$", "%", "&", ".")
+GAMES_INCLUDED: Final[tuple[str, ...]] = ("Guild Wars 2",)
+
+# Runtime configuration
+TIME_BEFORE_START: Final[int] = 0 if DEBUG else 5
+INTERACTIVE_MODE: Final[bool] = len(sys.argv) <= 1
+IS_WINDOWS: Final[bool] = os.name == "nt"
+
+# Python version validation
+_PYTHON_MAJOR, _PYTHON_MINOR = _get_python_version_info()
+PYTHON_OK: Final[bool] = sys.version_info >= (_PYTHON_MAJOR, _PYTHON_MINOR)
+
+# Project metadata and paths
+VERSION: Final[str] = _get_project_version()
+
+# Configuration file paths
+ALEMBIC_CONFIG_FILE_PATH: Final[str] = str(BASE_DIR / "config" / "alembic.ini")
+DATABASE_FILENAME: Final[str] = str(BASE_DIR / "data" / "database.db")
+LOGS_DIR: Final[str] = str(BASE_DIR / "logs")
+SQL_DIRPATH: Final[str] = str(BASE_DIR / "data" / "sql")
+
+# Cog discovery and loading order
+ALL_COGS: Final[list[str]] = _discover_cogs()

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import asyncio
 import random
 import sys
@@ -8,105 +7,163 @@ import discord
 from aiohttp import ClientSession
 from better_profanity import profanity
 from ddcDatabases import PostgreSQL
-from ddcUtils import ConfFileUtils
 from discord.ext import commands
 from pythonLogs import timed_rotating_logger
 from src.bot.constants import messages, variables
-from src.bot.constants.settings import BotSettings
+from src.bot.constants.settings import get_bot_settings
 from src.bot.tools import bot_utils
+from src.bot.tools.custom_help import CustomHelpCommand
 from src.database.dal.bot.bot_configs_dal import BotConfigsDal
-from src.gw2.constants import gw2_variables
+from src.gw2.constants.gw2_settings import get_gw2_settings
 
 
 class Bot(commands.Bot):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        profanity.load_censor_words()
         self.aiosession = kwargs.pop("aiosession")
         self.db_session = kwargs.pop("db_session")
-        self.start_time = bot_utils.get_current_date_time()
         self.log = kwargs.pop("log")
-        self.profanity = profanity
+
+        super().__init__(*args, **kwargs)
+
+        # Initialize bot state
+        self.start_time = bot_utils.get_current_date_time()
         self.settings = {}
-        self._set_custom_settings(*args, **kwargs)
-        self._set_cogs_settings(*args, **kwargs)
 
-    async def setup_hook(self):
-        """ This will be called after login"""
-        await bot_utils.load_cogs(self)
+        # Initialize profanity filter
+        profanity.load_censor_words()
+        self.profanity = profanity
 
-    def _set_custom_settings(self, *args, **kwargs):
-        self.settings["bot"] = ConfFileUtils().get_section_values(variables.SETTINGS_FILENAME, "Bot")
-        self.settings["bot"]["EmbedColor"] = bot_utils.get_color_settings(self.settings["bot"]["EmbedColor"])
-        self.settings["bot"]["EmbedOwnerColor"] = bot_utils.get_color_settings(self.settings["bot"]["EmbedOwnerColor"])
+        # Load settings
+        self._load_settings()
 
-    def _set_cogs_settings(self, *args, **kwargs):
-        self.settings["gw2"] = ConfFileUtils().get_section_values(gw2_variables.GW2_SETTINGS_FILENAME, "Gw2")
-        self.settings["gw2"]["EmbedColor"] = bot_utils.get_color_settings(self.settings["gw2"]["EmbedColor"])
+    async def setup_hook(self) -> None:
+        """Called after login - loads all cogs."""
+        try:
+            await bot_utils.load_cogs(self)
+            self.log.info(messages.BOT_LOADED_ALL_COGS_SUCCESS)
+        except Exception as e:
+            self.log.error(f"{messages.BOT_LOAD_COGS_FAILED}: {e}")
+            raise
 
+    def _load_settings(self) -> None:
+        """Load all bot and cog settings."""
+        try:
+            bot_settings = get_bot_settings()
+            gw2_settings = get_gw2_settings()
 
-async def main():
-    async with ClientSession() as client_session:
-        async with PostgreSQL() as database_session:
-            log = timed_rotating_logger()
-
-            # check BOT_TOKEN env
-            if not BotSettings().token:
-                log.error(messages.BOT_TOKEN_NOT_FOUND)
-                sys.exit(1)
-
-            # get prefix from the database and set it
-            bot_configs_sql = BotConfigsDal(database_session, log)
-            db_prefix = await bot_configs_sql.get_bot_prefix()
-            command_prefix = variables.PREFIX if not db_prefix else db_prefix
-            intents = discord.Intents.all()
-
-            # set bot description
-            help_cmd = f"{command_prefix}help"
-            system_random = random.SystemRandom()
-            game = system_random.choice(variables.GAMES_INCLUDED)
-            random_game_desc = f"{game} | {help_cmd}"
-            exclusive_users = ConfFileUtils().get_value(variables.SETTINGS_FILENAME, "Bot", "ExclusiveUsers")
-            bot_game_desc = f"PRIVATE BOT | {help_cmd}" if exclusive_users is not None else random_game_desc
-            activity = discord.Game(name=bot_game_desc)
-
-            bot_kwargs = {
-                "command_prefix": command_prefix,
-                "activity": activity,
-                "intents": intents,
-                "help_command": commands.DefaultHelpCommand(dm_help=variables.DM_HELP_COMMAND),
-                "description": variables.DESCRIPTION,
-                "aiosession": client_session,
-                "db_session": database_session,
-                "owner_id": int(variables.AUTHOR_ID),
-                "log": log,
+            # Load bot settings from environment variables
+            self.settings["bot"] = {
+                "BGActivityTimer": bot_settings.bg_activity_timer,
+                "AllowedDMCommands": bot_settings.allowed_dm_commands,
+                "BotReactionWords": bot_settings.bot_reaction_words,
+                "EmbedColor": bot_utils.get_color_settings(bot_settings.embed_color),
+                "EmbedOwnerColor": bot_utils.get_color_settings(bot_settings.embed_owner_color),
+                "ExclusiveUsers": bot_settings.exclusive_users,
             }
-            async with Bot(**bot_kwargs) as bot:
-                try:
-                    await bot_utils.init_background_tasks(bot)
-                    await bot.start(BotSettings().token)
-                except discord.LoginFailure:
-                    formatted_lines = traceback.format_exc().splitlines()
-                    [bot.log.error(x) for x in formatted_lines if x.startswith("discord")]
-                except Exception as ex:
-                    bot.log.error(f"{messages.BOT_TERMINATED} | {ex}]")
-                finally:
-                    await bot.close()
+
+            # Load GW2 settings from environment variables
+            self.settings["gw2"] = {
+                "EmbedColor": bot_utils.get_color_settings(gw2_settings.embed_color),
+            }
+
+        except Exception as e:
+            self.log.error(f"{messages.BOT_LOAD_SETTINGS_FAILED}: {e}")
+            raise
+
+
+async def _get_command_prefix(database_session, log) -> str:
+    """Get command prefix from database or use default."""
+    try:
+        bot_configs_dal = BotConfigsDal(database_session, log)
+        db_prefix = await bot_configs_dal.get_bot_prefix()
+        return db_prefix or variables.PREFIX
+    except Exception as e:
+        log.warning(f"{messages.BOT_INIT_PREFIX_FAILED}: {e}")
+        return variables.PREFIX
+
+
+def _create_bot_activity(command_prefix: str) -> discord.Game:
+    """Create bot activity/status."""
+    help_cmd = f"{command_prefix}help"
+
+    # Check if bot is in exclusive mode
+    bot_settings = get_bot_settings()
+    exclusive_users = bot_settings.exclusive_users
+
+    if exclusive_users:
+        game_desc = f"PRIVATE BOT | {help_cmd}"
+    else:
+        system_random = random.SystemRandom()
+        game = system_random.choice(variables.GAMES_INCLUDED)
+        game_desc = f"{game} | {help_cmd}"
+
+    return discord.Game(name=game_desc)
+
+
+async def main() -> None:
+    """Main bot initialization and startup function."""
+    log = timed_rotating_logger()
+
+    try:
+        # Validate bot token early
+        bot_token = get_bot_settings().token
+        if not bot_token:
+            log.error(messages.BOT_TOKEN_NOT_FOUND)
+            sys.exit(1)
+
+        async with ClientSession() as client_session:
+            async with PostgreSQL() as database_session:
+                # Get configuration
+                command_prefix = await _get_command_prefix(database_session, log)
+                activity = _create_bot_activity(command_prefix)
+
+                # Configure bot
+                bot_kwargs = {
+                    "command_prefix": command_prefix,
+                    "activity": activity,
+                    "intents": discord.Intents.all(),
+                    "help_command": CustomHelpCommand(dm_help=variables.DM_HELP_COMMAND),
+                    "description": variables.DESCRIPTION,
+                    "owner_id": int(variables.AUTHOR_ID),
+                    "aiosession": client_session,
+                    "db_session": database_session,
+                    "log": log,
+                }
+
+                async with Bot(**bot_kwargs) as bot:
+                    try:
+                        bot_utils.init_background_tasks(bot)
+                        await bot.start(bot_token)
+                    except discord.LoginFailure as e:
+                        log.error(f"{messages.BOT_LOGIN_FAILED}: {e}")
+                        formatted_lines = traceback.format_exc().splitlines()
+                        for line in formatted_lines:
+                            if line.startswith("discord"):
+                                log.error(line)
+                    except Exception as e:
+                        log.error(f"{messages.BOT_TERMINATED} | {e}")
+                        raise
+                    finally:
+                        log.info(messages.BOT_CLOSING)
+                        await bot.close()
+
+    except Exception as e:
+        log.error(f"{messages.BOT_FATAL_ERROR_MAIN}: {e}")
+        raise
+
+
+def run_bot() -> None:
+    print(messages.BOT_STARTING.format(variables.TIME_BEFORE_START))
+    time.sleep(variables.TIME_BEFORE_START)
+
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print(messages.BOT_STOPPED_CTRTC)
+    except Exception as ex:
+        print(f"{messages.BOT_CRASHED}: {ex}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    loop = asyncio.new_event_loop()
-    try:
-        print(messages.BOT_STARTING.format(variables.TIME_BEFORE_START))
-        time.sleep(variables.TIME_BEFORE_START)
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(main())
-    except KeyboardInterrupt:
-        print(messages.BOT_STOPPED_CTRTC)
-    except Exception as e:
-        print(str(e.args))
-    finally:
-        print(messages.CLOSING_LOOP)
-        loop.run_until_complete(loop.shutdown_asyncgens())
-        loop.stop()
-        loop.close()
+    run_bot()
