@@ -6,7 +6,6 @@ from src.gw2.tools.gw2_exceptions import (
     APIForbidden,
     APIInactiveError,
     APIInvalidKey,
-    APIKeyError,
     APINotFound,
 )
 
@@ -20,16 +19,7 @@ class Gw2Client:
 
         try:
             api_req_key_info = await self.call_api("tokeninfo", api_key)
-        except (
-            APIBadRequest,
-            APIConnectionError,
-            APIError,
-            APIForbidden,
-            APIInactiveError,
-            APIInvalidKey,
-            APIKeyError,
-            APINotFound,
-        ) as e:
+        except APIError as e:
             return e
 
         if "permissions" in api_req_key_info:
