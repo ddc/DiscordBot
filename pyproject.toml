@@ -39,7 +39,7 @@ test = [
 
 [tool.poe.tasks]
 installdev = "uv sync --all-extras"
-test = "pytest"
+test = "uv run pytest"
 
 [tool.pytest.ini_options]
 addopts = "-v --cov --cov-report=term --cov-report=xml --junitxml=junit.xml"

@@ -24,7 +24,7 @@ jobs:
         run: uv sync --extra test
 
       - name: Run tests with coverage
-        run: uv run poe test
+        run: uv run pytest
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

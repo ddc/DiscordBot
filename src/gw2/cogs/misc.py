@@ -112,7 +112,7 @@ async def info(ctx, *, skill):
         for br in soup.find_all("br"):
             br.replace_with("\n")
 
-        for image in soup.findAll("img"):
+        for image in soup.find_all("img"):
             image_name = image.get("alt", "")
             if image_name.lower() == f"{skill_sanitized.replace('_', ' ').lower()}.png":
                 try:
@@ -127,7 +127,7 @@ async def info(ctx, *, skill):
             skill_description = skill_description.replace("?", "")
             color = ctx.bot.settings["gw2"]["EmbedColor"]
 
-            myspans = soup.findAll("span", {"class": "gw2-tpprice"})
+            myspans = soup.find_all("span", {"class": "gw2-tpprice"})
             if len(myspans) > 0:
                 item_id = myspans[0]["data-id"]
             else:
@@ -141,8 +141,8 @@ async def info(ctx, *, skill):
                             f"https://www.gw2bltc.com/en/item/{item_id}-{skill_sanitized.replace('_', '-').lower()}"
                         )
                         tp_results = await tp_r.text()
-                        sell_td = BeautifulSoup(tp_results, 'html.parser').findAll("td", {"id": "sell-price"})
-                        buy_td = BeautifulSoup(tp_results, 'html.parser').findAll("td", {"id": "buy-price"})
+                        sell_td = BeautifulSoup(tp_results, 'html.parser').find_all("td", {"id": "sell-price"})
+                        buy_td = BeautifulSoup(tp_results, 'html.parser').find_all("td", {"id": "buy-price"})
                         tp_sell_price = gw2_utils.format_gold(sell_td[0]["data-price"])
                         tp_buy_price = gw2_utils.format_gold(buy_td[0]["data-price"])
                         skill_description = (
