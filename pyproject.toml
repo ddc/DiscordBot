@@ -44,6 +44,7 @@ test = "pytest"
 [tool.pytest.ini_options]
 addopts = "-v --cov --cov-report=term --cov-report=xml --junitxml=junit.xml"
 junit_family = "legacy"
+pythonpath = ["."]
 testpaths = ["tests"]
 asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
