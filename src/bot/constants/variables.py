@@ -12,8 +12,9 @@ def _get_python_version_info() -> tuple[int, int]:
     with open(BASE_DIR / "pyproject.toml", "rb") as f:
         pyproject_data = tomllib.load(f)
 
-    python_req = pyproject_data["tool"]["poetry"]["dependencies"]["python"]
-    version_parts = python_req.replace("^", "").split(".")
+    python_req = pyproject_data["project"]["requires-python"]
+    version_str = python_req.lstrip("><=!~")
+    version_parts = version_str.split(".")
     return int(version_parts[0]), int(version_parts[1])
 
 
@@ -21,7 +22,7 @@ def _get_project_version() -> str:
     """Extract project version from pyproject.toml."""
     with open(BASE_DIR / "pyproject.toml", "rb") as f:
         pyproject_data = tomllib.load(f)
-    return pyproject_data["tool"]["poetry"]["version"]
+    return pyproject_data["project"]["version"]
 
 
 def _discover_cogs() -> list[str]:

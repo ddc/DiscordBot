@@ -1,25 +1,40 @@
-# A Bot for Discord
+<div align="center">
+  <h1>A Bot for Discord</h1>
+</div>
 
-[![Donate](https://img.shields.io/badge/Donate-PayPal-brightgreen.svg?style=plastic)](https://www.paypal.com/ncp/payment/6G9Z78QHUD4RJ)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PyPi](https://img.shields.io/pypi/v/DiscordBot.svg)](https://pypi.python.org/pypi/DiscordBot)
-[![PyPI Downloads](https://static.pepy.tech/badge/DiscordBot)](https://pepy.tech/projects/DiscordBot)
-[![codecov](https://codecov.io/gh/ddc/DiscordBot/graph/badge.svg?token=E942EZII4Q)](https://codecov.io/gh/ddc/DiscordBot)
-[![CI/CD Pipeline](https://github.com/ddc/DiscordBot/actions/workflows/workflow.yml/badge.svg)](https://github.com/ddc/DiscordBot/actions/workflows/workflow.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ddc_DiscordBot&metric=alert_status)](https://sonarcloud.io/dashboard?id=ddc_DiscordBot)  
-[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A//actions-badge.atrox.dev/ddc/DiscordBot/badge?ref=main&label=build&logo=none)](https://actions-badge.atrox.dev/ddc/DiscordBot/goto?ref=main)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Python](https://img.shields.io/pypi/pyversions/DiscordBot.svg)](https://www.python.org/downloads)
+<div align="center">
+    <a href="https://www.paypal.com/ncp/payment/6G9Z78QHUD4RJ">
+        <img src="https://img.shields.io/badge/Donate-PayPal-brightgreen.svg?style=plastic" alt="Donate"/>
+    </a>
+    <a href="https://github.com/sponsors/ddc">
+        <img src="https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=ff69b4" alt="Sponsor"/>
+    </a>
+</div>
 
-[![Support me on GitHub](https://img.shields.io/badge/Support_me_on_GitHub-154c79?style=for-the-badge&logo=github)](https://github.com/sponsors/ddc)
+<div align="center">
+    <a href="https://www.python.org/downloads">
+        <img src="https://img.shields.io/badge/python-3.14-blue.svg?style=plastic" alt="Python"/>
+    </a>
+    <a href="https://opensource.org/licenses/MIT">
+        <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"/>
+    </a>
+    <a href="https://github.com/psf/black">
+        <img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black"/>
+    </a>
+</div>
 
+<div align="center">
+    <a href="https://codecov.io/gh/ddc/DiscordBot">
+        <img src="https://codecov.io/gh/ddc/DiscordBot/graph/badge.svg?token=E942EZII4Q" alt="codecov"/>
+    </a>
+    <a href="https://sonarcloud.io/dashboard?id=ddc_DiscordBot">
+        <img src="https://sonarcloud.io/api/project_badges/measure?project=ddc_DiscordBot&metric=alert_status" alt="Quality Gate Status"/>
+    </a>
+    <a href="https://github.com/ddc/DiscordBot/actions/workflows/workflow.yml">
+        <img src="https://github.com/ddc/DiscordBot/actions/workflows/workflow.yml/badge.svg" alt="CI/CD Pipeline"/>
+    </a>
+</div>
 
-
-<!--
-### [Invitation Link](https://discordapp.com/api/oauth2/authorize?client_id=427992048088383518&permissions=8&scope=bot)
-+ Use the link bellow to invite this bot into your server, or install your own using the installation guide
-    + [Invitation Link](https://discordapp.com/api/oauth2/authorize?client_id=427992048088383518&permissions=8&scope=bot)
--->
 
 # [Install Guide - Wiki](https://ddc.github.io/DiscordBot)
 + Using Docker
@@ -97,6 +112,18 @@
 + [Discord Bot Api](https://discordapp.com/developers/applications/me)
 + [PostgreSQL](https://www.postgresql.org)
 + [Git](https://git-scm.com/download)
+
+
+
+## Development
+Must have UV installed. See [UV Installation Guide](https://uv.run/docs/getting-started/installation)
+
+### Building DEV Environment and Running Tests
+```shell
+uv venv
+uv sync --all-extras
+poe test
+```
 
 
 

@@ -1,54 +1,57 @@
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry]
+[project]
 name = "DiscordBot"
 version = "3.0.0"
 description = "A Bot for Discord"
-license = "MIT"
+license = {text = "MIT"}
 readme = "README.md"
-authors = ["Daniel Costa <danieldcsta@gmail.com>"]
-maintainers = ["Daniel Costa"]
-repository = "https://github.com/ddc/DiscordBot"
-homepage = "https://ddc.github.io/DiscordBot"
-package-mode = false
+authors = [{name = "Daniel Costa", email = "danieldcsta@gmail.com"}]
+maintainers = [{name = "Daniel Costa"}]
 keywords = [
     "python3", "python-3", "python",
     "DiscordBot", "discord-bots", "bot",
     "discord-py",
 ]
+requires-python = ">=3.14"
+dependencies = [
+    "alembic>=1.18.1",
+    "beautifulsoup4>=4.13.4",
+    "better-profanity>=0.7.0",
+    "ddcDatabases[pgsql]>=3.0.2",
+    "discord-py>=2.6.4",
+    "gTTS>=2.5.4",
+    "openai>=2.15.0",
+    "PyNaCl>=1.6.2",
+    "pythonLogs>=5.0.3",
+]
 
-[tool.poetry.group.test]
-optional = true
+[project.urls]
+Homepage = "https://ddc.github.io/DiscordBot"
+Repository = "https://github.com/ddc/DiscordBot"
 
-[tool.poetry.dependencies]
-python = "^3.13"
-alembic = "^1.16.4"
-beautifulsoup4 = "^4.13.4"
-ddcDatabases = {extras = ["pgsql"], version = "^2.0.6"}
-discord-py = "^2.5.2"
-gTTS = "^2.5.4"
-openai = "^1.99.9"
-PyNaCl = "^1.5.0"
-pythonLogs = "^5.0.1"
-
-[tool.poetry.group.test.dependencies]
-coverage = "^7.10.3"
-faker = "^37.5.3"
-poethepoet = "^0.37.0"
-pytest = "^8.4.1"
-pytest-asyncio = "^1.1.0"
-pytest-cov = "^6.2.1"
+[project.optional-dependencies]
+test = [
+    "faker>=40.1.2",
+    "poethepoet>=0.40.0",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+    "pytest-cov>=7.0.0",
+]
 
 [tool.poe.tasks]
-_test = "python -m pytest -v --cov --cov-report=term --cov-report=xml --junitxml=junit.xml -o junit_family=legacy"
-tests = ["_test"]
-test = ["tests"]
+installdev = "uv sync --all-extras"
+test = "pytest"
+
+[tool.pytest.ini_options]
+addopts = "-v --cov --cov-report=term --cov-report=xml --junitxml=junit.xml"
+junit_family = "legacy"
+testpaths = ["tests"]
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 omit = [
     "tests/*",
+    "utilities/*",
     "src/database/migrations/*",
     "*/__init__.py",
 ]
@@ -66,7 +69,7 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
-show_missing = false
+show_missing = true
 skip_covered = false
 
 [tool.black]

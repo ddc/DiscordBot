@@ -1,53 +1,26 @@
 services:
-  bot_db:
-    image: postgres:latest
-    restart: always
-    container_name: bot_db
-    user: root
-    privileged: true
-    env_file: .env
-    environment:
-        TZ: UTC
-        POSTGRES_USER: ${POSTGRESQL_USER}
-        PGUSER: ${POSTGRESQL_USER}
-        POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
-        POSTGRES_DB: ${POSTGRESQL_DATABASE}
-        POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
-    volumes:
-        - bot_db_data:/var/lib/postgresql/data:rw
-    ports:
-        - ${POSTGRESQL_PORT}:${POSTGRESQL_PORT}
-    expose:
-        - ${POSTGRESQL_PORT}/tcp
-    command: >
-      bash -c "
-        docker-entrypoint.sh postgres &
-        until pg_isready -U ${POSTGRESQL_USER} -h localhost; do sleep 1; done;
-        PGPASSWORD=${POSTGRESQL_PASSWORD} psql -U ${POSTGRESQL_USER} -d postgres -tc \"SELECT 1 FROM pg_database WHERE datname = '${POSTGRESQL_DATABASE}'\" | grep -q 1 || PGPASSWORD=${POSTGRESQL_PASSWORD} psql -U ${POSTGRESQL_USER} -d postgres -c \"CREATE DATABASE ${POSTGRESQL_DATABASE}\";
-        wait
-      "
-    healthcheck:
-      test: ["CMD-SHELL", "PGPASSWORD=${POSTGRESQL_PASSWORD} psql -U ${POSTGRESQL_USER} -d ${POSTGRESQL_DATABASE} -c 'SELECT 1'"]
-      retries: 5
-      interval: 10s
-      timeout: 20s
-      start_period: 30s
-
-
   bot_alembic:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: bot_alembic
-    restart: on-failure:5
-    user: root
-    privileged: true
+    restart: always
     env_file: .env
+    environment:
+      DOCKER_BUILDKIT: 1
+    command: ["sh", "-c", "uv run alembic -c config/alembic.ini upgrade head && touch /tmp/alembic_done && sleep infinity"]
     depends_on:
       bot_db:
         condition: service_healthy
-    command: ["poetry", "run", "alembic", "-c", "config/alembic.ini", "upgrade", "head"]
-
+    deploy:
+      restart_policy:
+        delay: 180s
+    healthcheck:
+      test: ["CMD", "sh", "-c", "test -f /tmp/alembic_done"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 120s
 
   bot:
     build:
@@ -57,16 +30,13 @@ services:
         - LOG_DIRECTORY=${LOG_DIRECTORY}
     container_name: bot
     restart: always
-    user: root
-    privileged: true
     env_file: .env
     volumes:
         - ${LOG_DIRECTORY}:${LOG_DIRECTORY}
     depends_on:
       bot_alembic:
-        condition: service_completed_successfully
-    command: ["python", "/app/bot.py"]
-
+        condition: service_healthy
+    command: ["uv", "run", "python", "/app/bot.py"]
 
 volumes:
   bot_db_data:
