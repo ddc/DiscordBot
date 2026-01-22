@@ -9,19 +9,24 @@ name: CI/CD Pipeline
 
 jobs:
   test:
-    name: Test Python 3.14 on ubuntu-latest
-    runs-on: ubuntu-latest
+    name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.runs-on || matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['ubuntu-latest']
+        python-version: ['3.14']
     steps:
       - uses: actions/checkout@v6
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
 
-      - name: Set up Python 3.14
-        run: uv python install 3.14
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv sync --extra test
+        run: uv sync --all-extras
 
       - name: Run tests with coverage
         run: uv run pytest
@@ -43,16 +48,11 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download all artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v7
         with:
-          path: artifacts/
-
-      - name: Prepare release assets
-        run: |
-          mkdir -p release-assets
-          find artifacts/ -name "*.whl" -exec cp {} release-assets/ \;
-          find artifacts/ -name "*.tar.gz" -exec cp {} release-assets/ \;
+          name: python-packages
+          path: release-assets/
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -63,10 +63,3 @@ jobs:
           draft: false
           prerelease: false
           files: release-assets/*
-
-      - name: Upload combined artifacts for PyPI
-        uses: actions/upload-artifact@v6
-        with:
-          name: python-packages-combined
-          path: release-assets/
-          retention-days: 7
