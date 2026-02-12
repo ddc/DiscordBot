@@ -131,12 +131,6 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v7
-        with:
-          name: python-packages
-          path: release-assets/
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -145,4 +139,3 @@ jobs:
             Automated release for version ${{ github.ref_name }}
           draft: false
           prerelease: false
-          files: release-assets/*
