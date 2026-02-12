@@ -21,9 +21,10 @@ async def key(ctx):
     To generate an API key, head to https://account.arena.net, and log in.
     In the "Applications" tab, generate a new key with all permissions.
     Required API permissions: account
-    
+
     Note: Only one API key per user is supported.
-    
+
+
         gw2 key add <api_key>       (Adds your first GW2 API key)
         gw2 key update <api_key>    (Updates/replaces your existing API key)
         gw2 key remove              (Removes your GW2 API key from the bot)
@@ -85,7 +86,7 @@ async def add(ctx, api_key: str):
 
     # searching if API key in local database
     gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
-    
+
     # Check if user already has any API key - ADD command should only work for first-time users
     existing_user_key = await gw2_key_dal.get_api_key_by_user(user_id)
     if existing_user_key:
@@ -100,13 +101,13 @@ async def add(ctx, api_key: str):
         )
         await bot_utils.send_error_msg(ctx, error_msg, True)
         return None
-    
+
     # Check if this exact API key is already used by someone else
     rs = await gw2_key_dal.get_api_key(api_key)
     if rs:
         await bot_utils.send_error_msg(ctx, gw2_messages.KEY_ALREADY_IN_USE, True)
         return None
-    
+
     # If we get here, user has no existing key and the API key is not in use
     try:
         await gw2_key_dal.insert_api_key(api_key_args)

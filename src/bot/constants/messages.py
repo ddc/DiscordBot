@@ -69,18 +69,22 @@ INVALID_MESSAGE = "Invalid message."
 COMMAND_INTERNAL_ERROR = "There was an internal error with command"
 DM_CANNOT_EXECUTE_COMMAND = "Cannot execute action on a DM channel"
 PRIVILEGE_LOW = "Your Privilege is too low."
-DIRECT_MESSAGES_DISABLED = ("Direct messages are disable in your configuration.\n"
-                            "If you want to receive messages from Bots, "
-                            "you need to enable this option under Privacy & Safety:"
-                            "\"Allow direct messages from server members.\"")
+DIRECT_MESSAGES_DISABLED = (
+    "Direct messages are disable in your configuration.\n"
+    "If you want to receive messages from Bots, "
+    "you need to enable this option under Privacy & Safety:"
+    "\"Allow direct messages from server members.\""
+)
 #################################
 # EVENT ON GUILD JOIN
 #################################
-GUILD_JOIN_BOT_MESSAGE = ("Thanks for using *{0}*\n"
-                          "To learn more about this bot: `{1}about`\n"
-                          "Games included so far: `{2}`\n\n"
-                          "If you are an Admin and wish to list configurations: `{3}config list`\n"
-                          "To get a list of commands: `{4}help`")
+GUILD_JOIN_BOT_MESSAGE = (
+    "Thanks for using *{0}*\n"
+    "To learn more about this bot: `{1}about`\n"
+    "Games included so far: `{2}`\n\n"
+    "If you are an Admin and wish to list configurations: `{3}config list`\n"
+    "To get a list of commands: `{4}help`"
+)
 #################################
 # EVENT ON GUILD UPDATE
 #################################
@@ -117,13 +121,17 @@ DM_COMMANDS_ALLOW_LIST = "Commands allowed in direct messages"
 BOT_REACT_STUPID = "I'm not stupid, fu ufk!!!"
 BOT_REACT_RETARD = "I'm not retard, fu ufk!!!"
 MESSAGE_CENSURED = "Your message was censored.\nPlease don't say offensive words in this channel."
-BLOCKED_INVIS_MESSAGE = ("You are Invisible (offline)\n"
-                         "Server \"{0}\" does not allow messages from invisible members.\n"
-                         "Please change your status if you want to send messages to this server.")
-PRIVATE_BOT_MESSAGE = ("This is a Private Bot.\n"
-                       "You are not allowed to execute any commands.\n"
-                       "Only a few users are allowed to use it.\n"
-                       "Please don't insist. Thank You!!!")
+BLOCKED_INVIS_MESSAGE = (
+    "You are Invisible (offline)\n"
+    "Server \"{0}\" does not allow messages from invisible members.\n"
+    "Please change your status if you want to send messages to this server."
+)
+PRIVATE_BOT_MESSAGE = (
+    "This is a Private Bot.\n"
+    "You are not allowed to execute any commands.\n"
+    "Only a few users are allowed to use it.\n"
+    "Please don't insist. Thank You!!!"
+)
 #################################
 # EVENT ON USER UPDATE
 #################################
@@ -136,10 +144,12 @@ NEW_DISCRIMINATOR = "New Discriminator"
 #################################
 LOADING_EXTENSIONS = "Loading Bot Extensions..."
 LOADING_EXTENSION_FAILED = "ERROR: FAILED to load extension"
-DISABLED_DM = ("Direct messages are disable in your configuration.\n"
-               "If you want to receive messages from Bots, "
-               "you need to enable this option under Privacy & Safety:\n"
-               "\"Allow direct messages from server members.\"\n")
+DISABLED_DM = (
+    "Direct messages are disable in your configuration.\n"
+    "If you want to receive messages from Bots, "
+    "you need to enable this option under Privacy & Safety:\n"
+    "\"Allow direct messages from server members.\"\n"
+)
 MESSAGE_REMOVED_FOR_PRIVACY = "Your message was removed for privacy."
 DELETE_MESSAGE_NO_PERMISSION = "Bot does not have permission to delete messages."
 #################################
@@ -168,8 +178,10 @@ DO_NOT_DISTURB = "Do Not Disturb"
 JOINED_DISCORD_ON = "Joined Discord on"
 JOINED_THIS_SERVER_ON = "Joined this server on"
 LIST_COMMAND_CATEGORIES = "For a list of command categories"
-DEV_INFO_MSG = ("Developed as an open source project and hosted on [GitHub]({0})\n"
-                "A python discord api wrapper: [discord.py]({1})\n")
+DEV_INFO_MSG = (
+    "Developed as an open source project and hosted on [GitHub]({0})\n"
+    "A python discord api wrapper: [discord.py]({1})\n"
+)
 #################################
 # OWNER
 #################################

@@ -53,7 +53,7 @@ class Gw2Client:
         try:
             err = await response.json()
             err_msg = err.get("text", "")
-        except (ValueError, KeyError):
+        except ValueError, KeyError:
             err_msg = ""
 
         init_msg = f"{response.status})({endpoint.split('?')[0]}"

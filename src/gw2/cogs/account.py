@@ -19,7 +19,7 @@ async def _keep_typing_alive(ctx, stop_event):
                 await asyncio.sleep(4)  # Renew every 4 seconds (Discord typing lasts ~5s)
             except asyncio.CancelledError:
                 raise  # Re-raise CancelledError
-            except (discord.HTTPException, discord.Forbidden):
+            except discord.HTTPException, discord.Forbidden:
                 # Handle Discord API errors gracefully and stop the loop
                 break
     except asyncio.CancelledError:
@@ -186,9 +186,7 @@ async def account(ctx):
         # Handle guilds (most expensive operation)
         if "guilds" in api_req_acc and api_req_acc["guilds"]:
             guild_count = len(api_req_acc["guilds"])
-            progress_embed.description = (
-                f"🔄 **Please wait, I'm fetching guild information...** ({guild_count} guilds)"
-            )
+            progress_embed.description = f"🔄 **Please wait, I'm fetching guild information...** ({guild_count} guilds)"
             await progress_msg.edit(embed=progress_embed)
 
             # Fetch guild info in parallel with limited concurrency to avoid rate limits
@@ -254,7 +252,7 @@ async def account(ctx):
             try:
                 stop_typing.set()
                 typing_task.cancel()
-            except (AttributeError, RuntimeError):
+            except AttributeError, RuntimeError:
                 # Handle cases where task is already done or event is invalid
                 pass
         await bot_utils.send_error_msg(ctx, e)

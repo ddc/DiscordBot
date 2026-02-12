@@ -1,7 +1,8 @@
-import sys
 import discord
+import sys
 from discord.ext import commands
 from src.bot.constants import messages, variables
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils
 
 
@@ -14,7 +15,7 @@ class WelcomeMessageBuilder:
         return messages.GUILD_JOIN_BOT_MESSAGE.format(bot_name, prefix, games_included, prefix, prefix)
 
     @staticmethod
-    def build_welcome_embed(bot: commands.Bot, message: str) -> discord.Embed:
+    def build_welcome_embed(bot: Bot, message: str) -> discord.Embed:
         """Build the welcome embed with bot information."""
         embed = discord.Embed(color=discord.Color.green(), description=message)
 
@@ -36,7 +37,7 @@ class WelcomeMessageBuilder:
         return embed
 
     @staticmethod
-    def _set_footer(embed: discord.Embed, bot: commands.Bot) -> None:
+    def _set_footer(embed: discord.Embed, bot: Bot) -> None:
         """Set footer with developer information."""
         try:
             author = bot.get_user(bot.owner_id)
@@ -46,7 +47,7 @@ class WelcomeMessageBuilder:
                 embed.set_footer(icon_url=author.avatar.url, text=f"Developed by {author} | {python_version}")
             else:
                 embed.set_footer(text=f"Developed by Bot Owner | {python_version}")
-        except (AttributeError, discord.HTTPException):
+        except AttributeError, discord.HTTPException:
             # Fallback if owner information is not available or HTTP error occurs
             python_version = "Python {}.{}.{}".format(*sys.version_info[:3])
             embed.set_footer(text=f"Discord Bot | {python_version}")
@@ -55,7 +56,7 @@ class WelcomeMessageBuilder:
 class OnGuildJoin(commands.Cog):
     """Guild join event handler"""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
         self.message_builder = WelcomeMessageBuilder()
 
@@ -78,6 +79,6 @@ class OnGuildJoin(commands.Cog):
             await bot_utils.send_msg_to_system_channel(bot.log, guild, welcome_embed, welcome_text)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the OnGuildJoin cog to the bot."""
     await bot.add_cog(OnGuildJoin(bot))

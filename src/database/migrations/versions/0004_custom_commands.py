@@ -6,16 +6,15 @@ Create Date: 2024-12-01 15:15:57.695803
 
 """
 
-from typing import Sequence, Union
 import sqlalchemy as sa
 from alembic import op
-
+from collections.abc import Sequence
 
 # revision identifiers, used by Alembic.
 revision: str = '0004'
-down_revision: Union[str, None] = '0003'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = '0003'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -35,14 +34,12 @@ def upgrade() -> None:
         sa.UniqueConstraint('id'),
     )
     op.create_index(op.f('ix_custom_commands_server_id'), 'custom_commands', ['server_id'], unique=False)
-    op.execute(
-        """
+    op.execute("""
         CREATE TRIGGER before_update_custom_commands_tr
             BEFORE UPDATE ON custom_commands
             FOR EACH ROW
             EXECUTE PROCEDURE updated_at_column_func();
-    """
-    )
+    """)
     # ### end Alembic commands ###
 
 

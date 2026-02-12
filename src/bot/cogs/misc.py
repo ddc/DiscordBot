@@ -1,11 +1,11 @@
+import discord
 import random
 import sys
-from io import BytesIO
-from typing import Optional
-import discord
 from discord.ext import commands
 from gtts import gTTS
+from io import BytesIO
 from src.bot.constants import messages, variables
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils, chat_formatting
 from src.bot.tools.cooldowns import CoolDowns
 from src.bot.tools.pepe import pepedatabase
@@ -14,7 +14,7 @@ from src.bot.tools.pepe import pepedatabase
 class Misc(commands.Cog):
     """Miscellaneous bot commands for entertainment and server utilities."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
         self._random = random.SystemRandom()
 
@@ -171,7 +171,7 @@ class Misc(commands.Cog):
 
     @commands.command()
     @commands.cooldown(1, CoolDowns.Misc.value, commands.BucketType.user)
-    async def userinfo(self, ctx: commands.Context, *, member_str: Optional[str] = None) -> None:
+    async def userinfo(self, ctx: commands.Context, *, member_str: str | None = None) -> None:
         """Display detailed information about a user.
 
         Usage:
@@ -294,7 +294,7 @@ class Misc(commands.Cog):
             if len(emoji_parts) >= 3 and len(emoji_parts[2].rstrip(">")) >= 18:
                 return emoji_parts[1]
             return word
-        except (IndexError, ValueError):
+        except IndexError, ValueError:
             return word
 
     @staticmethod
@@ -424,7 +424,7 @@ class Misc(commands.Cog):
         embed: discord.Embed,
         dev_info: str,
         stats: dict,
-        games: Optional[str],
+        games: str | None,
         prefix: str,
     ) -> None:
         """Add about information fields to embed."""
@@ -441,7 +441,7 @@ class Misc(commands.Cog):
         embed.add_field(name="Help", value=f"{messages.LIST_COMMAND_CATEGORIES}: `{prefix}help`", inline=False)
 
     @staticmethod
-    def _get_games_included(games_tuple: tuple[str, ...]) -> Optional[str]:
+    def _get_games_included(games_tuple: tuple[str, ...]) -> str | None:
         """Format games included string from tuple."""
         if not games_tuple:
             return None
@@ -463,6 +463,6 @@ class Misc(commands.Cog):
     #     await bot_utils.send_embed(ctx, embed, True)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the Misc cog to the bot."""
     await bot.add_cog(Misc(bot))

@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from src.bot.constants import messages
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils
 from src.database.dal.bot.servers_dal import ServersDal
 
@@ -8,7 +9,7 @@ from src.database.dal.bot.servers_dal import ServersDal
 class OnMemberUpdate(commands.Cog):
     """Handles member update events with profile change tracking."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         """Initialize the OnMemberUpdate cog.
 
         Args:
@@ -120,7 +121,7 @@ class OnMemberUpdate(commands.Cog):
             self.bot.log.error(f"Failed to send member update notification: {e}")
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the OnMemberUpdate cog to the bot.
 
     Args:

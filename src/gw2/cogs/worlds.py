@@ -200,10 +200,10 @@ async def _send_paginated_worlds_embed(ctx, embed):
             if not is_dm:
                 try:
                     await message.remove_reaction(reaction.emoji, user)
-                except (discord.Forbidden, discord.NotFound, discord.HTTPException):
+                except discord.Forbidden, discord.NotFound, discord.HTTPException:
                     pass  # Silently handle permission issues
 
-    except asyncio.TimeoutError:
+    except TimeoutError:
         pass  # Silently handle timeout
 
     # Clean up by removing all reactions (skip in DM channels)

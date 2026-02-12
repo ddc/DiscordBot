@@ -2,9 +2,9 @@ import os
 import sys
 import tomllib
 from pathlib import Path
-from typing import Final
-from pythonLogs.settings import get_log_settings
+from pythonLogs import get_log_settings
 from src.bot.constants.settings import get_bot_settings
+from typing import Final
 
 
 def _get_python_version_info() -> tuple[int, int]:
@@ -30,16 +30,16 @@ def _discover_cogs() -> list[str]:
     bot_cogs_dir = Path("src") / "bot" / "cogs"
     # Bot cogs - admin.py loads first for command group registration
     bot_cogs = [str(bot_cogs_dir / "admin" / "admin.py")]
-    bot_cogs.extend(str(p) for p in bot_cogs_dir.glob("*.py"))
-    bot_cogs.extend(str(p) for p in (bot_cogs_dir / "events").glob("*.py"))
+    bot_cogs.extend(str(p) for p in bot_cogs_dir.glob("*.py") if p.name != "__init__.py")
+    bot_cogs.extend(str(p) for p in (bot_cogs_dir / "events").glob("*.py") if p.name != "__init__.py")
     # Add remaining admin cogs (excluding admin.py already added)
-    admin_cogs = [str(p) for p in (bot_cogs_dir / "admin").glob("*.py")]
+    admin_cogs = [str(p) for p in (bot_cogs_dir / "admin").glob("*.py") if p.name != "__init__.py"]
     bot_cogs.extend(cog for cog in admin_cogs if cog not in bot_cogs)
 
     # GW2 cogs - gw2.py loads first for command group registration
     gw2_cogs_dir = Path("src") / "gw2" / "cogs"
     gw2_cogs = [str(gw2_cogs_dir / "gw2.py")]
-    remaining_gw2 = [str(p) for p in gw2_cogs_dir.glob("*.py")]
+    remaining_gw2 = [str(p) for p in gw2_cogs_dir.glob("*.py") if p.name != "__init__.py"]
     gw2_cogs.extend(cog for cog in remaining_gw2 if cog not in gw2_cogs)
 
     return bot_cogs + gw2_cogs

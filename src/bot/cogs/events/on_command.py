@@ -1,10 +1,11 @@
 from discord.ext import commands
+from src.bot.discord_bot import Bot
 
 
 class CommandLogger:
     """Handles command execution logging and monitoring."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Bot):
         """Initialize the command logger.
 
         Args:
@@ -21,17 +22,17 @@ class CommandLogger:
         try:
             # Get the full command string including subcommands and arguments
             command_parts = [ctx.command.name] if ctx.command else []
-            
+
             # Add subcommand if it exists
             if ctx.invoked_subcommand:
                 command_parts.append(ctx.invoked_subcommand.name)
-            
+
             # Get the full message content after the prefix to include arguments
             if ctx.prefix and ctx.message.content.startswith(ctx.prefix):
-                full_command = ctx.message.content[len(ctx.prefix):]
+                full_command = ctx.message.content[len(ctx.prefix) :]
             else:
                 full_command = " ".join(command_parts)
-            
+
             if ctx.guild:
                 self.bot.log.info(
                     f"Command executed in '{ctx.guild.name}#{ctx.channel.name}' by {ctx.author}: {full_command}"
@@ -45,7 +46,7 @@ class CommandLogger:
 class OnCommand(commands.Cog):
     """Handles command execution events with logging and monitoring."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         """Initialize the OnCommand cog.
 
         Args:
@@ -72,7 +73,7 @@ class OnCommand(commands.Cog):
                 self.bot.log.error(f"Error in on_command event: {e}")
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the OnCommand cog to the bot.
 
     Args:

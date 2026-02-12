@@ -1,8 +1,8 @@
-import random
-from typing import Optional
 import discord
+import random
 from discord.ext import commands
 from src.bot.constants import messages
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils, chat_formatting
 from src.bot.tools.checks import Checks
 from src.bot.tools.cooldowns import CoolDowns
@@ -12,12 +12,12 @@ from src.database.dal.bot.dice_rolls_dal import DiceRollsDal
 class DiceRolls(commands.Cog):
     """Discord cog for dice rolling commands with personal and server records."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
     @commands.group()
     @commands.cooldown(1, CoolDowns.DiceRolls.value, commands.BucketType.user)
-    async def roll(self, ctx: commands.Context) -> Optional[commands.Command]:
+    async def roll(self, ctx: commands.Context) -> commands.Command | None:
         """Roll a die with specified size (defaults to 100).
 
         Usage:
@@ -100,7 +100,7 @@ class DiceRolls(commands.Cog):
         await bot_utils.send_msg(ctx, messages.DELETED_ALL_ROLLS)
 
     @staticmethod
-    def _parse_dice_size(subcommand_passed: Optional[str]) -> Optional[int]:
+    def _parse_dice_size(subcommand_passed: str | None) -> int | None:
         """Parse dice size from subcommand input."""
         if subcommand_passed is None:
             return 100
@@ -111,14 +111,14 @@ class DiceRolls(commands.Cog):
         return None
 
     @staticmethod
-    def _parse_results_dice_size(message_content: str) -> Optional[int]:
+    def _parse_results_dice_size(message_content: str) -> int | None:
         """Parse dice size from results command message."""
         try:
             msg_parts = message_content.split()
             if len(msg_parts) == 3:
                 return int(msg_parts[2])
             return 100
-        except (ValueError, IndexError):
+        except ValueError, IndexError:
             return None
 
     @staticmethod
@@ -234,6 +234,6 @@ class DiceRolls(commands.Cog):
         return embed
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the DiceRolls cog to the bot."""
     await bot.add_cog(DiceRolls(bot))

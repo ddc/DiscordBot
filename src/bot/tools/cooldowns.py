@@ -2,7 +2,6 @@ from enum import Enum
 from src.bot.constants import variables
 from src.bot.constants.settings import get_bot_settings
 
-
 # Load cooldown values from environment variables
 _bot_settings = get_bot_settings()
 

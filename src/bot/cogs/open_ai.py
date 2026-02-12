@@ -3,6 +3,7 @@ from discord.ext import commands
 from openai import OpenAI
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 from src.bot.constants.settings import get_bot_settings
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils
 from src.bot.tools.cooldowns import CoolDowns
 
@@ -10,7 +11,7 @@ from src.bot.tools.cooldowns import CoolDowns
 class OpenAi(commands.Cog):
     """OpenAI-powered commands for AI assistance and text generation."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
         self._openai_client: OpenAI | None = None
 
@@ -86,6 +87,6 @@ class OpenAi(commands.Cog):
         return embed
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the OpenAi cog to the bot."""
     await bot.add_cog(OpenAi(bot))

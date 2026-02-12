@@ -1,7 +1,8 @@
-import sys
 import discord
+import sys
 from discord.ext import commands
 from src.bot.constants import messages, variables
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils
 
 
@@ -23,7 +24,7 @@ class StartupInfoDisplay:
         print(discord_version)
 
     @staticmethod
-    def print_bot_info(bot: commands.Bot) -> None:
+    def print_bot_info(bot: Bot) -> None:
         """Print bot-specific information."""
         print("--------------------")
         print(f"{bot.user} (id:{bot.user.id})")
@@ -46,7 +47,7 @@ class StartupInfoDisplay:
 class OnReady(commands.Cog):
     """Bot ready event handler with improved organization."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
         self.info_display = StartupInfoDisplay()
 
@@ -78,6 +79,6 @@ class OnReady(commands.Cog):
                 bot.log.info(messages.BOT_ONLINE.format(bot.user))
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the OnReady cog to the bot."""
     await bot.add_cog(OnReady(bot))

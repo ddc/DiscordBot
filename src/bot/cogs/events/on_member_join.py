@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from src.bot.constants import messages
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils
 from src.database.dal.bot.servers_dal import ServersDal
 
@@ -8,7 +9,7 @@ from src.database.dal.bot.servers_dal import ServersDal
 class WelcomeMessageBuilder:
     """Handles creation of welcome messages and embeds for new members."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Bot):
         """Initialize the welcome message builder.
 
         Args:
@@ -63,7 +64,7 @@ class WelcomeMessageBuilder:
 class MemberJoinHandler:
     """Handles member join processing and server configuration checks."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Bot):
         """Initialize the member join handler.
 
         Args:
@@ -115,7 +116,7 @@ class MemberJoinHandler:
 class OnMemberJoin(commands.Cog):
     """Handles member join events with welcome messages and logging."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         """Initialize the OnMemberJoin cog.
 
         Args:
@@ -141,7 +142,7 @@ class OnMemberJoin(commands.Cog):
                 self.bot.log.error(f"Critical error in on_member_join for {member}: {e}")
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the OnMemberJoin cog to the bot.
 
     Args:

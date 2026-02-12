@@ -1,4 +1,4 @@
-from sqlalchemy import BigInteger, Boolean, CHAR, ForeignKey
+from sqlalchemy import CHAR, BigInteger, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.bot.constants import variables
 from src.database.models import BotBase

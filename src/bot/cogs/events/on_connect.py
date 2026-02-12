@@ -1,5 +1,5 @@
-from typing import Set
 from discord.ext import commands
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils
 from src.database.dal.bot.servers_dal import ServersDal
 
@@ -7,7 +7,7 @@ from src.database.dal.bot.servers_dal import ServersDal
 class GuildSynchronizer:
     """Handles synchronization of guilds between Discord and the database."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Bot):
         """Initialize the guild synchronizer.
 
         Args:
@@ -39,7 +39,7 @@ class GuildSynchronizer:
         except Exception as e:
             self.bot.log.error(f"Failed to synchronize guilds with database: {e}")
 
-    async def _get_database_server_ids(self) -> Set[int]:
+    async def _get_database_server_ids(self) -> set[int]:
         """Get server IDs from the database.
 
         Returns:
@@ -57,7 +57,7 @@ class GuildSynchronizer:
             self.bot.log.error(f"Failed to get database server IDs: {e}")
             return set()
 
-    async def _get_discord_guild_ids(self) -> Set[int]:
+    async def _get_discord_guild_ids(self) -> set[int]:
         """Get guild IDs from Discord.
 
         Returns:
@@ -73,7 +73,7 @@ class GuildSynchronizer:
 
         return guild_ids
 
-    async def _add_missing_guilds(self, missing_guild_ids: Set[int]) -> None:
+    async def _add_missing_guilds(self, missing_guild_ids: set[int]) -> None:
         """Add missing guilds to the database.
 
         Args:
@@ -94,7 +94,7 @@ class GuildSynchronizer:
 class ConnectionHandler:
     """Handles bot connection processing and initialization tasks."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Bot):
         """Initialize the connection handler.
 
         Args:
@@ -125,7 +125,7 @@ class ConnectionHandler:
 class OnConnect(commands.Cog):
     """Handles bot connection events with database synchronization."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         """Initialize the OnConnect cog.
 
         Args:
@@ -152,7 +152,7 @@ class OnConnect(commands.Cog):
                 self.bot.log.error(f"Critical error in on_connect event: {e}")
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the OnConnect cog to the bot.
 
     Args:

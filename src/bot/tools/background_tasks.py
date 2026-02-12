@@ -1,14 +1,19 @@
+from __future__ import annotations
+
 import asyncio
-import random
 import discord
-from discord.ext import commands
+import random
 from src.bot.constants.variables import GAMES_INCLUDED
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.bot.discord_bot import Bot
 
 
 class BackGroundTasks:
     """Manages bot background tasks for dynamic presence updates."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
         self.random = random.SystemRandom()
 

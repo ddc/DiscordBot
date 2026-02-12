@@ -1,10 +1,9 @@
+import discord
 import random
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from discord.ext import commands
 from enum import Enum
 from operator import attrgetter
-from typing import Optional
-import discord
-from discord.ext import commands
 from src.bot.constants import messages, variables
 from src.bot.tools import chat_formatting
 from src.bot.tools.background_tasks import BackGroundTasks
@@ -138,7 +137,7 @@ async def send_embed(ctx, embed, dm=False):
         else:
             # Send to channel
             await ctx.send(embed=embed)
-    except (discord.Forbidden, discord.HTTPException):
+    except discord.Forbidden, discord.HTTPException:
         await send_error_msg(ctx, messages.DISABLED_DM)
     except Exception as e:
         ctx.bot.logger.error(e)
@@ -160,7 +159,7 @@ async def delete_message(ctx, warning=False):
                 await send_msg(ctx, msg, False, color)
 
 
-def is_member_admin(member: Optional[discord.Member]) -> bool:
+def is_member_admin(member: discord.Member | None) -> bool:
     """Check if a member has administrator permissions."""
     return member is not None and hasattr(member, "guild_permissions") and member.guild_permissions.administrator
 
@@ -181,7 +180,7 @@ def is_private_message(ctx: commands.Context) -> bool:
 
 
 def get_current_date_time():
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def get_current_date_time_str_long():
@@ -201,7 +200,7 @@ def convert_str_to_datetime_short(date_str: str) -> datetime:
     return datetime.strptime(date_str, f"{variables.DATE_FORMATTER} {variables.TIME_FORMATTER}")
 
 
-def get_object_member_by_str(ctx: commands.Context, member_str: str) -> Optional[discord.Member]:
+def get_object_member_by_str(ctx: commands.Context, member_str: str) -> discord.Member | None:
     """Find a guild member by name, display name, or nickname."""
     if is_private_message(ctx):
         return None
@@ -215,12 +214,12 @@ def get_object_member_by_str(ctx: commands.Context, member_str: str) -> Optional
     return None
 
 
-def get_user_by_id(bot: commands.Bot, user_id: int) -> Optional[discord.User]:
+def get_user_by_id(bot: commands.Bot, user_id: int) -> discord.User | None:
     """Get a user by their ID."""
     return bot.get_user(int(user_id))
 
 
-def get_member_by_id(guild: discord.Guild, member_id: int) -> Optional[discord.Member]:
+def get_member_by_id(guild: discord.Guild, member_id: int) -> discord.Member | None:
     """Get a guild member by their ID."""
     return guild.get_member(int(member_id))
 
@@ -236,7 +235,7 @@ async def send_msg_to_system_channel(log, server, embed, plain_msg=None):
                 await channel_to_send_msg.send(plain_msg)
 
 
-def get_server_system_channel(server: discord.Guild) -> Optional[discord.TextChannel]:
+def get_server_system_channel(server: discord.Guild) -> discord.TextChannel | None:
     """Get the server's system channel or find the first readable text channel."""
     if server.system_channel:
         return server.system_channel
@@ -255,7 +254,7 @@ def get_server_system_channel(server: discord.Guild) -> Optional[discord.TextCha
     return None
 
 
-def get_color_settings(color: str) -> Optional[discord.Color]:
+def get_color_settings(color: str) -> discord.Color | None:
     """Get a Discord color from string name or generate random color."""
     color_lower = color.lower()
 
