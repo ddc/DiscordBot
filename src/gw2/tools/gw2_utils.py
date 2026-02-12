@@ -1,8 +1,8 @@
-from datetime import datetime, timedelta
-from enum import Enum
-from typing import Dict, List, Optional, Tuple
 import discord
+from datetime import datetime, timedelta
 from discord.ext import commands
+from enum import Enum
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils
 
 
@@ -21,8 +21,8 @@ from src.database.dal.gw2.gw2_configs_dal import Gw2ConfigsDal
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
-from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.constants import gw2_messages
+from src.gw2.tools.gw2_client import Gw2Client
 
 
 class Gw2Servers(Enum):
@@ -84,7 +84,7 @@ async def send_msg(ctx: commands.Context, description: str, dm: bool = False) ->
     await bot_utils.send_embed(ctx, embed, dm)
 
 
-async def insert_gw2_server_configs(bot: commands.Bot, server: discord.Guild) -> None:
+async def insert_gw2_server_configs(bot: Bot, server: discord.Guild) -> None:
     """Insert GW2 server configs if they don't exist."""
     gw2_configs_dal = Gw2ConfigsDal(bot.db_session, bot.log)
     server_config = await gw2_configs_dal.get_gw2_server_configs(server.id)
@@ -92,9 +92,7 @@ async def insert_gw2_server_configs(bot: commands.Bot, server: discord.Guild) ->
         await gw2_configs_dal.insert_gw2_server_configs(server.id)
 
 
-async def calculate_user_achiev_points(
-    ctx: commands.Context, api_req_acc_achiev: List[Dict], api_req_acc: Dict
-) -> int:
+async def calculate_user_achiev_points(ctx: commands.Context, api_req_acc_achiev: list[dict], api_req_acc: dict) -> int:
     """Calculate total achievement points for a user."""
     gw2_api = Gw2Client(ctx.bot)
     total = api_req_acc["daily_ap"] + api_req_acc["monthly_ap"]
@@ -108,7 +106,7 @@ async def calculate_user_achiev_points(
     return total
 
 
-async def _fetch_achievement_data_in_batches(gw2_api: Gw2Client, user_achievements: List[Dict]) -> List[Dict]:
+async def _fetch_achievement_data_in_batches(gw2_api: Gw2Client, user_achievements: list[dict]) -> list[dict]:
     """Fetch achievement data from API in batches of 200."""
     batch_size = 200
     all_achievement_data = []
@@ -124,7 +122,7 @@ async def _fetch_achievement_data_in_batches(gw2_api: Gw2Client, user_achievemen
     return all_achievement_data
 
 
-def _calculate_earned_points(user_achievements: List[Dict], achievement_data: List[Dict]) -> int:
+def _calculate_earned_points(user_achievements: list[dict], achievement_data: list[dict]) -> int:
     """Calculate total earned achievement points."""
     total_earned = 0
     achievement_lookup = {doc["id"]: doc for doc in achievement_data}
@@ -137,7 +135,7 @@ def _calculate_earned_points(user_achievements: List[Dict], achievement_data: Li
     return total_earned
 
 
-def earned_ap(achievement: Dict, user_progress: Dict) -> int:
+def earned_ap(achievement: dict, user_progress: dict) -> int:
     """Calculate earned achievement points for a specific achievement."""
     if not achievement:
         return 0
@@ -159,7 +157,7 @@ def earned_ap(achievement: Dict, user_progress: Dict) -> int:
     return min(earned, max_possible)
 
 
-def max_ap(achievement: Optional[Dict], repeatable: bool = False) -> int:
+def max_ap(achievement: dict | None, repeatable: bool = False) -> int:
     """Calculate maximum achievement points for an achievement."""
     if not achievement:
         return 0
@@ -171,7 +169,7 @@ def max_ap(achievement: Optional[Dict], repeatable: bool = False) -> int:
     return sum(tier.get("points", 0) for tier in tiers)
 
 
-async def get_world_id(bot: commands.Bot, world: Optional[str]) -> Optional[int]:
+async def get_world_id(bot: Bot, world: str | None) -> int | None:
     """Get world ID by world name."""
     if not world:
         return None
@@ -184,11 +182,11 @@ async def get_world_id(bot: commands.Bot, world: Optional[str]) -> Optional[int]
         # Also support partial matches as a fallback
         world_lower = world.lower()
         world_map = {w["name"].lower(): w["id"] for w in results}
-        
+
         # Try exact match first (O(1))
         if world_lower in world_map:
             return world_map[world_lower]
-        
+
         # If no exact match, try partial match (case-insensitive)
         # This allows users to type "jade" instead of "Jade Quarry" for example
         for world_name, world_id in world_map.items():
@@ -201,7 +199,7 @@ async def get_world_id(bot: commands.Bot, world: Optional[str]) -> Optional[int]
     return None
 
 
-async def get_world_name_population(ctx: commands.Context, world_ids: str) -> Optional[List[str]]:
+async def get_world_name_population(ctx: commands.Context, world_ids: str) -> list[str] | None:
     """Get world names and population data."""
     try:
         gw2_api = Gw2Client(ctx.bot)
@@ -217,7 +215,7 @@ async def get_world_name_population(ctx: commands.Context, world_ids: str) -> Op
         return None
 
 
-async def get_world_name(bot: commands.Bot, world_ids: str) -> Optional[str]:
+async def get_world_name(bot: Bot, world_ids: str) -> str | None:
     """Get world name by world ID."""
     try:
         gw2_api = Gw2Client(bot)
@@ -245,7 +243,7 @@ def is_private_message(ctx: commands.Context) -> bool:
     return isinstance(ctx.channel, discord.DMChannel)
 
 
-async def check_gw2_game_activity(bot: commands.Bot, before: discord.Member, after: discord.Member) -> None:
+async def check_gw2_game_activity(bot: Bot, before: discord.Member, after: discord.Member) -> None:
     """Check for GW2 game activity changes and manage sessions accordingly."""
     before_activity = _get_non_custom_activity(before.activities)
     after_activity = _get_non_custom_activity(after.activities)
@@ -254,7 +252,7 @@ async def check_gw2_game_activity(bot: commands.Bot, before: discord.Member, aft
         await _handle_gw2_activity_change(bot, after, after_activity)
 
 
-def _get_non_custom_activity(activities) -> Optional[discord.Activity]:
+def _get_non_custom_activity(activities) -> discord.Activity | None:
     """Get the first non-custom activity from a list of activities."""
     for activity in activities:
         if activity.type is not discord.ActivityType.custom:
@@ -270,7 +268,7 @@ def _is_gw2_activity_detected(before_activity, after_activity) -> bool:
 
 
 async def _handle_gw2_activity_change(
-    bot: commands.Bot,
+    bot: Bot,
     member: discord.Member,
     after_activity,
 ) -> None:
@@ -295,7 +293,7 @@ async def _handle_gw2_activity_change(
         await end_session(bot, member, api_key)
 
 
-async def start_session(bot: commands.Bot, member: discord.Member, api_key: str) -> None:
+async def start_session(bot: Bot, member: discord.Member, api_key: str) -> None:
     """Start a new GW2 session for a member."""
     session = await get_user_stats(bot, api_key)
     if not session:
@@ -309,7 +307,7 @@ async def start_session(bot: commands.Bot, member: discord.Member, api_key: str)
     await insert_session_char(bot, member, api_key, session_id, "start")
 
 
-async def end_session(bot: commands.Bot, member: discord.Member, api_key: str) -> None:
+async def end_session(bot: Bot, member: discord.Member, api_key: str) -> None:
     """End a GW2 session for a member."""
     session = await get_user_stats(bot, api_key)
     if not session:
@@ -323,7 +321,7 @@ async def end_session(bot: commands.Bot, member: discord.Member, api_key: str) -
     await insert_session_char(bot, member, api_key, session_id, "end")
 
 
-async def get_user_stats(bot: commands.Bot, api_key: str) -> Optional[Dict]:
+async def get_user_stats(bot: Bot, api_key: str) -> dict | None:
     """Get comprehensive user statistics from GW2 API."""
     gw2_api = Gw2Client(bot)
 
@@ -344,7 +342,7 @@ async def get_user_stats(bot: commands.Bot, api_key: str) -> Optional[Dict]:
     return user_stats
 
 
-def _create_initial_user_stats(account_data: Dict) -> Dict:
+def _create_initial_user_stats(account_data: dict) -> dict:
     """Create initial user stats structure."""
     return {
         "acc_name": account_data["name"],
@@ -367,7 +365,7 @@ def _create_initial_user_stats(account_data: Dict) -> Dict:
     }
 
 
-def _update_wallet_stats(user_stats: Dict, wallet_data: List[Dict]) -> None:
+def _update_wallet_stats(user_stats: dict, wallet_data: list[dict]) -> None:
     """Update user stats with wallet information."""
     # Mapping of wallet IDs to stat names
     wallet_mapping = {
@@ -388,7 +386,7 @@ def _update_wallet_stats(user_stats: Dict, wallet_data: List[Dict]) -> None:
             user_stats[stat_name] = wallet_item["value"]
 
 
-def _update_achievement_stats(user_stats: Dict, achievements_data: List[Dict]) -> None:
+def _update_achievement_stats(user_stats: dict, achievements_data: list[dict]) -> None:
     """Update user stats with achievement information."""
     # Mapping of achievement IDs to stat names
     achievement_mapping = {
@@ -409,7 +407,7 @@ def _update_achievement_stats(user_stats: Dict, achievements_data: List[Dict]) -
 
 
 async def insert_session_char(
-    bot: commands.Bot, member: discord.Member, api_key: str, session_id: int, session_type: str
+    bot: Bot, member: discord.Member, api_key: str, session_id: int, session_type: str
 ) -> None:
     """Insert session character data."""
     try:
@@ -583,7 +581,7 @@ def convert_timedelta_to_obj(time_delta: timedelta) -> TimeObject:
     return obj
 
 
-async def get_worlds_ids(ctx: commands.Context) -> Tuple[bool, Optional[List[Dict]]]:
+async def get_worlds_ids(ctx: commands.Context) -> tuple[bool, list[dict] | None]:
     """Get all world IDs from the GW2 API.
 
     Returns:

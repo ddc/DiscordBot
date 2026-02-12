@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from src.bot.constants import messages
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils
 from src.database.dal.bot.servers_dal import ServersDal
 
@@ -8,7 +9,7 @@ from src.database.dal.bot.servers_dal import ServersDal
 class OnGuildUpdate(commands.Cog):
     """Handles guild update events with server change tracking."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         """Initialize the OnGuildUpdate cog.
 
         Args:
@@ -108,7 +109,7 @@ class OnGuildUpdate(commands.Cog):
             self.bot.log.error(f"Failed to send guild update notification: {e}")
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the OnGuildUpdate cog to the bot.
 
     Args:

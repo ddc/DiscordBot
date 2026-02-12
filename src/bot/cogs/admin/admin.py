@@ -1,7 +1,7 @@
-from typing import Optional
 import discord
 from discord.ext import commands
 from src.bot.constants import messages
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils
 from src.bot.tools.checks import Checks
 from src.bot.tools.cooldowns import CoolDowns
@@ -10,12 +10,12 @@ from src.bot.tools.cooldowns import CoolDowns
 class Admin(commands.Cog):
     """Admin commands for bot configuration and status management."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
     @commands.group(aliases=["mod"])
     @Checks.check_is_admin()
-    async def admin(self, ctx: commands.Context) -> Optional[commands.Command]:
+    async def admin(self, ctx: commands.Context) -> commands.Command | None:
         """Admin commands for bot administration.
 
         Available subcommands:
@@ -68,6 +68,6 @@ class Admin(commands.Cog):
         return discord.Embed(description=description)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the Admin cog to the bot."""
     await bot.add_cog(Admin(bot))

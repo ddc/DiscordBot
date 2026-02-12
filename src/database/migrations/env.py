@@ -1,46 +1,60 @@
-from logging.config import fileConfig
-from urllib.parse import quote_plus
 from alembic import context
 from alembic.script import ScriptDirectory
-from ddcDatabases.settings import get_postgresql_settings
-from sqlalchemy import engine_from_config, pool
+from ddcDatabases import get_postgresql_settings
+from logging.config import fileConfig
+from sqlalchemy import engine_from_config, pool, text
+from sqlalchemy.schema import SchemaItem
+from src.bot.constants.settings import get_bot_settings
 from src.database.models import BotBase
-
+from typing import Any, Literal
+from urllib.parse import quote_plus
 
 config = context.config
-
-
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+target_metadata = [BotBase.metadata]
 
-target_metadata = [
-    BotBase.metadata,
-]
-
-
-_settings = get_postgresql_settings()
-_password = quote_plus(_settings.password).replace("%", "%%")
+_project_settings = get_bot_settings()
+_postgres_settings = get_postgresql_settings()
+_password = quote_plus(_postgres_settings.password).replace("%", "%%")
 _conn_url = (
-    f"{_settings.sync_driver}://"
-    f"{_settings.user}:"
+    f"{_postgres_settings.sync_driver}://"
+    f"{_postgres_settings.user}:"
     f"{_password}@"
-    f"{_settings.host}:"
-    f"{_settings.port}/"
-    f"{_settings.database}"
+    f"{_postgres_settings.host}:"
+    f"{_postgres_settings.port}/"
+    f"{_postgres_settings.database}"
+    f"?sslmode={_postgres_settings.ssl_mode}"
 )
 config.set_main_option("sqlalchemy.url", _conn_url)
 
 
-def _process_revision_directives(ctx, revision, directives):
+def _include_object(
+    obj: SchemaItem,
+    _name: str | None,
+    type_: Literal["schema", "table", "column", "index", "unique_constraint", "foreign_key_constraint"],
+    _reflected: bool,
+    _compare_to: SchemaItem | None,
+) -> bool | None:
+    """
+    Filter to only include objects from our target schema.
+    This prevents Alembic from trying to manage tables in other schemas.
+    """
+    if type_ == "table" and hasattr(obj, "schema") and obj.schema != _postgres_settings.schema:  # type: ignore[attr-defined]
+        return False
+    return True
+
+
+def _process_revision_directives(ctx: Any, revision: Any, directives: Any) -> None:
     migration_script = directives[0]
     head_revision = ScriptDirectory.from_config(ctx.config).get_current_head()
     if head_revision is None:
         new_rev_id = 1
     else:
-        last_rev_id = int(head_revision.lstrip('0'))
+        last_rev_id = int(head_revision.lstrip("0"))
         new_rev_id = last_rev_id + 1
-    migration_script.rev_id = '{0:04}'.format(new_rev_id)
+    migration_script.rev_id = f"{new_rev_id:04}"
 
 
 def run_migrations_offline() -> None:
@@ -63,9 +77,15 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         process_revision_directives=_process_revision_directives,
+        version_table_schema=_postgres_settings.schema,
+        version_table=_project_settings.alembic_version_table_name,
+        include_schemas=True,
+        include_object=_include_object,
     )
 
     with context.begin_transaction():
+        # Ensure the schema exists before Alembic tries to create its version table
+        context.execute(f"CREATE SCHEMA IF NOT EXISTS {_postgres_settings.schema}")
         context.run_migrations()
 
 
@@ -83,10 +103,18 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
+        # Ensure the schema exists before Alembic tries to create its version table
+        connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {_postgres_settings.schema}"))
+        connection.commit()
+
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
             process_revision_directives=_process_revision_directives,
+            version_table_schema=_postgres_settings.schema,
+            version_table=_project_settings.alembic_version_table_name,
+            include_schemas=True,
+            include_object=_include_object,
         )
 
         with context.begin_transaction():

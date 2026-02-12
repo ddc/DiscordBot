@@ -1,8 +1,8 @@
-from typing import Optional
 import discord
 from discord.ext import commands
 from src.bot.cogs.admin.admin import Admin
 from src.bot.constants import messages
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils, chat_formatting
 from src.bot.tools.cooldowns import CoolDowns
 from src.database.dal.bot.custom_commands_dal import CustomCommandsDal
@@ -11,12 +11,12 @@ from src.database.dal.bot.custom_commands_dal import CustomCommandsDal
 class CustomCommand(Admin):
     """Admin commands for managing server-specific custom commands."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         super().__init__(bot)
 
 
 @CustomCommand.admin.group(aliases=["cc"])
-async def custom_command(ctx: commands.Context) -> Optional[commands.Command]:
+async def custom_command(ctx: commands.Context) -> commands.Command | None:
     """Manage server custom commands.
 
     Available subcommands:
@@ -228,7 +228,7 @@ async def list_custom_commands(ctx: commands.Context) -> None:
     return None
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the CustomCommand cog to the bot."""
     bot.remove_command("admin")
     await bot.add_cog(CustomCommand(bot))

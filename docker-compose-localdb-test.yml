@@ -1,8 +1,8 @@
 services:
-  bot_db:
+  discordbot_database:
     image: postgres:latest
-    container_name: bot_db
-    hostname: postgres
+    container_name: discordbot_database
+    hostname: discordbot_database
     restart: always
     env_file: .env
     environment:
@@ -11,13 +11,14 @@ services:
         PGUSER: ${POSTGRESQL_USER}
         POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD}
         POSTGRES_DB: ${POSTGRESQL_DATABASE}
+        PGDATABASE: ${POSTGRESQL_DATABASE}
         POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
-    volumes:
-        - bot_db_data:/var/lib/postgresql:rw
     ports:
         - ${POSTGRESQL_PORT}:5432
-    expose:
-        - ${POSTGRESQL_PORT}/tcp
+    volumes:
+        - discordbot_database_data:/var/lib/postgresql:rw
+    networks:
+        - discordbot_net
     command: >
       bash -c "
         docker-entrypoint.sh postgres &
@@ -33,5 +34,9 @@ services:
       start_period: 30s
 
 volumes:
-  bot_db_data:
-    name: "bot_db_data"
+  discordbot_database_data:
+    name: "discordbot_database_data"
+
+networks:
+  discordbot_net:
+    name: discordbot_net

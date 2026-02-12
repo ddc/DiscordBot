@@ -1,7 +1,7 @@
-from typing import Optional
 import discord
 from discord.ext import commands
 from src.bot.constants import messages, variables
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils
 from src.bot.tools.checks import Checks
 from src.bot.tools.cooldowns import CoolDowns
@@ -12,13 +12,13 @@ from src.database.dal.bot.servers_dal import ServersDal
 class Owner(commands.Cog):
     """Bot owner commands for administrative tasks and configuration management."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
 
     @commands.group()
     @Checks.check_is_bot_owner()
     @commands.cooldown(1, CoolDowns.Owner.value, commands.BucketType.user)
-    async def owner(self, ctx: commands.Context) -> Optional[commands.Command]:
+    async def owner(self, ctx: commands.Context) -> commands.Command | None:
         """Bot owner commands for administrative tasks.
 
         Available subcommands:
@@ -142,6 +142,6 @@ class Owner(commands.Cog):
         return discord.Embed(description=description, color=color)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the Owner cog to the bot."""
     await bot.add_cog(Owner(bot))

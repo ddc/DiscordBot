@@ -9,6 +9,7 @@ from sqlalchemy.sql import text
 
 class BotBase(AsyncAttrs, DeclarativeBase):
     """Base model class with common timestamp fields."""
+
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=text("(now() at time zone 'utc')"))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=text("(now() at time zone 'utc')"))
 

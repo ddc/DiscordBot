@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from src.bot.constants import messages
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.bot.custom_commands_dal import CustomCommandsDal
 from src.database.dal.bot.servers_dal import ServersDal
@@ -51,7 +52,7 @@ class MessageValidator:
 class ProfanityFilter:
     """Handles profanity filtering and censoring."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
 
     async def check_and_censor(self, ctx: commands.Context) -> bool:
@@ -109,7 +110,7 @@ class ProfanityFilter:
 class CustomReactionHandler:
     """Handles custom bot reactions to messages."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
 
     async def check_and_react(self, message: discord.Message) -> bool:
@@ -150,7 +151,7 @@ class CustomReactionHandler:
                 else:
                     # Generic response for other reaction words
                     return "fu ufk!!!"
-        
+
         # Default fallback response
         return "fu ufk!!!"
 
@@ -168,7 +169,7 @@ class ExclusiveUsersChecker:
     """Utility class for checking exclusive users permissions."""
 
     @staticmethod
-    async def check_exclusive_users(bot: commands.Bot, ctx: commands.Context) -> bool:
+    async def check_exclusive_users(bot: Bot, ctx: commands.Context) -> bool:
         """Check if user is in the exclusive users list."""
         exclusive_users = bot.settings["bot"]["ExclusiveUsers"]
 
@@ -189,7 +190,7 @@ class ExclusiveUsersChecker:
 class DMMessageHandler:
     """Handles direct message processing."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.reaction_handler = CustomReactionHandler(bot)
 
@@ -273,7 +274,7 @@ class DMMessageHandler:
 class ServerMessageHandler:
     """Handles server message processing."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.profanity_filter = ProfanityFilter(bot)
         self.reaction_handler = CustomReactionHandler(bot)
@@ -365,7 +366,7 @@ class ServerMessageHandler:
 class OnMessage(commands.Cog):
     """Main message event handler with improved architecture."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
         self.dm_handler = DMMessageHandler(bot)
         self.server_handler = ServerMessageHandler(bot)
@@ -394,6 +395,6 @@ class OnMessage(commands.Cog):
                 await self.server_handler.process(ctx, is_command)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the OnMessage cog to the bot."""
     await bot.add_cog(OnMessage(bot))

@@ -1,0 +1,7 @@
+ignored:
+  - DL3013  # Pin versions in pip install (we use uv, not pip)
+  - DL3018  # Pin versions in apk add (Alpine packages aren't version-pinnable)
+  - DL3044  # Env var reference in same ENV where defined (intentional for PYTHONPATH)
+  - DL3048  # Invalid label key (we use Description, not OCI labels)
+  - DL4006  # Set SHELL pipefail (Alpine uses ash, not bash)
+  - SC2086  # Double quote variables (not needed in controlled Dockerfile context)

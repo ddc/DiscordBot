@@ -1,12 +1,13 @@
 import discord
 from discord.ext import commands
+from src.bot.discord_bot import Bot
 from src.database.dal.bot.servers_dal import ServersDal
 
 
 class GuildCleanupHandler:
     """Handles guild-related cleanup operations when bot is removed from servers."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Bot):
         """Initialize the guild cleanup handler.
 
         Args:
@@ -37,7 +38,7 @@ class GuildCleanupHandler:
 class OnGuildRemove(commands.Cog):
     """Handles guild removal events with proper cleanup and logging."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         """Initialize the OnGuildRemove cog.
 
         Args:
@@ -68,7 +69,7 @@ class OnGuildRemove(commands.Cog):
                 self.bot.log.error(f"Error handling guild removal for {guild.name}: {e}")
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the OnGuildRemove cog to the bot.
 
     Args:

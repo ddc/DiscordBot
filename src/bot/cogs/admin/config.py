@@ -1,8 +1,8 @@
-from typing import Optional
 import discord
 from discord.ext import commands
 from src.bot.cogs.admin.admin import Admin
 from src.bot.constants import messages
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils, chat_formatting
 from src.bot.tools.cooldowns import CoolDowns
 from src.database.dal.bot.profanity_filters_dal import ProfanityFilterDal
@@ -12,12 +12,12 @@ from src.database.dal.bot.servers_dal import ServersDal
 class Config(Admin):
     """Admin configuration commands for server settings management."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         super().__init__(bot)
 
 
 @Config.admin.group()
-async def config(ctx: commands.Context) -> Optional[commands.Command]:
+async def config(ctx: commands.Context) -> commands.Command | None:
     """Server configuration commands for managing bot behavior.
 
     Available subcommands:
@@ -331,9 +331,7 @@ async def config_list(ctx: commands.Context) -> None:
 
     # Set initial button styles based on current config
     view.toggle_join_messages.style = discord.ButtonStyle.success if sc["msg_on_join"] else discord.ButtonStyle.danger
-    view.toggle_leave_messages.style = (
-        discord.ButtonStyle.success if sc["msg_on_leave"] else discord.ButtonStyle.danger
-    )
+    view.toggle_leave_messages.style = discord.ButtonStyle.success if sc["msg_on_leave"] else discord.ButtonStyle.danger
     view.toggle_server_messages.style = (
         discord.ButtonStyle.success if sc["msg_on_server_update"] else discord.ButtonStyle.danger
     )
@@ -421,7 +419,7 @@ class ConfigView(discord.ui.View):
 
         # Defer the response to allow editing the original message
         await interaction.response.defer()
-        
+
         # Show processing state by editing the original message
         await interaction.edit_original_response(content="⏳ Updating configuration...", view=self)
 
@@ -493,8 +491,8 @@ class ConfigView(discord.ui.View):
 
     async def _create_updated_embed(self):
         """Create updated configuration embed with current settings."""
-        from src.bot.tools import chat_formatting
         from src.bot.constants import messages
+        from src.bot.tools import chat_formatting
 
         # Get profanity filter channels
         profanity_filter_dal = ProfanityFilterDal(self.ctx.bot.db_session, self.ctx.bot.log)
@@ -625,11 +623,11 @@ class ConfigView(discord.ui.View):
 
         try:
             await self.message.edit(view=self)
-        except (discord.NotFound, discord.HTTPException):
+        except discord.NotFound, discord.HTTPException:
             pass  # Message might be deleted or no longer accessible
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the Config cog to the bot."""
     bot.remove_command("admin")
     await bot.add_cog(Config(bot))

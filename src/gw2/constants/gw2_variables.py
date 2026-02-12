@@ -1,7 +1,6 @@
 from pathlib import Path
-from typing import Final
 from src.gw2.constants.gw2_settings import get_gw2_settings
-
+from typing import Final
 
 # Base directory
 BASE_DIR: Final[Path] = Path(__file__).resolve().parent.parent.parent.parent

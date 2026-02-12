@@ -1,9 +1,9 @@
-from typing import Any, Dict
 from sqlalchemy import BigInteger, Boolean, ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database.models import BotBase
 from src.database.models.bot_models import Servers
+from typing import Any
 
 
 class Gw2Keys(BotBase):
@@ -31,8 +31,8 @@ class Gw2Sessions(BotBase):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(BigInteger)
     acc_name: Mapped[str] = mapped_column()
-    start: Mapped[Dict[str, Any]] = mapped_column(JSONB)
-    end: Mapped[Dict[str, Any]] = mapped_column(JSONB, nullable=True)
+    start: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    end: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=True)
     session_chars = relationship("Gw2SessionChars", back_populates="session")
 
 

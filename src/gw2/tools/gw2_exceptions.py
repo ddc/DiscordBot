@@ -1,10 +1,10 @@
-from discord.ext import commands
+from src.bot.discord_bot import Bot
 
 
 class APIError(Exception):
     """Base exception for GW2 API errors."""
 
-    def __init__(self, bot: commands.Bot, msg: str):
+    def __init__(self, bot: Bot, msg: str):
         super().__init__(msg)
         self.bot = bot
         self.message = msg

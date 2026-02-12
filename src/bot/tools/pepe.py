@@ -98,5 +98,5 @@ pepedatabase = [
     'https://i.imgur.com/P8MDXEw.png',
     'https://i.imgur.com/cW9NrvO.png',
     'https://i.imgur.com/XbZa2lr.png',
-    'https://i.imgur.com/UaBpIId.png'
+    'https://i.imgur.com/UaBpIId.png',
 ]

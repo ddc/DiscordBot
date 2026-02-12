@@ -1,20 +1,19 @@
 services:
-  bot_alembic:
+  discordbot_alembic:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: bot_alembic
+    container_name: discordbot_alembic
     restart: always
     env_file: .env
     environment:
       DOCKER_BUILDKIT: 1
-    command: ["sh", "-c", "uv run alembic -c config/alembic.ini upgrade head && touch /tmp/alembic_done && sleep infinity"]
-    depends_on:
-      bot_db:
-        condition: service_healthy
+    networks:
+      - discordbot_net
+    command: ["sh", "-c", "uv run --frozen alembic upgrade head && touch /tmp/alembic_done && sleep infinity"]
     deploy:
       restart_policy:
-        delay: 180s
+        delay: 60s
     healthcheck:
       test: ["CMD", "sh", "-c", "test -f /tmp/alembic_done"]
       interval: 5s
@@ -22,22 +21,27 @@ services:
       retries: 12
       start_period: 120s
 
-  bot:
+  discordbot:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         - LOG_DIRECTORY=${LOG_DIRECTORY}
-    container_name: bot
+    container_name: discordbot
     restart: always
     env_file: .env
     volumes:
         - ${LOG_DIRECTORY}:${LOG_DIRECTORY}
+    networks:
+      - discordbot_net
     depends_on:
-      bot_alembic:
+      discordbot_alembic:
         condition: service_healthy
-    command: ["uv", "run", "python", "/app/bot.py"]
+    deploy:
+      restart_policy:
+        delay: 60s
+    command: ["uv", "run", "--frozen", "python", "-m", "src"]
 
-volumes:
-  bot_db_data:
-    name: "bot_db_data"
+networks:
+  discordbot_net:
+    name: discordbot_net

@@ -47,9 +47,7 @@ async def config_list(ctx):
     rs = await gw2_configs.get_gw2_server_configs(ctx.guild.id)
     on = chat_formatting.green_text("ON")
     off = chat_formatting.red_text("OFF")
-    embed.add_field(
-        name=gw2_messages.USER_SESSION_TITLE, value=f"{on}" if rs[0]["session"] else f"{off}", inline=False
-    )
+    embed.add_field(name=gw2_messages.USER_SESSION_TITLE, value=f"{on}" if rs[0]["session"] else f"{off}", inline=False)
 
     # Create interactive view with buttons
     view = GW2ConfigView(ctx, rs[0])
@@ -176,9 +174,7 @@ class GW2ConfigView(discord.ui.View):
         except (discord.HTTPException, discord.NotFound) as e:
             # Handle Discord API errors
             await self._restore_buttons()
-            await interaction.edit_original_response(
-                content=f"❌ Discord error updating configuration: {e}", view=self
-            )
+            await interaction.edit_original_response(content=f"❌ Discord error updating configuration: {e}", view=self)
         except Exception as e:
             # Handle any other errors (database, etc.)
             self.ctx.bot.log.error(f"Error in GW2 config update: {e}")
@@ -242,7 +238,7 @@ class GW2ConfigView(discord.ui.View):
 
         try:
             await self.message.edit(view=self)
-        except (discord.NotFound, discord.HTTPException):
+        except discord.NotFound, discord.HTTPException:
             pass  # Message might be deleted or no longer accessible
 
 

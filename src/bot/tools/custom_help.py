@@ -21,7 +21,7 @@ class CustomHelpCommand(commands.DefaultHelpCommand):
         if self.dm_help and not isinstance(destination, discord.DMChannel):
             # Send pages to DM with pagination
             await self._send_pages_to_dm()
-            
+
             # Show notification in channel with profile picture
             notification_embed = discord.Embed(description="📬 Response sent to your DM", color=discord.Color.green())
             notification_embed.set_author(

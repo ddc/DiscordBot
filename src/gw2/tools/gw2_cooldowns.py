@@ -2,7 +2,6 @@ from enum import Enum
 from src.bot.constants import variables
 from src.gw2.constants.gw2_settings import get_gw2_settings
 
-
 # Load GW2 cooldown values from environment variables
 _gw2_settings = get_gw2_settings()
 

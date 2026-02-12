@@ -1,11 +1,12 @@
 from discord.ext import commands
 from src.bot.constants import messages
+from src.bot.discord_bot import Bot
 
 
 class OnDisconnect(commands.Cog):
     """Handles bot disconnect events with proper logging."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         """Initialize the OnDisconnect cog.
 
         Args:
@@ -35,7 +36,7 @@ class OnDisconnect(commands.Cog):
                 print(f"Bot disconnected - logging failed: {e}")
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the OnDisconnect cog to the bot.
 
     Args:

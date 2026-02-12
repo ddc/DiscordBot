@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from src.bot.constants import messages, variables
+from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils
 from src.gw2.constants import gw2_messages
 
@@ -123,7 +124,7 @@ class ErrorMessageBuilder:
 class Errors(commands.Cog):
     """Commands error handler with improved structure and maintainability."""
 
-    def __init__(self, bot: commands.Bot) -> None:
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
         self.message_builder = ErrorMessageBuilder()
 
@@ -239,6 +240,6 @@ class Errors(commands.Cog):
         await self._send_error_message(context.ctx, context.error_msg, should_log)
 
 
-async def setup(bot: commands.Bot) -> None:
+async def setup(bot: Bot) -> None:
     """Setup function to add the Errors cog to the bot."""
     await bot.add_cog(Errors(bot))
