@@ -32,7 +32,7 @@ from src.bot.constants import variables
 def postgres_container():
     from testcontainers.postgres import PostgresContainer
 
-    with PostgresContainer("postgres:17", driver=None) as pg:
+    with PostgresContainer("postgres:latest", driver=None) as pg:
         yield pg
 
 
