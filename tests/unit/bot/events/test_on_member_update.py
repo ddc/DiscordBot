@@ -24,8 +24,6 @@ def mock_bot():
     bot.user.avatar.url = "https://example.com/bot_avatar.png"
     # Ensure add_cog doesn't return a coroutine
     bot.add_cog = AsyncMock(return_value=None)
-    # Mock the event decorator to prevent coroutine issues
-    bot.event = MagicMock(side_effect=lambda func: func)
     return bot
 
 
@@ -127,12 +125,10 @@ class TestOnMemberUpdate:
     ):
         """Test on_member_update with bot member (should be skipped)."""
         mock_member.bot = True
-        OnMemberUpdate(mock_bot)
+        cog = OnMemberUpdate(mock_bot)
 
-        # Access the event handler directly
-        on_member_update_event = mock_bot.event.call_args_list[0][0][0]
-
-        await on_member_update_event(mock_member_before, mock_member)
+        # Call the listener method directly
+        await cog.on_member_update(mock_member_before, mock_member)
 
         # Should not process bot members
         mock_get_embed.assert_not_called()
@@ -171,10 +167,10 @@ class TestOnMemberUpdate:
         # Mock embed fields to simulate having fields after add_field is called
         mock_embed.fields = [MagicMock()]  # Simulate one field added
 
-        OnMemberUpdate(mock_bot)
-        on_member_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnMemberUpdate(mock_bot)
 
-        await on_member_update_event(mock_member_before, mock_member)
+        # Call the listener method directly
+        await cog.on_member_update(mock_member_before, mock_member)
 
         # Verify embed setup
         mock_embed.set_author.assert_called_with(name=mock_member.display_name, icon_url=mock_member.avatar.url)
@@ -227,10 +223,10 @@ class TestOnMemberUpdate:
         # Mock embed fields to simulate having fields after add_field is called
         mock_embed.fields = [MagicMock()]  # Simulate one field added
 
-        OnMemberUpdate(mock_bot)
-        on_member_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnMemberUpdate(mock_bot)
 
-        await on_member_update_event(mock_member_before, mock_member)
+        # Call the listener method directly
+        await cog.on_member_update(mock_member_before, mock_member)
 
         # Verify role fields added
         mock_embed.add_field.assert_any_call(name=messages.PREVIOUS_ROLES, value="Member")
@@ -269,10 +265,10 @@ class TestOnMemberUpdate:
         # Mock empty fields list
         mock_embed.fields = []
 
-        OnMemberUpdate(mock_bot)
-        on_member_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnMemberUpdate(mock_bot)
 
-        await on_member_update_event(mock_member_before, mock_member)
+        # Call the listener method directly
+        await cog.on_member_update(mock_member_before, mock_member)
 
         # Should not send message if no changes
         mock_dal.get_server.assert_not_called()
@@ -310,10 +306,10 @@ class TestOnMemberUpdate:
         # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
-        OnMemberUpdate(mock_bot)
-        on_member_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnMemberUpdate(mock_bot)
 
-        await on_member_update_event(mock_member_before, mock_member)
+        # Call the listener method directly
+        await cog.on_member_update(mock_member_before, mock_member)
 
         # Should not send message if notifications disabled
         mock_send_msg.assert_not_called()
@@ -349,10 +345,10 @@ class TestOnMemberUpdate:
         # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
-        OnMemberUpdate(mock_bot)
-        on_member_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnMemberUpdate(mock_bot)
 
-        await on_member_update_event(mock_member_before, mock_member)
+        # Call the listener method directly
+        await cog.on_member_update(mock_member_before, mock_member)
 
         # Should get server config but not send message
         mock_dal.get_server.assert_called_once_with(mock_member.guild.id)
@@ -379,10 +375,10 @@ class TestOnMemberUpdate:
         mock_member.nick = "NewNick"
         mock_member_before.roles = mock_member.roles
 
-        OnMemberUpdate(mock_bot)
-        on_member_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnMemberUpdate(mock_bot)
 
-        await on_member_update_event(mock_member_before, mock_member)
+        # Call the listener method directly
+        await cog.on_member_update(mock_member_before, mock_member)
 
         # Should set author without icon_url
         mock_embed.set_author.assert_called_with(name=mock_member.display_name)
@@ -409,10 +405,10 @@ class TestOnMemberUpdate:
         mock_member.nick = "NewNick"
         mock_member_before.roles = mock_member.roles
 
-        OnMemberUpdate(mock_bot)
-        on_member_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnMemberUpdate(mock_bot)
 
-        await on_member_update_event(mock_member_before, mock_member)
+        # Call the listener method directly
+        await cog.on_member_update(mock_member_before, mock_member)
 
         # Should set footer with None icon_url
         mock_embed.set_footer.assert_called_with(icon_url=None, text="2023-01-01 12:00:00 UTC")
@@ -448,10 +444,10 @@ class TestOnMemberUpdate:
         # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
-        OnMemberUpdate(mock_bot)
-        on_member_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnMemberUpdate(mock_bot)
 
-        await on_member_update_event(mock_member_before, mock_member)
+        # Call the listener method directly
+        await cog.on_member_update(mock_member_before, mock_member)
 
         # Should log error
         mock_bot.log.error.assert_called()
@@ -465,10 +461,10 @@ class TestOnMemberUpdate:
         # Setup embed to raise exception
         mock_get_embed.side_effect = Exception("General error")
 
-        OnMemberUpdate(mock_bot)
-        on_member_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnMemberUpdate(mock_bot)
 
-        await on_member_update_event(mock_member_before, mock_member)
+        # Call the listener method directly
+        await cog.on_member_update(mock_member_before, mock_member)
 
         # Should log error
         mock_bot.log.error.assert_called()
@@ -497,10 +493,10 @@ class TestOnMemberUpdate:
         mock_member.nick = "NewNick"
         mock_member_before.roles = mock_member.roles
 
-        OnMemberUpdate(mock_bot)
-        on_member_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnMemberUpdate(mock_bot)
 
-        await on_member_update_event(mock_member_before, mock_member)
+        # Call the listener method directly
+        await cog.on_member_update(mock_member_before, mock_member)
 
         # Should only add new nickname field (not previous)
         mock_embed.add_field.assert_called_with(name=messages.NEW_NICKNAME, value="NewNick")
@@ -528,10 +524,10 @@ class TestOnMemberUpdate:
         mock_member.roles = [role1]
         mock_member_before.nick = mock_member.nick
 
-        OnMemberUpdate(mock_bot)
-        on_member_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnMemberUpdate(mock_bot)
 
-        await on_member_update_event(mock_member_before, mock_member)
+        # Call the listener method directly
+        await cog.on_member_update(mock_member_before, mock_member)
 
         # Should only add new roles field (not previous)
         mock_embed.add_field.assert_called_with(name=messages.NEW_ROLES, value="Member")

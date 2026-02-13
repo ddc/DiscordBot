@@ -35,7 +35,6 @@ def mock_bot():
     bot.user.id = 99999
     bot.user.avatar = MagicMock()
     bot.user.avatar.url = "https://example.com/bot.png"
-    bot.event = MagicMock(side_effect=lambda func: func)
     bot.add_cog = AsyncMock()
     return bot
 
@@ -264,8 +263,6 @@ class TestOnMemberJoin:
         cog = OnMemberJoin(mock_bot)
         assert cog.bot == mock_bot
         assert isinstance(cog.join_handler, MemberJoinHandler)
-        # Verify event was registered
-        mock_bot.event.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
@@ -499,8 +496,6 @@ class TestOnMemberRemove:
         cog = OnMemberRemove(mock_bot)
         assert cog.bot == mock_bot
         assert isinstance(cog.leave_handler, MemberLeaveHandler)
-        # Verify event was registered
-        mock_bot.event.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
@@ -527,8 +522,6 @@ class TestOnUserUpdate:
         """Test OnUserUpdate cog initialization."""
         cog = OnUserUpdate(mock_bot)
         assert cog.bot == mock_bot
-        # Verify event was registered
-        mock_bot.event.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
@@ -550,10 +543,10 @@ class TestOnUserUpdate:
         after = MagicMock()
         after.bot = True
 
-        OnUserUpdate(mock_bot)
-        on_user_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnUserUpdate(mock_bot)
 
-        await on_user_update_event(before, after)
+        # Call the listener method directly
+        await cog.on_user_update(before, after)
 
         # Should not process bot users
         mock_get_embed.assert_not_called()
@@ -595,10 +588,10 @@ class TestOnUserUpdate:
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = {"msg_on_member_update": True}
 
-        OnUserUpdate(mock_bot)
-        on_user_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnUserUpdate(mock_bot)
 
-        await on_user_update_event(before, after)
+        # Call the listener method directly
+        await cog.on_user_update(before, after)
 
         # Verify embed has avatar field
         field_names = [f.name for f in embed.fields]
@@ -645,10 +638,10 @@ class TestOnUserUpdate:
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = {"msg_on_member_update": True}
 
-        OnUserUpdate(mock_bot)
-        on_user_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnUserUpdate(mock_bot)
 
-        await on_user_update_event(before, after)
+        # Call the listener method directly
+        await cog.on_user_update(before, after)
 
         # Verify embed has name fields
         field_names = [f.name for f in embed.fields]
@@ -695,10 +688,10 @@ class TestOnUserUpdate:
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = {"msg_on_member_update": True}
 
-        OnUserUpdate(mock_bot)
-        on_user_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnUserUpdate(mock_bot)
 
-        await on_user_update_event(before, after)
+        # Call the listener method directly
+        await cog.on_user_update(before, after)
 
         # Verify embed has discriminator fields
         field_names = [f.name for f in embed.fields]
@@ -736,10 +729,10 @@ class TestOnUserUpdate:
         after.name = "TestUser"
         after.discriminator = "1234"
 
-        OnUserUpdate(mock_bot)
-        on_user_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnUserUpdate(mock_bot)
 
-        await on_user_update_event(before, after)
+        # Call the listener method directly
+        await cog.on_user_update(before, after)
 
         # Verify no fields were added
         assert len(embed.fields) == 0
@@ -755,7 +748,7 @@ class TestOnUserUpdate:
 
 
 class TestOnMemberJoinEvent:
-    """Test cases for the inner on_member_join event function registered in OnMemberJoin.__init__."""
+    """Test cases for the on_member_join listener method in OnMemberJoin."""
 
     @pytest.fixture
     def mock_bot(self):
@@ -770,7 +763,6 @@ class TestOnMemberJoinEvent:
         bot.user.id = 99999
         bot.user.avatar = MagicMock()
         bot.user.avatar.url = "https://example.com/bot.png"
-        bot.event = MagicMock(side_effect=lambda func: func)
         bot.add_cog = AsyncMock()
         return bot
 
@@ -794,11 +786,10 @@ class TestOnMemberJoinEvent:
     async def test_on_member_join_event_calls_handler(self, mock_bot, mock_member):
         """Test that the on_member_join event calls the join handler."""
         cog = OnMemberJoin(mock_bot)
-        # Get the registered event function
-        on_member_join_event = mock_bot.event.call_args_list[0][0][0]
 
         with patch.object(cog.join_handler, 'process_member_join', new_callable=AsyncMock) as mock_process:
-            await on_member_join_event(mock_member)
+            # Call the listener method directly
+            await cog.on_member_join(mock_member)
             mock_process.assert_called_once_with(mock_member)
             mock_bot.log.info.assert_called_once()
             assert "Member joined" in mock_bot.log.info.call_args[0][0]
@@ -807,12 +798,12 @@ class TestOnMemberJoinEvent:
     async def test_on_member_join_event_handles_exception(self, mock_bot, mock_member):
         """Test that on_member_join catches exceptions and logs critical error."""
         cog = OnMemberJoin(mock_bot)
-        on_member_join_event = mock_bot.event.call_args_list[0][0][0]
 
         with patch.object(
             cog.join_handler, 'process_member_join', new_callable=AsyncMock, side_effect=RuntimeError("fail")
         ):
-            await on_member_join_event(mock_member)
+            # Call the listener method directly
+            await cog.on_member_join(mock_member)
             mock_bot.log.error.assert_called_once()
             assert "Critical error" in mock_bot.log.error.call_args[0][0]
 
@@ -823,7 +814,7 @@ class TestOnMemberJoinEvent:
 
 
 class TestOnMemberRemoveEvent:
-    """Test cases for the inner on_member_remove event function registered in OnMemberRemove.__init__."""
+    """Test cases for the on_member_remove listener method in OnMemberRemove."""
 
     @pytest.fixture
     def mock_bot(self):
@@ -838,7 +829,6 @@ class TestOnMemberRemoveEvent:
         bot.user.id = 99999
         bot.user.avatar = MagicMock()
         bot.user.avatar.url = "https://example.com/bot.png"
-        bot.event = MagicMock(side_effect=lambda func: func)
         bot.add_cog = AsyncMock()
         return bot
 
@@ -862,11 +852,10 @@ class TestOnMemberRemoveEvent:
     async def test_on_member_remove_event_calls_handler(self, mock_bot, mock_member):
         """Test that the on_member_remove event calls the leave handler."""
         cog = OnMemberRemove(mock_bot)
-        # Get the registered event function
-        on_member_remove_event = mock_bot.event.call_args_list[0][0][0]
 
         with patch.object(cog.leave_handler, 'process_member_leave', new_callable=AsyncMock) as mock_process:
-            await on_member_remove_event(mock_member)
+            # Call the listener method directly
+            await cog.on_member_remove(mock_member)
             mock_process.assert_called_once_with(mock_member)
             mock_bot.log.info.assert_called_once()
             assert "Member left" in mock_bot.log.info.call_args[0][0]
@@ -875,11 +864,11 @@ class TestOnMemberRemoveEvent:
     async def test_on_member_remove_event_handles_exception(self, mock_bot, mock_member):
         """Test that on_member_remove catches exceptions and logs critical error."""
         cog = OnMemberRemove(mock_bot)
-        on_member_remove_event = mock_bot.event.call_args_list[0][0][0]
 
         with patch.object(
             cog.leave_handler, 'process_member_leave', new_callable=AsyncMock, side_effect=RuntimeError("fail")
         ):
-            await on_member_remove_event(mock_member)
+            # Call the listener method directly
+            await cog.on_member_remove(mock_member)
             mock_bot.log.error.assert_called_once()
             assert "Critical error" in mock_bot.log.error.call_args[0][0]

@@ -41,7 +41,7 @@ async def config_list(ctx):
         name=f"{gw2_messages.CONFIG_TITLE} {ctx.guild.name}",
         icon_url=guild_icon_url,
     )
-    embed.set_footer(text=gw2_messages.CONFIG_MORE_INFO.format(ctx.prefix))
+    embed.set_footer(text=gw2_messages.config_more_info(ctx.prefix))
 
     gw2_configs = Gw2ConfigsDal(ctx.bot.db_session, ctx.bot.log)
     rs = await gw2_configs.get_gw2_server_configs(ctx.guild.id)
@@ -208,7 +208,7 @@ class GW2ConfigView(discord.ui.View):
             name=f"{gw2_messages.CONFIG_TITLE} {self.ctx.guild.name}",
             icon_url=guild_icon_url,
         )
-        embed.set_footer(text=gw2_messages.CONFIG_MORE_INFO.format(self.ctx.prefix))
+        embed.set_footer(text=gw2_messages.config_more_info(self.ctx.prefix))
 
         # Format status indicators
         on = chat_formatting.green_text("ON")

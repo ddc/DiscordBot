@@ -280,7 +280,7 @@ class TestDiceRolls:
         await dice_cog.roll_results.callback(dice_cog, mock_ctx)
 
         # Verify
-        mock_send_error.assert_called_once_with(mock_ctx, messages.NO_DICE_SIZE_ROLLS.format(100))
+        mock_send_error.assert_called_once_with(mock_ctx, messages.no_dice_size_rolls(100))
 
     @pytest.mark.asyncio
     @patch('src.bot.cogs.dice_rolls.bot_utils.send_error_msg')

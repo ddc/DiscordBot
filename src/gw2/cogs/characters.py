@@ -28,8 +28,8 @@ async def characters(ctx):
     rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
     if not rs:
         msg = gw2_messages.NO_API_KEY
-        msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
-        msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
+        msg += gw2_messages.key_add_info_help(ctx.prefix)
+        msg += gw2_messages.key_more_info_help(ctx.prefix)
         return await bot_utils.send_error_msg(ctx, msg)
 
     api_key = str(rs[0]["key"])
@@ -37,9 +37,9 @@ async def characters(ctx):
     is_valid_key = await gw2_api.check_api_key(api_key)
     if not isinstance(is_valid_key, dict):
         msg = f"{is_valid_key.args[1]}\n"
-        msg += gw2_messages.INVALID_API_KEY_HELP_MESSAGE.format(ctx.prefix)
-        msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
-        msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
+        msg += gw2_messages.INVALID_API_KEY_HELP_MESSAGE
+        msg += gw2_messages.key_add_info_help(ctx.prefix)
+        msg += gw2_messages.key_more_info_help(ctx.prefix)
         return await bot_utils.send_error_msg(ctx, msg)
 
     permissions = str(rs[0]["permissions"])

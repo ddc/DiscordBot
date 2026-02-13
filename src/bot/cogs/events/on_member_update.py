@@ -17,36 +17,36 @@ class OnMemberUpdate(commands.Cog):
         """
         self.bot = bot
 
-        @self.bot.event
-        async def on_member_update(before: discord.Member, after: discord.Member) -> None:
-            """Handle member update event.
+    @commands.Cog.listener()
+    async def on_member_update(self, before: discord.Member, after: discord.Member) -> None:
+        """Handle member update event.
 
-            Called when a Member updates their profile.
-            This includes changes to:
-            - nickname
-            - roles
-            - pending status
-            - flags
+        Called when a Member updates their profile.
+        This includes changes to:
+        - nickname
+        - roles
+        - pending status
+        - flags
 
-            Args:
-                before: The member before the update
-                after: The member after the update
-            """
-            try:
-                if after.bot:
-                    return
+        Args:
+            before: The member before the update
+            after: The member after the update
+        """
+        try:
+            if after.bot:
+                return
 
-                embed, msg = self._create_member_embed(after)
+            embed, msg = self._create_member_embed(after)
 
-                # Check for changes and update embed/message
-                self._handle_nickname_changes(before, after, embed, msg)
-                self._handle_role_changes(before, after, embed, msg)
+            # Check for changes and update embed/message
+            self._handle_nickname_changes(before, after, embed, msg)
+            self._handle_role_changes(before, after, embed, msg)
 
-                # Send notification if changes were detected
-                await self._send_notification_if_enabled(after, embed, msg)
+            # Send notification if changes were detected
+            await self._send_notification_if_enabled(after, embed, msg)
 
-            except Exception as e:
-                self.bot.log.error(f"Error in on_member_update for {after}: {e}")
+        except Exception as e:
+            self.bot.log.error(f"Error in on_member_update for {after}: {e}")
 
     def _create_member_embed(self, member):
         """Create the base embed and message for member updates."""

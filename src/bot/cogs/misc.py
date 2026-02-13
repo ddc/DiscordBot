@@ -222,7 +222,7 @@ class Misc(commands.Cog):
         author = self.bot.get_user(self.bot.owner_id)
         python_version = f"Python {'.'.join(map(str, sys.version_info[:3]))}"
         games_included = self._get_games_included(variables.GAMES_INCLUDED)
-        dev_info_msg = messages.DEV_INFO_MSG.format(variables.BOT_WEBPAGE_URL, variables.DISCORDPY_URL)
+        dev_info_msg = messages.dev_info_msg(variables.BOT_WEBPAGE_URL, variables.DISCORDPY_URL)
 
         bot_stats = bot_utils.get_bot_stats(self.bot)
 

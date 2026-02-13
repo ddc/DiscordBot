@@ -44,7 +44,7 @@ class Admin(commands.Cog):
         await self.bot.change_presence(activity=activity)
 
         # Create success embed
-        embed = self._create_admin_embed(f"```{messages.BOT_ANNOUNCE_PLAYING.format(game)}```")
+        embed = self._create_admin_embed(f"```{messages.bot_announce_playing(game)}```")
         embed.set_author(
             name=self.bot.user.display_name,
             icon_url=self.bot.user.avatar.url if self.bot.user.avatar else None,
@@ -58,7 +58,7 @@ class Admin(commands.Cog):
         """Show warning if background activity timer will override the game status."""
         bg_activity_timer = self.bot.settings["bot"]["BGActivityTimer"]
         if bg_activity_timer and bg_activity_timer > 0:
-            bg_task_warning = messages.BG_TASK_WARNING.format(bg_activity_timer)
+            bg_task_warning = messages.bg_task_warning(bg_activity_timer)
             warning_embed = self._create_admin_embed(bg_task_warning)
             await bot_utils.send_embed(ctx, warning_embed, False)
 

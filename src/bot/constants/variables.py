@@ -30,6 +30,8 @@ _INIT_PY: Final[str] = "__init__.py"
 
 def _discover_cogs() -> list[str]:
     """Discover and return all cog file paths in the correct loading order."""
+    from src.gw2.cogs import discover_gw2_cogs
+
     bot_cogs_dir = Path("src") / "bot" / "cogs"
     # Bot cogs - admin.py loads first for command group registration
     bot_cogs = [str(bot_cogs_dir / "admin" / "admin.py")]
@@ -39,13 +41,7 @@ def _discover_cogs() -> list[str]:
     admin_cogs = [str(p) for p in (bot_cogs_dir / "admin").glob("*.py") if p.name != _INIT_PY]
     bot_cogs.extend(cog for cog in admin_cogs if cog not in bot_cogs)
 
-    # GW2 cogs - gw2.py loads first for command group registration
-    gw2_cogs_dir = Path("src") / "gw2" / "cogs"
-    gw2_cogs = [str(gw2_cogs_dir / "gw2.py")]
-    remaining_gw2 = [str(p) for p in gw2_cogs_dir.glob("*.py") if p.name != _INIT_PY]
-    gw2_cogs.extend(cog for cog in remaining_gw2 if cog not in gw2_cogs)
-
-    return bot_cogs + gw2_cogs
+    return bot_cogs + discover_gw2_cogs()
 
 
 # Base directory (needed by functions above)

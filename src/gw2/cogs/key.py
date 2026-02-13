@@ -8,6 +8,201 @@ from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 
 
+def _get_user_id(ctx_or_interaction):
+    if isinstance(ctx_or_interaction, discord.Interaction):
+        return ctx_or_interaction.user.id
+    return ctx_or_interaction.message.author.id
+
+
+async def _send_success(ctx_or_interaction, msg, color):
+    if isinstance(ctx_or_interaction, discord.Interaction):
+        embed = discord.Embed(description=msg, color=color)
+        await ctx_or_interaction.followup.send(embed=embed, ephemeral=True)
+    else:
+        await bot_utils.send_msg(ctx_or_interaction, msg, True, color)
+
+
+async def _send_error(ctx_or_interaction, msg):
+    msg = str(msg)
+    if isinstance(ctx_or_interaction, discord.Interaction):
+        embed = discord.Embed(
+            description=chat_formatting.error(msg),
+            color=discord.Color.red(),
+        )
+        await ctx_or_interaction.followup.send(embed=embed, ephemeral=True)
+    else:
+        await bot_utils.send_error_msg(ctx_or_interaction, msg, True)
+
+
+async def _validate_api_key(bot, api_key):
+    """Validate API key with GW2 servers and return account info dict."""
+    gw2_api = Gw2Client(bot)
+    is_valid_key = await gw2_api.check_api_key(api_key)
+    if not isinstance(is_valid_key, dict):
+        raise ValueError(f"{is_valid_key.args[1]}\n`{api_key}`")
+
+    key_name = is_valid_key["name"]
+    permissions = ",".join(is_valid_key["permissions"])
+
+    api_req_acc_info = await gw2_api.call_api("account", api_key)
+    gw2_acc_name = api_req_acc_info["name"]
+    member_server_id = api_req_acc_info["world"]
+
+    uri = f"worlds/{member_server_id}"
+    api_req_server = await gw2_api.call_api(uri, api_key)
+    gw2_server_name = api_req_server["name"]
+
+    return {
+        "key_name": key_name,
+        "permissions": permissions,
+        "gw2_acc_name": gw2_acc_name,
+        "gw2_server_name": gw2_server_name,
+    }
+
+
+async def _process_add_key(ctx_or_interaction, api_key, bot, prefix):
+    """Validate and add a new GW2 API key for the user."""
+    user_id = _get_user_id(ctx_or_interaction)
+    embed_color = bot.settings["gw2"]["EmbedColor"]
+
+    try:
+        key_info = await _validate_api_key(bot, api_key)
+    except Exception as e:
+        bot.log.error(f"API key validation failed for user {user_id}: {e}")
+        return await _send_error(ctx_or_interaction, e)
+
+    gw2_key_dal = Gw2KeyDal(bot.db_session, bot.log)
+
+    existing_user_key = await gw2_key_dal.get_api_key_by_user(user_id)
+    if existing_user_key:
+        error_msg = (
+            f"You already have an API key registered.\n"
+            f"Current key: `{existing_user_key[0]['name']}` for account `{existing_user_key[0]['gw2_acc_name']}`\n\n"
+            f"To update your key: `{prefix}gw2 key update <new_api_key>`\n"
+            f"To view your current key: `{prefix}gw2 key info`\n"
+            f"To remove your key first: `{prefix}gw2 key remove`"
+        )
+        return await _send_error(ctx_or_interaction, error_msg)
+
+    rs = await gw2_key_dal.get_api_key(api_key)
+    if rs:
+        return await _send_error(ctx_or_interaction, gw2_messages.KEY_ALREADY_IN_USE)
+
+    try:
+        await gw2_key_dal.insert_api_key(
+            {
+                "user_id": user_id,
+                "key_name": key_info["key_name"],
+                "gw2_acc_name": key_info["gw2_acc_name"],
+                "server_name": key_info["gw2_server_name"],
+                "permissions": key_info["permissions"],
+                "api_key": api_key,
+            }
+        )
+        msg = gw2_messages.key_added_successfully(key_info["key_name"], key_info["gw2_server_name"])
+        msg += gw2_messages.key_more_info_help(prefix)
+        await _send_success(ctx_or_interaction, msg, embed_color)
+    except Exception as e:
+        bot.log.error(f"Error inserting API key for user {user_id}: {e}")
+        await _send_error(ctx_or_interaction, "Failed to add API key. Please try again later.")
+
+
+async def _process_update_key(ctx_or_interaction, api_key, bot, prefix):
+    """Validate and update an existing GW2 API key for the user."""
+    user_id = _get_user_id(ctx_or_interaction)
+    embed_color = bot.settings["gw2"]["EmbedColor"]
+
+    gw2_key_dal = Gw2KeyDal(bot.db_session, bot.log)
+    existing_user_key = await gw2_key_dal.get_api_key_by_user(user_id)
+    if not existing_user_key:
+        error_msg = (
+            f"You don't have an API key registered yet.\n\n"
+            f"To add your first key: `{prefix}gw2 key add <api_key>`\n"
+            f"For more help: `{prefix}help gw2 key`"
+        )
+        return await _send_error(ctx_or_interaction, error_msg)
+
+    try:
+        key_info = await _validate_api_key(bot, api_key)
+    except Exception as e:
+        bot.log.error(f"API key validation failed for user {user_id}: {e}")
+        return await _send_error(ctx_or_interaction, e)
+
+    rs = await gw2_key_dal.get_api_key(api_key)
+    if rs and rs[0]["user_id"] != user_id:
+        return await _send_error(ctx_or_interaction, gw2_messages.KEY_ALREADY_IN_USE)
+
+    try:
+        await gw2_key_dal.update_api_key(
+            {
+                "user_id": user_id,
+                "key_name": key_info["key_name"],
+                "gw2_acc_name": key_info["gw2_acc_name"],
+                "server_name": key_info["gw2_server_name"],
+                "permissions": key_info["permissions"],
+                "api_key": api_key,
+            }
+        )
+        old_key_name = existing_user_key[0]["name"]
+        msg = gw2_messages.key_replaced_successfully(old_key_name, key_info["key_name"], key_info["gw2_server_name"])
+        msg += gw2_messages.key_more_info_help(prefix)
+        await _send_success(ctx_or_interaction, msg, embed_color)
+    except Exception as e:
+        bot.log.error(f"Error updating API key for user {user_id}: {e}")
+        await _send_error(ctx_or_interaction, "Failed to update API key. Please try again later.")
+
+
+class ApiKeyModal(discord.ui.Modal, title="Enter GW2 API Key"):
+    """Modal dialog for secure API key input."""
+
+    api_key_input = discord.ui.TextInput(
+        label="API Key",
+        placeholder="Paste your GW2 API key here",
+        style=discord.TextStyle.short,
+        required=True,
+        min_length=10,
+    )
+
+    def __init__(self, bot, mode: str, prefix: str):
+        super().__init__()
+        self.bot = bot
+        self.mode = mode
+        self.prefix = prefix
+
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        api_key = self.api_key_input.value.strip()
+        if self.mode == "add":
+            await _process_add_key(interaction, api_key, self.bot, self.prefix)
+        else:
+            await _process_update_key(interaction, api_key, self.bot, self.prefix)
+
+
+class ApiKeyView(discord.ui.View):
+    """View with a button that opens the API key modal."""
+
+    def __init__(self, bot, mode: str, prefix: str):
+        super().__init__(timeout=300)
+        self.bot = bot
+        self.mode = mode
+        self.prefix = prefix
+        self.message = None
+
+    @discord.ui.button(label="Enter API Key", emoji="\U0001f511", style=discord.ButtonStyle.primary)
+    async def enter_key(self, interaction: discord.Interaction, button: discord.ui.Button):
+        modal = ApiKeyModal(self.bot, self.mode, self.prefix)
+        await interaction.response.send_modal(modal)
+
+    async def on_timeout(self):
+        for item in self.children:
+            item.disabled = True
+        try:
+            if self.message:
+                await self.message.edit(view=self)
+        except discord.NotFound, discord.HTTPException:
+            pass
+
+
 class GW2Key(GuildWars2):
     """(Commands related to GW2 API keys)"""
 
@@ -25,8 +220,8 @@ async def key(ctx):
     Note: Only one API key per user is supported.
 
 
-        gw2 key add <api_key>       (Adds your first GW2 API key)
-        gw2 key update <api_key>    (Updates/replaces your existing API key)
+        gw2 key add [api_key]       (Adds your first GW2 API key)
+        gw2 key update [api_key]    (Updates/replaces your existing API key)
         gw2 key remove              (Removes your GW2 API key from the bot)
         gw2 key info                (Shows information about your GW2 API key)
     """
@@ -36,183 +231,71 @@ async def key(ctx):
 
 @key.command(name="add")
 @commands.cooldown(1, GW2CoolDowns.ApiKeys.seconds, commands.BucketType.user)
-async def add(ctx, api_key: str):
+async def add(ctx, api_key: str = None):
     """(Adds your first GW2 API key)
     This command only works if you don't have an existing key.
     Required API permissions: account
-        gw2 key add <api_key>
+        gw2 key add [api_key]
+
+    If no key is provided, a secure input dialog will be sent to your DM.
     """
 
+    if api_key is None:
+        view = ApiKeyView(ctx.bot, "add", ctx.prefix)
+        embed = discord.Embed(
+            description=(
+                "Click the button below to securely enter your GW2 API key.\n\n"
+                "To generate an API key, head to https://account.arena.net\n"
+                "In the **Applications** tab, generate a new key with **account** permissions."
+            ),
+            color=ctx.bot.settings["gw2"]["EmbedColor"],
+        )
+        message = await ctx.author.send(embed=embed, view=view)
+        view.message = message
+        if not bot_utils.is_private_message(ctx):
+            notification = discord.Embed(
+                description="\U0001f4ec Secure API key input sent to your DM",
+                color=discord.Color.green(),
+            )
+            await ctx.send(embed=notification)
+        return
+
     await bot_utils.delete_message(ctx, warning=True)
-    user_id = ctx.message.author.id
-    embed_color = ctx.bot.settings["gw2"]["EmbedColor"]
-
-    # checking API Key with gw2 servers
-    gw2_api = Gw2Client(ctx.bot)
-    is_valid_key = await gw2_api.check_api_key(api_key)
-    if not isinstance(is_valid_key, dict):
-        return await bot_utils.send_error_msg(ctx, f"{is_valid_key.args[1]}\n`{api_key}`", True)
-
-    key_name = is_valid_key["name"]
-    permissions = ",".join(is_valid_key["permissions"])
-
-    try:
-        # getting gw2 acc name
-        api_req_acc_info = await gw2_api.call_api("account", api_key)
-        gw2_acc_name = api_req_acc_info["name"]
-        member_server_id = api_req_acc_info["world"]
-    except Exception as e:
-        await bot_utils.send_error_msg(ctx, e, True)
-        return ctx.bot.log.error(ctx, e)
-
-    try:
-        # getting gw2 server name
-        uri = f"worlds/{member_server_id}"
-        api_req_server = await gw2_api.call_api(uri, api_key)
-        gw2_server_name = api_req_server["name"]
-    except Exception as e:
-        await bot_utils.send_error_msg(ctx, e, True)
-        ctx.bot.log.error(ctx, e)
-        return None
-
-    api_key_args = {
-        "user_id": user_id,
-        "key_name": key_name,
-        "gw2_acc_name": gw2_acc_name,
-        "server_name": gw2_server_name,
-        "permissions": permissions,
-        "api_key": api_key,
-    }
-
-    # searching if API key in local database
-    gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
-
-    # Check if user already has any API key - ADD command should only work for first-time users
-    existing_user_key = await gw2_key_dal.get_api_key_by_user(user_id)
-    if existing_user_key:
-        error_msg = (
-            "❌ **You already have an API key registered.**\n\n"
-            f"Current key: `{existing_user_key[0]['name']}` for account `{existing_user_key[0]['gw2_acc_name']}`\n\n"
-            "**Options:**\n"
-            f"• To update your key: `{ctx.prefix}gw2 key update <new_api_key>`\n"
-            f"• To view your current key: `{ctx.prefix}gw2 key info`\n"
-            f"• To remove your key first: `{ctx.prefix}gw2 key remove`\n\n"
-            "💡 **Tip:** Use `update` command to replace your existing key."
-        )
-        await bot_utils.send_error_msg(ctx, error_msg, True)
-        return None
-
-    # Check if this exact API key is already used by someone else
-    rs = await gw2_key_dal.get_api_key(api_key)
-    if rs:
-        await bot_utils.send_error_msg(ctx, gw2_messages.KEY_ALREADY_IN_USE, True)
-        return None
-
-    # If we get here, user has no existing key and the API key is not in use
-    try:
-        await gw2_key_dal.insert_api_key(api_key_args)
-        msg = gw2_messages.KEY_ADDED_SUCCESSFULLY.format(key_name, gw2_server_name)
-        msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
-        await bot_utils.send_msg(ctx, msg, True, embed_color)
-        return None
-    except Exception as e:
-        ctx.bot.log.error(f"Error inserting API key for user {user_id}: {e}")
-        error_msg = (
-            "❌ **Failed to add API key.**\n\n"
-            "This could be due to a database constraint or connection issue. "
-            "Please try again later or contact an administrator if the problem persists."
-        )
-        await bot_utils.send_error_msg(ctx, error_msg, True)
-        return None
+    await _process_add_key(ctx, api_key, ctx.bot, ctx.prefix)
 
 
 @key.command(name="update", aliases=["replace"])
 @commands.cooldown(1, GW2CoolDowns.ApiKeys.seconds, commands.BucketType.user)
-async def update(ctx, api_key: str):
+async def update(ctx, api_key: str = None):
     """(Updates your existing GW2 API key)
     This command only works if you already have a key registered.
     Required API permissions: account
-        gw2 key update <new_api_key>
+        gw2 key update [new_api_key]
+
+    If no key is provided, a secure input dialog will be sent to your DM.
     """
 
+    if api_key is None:
+        view = ApiKeyView(ctx.bot, "update", ctx.prefix)
+        embed = discord.Embed(
+            description=(
+                "Click the button below to securely enter your new GW2 API key.\n\n"
+                "This will replace your existing API key."
+            ),
+            color=ctx.bot.settings["gw2"]["EmbedColor"],
+        )
+        message = await ctx.author.send(embed=embed, view=view)
+        view.message = message
+        if not bot_utils.is_private_message(ctx):
+            notification = discord.Embed(
+                description="\U0001f4ec Secure API key input sent to your DM",
+                color=discord.Color.green(),
+            )
+            await ctx.send(embed=notification)
+        return
+
     await bot_utils.delete_message(ctx, warning=True)
-    user_id = ctx.message.author.id
-    embed_color = ctx.bot.settings["gw2"]["EmbedColor"]
-
-    # Check if user has an existing key - UPDATE command requires existing key
-    gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
-    existing_user_key = await gw2_key_dal.get_api_key_by_user(user_id)
-    if not existing_user_key:
-        error_msg = (
-            "❌ **You don't have an API key registered yet.**\n\n"
-            "**Options:**\n"
-            f"• To add your first key: `{ctx.prefix}gw2 key add <api_key>`\n"
-            f"• For more help: `{ctx.prefix}help gw2 key`\n\n"
-            "💡 **Tip:** Use `add` command for your first key."
-        )
-        await bot_utils.send_error_msg(ctx, error_msg, True)
-        return None
-
-    # checking API Key with gw2 servers
-    gw2_api = Gw2Client(ctx.bot)
-    is_valid_key = await gw2_api.check_api_key(api_key)
-    if not isinstance(is_valid_key, dict):
-        return await bot_utils.send_error_msg(ctx, f"{is_valid_key.args[1]}\n`{api_key}`", True)
-
-    key_name = is_valid_key["name"]
-    permissions = ",".join(is_valid_key["permissions"])
-
-    try:
-        # getting gw2 acc name
-        api_req_acc_info = await gw2_api.call_api("account", api_key)
-        gw2_acc_name = api_req_acc_info["name"]
-        member_server_id = api_req_acc_info["world"]
-    except Exception as e:
-        await bot_utils.send_error_msg(ctx, e, True)
-        return ctx.bot.log.error(ctx, e)
-
-    try:
-        # getting gw2 server name
-        uri = f"worlds/{member_server_id}"
-        api_req_server = await gw2_api.call_api(uri, api_key)
-        gw2_server_name = api_req_server["name"]
-    except Exception as e:
-        await bot_utils.send_error_msg(ctx, e, True)
-        ctx.bot.log.error(ctx, e)
-        return None
-
-    api_key_args = {
-        "user_id": user_id,
-        "key_name": key_name,
-        "gw2_acc_name": gw2_acc_name,
-        "server_name": gw2_server_name,
-        "permissions": permissions,
-        "api_key": api_key,
-    }
-
-    # Check if this exact API key is already used by someone else
-    rs = await gw2_key_dal.get_api_key(api_key)
-    if rs and rs[0]["user_id"] != user_id:
-        await bot_utils.send_error_msg(ctx, gw2_messages.KEY_ALREADY_IN_USE, True)
-        return None
-
-    # Update the existing key
-    try:
-        await gw2_key_dal.update_api_key(api_key_args)
-        old_key_name = existing_user_key[0]['name']
-        msg = gw2_messages.KEY_REPLACED_SUCCESSFULLY.format(old_key_name, key_name, gw2_server_name)
-        msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
-        await bot_utils.send_msg(ctx, msg, True, embed_color)
-        return None
-    except Exception as e:
-        ctx.bot.log.error(f"Error updating API key for user {user_id}: {e}")
-        error_msg = (
-            "❌ **Failed to update API key.**\n\n"
-            "This could be due to a database constraint or connection issue. "
-            "Please try again later or contact an administrator if the problem persists."
-        )
-        await bot_utils.send_error_msg(ctx, error_msg, True)
-        return None
+    await _process_update_key(ctx, api_key, ctx.bot, ctx.prefix)
 
 
 @key.command(name="remove")
@@ -227,9 +310,9 @@ async def remove(ctx):
 
     rs = await gw2_key_dal.get_api_key_by_user(user_id)
     if not rs:
-        msg = gw2_messages.NO_API_KEY.format(ctx.prefix)
-        msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
-        msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
+        msg = gw2_messages.NO_API_KEY
+        msg += gw2_messages.key_add_info_help(ctx.prefix)
+        msg += gw2_messages.key_more_info_help(ctx.prefix)
         return await bot_utils.send_error_msg(ctx, msg)
     else:
         color = ctx.bot.settings["gw2"]["EmbedColor"]

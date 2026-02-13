@@ -101,7 +101,7 @@ class TestAdmin:
 
         embed_call = mock_send_embed.call_args_list[0]
         embed = embed_call[0][1]
-        assert messages.BOT_ANNOUNCE_PLAYING.format(game) in embed.description
+        assert messages.bot_announce_playing(game) in embed.description
         assert embed.author.name == "TestBot"
         assert embed.author.icon_url == "https://example.com/bot_avatar.png"
 
@@ -119,11 +119,11 @@ class TestAdmin:
 
         # Check success embed
         success_embed = mock_send_embed.call_args_list[0][0][1]
-        assert messages.BOT_ANNOUNCE_PLAYING.format(game) in success_embed.description
+        assert messages.bot_announce_playing(game) in success_embed.description
 
         # Check warning embed
         warning_embed = mock_send_embed.call_args_list[1][0][1]
-        assert messages.BG_TASK_WARNING.format(300) in warning_embed.description
+        assert messages.bg_task_warning(300) in warning_embed.description
 
         # Verify warning embed was sent with dm=False
         warning_call = mock_send_embed.call_args_list[1]
@@ -140,7 +140,7 @@ class TestAdmin:
 
             mock_send_embed.assert_called_once()
             embed = mock_send_embed.call_args[0][1]
-            assert messages.BG_TASK_WARNING.format(600) in embed.description
+            assert messages.bg_task_warning(600) in embed.description
             # Verify dm=False parameter
             assert mock_send_embed.call_args[0][2] is False
 
@@ -249,7 +249,7 @@ class TestAdmin:
         embed = mock_send_embed.call_args[0][1]
         # Should be wrapped in code block
         assert "```" in embed.description
-        assert messages.BOT_ANNOUNCE_PLAYING.format(game) in embed.description
+        assert messages.bot_announce_playing(game) in embed.description
 
     def test_admin_cog_inheritance(self, admin_cog):
         """Test that Admin cog properly inherits from commands.Cog."""

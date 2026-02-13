@@ -41,14 +41,14 @@ async def session(ctx):
     rs_api_key = await gw2_key_dal.get_api_key_by_user(user_id)
     if not rs_api_key:
         msg = gw2_messages.NO_API_KEY
-        msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
-        msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
+        msg += gw2_messages.key_add_info_help(ctx.prefix)
+        msg += gw2_messages.key_more_info_help(ctx.prefix)
         return await bot_utils.send_error_msg(ctx, msg)
 
     gw2_configs = Gw2ConfigsDal(ctx.bot.db_session, ctx.bot.log)
     rs_gw2_sc = await gw2_configs.get_gw2_server_configs(ctx.guild.id)
     if len(rs_gw2_sc) == 0 or (len(rs_gw2_sc) > 0 and not rs_gw2_sc[0]["session"]):
-        return await bot_utils.send_warning_msg(ctx, gw2_messages.SESSION_NOT_ACTIVE.format(ctx.prefix))
+        return await bot_utils.send_warning_msg(ctx, gw2_messages.session_not_active(ctx.prefix))
 
     api_key = rs_api_key[0]["key"]
     gw2_server = rs_api_key[0]["server"]
@@ -75,8 +75,8 @@ async def session(ctx):
         error_msg += "- wallet is OK\n" if wallet is True else "- wallet is MISSING\n"
         error_msg += (
             f"{gw2_messages.ADD_RIGHT_API_KEY_PERMISSIONS}\n"
-            f"{gw2_messages.KEY_ADD_INFO_HELP}"
-            f"{gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)}"
+            f"{gw2_messages.key_add_info_help(ctx.prefix)}"
+            f"{gw2_messages.key_more_info_help(ctx.prefix)}"
         )
         return await bot_utils.send_error_msg(ctx, error_msg)
 

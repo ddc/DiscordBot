@@ -58,20 +58,21 @@ class Gw2Client:
 
         init_msg = f"{response.status})({endpoint.split('?')[0]}"
 
-        if response.status == 400:
-            self._handle_400_error(response.status, err_msg, init_msg)
-        elif response.status == 403:
-            self._handle_403_error(response.status, err_msg, init_msg)
-        elif response.status == 404:
-            self._handle_404_error(response.status, endpoint)
-        elif response.status == 429:
-            self._handle_429_error(init_msg)
-        elif response.status in (502, 504):
-            self._handle_502_504_error(init_msg)
-        elif response.status == 503:
-            self._handle_503_error(init_msg, err_msg)
-        else:
-            self._handle_other_error(response, init_msg, err_msg)
+        match response.status:
+            case 400:
+                self._handle_400_error(response.status, err_msg, init_msg)
+            case 403:
+                self._handle_403_error(response.status, err_msg, init_msg)
+            case 404:
+                self._handle_404_error(response.status, endpoint)
+            case 429:
+                self._handle_429_error(init_msg)
+            case 502 | 504:
+                self._handle_502_504_error(init_msg)
+            case 503:
+                self._handle_503_error(init_msg, err_msg)
+            case _:
+                self._handle_other_error(response, init_msg, err_msg)
 
     def _handle_400_error(self, status, err_msg, init_msg):
         """Handle 400 Bad Request errors."""

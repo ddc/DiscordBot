@@ -7,6 +7,7 @@ from src.gw2.cogs.wvw import (
     _get_kdr_embed_values,
     _get_map_names_embed_values,
     _get_match_embed_values,
+    _resolve_tier,
     setup,
 )
 from src.gw2.tools.gw2_exceptions import APIKeyError
@@ -790,7 +791,7 @@ class TestMatchCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert "You dont have an API key registered" in error_msg
+                    assert "Missing World Name" in error_msg
 
     @pytest.mark.asyncio
     async def test_match_no_world_generic_exception(self, mock_bot, mock_ctx):
@@ -1102,7 +1103,7 @@ class TestKdrCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert "You dont have an API key registered" in error_msg
+                    assert "Invalid world name" in error_msg
 
     @pytest.mark.asyncio
     async def test_kdr_no_world_generic_exception(self, mock_bot, mock_ctx):
@@ -1914,9 +1915,8 @@ class TestMatchAPIKeyError:
                     result = await cog.match.callback(cog, mock_ctx, world=None)
 
                     mock_error.assert_called_once()
-                    from src.gw2.constants import gw2_messages
-
-                    assert mock_error.call_args[0][1] == gw2_messages.NO_API_KEY
+                    error_msg = mock_error.call_args[0][1]
+                    assert "Missing World Name" in error_msg
 
 
 class TestKdrAPIKeyError:
@@ -1971,6 +1971,131 @@ class TestKdrAPIKeyError:
                     result = await cog.kdr.callback(cog, mock_ctx, world=None)
 
                     mock_error.assert_called_once()
-                    from src.gw2.constants import gw2_messages
+                    error_msg = mock_error.call_args[0][1]
+                    assert "Invalid world name" in error_msg
 
-                    assert mock_error.call_args[0][1] == gw2_messages.NO_API_KEY
+
+class TestResolveTier:
+    """Test cases for the _resolve_tier helper function."""
+
+    def test_na_tier(self):
+        """Test NA tier resolution from match ID."""
+        matches = {"id": "1-3"}
+        result = _resolve_tier(matches)
+        assert "North America Tier" in result
+        assert "3" in result
+
+    def test_eu_tier(self):
+        """Test EU tier resolution from match ID."""
+        matches = {"id": "2-5"}
+        result = _resolve_tier(matches)
+        assert "Europe Tier" in result
+        assert "5" in result
+
+    def test_na_tier_1(self):
+        """Test NA tier 1."""
+        matches = {"id": "1-1"}
+        result = _resolve_tier(matches)
+        assert result == "North America Tier 1"
+
+    def test_eu_tier_1(self):
+        """Test EU tier 1."""
+        matches = {"id": "2-1"}
+        result = _resolve_tier(matches)
+        assert result == "Europe Tier 1"
+
+
+class TestResolveWvwWorldId:
+    """Test cases for the _resolve_wvw_world_id method."""
+
+    @pytest.fixture
+    def mock_bot(self):
+        bot = MagicMock()
+        bot.db_session = MagicMock()
+        bot.log = MagicMock()
+        bot.settings = {"gw2": {"EmbedColor": 0x00FF00}}
+        return bot
+
+    @pytest.fixture
+    def mock_ctx(self):
+        ctx = MagicMock()
+        ctx.bot = MagicMock()
+        ctx.bot.db_session = MagicMock()
+        ctx.bot.log = MagicMock()
+        ctx.message = MagicMock()
+        ctx.message.author = MagicMock()
+        ctx.message.author.id = 12345
+        ctx.message.channel = MagicMock()
+        ctx.message.channel.typing = AsyncMock()
+        ctx.prefix = "!"
+        return ctx
+
+    @pytest.mark.asyncio
+    async def test_with_world_name_delegates_to_get_world_id(self, mock_bot, mock_ctx):
+        """Test that providing a world name uses get_world_id."""
+        cog = GW2WvW(mock_bot)
+        cog.bot = mock_ctx.bot
+        gw2_api = MagicMock()
+
+        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock, return_value=1001):
+            result = await cog._resolve_wvw_world_id(mock_ctx, gw2_api, "Anvil Rock", "error msg")
+            assert result == 1001
+
+    @pytest.mark.asyncio
+    async def test_prefers_wvw_team_id_over_world(self, mock_bot, mock_ctx):
+        """Test that wvw.team_id is preferred over legacy world field."""
+        cog = GW2WvW(mock_bot)
+        cog.bot = mock_ctx.bot
+        gw2_api = MagicMock()
+        gw2_api.call_api = AsyncMock(return_value={"world": 1001, "wvw": {"team_id": 11005}})
+
+        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=[{"key": "test-key"}])
+
+            result = await cog._resolve_wvw_world_id(mock_ctx, gw2_api, None, "error msg")
+            assert result == 11005
+
+    @pytest.mark.asyncio
+    async def test_falls_back_to_world_when_no_team_id(self, mock_bot, mock_ctx):
+        """Test fallback to world when wvw.team_id is absent."""
+        cog = GW2WvW(mock_bot)
+        cog.bot = mock_ctx.bot
+        gw2_api = MagicMock()
+        gw2_api.call_api = AsyncMock(return_value={"world": 1001})
+
+        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=[{"key": "test-key"}])
+
+            result = await cog._resolve_wvw_world_id(mock_ctx, gw2_api, None, "error msg")
+            assert result == 1001
+
+    @pytest.mark.asyncio
+    async def test_no_api_key_sends_error(self, mock_bot, mock_ctx):
+        """Test that missing API key sends error and returns None."""
+        cog = GW2WvW(mock_bot)
+        cog.bot = mock_ctx.bot
+        gw2_api = MagicMock()
+
+        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=None)
+
+            with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+                result = await cog._resolve_wvw_world_id(mock_ctx, gw2_api, None, "no key msg")
+                assert result is None
+                mock_error.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_api_key_error_sends_error(self, mock_bot, mock_ctx):
+        """Test that APIKeyError sends error message."""
+        cog = GW2WvW(mock_bot)
+        cog.bot = mock_ctx.bot
+        gw2_api = MagicMock()
+        gw2_api.call_api = AsyncMock(side_effect=APIKeyError(mock_ctx.bot, "bad key"))
+
+        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=[{"key": "test-key"}])
+
+            with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+                result = await cog._resolve_wvw_world_id(mock_ctx, gw2_api, None, "error msg")
+                assert result is None
+                mock_error.assert_called_once()

@@ -30,8 +30,6 @@ def mock_bot():
     bot.fetch_guilds = mock_fetch_guilds
     # Ensure add_cog doesn't return a coroutine
     bot.add_cog = AsyncMock(return_value=None)
-    # Mock the event decorator to prevent coroutine issues
-    bot.event = MagicMock(side_effect=lambda func: func)
     return bot
 
 
@@ -297,10 +295,8 @@ class TestOnConnect:
         cog = OnConnect(mock_bot)
         cog.connection_handler.process_connection = AsyncMock()
 
-        # Access the event handler directly
-        on_connect_event = mock_bot.event.call_args_list[0][0][0]
-
-        await on_connect_event()
+        # Call the listener method directly
+        await cog.on_connect()
 
         cog.connection_handler.process_connection.assert_called_once()
 
@@ -310,10 +306,8 @@ class TestOnConnect:
         cog = OnConnect(mock_bot)
         cog.connection_handler.process_connection = AsyncMock(side_effect=RuntimeError("Critical error"))
 
-        # Access the event handler directly
-        on_connect_event = mock_bot.event.call_args_list[0][0][0]
-
-        await on_connect_event()
+        # Call the listener method directly
+        await cog.on_connect()
 
         mock_bot.log.error.assert_called_once()
         error_call = mock_bot.log.error.call_args[0][0]

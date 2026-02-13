@@ -24,8 +24,6 @@ def mock_bot():
     bot.command_prefix = "!"
     # Ensure add_cog doesn't return a coroutine
     bot.add_cog = AsyncMock(return_value=None)
-    # Mock the event decorator to prevent coroutine issues
-    bot.event = MagicMock(side_effect=lambda func: func)
     return bot
 
 
@@ -160,10 +158,8 @@ class TestOnReady:
         cog.info_display.print_bot_stats = MagicMock()
         cog.info_display.print_timestamp = MagicMock()
 
-        # Access the event handler directly
-        on_ready_event = mock_bot.event.call_args_list[0][0][0]
-
-        await on_ready_event()
+        # Call the listener method directly
+        await cog.on_ready()
 
         # Verify all display methods were called
         cog.info_display.print_startup_banner.assert_called_once_with(variables.VERSION)
@@ -176,7 +172,7 @@ class TestOnReady:
         mock_get_bot_stats.assert_called_once_with(mock_bot)
 
         # Verify log message
-        mock_bot.log.info.assert_called_once_with(messages.BOT_ONLINE.format(mock_bot.user))
+        mock_bot.log.info.assert_called_once_with(messages.bot_online(mock_bot.user))
 
     def test_on_ready_cog_inheritance(self, on_ready_cog):
         """Test that OnReady cog properly inherits from commands.Cog."""
@@ -195,10 +191,8 @@ class TestOnReady:
         cog = OnReady(mock_bot)
         cog.info_display.print_bot_stats = MagicMock()
 
-        # Access the event handler directly
-        on_ready_event = mock_bot.event.call_args_list[0][0][0]
-
-        await on_ready_event()
+        # Call the listener method directly
+        await cog.on_ready()
 
         # Verify stats were passed correctly
         cog.info_display.print_bot_stats.assert_called_once_with(different_stats)
@@ -213,10 +207,8 @@ class TestOnReady:
         cog = OnReady(mock_bot)
         cog.info_display.print_startup_banner = MagicMock()
 
-        # Access the event handler directly
-        on_ready_event = mock_bot.event.call_args_list[0][0][0]
-
-        await on_ready_event()
+        # Call the listener method directly
+        await cog.on_ready()
 
         # Verify version was passed correctly
         cog.info_display.print_startup_banner.assert_called_once_with('3.0.0')
@@ -290,11 +282,9 @@ class TestOnReady:
         cog.info_display.print_bot_stats = MagicMock()
         cog.info_display.print_timestamp = MagicMock()
 
-        # Access the event handler directly
-        on_ready_event = mock_bot.event.call_args_list[0][0][0]
-
+        # Call the listener method directly
         # Should handle exception gracefully and not raise
-        await on_ready_event()
+        await cog.on_ready()
 
         # Startup banner should still have been called
         cog.info_display.print_startup_banner.assert_called_once()
@@ -306,19 +296,17 @@ class TestOnReady:
         cog.info_display.print_bot_stats.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_ready.messages.BOT_ONLINE', 'Bot {} is now online!')
+    @patch('src.bot.cogs.events.on_ready.messages.bot_online', return_value='Bot TestBot is now online!')
     @patch('src.bot.cogs.events.on_ready.bot_utils.get_bot_stats')
-    async def test_on_ready_event_custom_message(self, mock_get_bot_stats, mock_bot, mock_bot_stats):
+    async def test_on_ready_event_custom_message(self, mock_get_bot_stats, mock_bot_online, mock_bot, mock_bot_stats):
         """Test on_ready event with custom bot online message."""
         mock_get_bot_stats.return_value = mock_bot_stats
 
-        OnReady(mock_bot)
+        cog = OnReady(mock_bot)
 
-        # Access the event handler directly
-        on_ready_event = mock_bot.event.call_args_list[0][0][0]
-
-        await on_ready_event()
+        # Call the listener method directly
+        await cog.on_ready()
 
         # Verify custom log message format
-        expected_message = f'Bot {mock_bot.user} is now online!'
-        mock_bot.log.info.assert_called_once_with(expected_message)
+        mock_bot_online.assert_called_once_with(mock_bot.user)
+        mock_bot.log.info.assert_called_once_with('Bot TestBot is now online!')

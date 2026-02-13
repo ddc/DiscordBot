@@ -499,19 +499,20 @@ class TestGetWorldNamePopulation:
 
     @pytest.mark.asyncio
     async def test_successful_retrieval(self, mock_ctx):
-        """Test successful world name population retrieval (lines 206-213)."""
+        """Test successful world name population retrieval for legacy IDs."""
         with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(
                 return_value=[
-                    {"name": "Anvil Rock", "population": "High"},
-                    {"name": "Borlis Pass", "population": "Medium"},
+                    {"id": 1001, "name": "Anvil Rock", "population": "High"},
+                    {"id": 1002, "name": "Borlis Pass", "population": "Medium"},
                 ]
             )
 
             result = await get_world_name_population(mock_ctx, "1001,1002")
 
             assert result == ["Anvil Rock", "Borlis Pass"]
+            mock_client.call_api.assert_called_once_with("worlds?ids=1001,1002")
 
     @pytest.mark.asyncio
     async def test_empty_results(self, mock_ctx):
@@ -907,7 +908,7 @@ class TestGetUserStats:
 
     @pytest.mark.asyncio
     async def test_successful_stats_retrieval(self, mock_bot):
-        """Test successful user stats retrieval (lines 328-344)."""
+        """Test successful user stats retrieval with legacy wvw_rank."""
         account_data = {"name": "TestUser.1234", "wvw_rank": 50}
         wallet_data = [
             {"id": 1, "value": 50000},  # gold
@@ -933,6 +934,22 @@ class TestGetUserStats:
             assert result["laurels"] == 25
             assert result["players"] == 150
             assert result["camps"] == 42
+
+    @pytest.mark.asyncio
+    async def test_successful_stats_retrieval_new_wvw_format(self, mock_bot):
+        """Test user stats retrieval with new wvw.rank format."""
+        account_data = {"name": "TestUser.1234", "wvw": {"rank": 200}}
+        wallet_data = []
+        achievements_data = []
+
+        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+            mock_client = mock_client_class.return_value
+            mock_client.call_api = AsyncMock(side_effect=[account_data, wallet_data, achievements_data])
+
+            result = await get_user_stats(mock_bot, "api-key")
+
+            assert result is not None
+            assert result["wvw_rank"] == 200
 
     @pytest.mark.asyncio
     async def test_stats_with_all_wallet_items(self, mock_bot):
@@ -1679,7 +1696,7 @@ class TestCreateInitialUserStats:
     """Test cases for _create_initial_user_stats function."""
 
     def test_creates_correct_structure(self):
-        """Test that initial stats structure is correct."""
+        """Test that initial stats structure is correct with legacy wvw_rank."""
         account_data = {"name": "TestUser.1234", "wvw_rank": 75}
 
         result = _create_initial_user_stats(account_data)
@@ -1701,3 +1718,80 @@ class TestCreateInitialUserStats:
         assert result["castles"] == 0
         assert result["towers"] == 0
         assert result["keeps"] == 0
+
+    def test_new_wvw_rank_format(self):
+        """Test that wvw.rank (new API format) is preferred over wvw_rank."""
+        account_data = {"name": "TestUser.1234", "wvw": {"rank": 200}, "wvw_rank": 75}
+
+        result = _create_initial_user_stats(account_data)
+
+        assert result["wvw_rank"] == 200
+
+    def test_fallback_to_legacy_wvw_rank(self):
+        """Test fallback to wvw_rank when wvw.rank is absent."""
+        account_data = {"name": "TestUser.1234", "wvw_rank": 75}
+
+        result = _create_initial_user_stats(account_data)
+
+        assert result["wvw_rank"] == 75
+
+    def test_no_wvw_rank_defaults_to_zero(self):
+        """Test that missing both wvw.rank and wvw_rank defaults to 0."""
+        account_data = {"name": "TestUser.1234"}
+
+        result = _create_initial_user_stats(account_data)
+
+        assert result["wvw_rank"] == 0
+
+    def test_wvw_rank_zero_in_new_format_falls_back(self):
+        """Test that wvw.rank=0 (falsy) falls back to wvw_rank."""
+        account_data = {"name": "TestUser.1234", "wvw": {"rank": 0}, "wvw_rank": 50}
+
+        result = _create_initial_user_stats(account_data)
+
+        # 0 is falsy, so it falls back to wvw_rank
+        assert result["wvw_rank"] == 50
+
+
+class TestGetWorldNamePopulationWithWR:
+    """Test cases for get_world_name_population with WR team IDs."""
+
+    @pytest.fixture
+    def mock_ctx(self):
+        """Create a mock command context."""
+        ctx = MagicMock()
+        ctx.bot = MagicMock()
+        ctx.bot.log = MagicMock()
+        return ctx
+
+    @pytest.mark.asyncio
+    async def test_wr_team_ids_only(self, mock_ctx):
+        """Test resolving only WR team IDs (no API call needed)."""
+        result = await get_world_name_population(mock_ctx, "11001,12001")
+
+        assert result is not None
+        assert len(result) == 2
+        assert "Team 1 (NA)" in result
+        assert "Team 1 (EU)" in result
+
+    @pytest.mark.asyncio
+    async def test_mixed_legacy_and_wr_ids(self, mock_ctx):
+        """Test resolving a mix of legacy world IDs and WR team IDs."""
+        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+            mock_client = mock_client_class.return_value
+            mock_client.call_api = AsyncMock(return_value=[{"id": 1001, "name": "Anvil Rock", "population": "High"}])
+
+            result = await get_world_name_population(mock_ctx, "1001,11005")
+
+            assert result is not None
+            assert len(result) == 2
+            assert result[0] == "Anvil Rock"
+            assert result[1] == "Team 5 (NA)"
+
+    @pytest.mark.asyncio
+    async def test_unknown_wr_team_id(self, mock_ctx):
+        """Test resolving an unknown WR team ID uses fallback name."""
+        result = await get_world_name_population(mock_ctx, "11999")
+
+        assert result is not None
+        assert result[0] == "Team 11999"

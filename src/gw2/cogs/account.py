@@ -5,6 +5,7 @@ from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.gw2.cogs.gw2 import GuildWars2
 from src.gw2.constants import gw2_messages
+from src.gw2.constants.gw2_teams import get_team_name, is_wr_team_id
 from src.gw2.tools import gw2_utils
 from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
@@ -59,8 +60,8 @@ async def account(ctx):
     rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
     if not rs:
         msg = gw2_messages.NO_API_KEY
-        msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
-        msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
+        msg += gw2_messages.key_add_info_help(ctx.prefix)
+        msg += gw2_messages.key_more_info_help(ctx.prefix)
         return await bot_utils.send_error_msg(ctx, msg)
 
     api_key = str(rs[0]["key"])
@@ -71,9 +72,9 @@ async def account(ctx):
     is_valid_key = await gw2_api.check_api_key(api_key)
     if not isinstance(is_valid_key, dict):
         msg = f"{is_valid_key.args[1]}\n"
-        msg += gw2_messages.INVALID_API_KEY_HELP_MESSAGE.format(ctx.prefix)
-        msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
-        msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
+        msg += gw2_messages.INVALID_API_KEY_HELP_MESSAGE
+        msg += gw2_messages.key_add_info_help(ctx.prefix)
+        msg += gw2_messages.key_more_info_help(ctx.prefix)
         return await bot_utils.send_error_msg(ctx, msg)
 
     if "account" not in permissions:
@@ -104,9 +105,6 @@ async def account(ctx):
         api_req_acc = await account_task
         server_id = api_req_acc["world"]
 
-        # Now fetch server info
-        server_task = gw2_api.call_api(f"worlds/{server_id}", api_key)
-
         # Prepare basic account data
         acc_name = api_req_acc["name"]
         access_normalized = []
@@ -117,10 +115,14 @@ async def account(ctx):
 
         is_commander = "Yes" if api_req_acc["commander"] else "No"
 
-        # Get server info
-        api_req_server = await server_task
-        server_name = api_req_server["name"]
-        population = api_req_server["population"]
+        # Resolve server name and population (WR team IDs vs legacy worlds)
+        if is_wr_team_id(server_id):
+            server_name = get_team_name(server_id) or f"Team {server_id}"
+            population = "N/A"
+        else:
+            api_req_server = await gw2_api.call_api(f"worlds/{server_id}", api_key)
+            server_name = api_req_server["name"]
+            population = api_req_server["population"]
 
         # Create base embed
         color = ctx.bot.settings["gw2"]["EmbedColor"]
@@ -130,6 +132,12 @@ async def account(ctx):
         embed.add_field(name="Access", value=chat_formatting.inline(access), inline=False)
         embed.add_field(name="Commander Tag", value=chat_formatting.inline(is_commander))
         embed.add_field(name="Server", value=chat_formatting.inline(f"{server_name} ({population})"))
+
+        # Add WvW Team field if available
+        wvw_team_id = api_req_acc.get("wvw", {}).get("team_id")
+        if wvw_team_id:
+            team_name = get_team_name(wvw_team_id) or f"Team {wvw_team_id}"
+            embed.add_field(name="WvW Team", value=chat_formatting.inline(team_name))
 
         # Prepare optional API calls based on permissions
         optional_tasks = []
@@ -171,7 +179,7 @@ async def account(ctx):
                             name="Achievements Points", value=chat_formatting.inline(str(achiev_points)), inline=False
                         )
 
-                        wvwrank = api_req_acc["wvw_rank"]
+                        wvwrank = api_req_acc.get("wvw", {}).get("rank") or api_req_acc.get("wvw_rank", 0)
                         wvw_title = gw2_utils.get_wvw_rank_title(int(wvwrank))
                         embed.add_field(
                             name="WvW Rank", value=chat_formatting.inline(f"{wvw_title} ({wvwrank})"), inline=False

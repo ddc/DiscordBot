@@ -75,7 +75,7 @@ async def wiki(ctx, *, search):
             except IndexError:
                 pass
 
-            embed.description = gw2_messages.DISPLAYIN_WIKI_SEARCH_TITLE.format(len(embed.fields), keyword.title())
+            embed.description = gw2_messages.displaying_wiki_search_title(len(embed.fields), keyword.title())
         else:
             embed.add_field(name=gw2_messages.NO_RESULTS, value=f"[{gw2_messages.CLICK_HERE}]({full_wiki_url})")
 

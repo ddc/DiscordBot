@@ -946,6 +946,8 @@ class TestGw2SessionCharsDal:
             "session_id": 1,
             "user_id": 67890,
             "api_key": "AAAABBBB-1111-2222-3333-444455556666",
+            "start": True,
+            "end": False,
         }
 
         await mock_dal.insert_session_char(gw2_api, api_characters, insert_args)
@@ -975,6 +977,8 @@ class TestGw2SessionCharsDal:
             "session_id": 2,
             "user_id": 11111,
             "api_key": "CCCCDDDD-5555-6666-7777-888899990000",
+            "start": False,
+            "end": True,
         }
 
         await mock_dal.insert_session_char(gw2_api, api_characters, insert_args)

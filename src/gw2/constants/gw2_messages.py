@@ -24,9 +24,17 @@ API_KEY_MESSAGE_REMOVED_DENIED = (
 # GW2 ACCOUNT/CHARACTERS
 #################################
 NO_API_KEY = "You dont have an API key registered.\n"
-KEY_ADD_INFO_HELP = "To add or replace an API key send a DM with: `{0}gw2 key add <api_key>`\n"
-KEY_MORE_INFO_HELP = "To get info about your api key: `{0}gw2 key info`"
 INVALID_API_KEY_HELP_MESSAGE = "This API Key is INVALID or no longer exists in gw2 api database.\n"
+
+
+def key_add_info_help(prefix: str) -> str:
+    return f"To add or replace an API key send a DM with: `{prefix}gw2 key add <api_key>`\n"
+
+
+def key_more_info_help(prefix: str) -> str:
+    return f"To get info about your api key: `{prefix}gw2 key info`"
+
+
 API_KEY_NO_PERMISSION = (
     "Your API key doesnt have permission to access your gw2 account.\n" "Please add one key with account permission."
 )
@@ -34,7 +42,12 @@ API_KEY_NO_PERMISSION = (
 # GW2 CONFIG
 #################################
 CONFIG_TITLE = "Guild Wars 2 configurations for"
-CONFIG_MORE_INFO = "For more info: {0}help gw2 config"
+
+
+def config_more_info(prefix: str) -> str:
+    return f"For more info: {prefix}help gw2 config"
+
+
 USER_SESSION_TITLE = "GW2 Users Session"
 SESSION_ACTIVATED = "Last session `ACTIVATED`\nBot will now record Gw2 users last sessions."
 SESSION_DEACTIVATED = "Last session `DEACTIVATED`\nBot will `NOT` record Gw2 users last sessions."
@@ -43,10 +56,16 @@ SESSION_DEACTIVATED = "Last session `DEACTIVATED`\nBot will `NOT` record Gw2 use
 #################################
 KEY_ALREADY_IN_USE = "That API key is already in use by someone else."
 KEY_REMOVED_SUCCESSFULLY = "Your GW2 API Key has been deleted successfully."
-KEY_REPLACED_SUCCESSFULLY = "Your API key `{0}` was **replaced** with your new key: `{1}`\n" "Server: `{2}`\n"
-KEY_ADDED_SUCCESSFULLY = (
-    "Your key was verified and was **added** to your discord account.\n" "Key: `{0}`\n" "Server: `{1}`\n"
-)
+
+
+def key_replaced_successfully(old: str, new: str, server: str) -> str:
+    return f"Your API key `{old}` was **replaced** with your new key: `{new}`\nServer: `{server}`\n"
+
+
+def key_added_successfully(key_name: str, server_name: str) -> str:
+    return f"Your key was verified and was **added** to your discord account.\nKey: `{key_name}`\nServer: `{server_name}`\n"
+
+
 #################################
 # GW2 MISC
 #################################
@@ -54,13 +73,23 @@ LONG_SEARCH = "Search too long"
 WIKI_SEARCH_RESULTS = "Wiki Search Results"
 NO_RESULTS = "No results!"
 CLICK_HERE = "Click here"
-DISPLAYIN_WIKI_SEARCH_TITLE = "Displaying **{0}** closest titles that matches **{1}**"
+
+
+def displaying_wiki_search_title(count: int, keyword: str) -> str:
+    return f"Displaying **{count}** closest titles that matches **{keyword}**"
+
+
 CLICK_ON_LINK = "Click on link above for more info !!!"
 #################################
 # GW2 SESSIONS
 #################################
 SESSION_TITLE = "GW2 Last Session"
-SESSION_NOT_ACTIVE = "Last session is not active on this server.\nTo activate use: `{0}gw2 config session on`"
+
+
+def session_not_active(prefix: str) -> str:
+    return f"Last session is not active on this server.\nTo activate use: `{prefix}gw2 config session on`"
+
+
 SESSION_MISSING_PERMISSIONS_TITLE = "To use this command your API key needs to have the following permissions"
 ADD_RIGHT_API_KEY_PERMISSIONS = (
     "Please add another API key with permissions that are MISSING if you want to use this command."
@@ -116,7 +145,12 @@ EU_SERVERS_TITLE = "~~~~~ EU Servers ~~~~~"
 INVALID_WORLD_NAME = "Invalid world name"
 MISSING_WORLD_NAME = "Missing World Name"
 WORLD_COLOR_ERROR = "Could not resolve world's color"
-MATCH_WORLD_NAME_HELP = "Use `{0}gw2 match <world_name>`\nOr register an API key on your account.\n"
+
+
+def match_world_name_help(prefix: str) -> str:
+    return f"Use `{prefix}gw2 match <world_name>`\nOr register an API key on your account.\n"
+
+
 WVW_KDR_TITLE = "WvW Kills/Death Ratings"
 NA_TIER_TITLE = "North America Tier"
-EU_TIER_TITLE = "Europe America Tier"
+EU_TIER_TITLE = "Europe Tier"

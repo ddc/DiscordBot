@@ -34,10 +34,15 @@ jobs:
         run: uv python install ${{ env.LATEST_PYTHON_VERSION }}
 
       - name: Install dependencies
-        run: uv sync --locked --all-extras --dev
+        run: uv sync --locked --all-extras --group dev
 
       - name: Run tests with coverage
-        run: uv run --no-sync pytest tests/unit
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 2
+          max_attempts: 3
+          command: uv run --no-sync pytest tests/unit
+          shell: bash
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -63,8 +68,7 @@ jobs:
         run: uv python install ${{ env.LATEST_PYTHON_VERSION }}
 
       - name: Install dependencies
-        run: uv sync --locked --all-extras --dev
-        shell: bash
+        run: uv sync --locked --all-extras --group dev
 
       - name: Run integration tests
         uses: nick-fields/retry@v3

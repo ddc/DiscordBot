@@ -163,6 +163,6 @@ class TestRunBot:
 
         # First print should be the starting message
         first_print = mock_print.call_args_list[0][0][0]
-        expected_start_msg = messages.BOT_STARTING.format(variables.TIME_BEFORE_START)
+        expected_start_msg = messages.bot_starting(variables.TIME_BEFORE_START)
         assert first_print == expected_start_msg
         mock_sleep.assert_called_once_with(variables.TIME_BEFORE_START)

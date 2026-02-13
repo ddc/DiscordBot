@@ -24,8 +24,6 @@ def mock_bot():
     bot.user.avatar.url = "https://example.com/bot_avatar.png"
     # Ensure add_cog doesn't return a coroutine
     bot.add_cog = AsyncMock(return_value=None)
-    # Mock the event decorator to prevent coroutine issues
-    bot.event = MagicMock(side_effect=lambda func: func)
     return bot
 
 
@@ -127,10 +125,10 @@ class TestOnGuildUpdate:
         mock_guild_before.name = mock_guild.name  # Same name
         mock_guild_before.owner_id = mock_guild.owner_id  # Same owner
 
-        OnGuildUpdate(mock_bot)
-        on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnGuildUpdate(mock_bot)
 
-        await on_guild_update_event(mock_guild_before, mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_update(mock_guild_before, mock_guild)
 
         # Verify embed setup
         mock_embed.set_footer.assert_called_with(icon_url=mock_bot.user.avatar.url, text="2023-01-01 12:00:00 UTC")
@@ -175,10 +173,10 @@ class TestOnGuildUpdate:
         mock_guild_before.icon.url = mock_guild.icon.url  # Same icon
         mock_guild_before.owner_id = mock_guild.owner_id  # Same owner
 
-        OnGuildUpdate(mock_bot)
-        on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnGuildUpdate(mock_bot)
 
-        await on_guild_update_event(mock_guild_before, mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_update(mock_guild_before, mock_guild)
 
         # Verify name change handling
         mock_embed.add_field.assert_any_call(name=messages.PREVIOUS_NAME, value="Old Test Server")
@@ -220,10 +218,10 @@ class TestOnGuildUpdate:
         mock_guild_before.name = mock_guild.name  # Same name
         mock_guild_before.icon.url = mock_guild.icon.url  # Same icon
 
-        OnGuildUpdate(mock_bot)
-        on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnGuildUpdate(mock_bot)
 
-        await on_guild_update_event(mock_guild_before, mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_update(mock_guild_before, mock_guild)
 
         # Verify owner change handling
         mock_embed.set_thumbnail.assert_called_with(url=mock_guild.icon.url)
@@ -257,10 +255,10 @@ class TestOnGuildUpdate:
         # Mock empty fields list
         mock_embed.fields = []
 
-        OnGuildUpdate(mock_bot)
-        on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnGuildUpdate(mock_bot)
 
-        await on_guild_update_event(mock_guild_before, mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_update(mock_guild_before, mock_guild)
 
         # Should not send a message if no changes
         mock_dal.get_server.assert_not_called()
@@ -299,10 +297,10 @@ class TestOnGuildUpdate:
         # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
-        OnGuildUpdate(mock_bot)
-        on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnGuildUpdate(mock_bot)
 
-        await on_guild_update_event(mock_guild_before, mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_update(mock_guild_before, mock_guild)
 
         # Should not send message if notifications disabled
         mock_send_msg.assert_not_called()
@@ -339,10 +337,10 @@ class TestOnGuildUpdate:
         # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
-        OnGuildUpdate(mock_bot)
-        on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnGuildUpdate(mock_bot)
 
-        await on_guild_update_event(mock_guild_before, mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_update(mock_guild_before, mock_guild)
 
         # Should get server config but not send message
         mock_dal.get_server.assert_called_once_with(mock_guild.id)
@@ -370,10 +368,10 @@ class TestOnGuildUpdate:
         mock_guild_before.icon.url = mock_guild.icon.url
         mock_guild_before.owner_id = mock_guild.owner_id
 
-        OnGuildUpdate(mock_bot)
-        on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnGuildUpdate(mock_bot)
 
-        await on_guild_update_event(mock_guild_before, mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_update(mock_guild_before, mock_guild)
 
         # Should set footer with None icon_url
         mock_embed.set_footer.assert_called_with(icon_url=None, text="2023-01-01 12:00:00 UTC")
@@ -410,10 +408,10 @@ class TestOnGuildUpdate:
         # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
-        OnGuildUpdate(mock_bot)
-        on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnGuildUpdate(mock_bot)
 
-        await on_guild_update_event(mock_guild_before, mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_update(mock_guild_before, mock_guild)
 
         # Should log error
         mock_bot.log.error.assert_called()
@@ -427,10 +425,10 @@ class TestOnGuildUpdate:
         # Setup embed to raise exception
         mock_get_embed.side_effect = Exception("General error")
 
-        OnGuildUpdate(mock_bot)
-        on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnGuildUpdate(mock_bot)
 
-        await on_guild_update_event(mock_guild_before, mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_update(mock_guild_before, mock_guild)
 
         # Should log error
         mock_bot.log.error.assert_called()
@@ -475,10 +473,10 @@ class TestOnGuildUpdate:
         # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
-        OnGuildUpdate(mock_bot)
-        on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnGuildUpdate(mock_bot)
 
-        await on_guild_update_event(mock_guild_before, mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_update(mock_guild_before, mock_guild)
 
         # Should handle icon change
         mock_embed.add_field.assert_called_with(name=messages.NEW_SERVER_ICON, value="")
@@ -502,10 +500,10 @@ class TestOnGuildUpdate:
         mock_guild_before.icon.url = mock_guild.icon.url
         mock_guild_before.owner_id = mock_guild.owner_id
 
-        OnGuildUpdate(mock_bot)
-        on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnGuildUpdate(mock_bot)
 
-        await on_guild_update_event(mock_guild_before, mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_update(mock_guild_before, mock_guild)
 
         # Should only add new name field (not previous)
         mock_embed.add_field.assert_called_with(name=messages.NEW_SERVER_NAME, value="New Test Server")
@@ -534,10 +532,10 @@ class TestOnGuildUpdate:
         mock_guild_before.name = mock_guild.name
         mock_guild_before.icon.url = mock_guild.icon.url
 
-        OnGuildUpdate(mock_bot)
-        on_guild_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnGuildUpdate(mock_bot)
 
-        await on_guild_update_event(mock_guild_before, mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_update(mock_guild_before, mock_guild)
 
         # Should only add new owner field (not previous)
         mock_embed.add_field.assert_called_with(name=messages.NEW_SERVER_OWNER, value=str(mock_guild.owner))

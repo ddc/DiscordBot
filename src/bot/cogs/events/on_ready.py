@@ -18,7 +18,7 @@ class StartupInfoDisplay:
     @staticmethod
     def print_version_info() -> None:
         """Print version information for Python and Discord API."""
-        python_version = "Python v{}.{}.{}".format(*sys.version_info[:3])
+        python_version = f"Python v{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
         discord_version = f"Discord API v{discord.__version__}"
         print(python_version)
         print(discord_version)
@@ -51,32 +51,32 @@ class OnReady(commands.Cog):
         self.bot = bot
         self.info_display = StartupInfoDisplay()
 
-        @self.bot.event
-        async def on_ready() -> None:
-            """Handle bot ready event with comprehensive startup information."""
-            try:
-                # Get bot statistics
-                bot_stats = bot_utils.get_bot_stats(bot)
+    @commands.Cog.listener()
+    async def on_ready(self) -> None:
+        """Handle bot ready event with comprehensive startup information."""
+        try:
+            # Get bot statistics
+            bot_stats = bot_utils.get_bot_stats(self.bot)
 
-                # Display startup information
-                self.info_display.print_startup_banner(variables.VERSION)
-                self.info_display.print_version_info()
-                self.info_display.print_bot_info(bot)
-                self.info_display.print_bot_stats(bot_stats)
-                self.info_display.print_timestamp()
+            # Display startup information
+            self.info_display.print_startup_banner(variables.VERSION)
+            self.info_display.print_version_info()
+            self.info_display.print_bot_info(self.bot)
+            self.info_display.print_bot_stats(bot_stats)
+            self.info_display.print_timestamp()
 
-                # Log bot online status
-                bot.log.info(messages.BOT_ONLINE.format(bot.user))
-            except Exception as e:
-                # Display startup information even if stats fail
-                self.info_display.print_startup_banner(variables.VERSION)
-                self.info_display.print_version_info()
-                self.info_display.print_bot_info(bot)
-                self.info_display.print_timestamp()
+            # Log bot online status
+            self.bot.log.info(messages.bot_online(self.bot.user))
+        except Exception as e:
+            # Display startup information even if stats fail
+            self.info_display.print_startup_banner(variables.VERSION)
+            self.info_display.print_version_info()
+            self.info_display.print_bot_info(self.bot)
+            self.info_display.print_timestamp()
 
-                # Log error and bot online status
-                bot.log.error(f"Failed to get bot stats during startup: {e}")
-                bot.log.info(messages.BOT_ONLINE.format(bot.user))
+            # Log error and bot online status
+            self.bot.log.error(f"Failed to get bot stats during startup: {e}")
+            self.bot.log.info(messages.bot_online(self.bot.user))
 
 
 async def setup(bot: Bot) -> None:

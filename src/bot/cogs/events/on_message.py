@@ -305,7 +305,7 @@ class ServerMessageHandler:
         """Handle message from invisible member."""
         await bot_utils.delete_message(ctx)
 
-        message_text = messages.BLOCKED_INVIS_MESSAGE.format(ctx.guild.name)
+        message_text = messages.blocked_invis_message(ctx.guild.name)
         embed = discord.Embed(
             title="",
             color=discord.Color.red(),

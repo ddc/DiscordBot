@@ -129,22 +129,22 @@ class OnMemberRemove(commands.Cog):
         self.bot = bot
         self.leave_handler = MemberLeaveHandler(bot)
 
-        @self.bot.event
-        async def on_member_remove(member: discord.Member) -> None:
-            """Handle member remove event.
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: discord.Member) -> None:
+        """Handle member remove event.
 
-            Called when a member leaves a guild where the bot is present.
-            This includes being kicked, banned, or leaving voluntarily.
-            Sends farewell messages if configured to do so.
+        Called when a member leaves a guild where the bot is present.
+        This includes being kicked, banned, or leaving voluntarily.
+        Sends farewell messages if configured to do so.
 
-            Args:
-                member: The Discord member who left the guild
-            """
-            try:
-                self.bot.log.info(f"Member left: {member} from guild: {member.guild.name}")
-                await self.leave_handler.process_member_leave(member)
-            except Exception as e:
-                self.bot.log.error(f"Critical error in on_member_remove for {member}: {e}")
+        Args:
+            member: The Discord member who left the guild
+        """
+        try:
+            self.bot.log.info(f"Member left: {member} from guild: {member.guild.name}")
+            await self.leave_handler.process_member_leave(member)
+        except Exception as e:
+            self.bot.log.error(f"Critical error in on_member_remove for {member}: {e}")
 
 
 async def setup(bot: Bot) -> None:
