@@ -17,8 +17,7 @@ API_ACCESS_DENIED = "Access denied with your GW2 API key."
 #################################
 API_KEY_MESSAGE_REMOVED = "Your message with your API Key was removed for privacy."
 API_KEY_MESSAGE_REMOVED_DENIED = (
-    "Bot does not have permission to delete the message with your API key.\n"
-    "Missing bot permission: `Manage Messages`"
+    "Bot does not have permission to delete the message with your API key.\nMissing bot permission: `Manage Messages`"
 )
 #################################
 # GW2 ACCOUNT/CHARACTERS
@@ -36,7 +35,7 @@ def key_more_info_help(prefix: str) -> str:
 
 
 API_KEY_NO_PERMISSION = (
-    "Your API key doesnt have permission to access your gw2 account.\n" "Please add one key with account permission."
+    "Your API key doesnt have permission to access your gw2 account.\nPlease add one key with account permission."
 )
 #################################
 # GW2 CONFIG
@@ -131,7 +130,7 @@ USER_NO_SESSION_FOUND = (
     "No records were found in your name.\n"
     "You are probably trying to execute this command without playing the game.\n"
     "Make sure your status is NOT set to invisible in discord.\n"
-    "Make sure \"Display current running game as a status message\" is ON.\n"
+    'Make sure "Display current running game as a status message" is ON.\n'
     "Make sure to start discord on your Desktop FIRST before starting Guild Wars 2."
 )
 #################################

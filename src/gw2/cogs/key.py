@@ -204,7 +204,7 @@ class ApiKeyView(discord.ui.View):
 
 
 class GW2Key(GuildWars2):
-    """(Commands related to GW2 API keys)"""
+    """Guild Wars 2 commands for API key management."""
 
     def __init__(self, bot):
         super().__init__(bot)
@@ -212,18 +212,17 @@ class GW2Key(GuildWars2):
 
 @GW2Key.gw2.group()
 async def key(ctx):
-    """(Commands related to GW2 API keys)
-    To generate an API key, head to https://account.arena.net, and log in.
+    """Manage your Guild Wars 2 API keys.
+
+    To generate an API key, head to https://account.arena.net and log in.
     In the "Applications" tab, generate a new key with all permissions.
-    Required API permissions: account
+    Only one API key per user is supported.
 
-    Note: Only one API key per user is supported.
-
-
-        gw2 key add [api_key]       (Adds your first GW2 API key)
-        gw2 key update [api_key]    (Updates/replaces your existing API key)
-        gw2 key remove              (Removes your GW2 API key from the bot)
-        gw2 key info                (Shows information about your GW2 API key)
+    Available subcommands:
+        gw2 key add [api_key] - Add your first GW2 API key
+        gw2 key update [api_key] - Update your existing API key
+        gw2 key remove - Remove your GW2 API key
+        gw2 key info - Show your API key information
     """
 
     await bot_utils.invoke_subcommand(ctx, "gw2 key")
@@ -232,12 +231,15 @@ async def key(ctx):
 @key.command(name="add")
 @commands.cooldown(1, GW2CoolDowns.ApiKeys.seconds, commands.BucketType.user)
 async def add(ctx, api_key: str = None):
-    """(Adds your first GW2 API key)
-    This command only works if you don't have an existing key.
-    Required API permissions: account
-        gw2 key add [api_key]
+    """Add your first Guild Wars 2 API key.
 
+    This command only works if you don't have an existing key.
     If no key is provided, a secure input dialog will be sent to your DM.
+    Required API permissions: account
+
+    Usage:
+        gw2 key add
+        gw2 key add XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
     """
 
     if api_key is None:
@@ -267,12 +269,15 @@ async def add(ctx, api_key: str = None):
 @key.command(name="update", aliases=["replace"])
 @commands.cooldown(1, GW2CoolDowns.ApiKeys.seconds, commands.BucketType.user)
 async def update(ctx, api_key: str = None):
-    """(Updates your existing GW2 API key)
-    This command only works if you already have a key registered.
-    Required API permissions: account
-        gw2 key update [new_api_key]
+    """Update your existing Guild Wars 2 API key.
 
+    This command only works if you already have a key registered.
     If no key is provided, a secure input dialog will be sent to your DM.
+    Required API permissions: account
+
+    Usage:
+        gw2 key update
+        gw2 key update XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
     """
 
     if api_key is None:
@@ -301,8 +306,10 @@ async def update(ctx, api_key: str = None):
 @key.command(name="remove")
 @commands.cooldown(1, GW2CoolDowns.ApiKeys.seconds, commands.BucketType.user)
 async def remove(ctx):
-    """(Removes your GW2 API key from the bot)
-    gw2 key remove
+    """Remove your Guild Wars 2 API key from the bot.
+
+    Usage:
+        gw2 key remove
     """
 
     user_id = ctx.message.author.id
@@ -324,8 +331,10 @@ async def remove(ctx):
 @key.command(name="info", aliases=["list"])
 @commands.cooldown(1, GW2CoolDowns.ApiKeys.seconds, commands.BucketType.user)
 async def info(ctx):
-    """(Shows information about your GW2 API key)
-    gw2 key info
+    """Display information about your Guild Wars 2 API key.
+
+    Usage:
+        gw2 key info
     """
 
     user_id = ctx.message.author.id

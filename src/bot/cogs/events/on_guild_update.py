@@ -63,7 +63,7 @@ class OnGuildUpdate(commands.Cog):
         if str(before.icon.url) != str(after.icon.url):
             self._set_thumbnail_if_icon_exists(after, embed)
             embed.add_field(name=messages.NEW_SERVER_ICON, value="")
-            icon_url = after.icon.url if after.icon else 'None'
+            icon_url = after.icon.url if after.icon else "None"
             msg.append(f"{messages.NEW_SERVER_ICON}: \n{icon_url}\n")
 
     @staticmethod

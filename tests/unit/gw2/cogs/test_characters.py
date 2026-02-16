@@ -88,10 +88,10 @@ class TestCharactersCommand:
     @pytest.mark.asyncio
     async def test_characters_no_api_key_sends_error(self, mock_ctx):
         """Test characters command when user has no API key."""
-        with patch('src.gw2.cogs.characters.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.characters.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
-            with patch('src.gw2.cogs.characters.bot_utils.send_error_msg') as mock_error:
+            with patch("src.gw2.cogs.characters.bot_utils.send_error_msg") as mock_error:
                 mock_error.return_value = None
                 await characters(mock_ctx)
                 mock_error.assert_called_once()
@@ -101,15 +101,15 @@ class TestCharactersCommand:
     @pytest.mark.asyncio
     async def test_characters_invalid_api_key_sends_error_with_help(self, mock_ctx, sample_api_key_data):
         """Test characters command with invalid API key sends error with help info."""
-        with patch('src.gw2.cogs.characters.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.characters.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-            with patch('src.gw2.cogs.characters.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.characters.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 invalid_error = APIInvalidKey(mock_ctx.bot, "Invalid key")
                 invalid_error.args = ("error", "This API Key is INVALID")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
-                with patch('src.gw2.cogs.characters.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.characters.bot_utils.send_error_msg") as mock_error:
                     mock_error.return_value = None
                     await characters(mock_ctx)
                     mock_error.assert_called_once()
@@ -123,15 +123,15 @@ class TestCharactersCommand:
         no_chars_permission_data = [
             {"key": "test-api-key-12345", "permissions": "account,progression"}  # Missing 'characters'
         ]
-        with patch('src.gw2.cogs.characters.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.characters.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=no_chars_permission_data)
-            with patch('src.gw2.cogs.characters.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.characters.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(
                     return_value={"name": "TestKey", "permissions": ["account", "progression"]}
                 )
-                with patch('src.gw2.cogs.characters.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.characters.bot_utils.send_error_msg") as mock_error:
                     mock_error.return_value = None
                     await characters(mock_ctx)
                     mock_error.assert_called_once()
@@ -144,15 +144,15 @@ class TestCharactersCommand:
         no_account_permission_data = [
             {"key": "test-api-key-12345", "permissions": "characters,progression"}  # Missing 'account'
         ]
-        with patch('src.gw2.cogs.characters.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.characters.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=no_account_permission_data)
-            with patch('src.gw2.cogs.characters.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.characters.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(
                     return_value={"name": "TestKey", "permissions": ["characters", "progression"]}
                 )
-                with patch('src.gw2.cogs.characters.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.characters.bot_utils.send_error_msg") as mock_error:
                     mock_error.return_value = None
                     await characters(mock_ctx)
                     mock_error.assert_called_once()
@@ -164,10 +164,10 @@ class TestCharactersCommand:
         self, mock_ctx, sample_api_key_data, sample_account_data, sample_character_data
     ):
         """Test successful characters command with character data creates embed with fields."""
-        with patch('src.gw2.cogs.characters.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.characters.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-            with patch('src.gw2.cogs.characters.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.characters.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(
                     return_value={"name": "TestKey", "permissions": ["account", "characters", "progression"]}
@@ -196,8 +196,8 @@ class TestCharactersCommand:
                         },
                     ]
                 )
-                with patch('src.gw2.cogs.characters.bot_utils.send_embed') as mock_send:
-                    with patch('src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long') as mock_time:
+                with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
                         mock_time.return_value = "2025-01-01 12:00:00"
                         await characters(mock_ctx)
                         mock_send.assert_called_once()
@@ -222,10 +222,10 @@ class TestCharactersCommand:
         self, mock_ctx, sample_api_key_data, sample_account_data
     ):
         """Test that character age is correctly calculated in days."""
-        with patch('src.gw2.cogs.characters.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.characters.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-            with patch('src.gw2.cogs.characters.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.characters.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(
                     return_value={"name": "TestKey", "permissions": ["account", "characters"]}
@@ -246,8 +246,8 @@ class TestCharactersCommand:
                         },
                     ]
                 )
-                with patch('src.gw2.cogs.characters.bot_utils.send_embed') as mock_send:
-                    with patch('src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long') as mock_time:
+                with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
                         mock_time.return_value = "2025-01-01 12:00:00"
                         await characters(mock_ctx)
                         mock_send.assert_called_once()
@@ -258,10 +258,10 @@ class TestCharactersCommand:
     @pytest.mark.asyncio
     async def test_characters_successful_created_date_parsed(self, mock_ctx, sample_api_key_data, sample_account_data):
         """Test that character created date is parsed correctly (only date portion before T)."""
-        with patch('src.gw2.cogs.characters.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.characters.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-            with patch('src.gw2.cogs.characters.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.characters.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(
                     return_value={"name": "TestKey", "permissions": ["account", "characters"]}
@@ -281,8 +281,8 @@ class TestCharactersCommand:
                         },
                     ]
                 )
-                with patch('src.gw2.cogs.characters.bot_utils.send_embed') as mock_send:
-                    with patch('src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long') as mock_time:
+                with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
                         mock_time.return_value = "2025-01-01 12:00:00"
                         await characters(mock_ctx)
                         mock_send.assert_called_once()
@@ -293,16 +293,16 @@ class TestCharactersCommand:
     @pytest.mark.asyncio
     async def test_characters_api_exception_during_execution(self, mock_ctx, sample_api_key_data):
         """Test characters command when API exception occurs during execution."""
-        with patch('src.gw2.cogs.characters.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.characters.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-            with patch('src.gw2.cogs.characters.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.characters.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(
                     return_value={"name": "TestKey", "permissions": ["account", "characters"]}
                 )
                 mock_client_instance.call_api = AsyncMock(side_effect=Exception("API connection error"))
-                with patch('src.gw2.cogs.characters.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.characters.bot_utils.send_error_msg") as mock_error:
                     await characters(mock_ctx)
                     mock_error.assert_called_once()
                     mock_ctx.bot.log.error.assert_called_once()
@@ -310,20 +310,20 @@ class TestCharactersCommand:
     @pytest.mark.asyncio
     async def test_characters_triggers_typing_indicator(self, mock_ctx, sample_api_key_data):
         """Test that characters command triggers typing indicator."""
-        with patch('src.gw2.cogs.characters.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.characters.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
-            with patch('src.gw2.cogs.characters.bot_utils.send_error_msg'):
+            with patch("src.gw2.cogs.characters.bot_utils.send_error_msg"):
                 await characters(mock_ctx)
                 mock_ctx.message.channel.typing.assert_called()
 
     @pytest.mark.asyncio
     async def test_characters_embed_has_thumbnail_and_author(self, mock_ctx, sample_api_key_data, sample_account_data):
         """Test that the characters embed has proper thumbnail and author set."""
-        with patch('src.gw2.cogs.characters.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.characters.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-            with patch('src.gw2.cogs.characters.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.characters.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(
                     return_value={"name": "TestKey", "permissions": ["account", "characters"]}
@@ -343,8 +343,8 @@ class TestCharactersCommand:
                         },
                     ]
                 )
-                with patch('src.gw2.cogs.characters.bot_utils.send_embed') as mock_send:
-                    with patch('src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long') as mock_time:
+                with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
                         mock_time.return_value = "2025-01-01 12:00:00"
                         await characters(mock_ctx)
                         mock_send.assert_called_once()

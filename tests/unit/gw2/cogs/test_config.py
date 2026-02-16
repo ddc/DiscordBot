@@ -53,7 +53,7 @@ class TestConfigGroupCommand:
     @pytest.mark.asyncio
     async def test_config_group_invokes_subcommand(self, mock_ctx):
         """Test that config group command calls invoke_subcommand."""
-        with patch('src.gw2.cogs.config.bot_utils.invoke_subcommand') as mock_invoke:
+        with patch("src.gw2.cogs.config.bot_utils.invoke_subcommand") as mock_invoke:
             mock_invoke.return_value = None
             await config(mock_ctx)
             mock_invoke.assert_called_once_with(mock_ctx, "gw2 config")
@@ -89,12 +89,12 @@ class TestConfigListCommand:
     @pytest.mark.asyncio
     async def test_config_list_creates_embed_with_current_config_session_on(self, mock_ctx):
         """Test config_list creates embed with session ON."""
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-            with patch('src.gw2.cogs.config.chat_formatting.green_text') as mock_green:
+            with patch("src.gw2.cogs.config.chat_formatting.green_text") as mock_green:
                 mock_green.return_value = "```css\nON\n```"
-                with patch('src.gw2.cogs.config.chat_formatting.red_text') as mock_red:
+                with patch("src.gw2.cogs.config.chat_formatting.red_text") as mock_red:
                     mock_red.return_value = "```diff\n-OFF\n```"
                     await config_list(mock_ctx)
                     mock_ctx.author.send.assert_called_once()
@@ -108,12 +108,12 @@ class TestConfigListCommand:
     @pytest.mark.asyncio
     async def test_config_list_creates_embed_with_current_config_session_off(self, mock_ctx):
         """Test config_list creates embed with session OFF."""
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": False}])
-            with patch('src.gw2.cogs.config.chat_formatting.green_text') as mock_green:
+            with patch("src.gw2.cogs.config.chat_formatting.green_text") as mock_green:
                 mock_green.return_value = "```css\nON\n```"
-                with patch('src.gw2.cogs.config.chat_formatting.red_text') as mock_red:
+                with patch("src.gw2.cogs.config.chat_formatting.red_text") as mock_red:
                     mock_red.return_value = "```diff\n-OFF\n```"
                     await config_list(mock_ctx)
                     mock_ctx.author.send.assert_called_once()
@@ -125,11 +125,11 @@ class TestConfigListCommand:
     @pytest.mark.asyncio
     async def test_config_list_creates_interactive_view(self, mock_ctx):
         """Test config_list creates interactive view with buttons."""
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-            with patch('src.gw2.cogs.config.chat_formatting.green_text', return_value="ON"):
-                with patch('src.gw2.cogs.config.chat_formatting.red_text', return_value="OFF"):
+            with patch("src.gw2.cogs.config.chat_formatting.green_text", return_value="ON"):
+                with patch("src.gw2.cogs.config.chat_formatting.red_text", return_value="OFF"):
                     await config_list(mock_ctx)
                     mock_ctx.author.send.assert_called_once()
                     call_kwargs = mock_ctx.author.send.call_args[1]
@@ -139,11 +139,11 @@ class TestConfigListCommand:
     @pytest.mark.asyncio
     async def test_config_list_sends_dm_and_notification_in_channel(self, mock_ctx):
         """Test config_list sends to DM and notification in channel."""
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-            with patch('src.gw2.cogs.config.chat_formatting.green_text', return_value="ON"):
-                with patch('src.gw2.cogs.config.chat_formatting.red_text', return_value="OFF"):
+            with patch("src.gw2.cogs.config.chat_formatting.green_text", return_value="ON"):
+                with patch("src.gw2.cogs.config.chat_formatting.red_text", return_value="OFF"):
                     await config_list(mock_ctx)
                     # DM sent
                     mock_ctx.author.send.assert_called_once()
@@ -156,11 +156,11 @@ class TestConfigListCommand:
     @pytest.mark.asyncio
     async def test_config_list_button_style_success_when_session_on(self, mock_ctx):
         """Test config_list sets button style to success when session is ON."""
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-            with patch('src.gw2.cogs.config.chat_formatting.green_text', return_value="ON"):
-                with patch('src.gw2.cogs.config.chat_formatting.red_text', return_value="OFF"):
+            with patch("src.gw2.cogs.config.chat_formatting.green_text", return_value="ON"):
+                with patch("src.gw2.cogs.config.chat_formatting.red_text", return_value="OFF"):
                     await config_list(mock_ctx)
                     call_kwargs = mock_ctx.author.send.call_args[1]
                     view = call_kwargs["view"]
@@ -169,11 +169,11 @@ class TestConfigListCommand:
     @pytest.mark.asyncio
     async def test_config_list_button_style_danger_when_session_off(self, mock_ctx):
         """Test config_list sets button style to danger when session is OFF."""
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": False}])
-            with patch('src.gw2.cogs.config.chat_formatting.green_text', return_value="ON"):
-                with patch('src.gw2.cogs.config.chat_formatting.red_text', return_value="OFF"):
+            with patch("src.gw2.cogs.config.chat_formatting.green_text", return_value="ON"):
+                with patch("src.gw2.cogs.config.chat_formatting.red_text", return_value="OFF"):
                     await config_list(mock_ctx)
                     call_kwargs = mock_ctx.author.send.call_args[1]
                     view = call_kwargs["view"]
@@ -183,11 +183,11 @@ class TestConfigListCommand:
     async def test_config_list_no_guild_icon(self, mock_ctx):
         """Test config_list when guild has no icon."""
         mock_ctx.guild.icon = None
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-            with patch('src.gw2.cogs.config.chat_formatting.green_text', return_value="ON"):
-                with patch('src.gw2.cogs.config.chat_formatting.red_text', return_value="OFF"):
+            with patch("src.gw2.cogs.config.chat_formatting.green_text", return_value="ON"):
+                with patch("src.gw2.cogs.config.chat_formatting.red_text", return_value="OFF"):
                     await config_list(mock_ctx)
                     call_kwargs = mock_ctx.author.send.call_args[1]
                     embed = call_kwargs["embed"]
@@ -221,10 +221,10 @@ class TestConfigSessionCommand:
     @pytest.mark.asyncio
     async def test_config_session_on_activates(self, mock_ctx):
         """Test config session 'on' activates session with green color."""
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.update_gw2_session_config = AsyncMock()
-            with patch('src.gw2.cogs.config.bot_utils.send_embed') as mock_send:
+            with patch("src.gw2.cogs.config.bot_utils.send_embed") as mock_send:
                 await config_session(mock_ctx, "on")
                 mock_instance.update_gw2_session_config.assert_called_once_with(99999, True, 12345)
                 mock_send.assert_called_once()
@@ -235,10 +235,10 @@ class TestConfigSessionCommand:
     @pytest.mark.asyncio
     async def test_config_session_ON_uppercase_activates(self, mock_ctx):
         """Test config session 'ON' (uppercase) activates session with green color."""
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.update_gw2_session_config = AsyncMock()
-            with patch('src.gw2.cogs.config.bot_utils.send_embed') as mock_send:
+            with patch("src.gw2.cogs.config.bot_utils.send_embed") as mock_send:
                 await config_session(mock_ctx, "ON")
                 mock_instance.update_gw2_session_config.assert_called_once_with(99999, True, 12345)
                 mock_send.assert_called_once()
@@ -248,10 +248,10 @@ class TestConfigSessionCommand:
     @pytest.mark.asyncio
     async def test_config_session_off_deactivates(self, mock_ctx):
         """Test config session 'off' deactivates session with red color."""
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.update_gw2_session_config = AsyncMock()
-            with patch('src.gw2.cogs.config.bot_utils.send_embed') as mock_send:
+            with patch("src.gw2.cogs.config.bot_utils.send_embed") as mock_send:
                 await config_session(mock_ctx, "off")
                 mock_instance.update_gw2_session_config.assert_called_once_with(99999, False, 12345)
                 mock_send.assert_called_once()
@@ -262,10 +262,10 @@ class TestConfigSessionCommand:
     @pytest.mark.asyncio
     async def test_config_session_OFF_uppercase_deactivates(self, mock_ctx):
         """Test config session 'OFF' (uppercase) deactivates session with red color."""
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.update_gw2_session_config = AsyncMock()
-            with patch('src.gw2.cogs.config.bot_utils.send_embed') as mock_send:
+            with patch("src.gw2.cogs.config.bot_utils.send_embed") as mock_send:
                 await config_session(mock_ctx, "OFF")
                 mock_instance.update_gw2_session_config.assert_called_once_with(99999, False, 12345)
                 mock_send.assert_called_once()
@@ -287,10 +287,10 @@ class TestConfigSessionCommand:
     @pytest.mark.asyncio
     async def test_config_session_triggers_typing_indicator(self, mock_ctx):
         """Test that config session triggers typing indicator."""
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.update_gw2_session_config = AsyncMock()
-            with patch('src.gw2.cogs.config.bot_utils.send_embed'):
+            with patch("src.gw2.cogs.config.bot_utils.send_embed"):
                 await config_session(mock_ctx, "on")
                 mock_ctx.message.channel.typing.assert_called_once()
 
@@ -326,7 +326,7 @@ class TestGW2ConfigView:
     @pytest.fixture
     def config_view(self, mock_ctx, server_config):
         """Create a GW2ConfigView instance."""
-        with patch('discord.ui.view.View.__init__', return_value=None):
+        with patch("discord.ui.view.View.__init__", return_value=None):
             view = GW2ConfigView(mock_ctx, server_config)
             # Manually set up what View.__init__ would set
             view._children = []
@@ -345,7 +345,7 @@ class TestGW2ConfigView:
     @pytest.mark.asyncio
     async def test_config_view_initialization(self, mock_ctx, server_config):
         """Test GW2ConfigView initialization."""
-        with patch('discord.ui.view.View.__init__', return_value=None):
+        with patch("discord.ui.view.View.__init__", return_value=None):
             view = GW2ConfigView(mock_ctx, server_config)
             assert view.ctx == mock_ctx
             assert view.server_config == server_config
@@ -400,18 +400,20 @@ class TestGW2ConfigView:
 
         button = MagicMock()
 
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.update_gw2_session_config = AsyncMock()
-            with patch('src.gw2.cogs.config.chat_formatting.green_text', return_value="ON"):
-                with patch('src.gw2.cogs.config.chat_formatting.red_text', return_value="OFF"):
+            with patch("src.gw2.cogs.config.chat_formatting.green_text", return_value="ON"):
+                with patch("src.gw2.cogs.config.chat_formatting.red_text", return_value="OFF"):
                     await config_view._handle_update(interaction, button, "session", "Session Tracking")
 
                     # Verify defer was called
                     interaction.response.defer.assert_called_once()
                     # Verify database update
                     mock_instance.update_gw2_session_config.assert_called_once_with(
-                        99999, False, 12345  # Toggle from True to False
+                        99999,
+                        False,
+                        12345,  # Toggle from True to False
                     )
                     # Verify config was toggled
                     assert config_view.server_config["session"] is False
@@ -431,7 +433,7 @@ class TestGW2ConfigView:
 
         button = MagicMock()
 
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_response = MagicMock()
             mock_response.status = 500
@@ -457,7 +459,7 @@ class TestGW2ConfigView:
 
         button = MagicMock()
 
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.update_gw2_session_config = AsyncMock(side_effect=Exception("Database connection error"))
             await config_view._handle_update(interaction, button, "session", "Session Tracking")
@@ -482,7 +484,7 @@ class TestGW2ConfigView:
 
         button = MagicMock()
 
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.update_gw2_session_config = AsyncMock(side_effect=Exception("DB error"))
             # Should not raise - the inner exception is caught
@@ -495,7 +497,7 @@ class TestGW2ConfigView:
         """Test _restore_buttons restores button states."""
         # Disable all buttons first
         for item in config_view.children:
-            if hasattr(item, 'disabled'):
+            if hasattr(item, "disabled"):
                 item.disabled = True
 
         config_view.server_config["session"] = True
@@ -503,7 +505,7 @@ class TestGW2ConfigView:
 
         # Check buttons are re-enabled
         for item in config_view.children:
-            if hasattr(item, 'disabled'):
+            if hasattr(item, "disabled"):
                 assert item.disabled is False
 
         # Check toggle_session style is success (session is True)
@@ -521,9 +523,9 @@ class TestGW2ConfigView:
     async def test_create_updated_embed(self, config_view):
         """Test _create_updated_embed creates proper embed."""
         config_view.server_config["session"] = True
-        with patch('src.gw2.cogs.config.chat_formatting.green_text') as mock_green:
+        with patch("src.gw2.cogs.config.chat_formatting.green_text") as mock_green:
             mock_green.return_value = "```css\nON\n```"
-            with patch('src.gw2.cogs.config.chat_formatting.red_text') as mock_red:
+            with patch("src.gw2.cogs.config.chat_formatting.red_text") as mock_red:
                 mock_red.return_value = "```diff\n-OFF\n```"
                 embed = await config_view._create_updated_embed()
                 assert embed.color.value == 0x00FF00
@@ -535,9 +537,9 @@ class TestGW2ConfigView:
     async def test_create_updated_embed_session_off(self, config_view):
         """Test _create_updated_embed with session OFF."""
         config_view.server_config["session"] = False
-        with patch('src.gw2.cogs.config.chat_formatting.green_text') as mock_green:
+        with patch("src.gw2.cogs.config.chat_formatting.green_text") as mock_green:
             mock_green.return_value = "```css\nON\n```"
-            with patch('src.gw2.cogs.config.chat_formatting.red_text') as mock_red:
+            with patch("src.gw2.cogs.config.chat_formatting.red_text") as mock_red:
                 mock_red.return_value = "```diff\n-OFF\n```"
                 embed = await config_view._create_updated_embed()
                 assert "OFF" in embed.fields[0].value
@@ -547,15 +549,15 @@ class TestGW2ConfigView:
         """Test _create_updated_embed when guild has no icon."""
         mock_ctx.guild.icon = None
         config_view.server_config["session"] = True
-        with patch('src.gw2.cogs.config.chat_formatting.green_text', return_value="ON"):
-            with patch('src.gw2.cogs.config.chat_formatting.red_text', return_value="OFF"):
+        with patch("src.gw2.cogs.config.chat_formatting.green_text", return_value="ON"):
+            with patch("src.gw2.cogs.config.chat_formatting.red_text", return_value="OFF"):
                 embed = await config_view._create_updated_embed()
                 assert embed.thumbnail.url is None
 
     @pytest.mark.asyncio
     async def test_toggle_session_button_callback(self, mock_ctx, server_config):
         """Test toggle_session button callback calls _handle_update with correct args."""
-        with patch('discord.ui.view.View.__init__', return_value=None):
+        with patch("discord.ui.view.View.__init__", return_value=None):
             view = GW2ConfigView(mock_ctx, server_config)
             view._children = []
             view._View__timeout = 300
@@ -568,7 +570,7 @@ class TestGW2ConfigView:
 
         button = MagicMock()
 
-        with patch.object(view, '_handle_update', new_callable=AsyncMock) as mock_handle:
+        with patch.object(view, "_handle_update", new_callable=AsyncMock) as mock_handle:
             # Call the actual toggle_session function directly (it's a decorated method)
             await GW2ConfigView.toggle_session(view, interaction, button)
             mock_handle.assert_called_once_with(
@@ -643,16 +645,16 @@ class TestGW2ConfigView:
             # Capture button states when edit is first called (processing state)
             if not buttons_disabled_during_processing:
                 for item in config_view.children:
-                    if hasattr(item, 'disabled'):
+                    if hasattr(item, "disabled"):
                         buttons_disabled_during_processing.append(item.disabled)
 
         interaction.edit_original_response = AsyncMock(side_effect=capture_disabled_state)
 
-        with patch('src.gw2.cogs.config.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.update_gw2_session_config = AsyncMock()
-            with patch('src.gw2.cogs.config.chat_formatting.green_text', return_value="ON"):
-                with patch('src.gw2.cogs.config.chat_formatting.red_text', return_value="OFF"):
+            with patch("src.gw2.cogs.config.chat_formatting.green_text", return_value="ON"):
+                with patch("src.gw2.cogs.config.chat_formatting.red_text", return_value="OFF"):
                     await config_view._handle_update(interaction, button, "session", "Session Tracking")
 
         # Verify all buttons were disabled during processing

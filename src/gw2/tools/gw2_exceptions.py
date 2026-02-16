@@ -9,7 +9,7 @@ class APIError(Exception):
         self.bot = bot
         self.message = msg
         # Log error when exception is created
-        if hasattr(bot, 'log') and bot.log:
+        if hasattr(bot, "log") and bot.log:
             bot.log.error(f"GW2 API Error: {msg}")
 
 

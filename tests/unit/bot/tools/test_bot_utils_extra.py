@@ -5,7 +5,7 @@ import pytest
 import sys
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.tools import bot_utils
 
@@ -153,7 +153,7 @@ class TestSendEmbed:
         # Should send notification embed to channel
         mock_ctx.send.assert_called_once()
         notification_call = mock_ctx.send.call_args
-        notification_embed = notification_call[1]['embed']
+        notification_embed = notification_call[1]["embed"]
         assert isinstance(notification_embed, discord.Embed)
         assert notification_embed.color == discord.Color.green()
         assert "Response sent to your DM" in notification_embed.description
@@ -166,7 +166,7 @@ class TestSendEmbed:
         await bot_utils.send_embed(mock_ctx, embed, dm=True)
 
         notification_call = mock_ctx.send.call_args
-        notification_embed = notification_call[1]['embed']
+        notification_embed = notification_call[1]["embed"]
         assert notification_embed.author.name == "TestUser"
         assert notification_embed.author.icon_url == "https://example.com/avatar.png"
 
@@ -179,7 +179,7 @@ class TestSendEmbed:
         await bot_utils.send_embed(mock_ctx, embed, dm=True)
 
         notification_call = mock_ctx.send.call_args
-        notification_embed = notification_call[1]['embed']
+        notification_embed = notification_call[1]["embed"]
         assert notification_embed.author.icon_url == "https://example.com/default.png"
 
     @pytest.mark.asyncio
@@ -193,7 +193,7 @@ class TestSendEmbed:
         mock_ctx.author.send.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_error_msg')
+    @patch("src.bot.tools.bot_utils.send_error_msg")
     async def test_send_embed_discord_forbidden_exception(self, mock_send_error, mock_ctx):
         """Test send_embed handles discord.Forbidden exception."""
         embed = discord.Embed(description="Test", color=discord.Color.green())
@@ -207,7 +207,7 @@ class TestSendEmbed:
         assert call_args[0] == mock_ctx
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_error_msg')
+    @patch("src.bot.tools.bot_utils.send_error_msg")
     async def test_send_embed_discord_http_exception(self, mock_send_error, mock_ctx):
         """Test send_embed handles discord.HTTPException."""
         embed = discord.Embed(description="Test", color=discord.Color.green())
@@ -252,7 +252,7 @@ class TestDeleteMessage:
         return ctx
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_msg')
+    @patch("src.bot.tools.bot_utils.send_msg")
     async def test_delete_message_warning_true_success(self, mock_send_msg, mock_ctx):
         """Test delete_message with warning=True sends privacy message after successful delete."""
         await bot_utils.delete_message(mock_ctx, warning=True)
@@ -269,7 +269,7 @@ class TestDeleteMessage:
         assert call_args[3] is None  # color=None (no error)
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_msg')
+    @patch("src.bot.tools.bot_utils.send_msg")
     async def test_delete_message_warning_true_delete_fails(self, mock_send_msg, mock_ctx):
         """Test delete_message with warning=True sends error message when delete fails."""
         mock_ctx.message.delete.side_effect = discord.Forbidden(MagicMock(), "No permission")
@@ -286,7 +286,7 @@ class TestDeleteMessage:
         assert call_args[3] == discord.Color.red()  # color=red for error
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_msg')
+    @patch("src.bot.tools.bot_utils.send_msg")
     async def test_delete_message_warning_false_success(self, mock_send_msg, mock_ctx):
         """Test delete_message with warning=False does not send message after successful delete."""
         await bot_utils.delete_message(mock_ctx, warning=False)
@@ -295,7 +295,7 @@ class TestDeleteMessage:
         mock_send_msg.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_msg')
+    @patch("src.bot.tools.bot_utils.send_msg")
     async def test_delete_message_warning_false_delete_fails(self, mock_send_msg, mock_ctx):
         """Test delete_message with warning=False does not send message even when delete fails."""
         mock_ctx.message.delete.side_effect = Exception("Delete failed")
@@ -306,7 +306,7 @@ class TestDeleteMessage:
         mock_ctx.bot.log.error.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_msg')
+    @patch("src.bot.tools.bot_utils.send_msg")
     async def test_delete_message_private_message_no_action(self, mock_send_msg):
         """Test delete_message does nothing for private messages."""
         ctx = MagicMock()
@@ -320,7 +320,7 @@ class TestDeleteMessage:
         mock_send_msg.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_msg')
+    @patch("src.bot.tools.bot_utils.send_msg")
     async def test_delete_message_warning_true_logs_error_on_failure(self, mock_send_msg, mock_ctx):
         """Test delete_message logs error when delete fails."""
         mock_ctx.message.delete.side_effect = Exception("Permission denied")

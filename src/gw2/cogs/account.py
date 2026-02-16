@@ -41,7 +41,7 @@ async def _fetch_guild_info_standalone(gw2_api, guild_id, api_key, ctx):
 
 
 class GW2Account(GuildWars2):
-    """(Commands related to users account)"""
+    """Guild Wars 2 commands for account information."""
 
     def __init__(self, bot):
         super().__init__(bot)
@@ -50,8 +50,11 @@ class GW2Account(GuildWars2):
 @GW2Account.gw2.command()
 @commands.cooldown(1, GW2CoolDowns.Account.seconds, commands.BucketType.user)
 async def account(ctx):
-    """(General information about your GW2 account)
+    """Display general information about your Guild Wars 2 account.
+
     Required API permissions: account
+
+    Usage:
         gw2 account
     """
 
@@ -111,7 +114,7 @@ async def account(ctx):
         for each in api_req_acc["access"]:
             normalized = "".join([f" {c.upper()}" if c.isupper() or c.isdigit() else c for c in each]).lstrip()
             access_normalized.append(normalized)
-        access = '\n'.join(access_normalized)
+        access = "\n".join(access_normalized)
 
         is_commander = "Yes" if api_req_acc["commander"] else "No"
 

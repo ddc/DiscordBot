@@ -50,7 +50,7 @@ class TestGW2Misc:
     def test_gw2_misc_docstring(self, gw2_misc_cog):
         """Test that GW2Misc has proper docstring."""
         assert GW2Misc.__doc__ is not None
-        assert "GW2" in GW2Misc.__doc__
+        assert "Guild Wars 2" in GW2Misc.__doc__
 
 
 class TestWikiCommand:
@@ -94,7 +94,7 @@ class TestWikiCommand:
             divs += (
                 f'<div class="mw-search-result-heading">'
                 f'<a href="{r["href"]}" title="{r["title"]}">{r["title"]}</a>'
-                f'</div>\n'
+                f"</div>\n"
             )
         return f"<html><body>{divs}</body></html>"
 
@@ -117,7 +117,7 @@ class TestWikiCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_error_msg', new_callable=AsyncMock) as mock_error:
+        with patch("src.gw2.cogs.misc.bot_utils.send_error_msg", new_callable=AsyncMock) as mock_error:
             await wiki(mock_ctx, search=search)
             # Should not send LONG_SEARCH message
             from src.gw2.constants import gw2_messages
@@ -133,7 +133,7 @@ class TestWikiCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_error_msg', new_callable=AsyncMock) as mock_error:
+        with patch("src.gw2.cogs.misc.bot_utils.send_error_msg", new_callable=AsyncMock) as mock_error:
             await wiki(mock_ctx, search="nonexistent")
             mock_error.assert_called_once()
             from src.gw2.constants import gw2_messages
@@ -159,7 +159,7 @@ class TestWikiCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await wiki(mock_ctx, search="sword")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
@@ -183,7 +183,7 @@ class TestWikiCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await wiki(mock_ctx, search="eternity")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
@@ -203,7 +203,7 @@ class TestWikiCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await wiki(mock_ctx, search="eternity")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
@@ -225,7 +225,7 @@ class TestWikiCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await wiki(mock_ctx, search="sword")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
@@ -244,7 +244,7 @@ class TestWikiCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             # Should not raise - IndexError is caught
             await wiki(mock_ctx, search="test item")
             mock_send.assert_called_once()
@@ -261,7 +261,7 @@ class TestWikiCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await wiki(mock_ctx, search="eternity")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
@@ -279,7 +279,7 @@ class TestWikiCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await wiki(mock_ctx, search="eternity")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
@@ -298,7 +298,7 @@ class TestWikiCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await wiki(mock_ctx, search="eternity")
             embed = mock_send.call_args[0][1]
             from src.gw2.constants import gw2_variables
@@ -316,7 +316,7 @@ class TestWikiCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await wiki(mock_ctx, search="dawn weapon")
             # Verify that the URL passed to aiosession.get contains + instead of spaces
             called_url = mock_ctx.bot.aiosession.get.call_args[0][0]
@@ -333,7 +333,7 @@ class TestWikiCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await wiki(mock_ctx, search="eternity")
             embed = mock_send.call_args[0][1]
             from src.gw2.constants import gw2_messages
@@ -383,7 +383,7 @@ class TestInfoCommand:
         """
         blockquote = ""
         if description:
-            blockquote = f'<blockquote>\n\n{description}</blockquote>'
+            blockquote = f"<blockquote>\n\n{description}</blockquote>"
 
         img = ""
         if image_alt:
@@ -405,7 +405,7 @@ class TestInfoCommand:
         mock_response.status = 404
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_error_msg', new_callable=AsyncMock) as mock_error:
+        with patch("src.gw2.cogs.misc.bot_utils.send_error_msg", new_callable=AsyncMock) as mock_error:
             await info(mock_ctx, skill="nonexistent")
             mock_error.assert_called_once()
             from src.gw2.constants import gw2_messages
@@ -427,7 +427,7 @@ class TestInfoCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await info(mock_ctx, skill="Eternity")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
@@ -452,10 +452,10 @@ class TestInfoCommand:
         mock_response.text = AsyncMock(return_value=html)
 
         tp_html = (
-            '<html><body>'
+            "<html><body>"
             '<td id="sell-price" data-price="100000">1g</td>'
             '<td id="buy-price" data-price="90000">0g 90s</td>'
-            '</body></html>'
+            "</body></html>"
         )
         mock_tp_response = AsyncMock()
         mock_tp_response.status = 200
@@ -469,8 +469,8 @@ class TestInfoCommand:
             ]
         )
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
-            with patch('src.gw2.cogs.misc.gw2_utils.format_gold', side_effect=["10g 0s 0c", "9g 0s 0c"]):
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
+            with patch("src.gw2.cogs.misc.gw2_utils.format_gold", side_effect=["10g 0s 0c", "9g 0s 0c"]):
                 await info(mock_ctx, skill="Eternity")
                 mock_send.assert_called_once()
                 embed = mock_send.call_args[0][1]
@@ -483,14 +483,14 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_skill_without_description(self, mock_ctx):
         """Test info command with skill that has no description (no blockquote)."""
-        html = '<html><body>' '<img alt="eternity.png" srcset="/images/eternity.png 1x" />' '</body></html>'
+        html = '<html><body><img alt="eternity.png" srcset="/images/eternity.png 1x" /></body></html>'
         mock_response = AsyncMock()
         mock_response.status = 200
         mock_response.url = "https://wiki.guildwars2.com/wiki/Eternity"
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await info(mock_ctx, skill="Eternity")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
@@ -503,10 +503,10 @@ class TestInfoCommand:
     async def test_info_no_image_match_found(self, mock_ctx):
         """Test info command when no matching image is found."""
         html = (
-            '<html><body>'
-            '<blockquote>\n\nSome description.</blockquote>'
+            "<html><body>"
+            "<blockquote>\n\nSome description.</blockquote>"
             '<img alt="other_image.png" srcset="/images/other.png 1x" />'
-            '</body></html>'
+            "</body></html>"
         )
         mock_response = AsyncMock()
         mock_response.status = 200
@@ -514,7 +514,7 @@ class TestInfoCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await info(mock_ctx, skill="Eternity")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
@@ -524,19 +524,14 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_image_key_error_on_srcset(self, mock_ctx):
         """Test info command handles KeyError when image has no srcset."""
-        html = (
-            '<html><body>'
-            '<blockquote>\n\nSome description.</blockquote>'
-            '<img alt="eternity.png" />'
-            '</body></html>'
-        )
+        html = '<html><body><blockquote>\n\nSome description.</blockquote><img alt="eternity.png" /></body></html>'
         mock_response = AsyncMock()
         mock_response.status = 200
         mock_response.url = "https://wiki.guildwars2.com/wiki/Eternity"
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             # Should not raise KeyError
             await info(mock_ctx, skill="Eternity")
             mock_send.assert_called_once()
@@ -548,10 +543,10 @@ class TestInfoCommand:
     async def test_info_no_trading_post_item(self, mock_ctx):
         """Test info command when no trading post item is found (item_id is None)."""
         html = (
-            '<html><body>'
-            '<blockquote>\n\nA skill description.</blockquote>'
+            "<html><body>"
+            "<blockquote>\n\nA skill description.</blockquote>"
             '<img alt="eternity.png" srcset="/images/eternity.png 1x" />'
-            '</body></html>'
+            "</body></html>"
         )
         mock_response = AsyncMock()
         mock_response.status = 200
@@ -559,7 +554,7 @@ class TestInfoCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await info(mock_ctx, skill="Eternity")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
@@ -592,7 +587,7 @@ class TestInfoCommand:
             ]
         )
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await info(mock_ctx, skill="Eternity")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
@@ -614,7 +609,7 @@ class TestInfoCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await info(mock_ctx, skill="Sunrise")
             embed = mock_send.call_args[0][1]
             assert embed.title == "Sunrise"
@@ -634,7 +629,7 @@ class TestInfoCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await info(mock_ctx, skill="bolt of damask")
             embed = mock_send.call_args[0][1]
             assert embed.title == "Bolt of Damask"
@@ -652,7 +647,7 @@ class TestInfoCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await info(mock_ctx, skill="dawn weapon")
             called_url = mock_ctx.bot.aiosession.get.call_args[0][0]
             assert "Dawn_Weapon" in called_url or "dawn_weapon" in called_url
@@ -670,7 +665,7 @@ class TestInfoCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await info(mock_ctx, skill="Eternity")
             embed = mock_send.call_args[0][1]
             assert embed.author.name == "TestUser"
@@ -689,7 +684,7 @@ class TestInfoCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await info(mock_ctx, skill="Eternity")
             embed = mock_send.call_args[0][1]
             assert embed.url == "https://wiki.guildwars2.com/wiki/Eternity"
@@ -697,14 +692,14 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_description_strips_question_mark(self, mock_ctx):
         """Test info command removes question marks from description."""
-        html = '<html><body>' '<blockquote>\n\nSome description?</blockquote>' '</body></html>'
+        html = "<html><body><blockquote>\n\nSome description?</blockquote></body></html>"
         mock_response = AsyncMock()
         mock_response.status = 200
         mock_response.url = "https://wiki.guildwars2.com/wiki/Eternity"
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await info(mock_ctx, skill="Eternity")
             embed = mock_send.call_args[0][1]
             assert "?" not in embed.description
@@ -712,16 +707,14 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_description_splits_on_em_dash(self, mock_ctx):
         """Test info command splits description on em dash."""
-        html = (
-            '<html><body>' '<blockquote>\n\nSome description text\u2014Attribution here</blockquote>' '</body></html>'
-        )
+        html = "<html><body><blockquote>\n\nSome description text\u2014Attribution here</blockquote></body></html>"
         mock_response = AsyncMock()
         mock_response.status = 200
         mock_response.url = "https://wiki.guildwars2.com/wiki/Eternity"
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await info(mock_ctx, skill="Eternity")
             embed = mock_send.call_args[0][1]
             # Description should only contain text before the em dash
@@ -743,7 +736,7 @@ class TestInfoCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await info(mock_ctx, skill="blade of the void")
             called_url = mock_ctx.bot.aiosession.get.call_args[0][0]
             # URL should use "of" and "the" (lowercase), not "Of" and "The"
@@ -762,7 +755,7 @@ class TestInfoCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock):
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock):
             result = await info(mock_ctx, skill="Eternity")
             assert result is None
 
@@ -779,7 +772,7 @@ class TestInfoCommand:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock):
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock):
             await info(mock_ctx, skill="Eternity")
             mock_ctx.message.channel.typing.assert_called_once()
 
@@ -799,10 +792,10 @@ class TestInfoCommand:
         mock_response.text = AsyncMock(return_value=html)
 
         tp_html = (
-            '<html><body>'
+            "<html><body>"
             '<td id="sell-price" data-price="50000">5g</td>'
             '<td id="buy-price" data-price="45000">4g 50s</td>'
-            '</body></html>'
+            "</body></html>"
         )
         mock_tp_response = AsyncMock()
         mock_tp_response.status = 200
@@ -815,8 +808,8 @@ class TestInfoCommand:
             ]
         )
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_embed', new_callable=AsyncMock) as mock_send:
-            with patch('src.gw2.cogs.misc.gw2_utils.format_gold', side_effect=["5g 0s 0c", "4g 50s 0c"]):
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
+            with patch("src.gw2.cogs.misc.gw2_utils.format_gold", side_effect=["5g 0s 0c", "4g 50s 0c"]):
                 await info(mock_ctx, skill="bolt of damask")
                 embed = mock_send.call_args[0][1]
                 # TP URL should use hyphens instead of underscores
@@ -899,16 +892,16 @@ class TestWikiNoResultsBranch:
         mock_response.text = AsyncMock(return_value=html)
         mock_ctx.bot.aiosession.get = MagicMock(
             return_value=type(
-                'AsyncCM',
+                "AsyncCM",
                 (),
                 {
-                    '__aenter__': AsyncMock(return_value=mock_response),
-                    '__aexit__': AsyncMock(return_value=False),
+                    "__aenter__": AsyncMock(return_value=mock_response),
+                    "__aexit__": AsyncMock(return_value=False),
                 },
             )()
         )
 
-        with patch('src.gw2.cogs.misc.bot_utils.send_error_msg', new_callable=AsyncMock) as mock_error:
+        with patch("src.gw2.cogs.misc.bot_utils.send_error_msg", new_callable=AsyncMock) as mock_error:
             await wiki(mock_ctx, search="xyznonexistent123")
             mock_error.assert_called_once()
             from src.gw2.constants import gw2_messages

@@ -99,8 +99,8 @@ class ErrorMessageBuilder:
                 "NoOptionError",
             ): f"{messages.NO_OPTION_FOUND}: `{context.error_msg.split()[7] if len(context.error_msg.split()) > 7 else 'unknown'}`",
             ("GW2 API",): (
-                str(context.error_msg).split(',')[1].strip().split('?')[0]
-                if ',' in str(context.error_msg) and len(str(context.error_msg).split(',')) > 1
+                str(context.error_msg).split(",")[1].strip().split("?")[0]
+                if "," in str(context.error_msg) and len(str(context.error_msg).split(",")) > 1
                 else str(context.error_msg)
             ),
             ("No text to send to TTS API",): messages.INVALID_MESSAGE,

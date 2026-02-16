@@ -18,7 +18,7 @@ class ServersDal:
             name=name,
         )
         # On conflict, update the name in case it changed
-        stmt = stmt.on_conflict_do_update(index_elements=['id'], set_={'name': name})
+        stmt = stmt.on_conflict_do_update(index_elements=["id"], set_={"name": name})
         await self.db_utils.execute(stmt)
 
     async def update_server(self, before: discord.Guild, after: discord.Guild):

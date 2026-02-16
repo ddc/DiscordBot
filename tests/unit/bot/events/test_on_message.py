@@ -7,7 +7,7 @@ import sys
 from discord.ext import commands
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.events.on_message import (
     CustomReactionHandler,
@@ -218,7 +218,7 @@ class TestProfanityFilter:
         mock_bot.profanity.contains_profanity.assert_called_once_with("Hello world")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.bot_utils.delete_message')
+    @patch("src.bot.cogs.events.on_message.bot_utils.delete_message")
     async def test_check_and_censor_with_profanity(self, mock_delete, mock_bot, mock_ctx):
         """Test check_and_censor with profanity."""
         mock_bot.profanity.contains_profanity.return_value = True
@@ -354,7 +354,7 @@ class TestExclusiveUsersChecker:
         assert result is True
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_message.bot_utils.send_error_msg")
     async def test_check_exclusive_users_not_allowed(self, mock_send_error, mock_bot, mock_ctx):
         """Test exclusive users check when user is not allowed."""
         mock_bot.settings["bot"]["ExclusiveUsers"] = [99999]
@@ -372,10 +372,10 @@ class TestDMMessageHandler:
         """Test DMMessageHandler initialization."""
         handler = DMMessageHandler(mock_bot)
         assert handler.bot == mock_bot
-        assert hasattr(handler, 'reaction_handler')
+        assert hasattr(handler, "reaction_handler")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.bot_utils.is_bot_owner')
+    @patch("src.bot.cogs.events.on_message.bot_utils.is_bot_owner")
     async def test_handle_dm_non_command_owner(self, mock_is_owner, mock_bot, mock_ctx):
         """Test DM non-command handling for bot owner."""
         mock_is_owner.return_value = True
@@ -393,7 +393,7 @@ class TestDMMessageHandler:
         mock_ctx.author.send.assert_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.bot_utils.is_bot_owner')
+    @patch("src.bot.cogs.events.on_message.bot_utils.is_bot_owner")
     async def test_handle_dm_non_command_not_owner(self, mock_is_owner, mock_bot, mock_ctx):
         """Test DM non-command handling for non-owner."""
         mock_is_owner.return_value = False
@@ -435,11 +435,11 @@ class TestServerMessageHandler:
         """Test ServerMessageHandler initialization."""
         handler = ServerMessageHandler(mock_bot)
         assert handler.bot == mock_bot
-        assert hasattr(handler, 'profanity_filter')
-        assert hasattr(handler, 'reaction_handler')
+        assert hasattr(handler, "profanity_filter")
+        assert hasattr(handler, "reaction_handler")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.ServersDal')
+    @patch("src.bot.cogs.events.on_message.ServersDal")
     async def test_process_no_configs(self, mock_dal_class, mock_bot, mock_ctx):
         """Test server message processing with no configs."""
         mock_dal = AsyncMock()
@@ -454,8 +454,8 @@ class TestServerMessageHandler:
         mock_bot.process_commands.assert_called_once_with(mock_ctx.message)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.ServersDal')
-    @patch('src.bot.cogs.events.on_message.bot_utils.delete_message')
+    @patch("src.bot.cogs.events.on_message.ServersDal")
+    @patch("src.bot.cogs.events.on_message.bot_utils.delete_message")
     async def test_process_invisible_member_blocked(self, mock_delete, mock_dal_class, mock_bot, mock_ctx):
         """Test server message processing with invisible member blocked."""
         mock_dal = AsyncMock()
@@ -474,7 +474,7 @@ class TestServerMessageHandler:
         mock_delete.assert_called_once_with(mock_ctx)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.ServersDal')
+    @patch("src.bot.cogs.events.on_message.ServersDal")
     async def test_handle_server_non_command_profanity(self, mock_dal_class, mock_bot, mock_ctx):
         """Test handling server non-command with profanity filter."""
         configs = {"profanity_filter": True, "bot_word_reactions": False}
@@ -486,7 +486,7 @@ class TestServerMessageHandler:
         handler.profanity_filter.check_and_censor.assert_called_once_with(mock_ctx)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.CustomCommandsDal')
+    @patch("src.bot.cogs.events.on_message.CustomCommandsDal")
     async def test_try_custom_command_found(self, mock_dal_class, mock_bot, mock_ctx):
         """Test trying custom command when found."""
         mock_dal = AsyncMock()
@@ -502,7 +502,7 @@ class TestServerMessageHandler:
         mock_ctx.message.channel.send.assert_called_once_with("Custom command response")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.CustomCommandsDal')
+    @patch("src.bot.cogs.events.on_message.CustomCommandsDal")
     async def test_try_custom_command_not_found(self, mock_dal_class, mock_bot, mock_ctx):
         """Test trying custom command when not found."""
         mock_dal = AsyncMock()
@@ -523,8 +523,8 @@ class TestOnMessage:
         """Test OnMessage cog initialization."""
         cog = OnMessage(mock_bot)
         assert cog.bot == mock_bot
-        assert hasattr(cog, 'dm_handler')
-        assert hasattr(cog, 'server_handler')
+        assert hasattr(cog, "dm_handler")
+        assert hasattr(cog, "server_handler")
 
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
@@ -541,7 +541,7 @@ class TestOnMessage:
     def test_on_message_cog_inheritance(self, on_message_cog):
         """Test that OnMessage cog properly inherits from commands.Cog."""
         assert isinstance(on_message_cog, commands.Cog)
-        assert hasattr(on_message_cog, 'bot')
+        assert hasattr(on_message_cog, "bot")
 
     def test_message_context_dm_detection(self, mock_dm_ctx):
         """Test MessageContext DM detection."""

@@ -296,7 +296,9 @@ class TestCallApi:
         headers = (
             call_kwargs[1]["headers"]
             if "headers" in call_kwargs[1]
-            else call_kwargs[0][1] if len(call_kwargs[0]) > 1 else None
+            else call_kwargs[0][1]
+            if len(call_kwargs[0]) > 1
+            else None
         )
         # The headers parameter is passed as keyword arg
         if headers:
@@ -870,7 +872,7 @@ class TestCallApiIntegration:
         gw2_client.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
         # Patch _handle_api_error to NOT raise, so execution falls through to return None
-        with patch.object(gw2_client, '_handle_api_error', new_callable=AsyncMock) as mock_handler:
+        with patch.object(gw2_client, "_handle_api_error", new_callable=AsyncMock) as mock_handler:
             result = await gw2_client.call_api("account")
 
             mock_handler.assert_called_once()

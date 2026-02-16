@@ -149,8 +149,7 @@ async def remove_custom_command(ctx: commands.Context, cmd_name: str) -> None:
     command_names = {cmd["name"] for cmd in server_commands}
     if cmd_name not in command_names:
         error_msg = (
-            f"{messages.CUSTOM_COMMAND_UNABLE_REMOVE}\n"
-            f"{messages.COMMAND_NOT_FOUND}: {chat_formatting.inline(cmd_name)}"
+            f"{messages.CUSTOM_COMMAND_UNABLE_REMOVE}\n{messages.COMMAND_NOT_FOUND}: {chat_formatting.inline(cmd_name)}"
         )
         return await bot_utils.send_error_msg(ctx, error_msg)
 

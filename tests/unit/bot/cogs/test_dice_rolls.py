@@ -5,7 +5,7 @@ import pytest
 import sys
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.dice_rolls import DiceRolls
 from src.bot.constants import messages
@@ -54,16 +54,15 @@ def mock_ctx():
 
 
 class TestDiceRolls:
-
     @pytest.mark.asyncio
     async def test_init(self, mock_bot):
         cog = DiceRolls(mock_bot)
         assert cog.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.random.SystemRandom')
-    @patch('src.bot.cogs.dice_rolls.DiceRollsDal')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_embed')
+    @patch("src.bot.cogs.dice_rolls.random.SystemRandom")
+    @patch("src.bot.cogs.dice_rolls.DiceRollsDal")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_embed")
     async def test_roll_default_dice_size(self, mock_send_embed, mock_dal_class, mock_random, dice_cog, mock_ctx):
         # Setup
         mock_random_instance = MagicMock()
@@ -87,9 +86,9 @@ class TestDiceRolls:
         mock_send_embed.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.random.SystemRandom')
-    @patch('src.bot.cogs.dice_rolls.DiceRollsDal')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_embed')
+    @patch("src.bot.cogs.dice_rolls.random.SystemRandom")
+    @patch("src.bot.cogs.dice_rolls.DiceRollsDal")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_embed")
     async def test_roll_custom_dice_size(self, mock_send_embed, mock_dal_class, mock_random, dice_cog, mock_ctx):
         # Setup
         mock_ctx.subcommand_passed = "20"
@@ -112,7 +111,7 @@ class TestDiceRolls:
         mock_dal.insert_user_roll.assert_called_once_with(12345, 67890, 20, 15)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_error_msg")
     async def test_roll_invalid_dice_size(self, mock_send_error, dice_cog, mock_ctx):
         # Setup
         mock_ctx.subcommand_passed = "invalid"
@@ -124,7 +123,7 @@ class TestDiceRolls:
         mock_send_error.assert_called_once_with(mock_ctx, messages.DICE_SIZE_NOT_VALID)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_error_msg")
     async def test_roll_dice_size_too_small(self, mock_send_error, dice_cog, mock_ctx):
         # Setup
         mock_ctx.subcommand_passed = "1"
@@ -136,10 +135,10 @@ class TestDiceRolls:
         mock_send_error.assert_called_once_with(mock_ctx, messages.DICE_SIZE_HIGHER_ONE)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.random.SystemRandom')
-    @patch('src.bot.cogs.dice_rolls.DiceRollsDal')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_embed')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.get_member_by_id')
+    @patch("src.bot.cogs.dice_rolls.random.SystemRandom")
+    @patch("src.bot.cogs.dice_rolls.DiceRollsDal")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_embed")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.get_member_by_id")
     async def test_roll_new_personal_record(
         self, mock_get_member, mock_send_embed, mock_dal_class, mock_random, dice_cog, mock_ctx
     ):
@@ -173,10 +172,10 @@ class TestDiceRolls:
         assert messages.MEMBER_HIGHEST_ROLL in embed_call.description
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.random.SystemRandom')
-    @patch('src.bot.cogs.dice_rolls.DiceRollsDal')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_embed')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.get_member_by_id')
+    @patch("src.bot.cogs.dice_rolls.random.SystemRandom")
+    @patch("src.bot.cogs.dice_rolls.DiceRollsDal")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_embed")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.get_member_by_id")
     async def test_roll_new_server_record(
         self, mock_get_member, mock_send_embed, mock_dal_class, mock_random, dice_cog, mock_ctx
     ):
@@ -215,9 +214,9 @@ class TestDiceRolls:
         mock_ctx.message.channel.typing.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.DiceRollsDal')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_embed')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.get_member_by_id')
+    @patch("src.bot.cogs.dice_rolls.DiceRollsDal")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_embed")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.get_member_by_id")
     async def test_roll_results_default_dice_size(
         self, mock_get_member, mock_send_embed, mock_dal_class, dice_cog, mock_ctx
     ):
@@ -243,9 +242,9 @@ class TestDiceRolls:
         mock_send_embed.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.DiceRollsDal')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_embed')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.get_member_by_id')
+    @patch("src.bot.cogs.dice_rolls.DiceRollsDal")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_embed")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.get_member_by_id")
     async def test_roll_results_custom_dice_size(
         self, mock_get_member, mock_send_embed, mock_dal_class, dice_cog, mock_ctx
     ):
@@ -268,8 +267,8 @@ class TestDiceRolls:
         mock_dal.get_all_server_rolls.assert_called_once_with(12345, 20)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.DiceRollsDal')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.dice_rolls.DiceRollsDal")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_error_msg")
     async def test_roll_results_no_rolls_found(self, mock_send_error, mock_dal_class, dice_cog, mock_ctx):
         # Setup
         mock_dal = AsyncMock()
@@ -283,7 +282,7 @@ class TestDiceRolls:
         mock_send_error.assert_called_once_with(mock_ctx, messages.no_dice_size_rolls(100))
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_error_msg")
     async def test_roll_results_invalid_dice_size(self, mock_send_error, dice_cog, mock_ctx):
         # Setup
         mock_ctx.message.content = "!roll results invalid"
@@ -295,8 +294,8 @@ class TestDiceRolls:
         mock_send_error.assert_called_once_with(mock_ctx, messages.DICE_SIZE_NOT_VALID)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.DiceRollsDal')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_msg')
+    @patch("src.bot.cogs.dice_rolls.DiceRollsDal")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_msg")
     async def test_roll_reset(self, mock_send_msg, mock_dal_class, dice_cog, mock_ctx):
         # Setup
         mock_dal = AsyncMock()
@@ -312,10 +311,10 @@ class TestDiceRolls:
         mock_send_msg.assert_called_once_with(mock_ctx, messages.DELETED_ALL_ROLLS)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.random.SystemRandom')
-    @patch('src.bot.cogs.dice_rolls.DiceRollsDal')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_embed')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.get_member_by_id')
+    @patch("src.bot.cogs.dice_rolls.random.SystemRandom")
+    @patch("src.bot.cogs.dice_rolls.DiceRollsDal")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_embed")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.get_member_by_id")
     async def test_roll_existing_user_no_new_record(
         self, mock_get_member, mock_send_embed, mock_dal_class, mock_random, dice_cog, mock_ctx
     ):
@@ -337,10 +336,10 @@ class TestDiceRolls:
         mock_dal.update_user_roll.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.random.SystemRandom')
-    @patch('src.bot.cogs.dice_rolls.DiceRollsDal')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_embed')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.get_member_by_id')
+    @patch("src.bot.cogs.dice_rolls.random.SystemRandom")
+    @patch("src.bot.cogs.dice_rolls.DiceRollsDal")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_embed")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.get_member_by_id")
     async def test_roll_server_highest_user_is_current_user(
         self, mock_get_member, mock_send_embed, mock_dal_class, mock_random, dice_cog, mock_ctx
     ):
@@ -365,10 +364,10 @@ class TestDiceRolls:
         assert messages.MEMBER_SERVER_WINNER_ANOUNCE in embed_call.description
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.random.SystemRandom')
-    @patch('src.bot.cogs.dice_rolls.DiceRollsDal')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_embed')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.get_member_by_id')
+    @patch("src.bot.cogs.dice_rolls.random.SystemRandom")
+    @patch("src.bot.cogs.dice_rolls.DiceRollsDal")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_embed")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.get_member_by_id")
     async def test_roll_server_highest_user_is_different_user(
         self, mock_get_member, mock_send_embed, mock_dal_class, mock_random, dice_cog, mock_ctx
     ):
@@ -396,9 +395,9 @@ class TestDiceRolls:
         assert messages.MEMBER_HIGHEST_ROLL in embed_call.description
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.random.SystemRandom')
-    @patch('src.bot.cogs.dice_rolls.DiceRollsDal')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_embed')
+    @patch("src.bot.cogs.dice_rolls.random.SystemRandom")
+    @patch("src.bot.cogs.dice_rolls.DiceRollsDal")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_embed")
     async def test_roll_server_max_roll_with_null_max_roll(
         self, mock_send_embed, mock_dal_class, mock_random, dice_cog, mock_ctx
     ):
@@ -434,10 +433,10 @@ class TestDiceRolls:
         assert added_cog.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.DiceRollsDal')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_embed')
-    @patch('src.bot.cogs.dice_rolls.chat_formatting.inline')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.get_member_by_id')
+    @patch("src.bot.cogs.dice_rolls.DiceRollsDal")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_embed")
+    @patch("src.bot.cogs.dice_rolls.chat_formatting.inline")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.get_member_by_id")
     async def test_roll_results_embed_formatting(
         self, mock_get_member, mock_inline, mock_send_embed, mock_dal_class, dice_cog, mock_ctx
     ):
@@ -474,9 +473,9 @@ class TestDiceRolls:
         assert embed.footer.text == f"{messages.RESET_ALL_ROLLS}: !roll reset"
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.dice_rolls.random.SystemRandom')
-    @patch('src.bot.cogs.dice_rolls.DiceRollsDal')
-    @patch('src.bot.cogs.dice_rolls.bot_utils.send_embed')
+    @patch("src.bot.cogs.dice_rolls.random.SystemRandom")
+    @patch("src.bot.cogs.dice_rolls.DiceRollsDal")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_embed")
     async def test_roll_embed_properties(self, mock_send_embed, mock_dal_class, mock_random, dice_cog, mock_ctx):
         # Setup
         mock_random_instance = MagicMock()

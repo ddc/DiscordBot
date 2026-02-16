@@ -5,7 +5,7 @@ import pytest
 import sys
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.events.on_ready import OnReady, StartupInfoDisplay
 from src.bot.constants import messages, variables
@@ -42,13 +42,13 @@ def startup_info_display():
 @pytest.fixture
 def mock_bot_stats():
     """Create mock bot statistics."""
-    return {'servers': 5, 'users': 150, 'channels': 45}
+    return {"servers": 5, "users": 150, "channels": 45}
 
 
 class TestStartupInfoDisplay:
     """Test cases for StartupInfoDisplay class."""
 
-    @patch('builtins.print')
+    @patch("builtins.print")
     def test_print_startup_banner(self, mock_print, startup_info_display):
         """Test printing startup banner."""
         test_version = "2.0.21"
@@ -62,8 +62,8 @@ class TestStartupInfoDisplay:
         assert "=" * 20 in printed_text
         assert f"Discord Bot v{test_version}" in printed_text
 
-    @patch('builtins.print')
-    @patch('discord.__version__', '2.3.2')
+    @patch("builtins.print")
+    @patch("discord.__version__", "2.3.2")
     def test_print_version_info(self, mock_print, startup_info_display):
         """Test printing version information."""
         startup_info_display.print_version_info()
@@ -79,7 +79,7 @@ class TestStartupInfoDisplay:
         # Check Discord version
         assert calls[1] == "Discord API v2.3.2"
 
-    @patch('builtins.print')
+    @patch("builtins.print")
     def test_print_bot_info(self, mock_print, startup_info_display, mock_bot):
         """Test printing bot information."""
         startup_info_display.print_bot_info(mock_bot)
@@ -93,7 +93,7 @@ class TestStartupInfoDisplay:
         assert "(id:123456789)" in calls[1]
         assert calls[2] == "Prefix: !"
 
-    @patch('builtins.print')
+    @patch("builtins.print")
     def test_print_bot_stats(self, mock_print, startup_info_display, mock_bot_stats):
         """Test printing bot statistics."""
         startup_info_display.print_bot_stats(mock_bot_stats)
@@ -106,8 +106,8 @@ class TestStartupInfoDisplay:
         assert calls[1] == "Users: 150"
         assert calls[2] == "Channels: 45"
 
-    @patch('builtins.print')
-    @patch('src.bot.cogs.events.on_ready.bot_utils.get_current_date_time_str_long')
+    @patch("builtins.print")
+    @patch("src.bot.cogs.events.on_ready.bot_utils.get_current_date_time_str_long")
     def test_print_timestamp(self, mock_datetime, mock_print, startup_info_display):
         """Test printing timestamp."""
         mock_datetime.return_value = "2023-01-01 12:00:00"
@@ -144,7 +144,7 @@ class TestOnReady:
         assert added_cog.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_ready.bot_utils.get_bot_stats')
+    @patch("src.bot.cogs.events.on_ready.bot_utils.get_bot_stats")
     async def test_on_ready_event_success(self, mock_get_bot_stats, mock_bot, mock_bot_stats):
         """Test on_ready event handler success."""
         mock_get_bot_stats.return_value = mock_bot_stats
@@ -179,13 +179,13 @@ class TestOnReady:
         from discord.ext import commands
 
         assert isinstance(on_ready_cog, commands.Cog)
-        assert hasattr(on_ready_cog, 'bot')
+        assert hasattr(on_ready_cog, "bot")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_ready.bot_utils.get_bot_stats')
+    @patch("src.bot.cogs.events.on_ready.bot_utils.get_bot_stats")
     async def test_on_ready_event_with_different_stats(self, mock_get_bot_stats, mock_bot):
         """Test on_ready event with different bot statistics."""
-        different_stats = {'servers': 10, 'users': 500, 'channels': 120}
+        different_stats = {"servers": 10, "users": 500, "channels": 120}
         mock_get_bot_stats.return_value = different_stats
 
         cog = OnReady(mock_bot)
@@ -198,8 +198,8 @@ class TestOnReady:
         cog.info_display.print_bot_stats.assert_called_once_with(different_stats)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_ready.variables.VERSION', '3.0.0')
-    @patch('src.bot.cogs.events.on_ready.bot_utils.get_bot_stats')
+    @patch("src.bot.cogs.events.on_ready.variables.VERSION", "3.0.0")
+    @patch("src.bot.cogs.events.on_ready.bot_utils.get_bot_stats")
     async def test_on_ready_event_with_different_version(self, mock_get_bot_stats, mock_bot, mock_bot_stats):
         """Test on_ready event with different version."""
         mock_get_bot_stats.return_value = mock_bot_stats
@@ -211,7 +211,7 @@ class TestOnReady:
         await cog.on_ready()
 
         # Verify version was passed correctly
-        cog.info_display.print_startup_banner.assert_called_once_with('3.0.0')
+        cog.info_display.print_startup_banner.assert_called_once_with("3.0.0")
 
     def test_startup_info_display_static_methods(self):
         """Test that all StartupInfoDisplay methods are static."""
@@ -223,7 +223,7 @@ class TestOnReady:
         assert inspect.isfunction(StartupInfoDisplay.print_bot_stats)
         assert inspect.isfunction(StartupInfoDisplay.print_timestamp)
 
-    @patch('builtins.print')
+    @patch("builtins.print")
     def test_startup_info_display_integration(self, mock_print, mock_bot, mock_bot_stats):
         """Test integration of all StartupInfoDisplay methods."""
         display = StartupInfoDisplay()
@@ -238,10 +238,10 @@ class TestOnReady:
         # Should have printed multiple lines
         assert mock_print.call_count >= 10  # At least 10 print calls
 
-    @patch('builtins.print')
+    @patch("builtins.print")
     def test_print_bot_stats_empty_stats(self, mock_print, startup_info_display):
         """Test printing bot statistics with empty stats."""
-        empty_stats = {'servers': 0, 'users': 0, 'channels': 0}
+        empty_stats = {"servers": 0, "users": 0, "channels": 0}
 
         startup_info_display.print_bot_stats(empty_stats)
 
@@ -250,7 +250,7 @@ class TestOnReady:
         assert calls[1] == "Users: 0"
         assert calls[2] == "Channels: 0"
 
-    @patch('builtins.print')
+    @patch("builtins.print")
     def test_print_bot_info_complex_bot_name(self, mock_print, startup_info_display):
         """Test printing bot info with complex bot name."""
         complex_bot = MagicMock()
@@ -267,7 +267,7 @@ class TestOnReady:
         assert calls[2] == "Prefix: $$"
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_ready.bot_utils.get_bot_stats')
+    @patch("src.bot.cogs.events.on_ready.bot_utils.get_bot_stats")
     async def test_on_ready_event_bot_stats_error(self, mock_get_bot_stats, mock_bot):
         """Test on_ready event when bot stats retrieval fails."""
         # This test verifies the event still completes even if bot_stats fails
@@ -296,8 +296,8 @@ class TestOnReady:
         cog.info_display.print_bot_stats.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_ready.messages.bot_online', return_value='Bot TestBot is now online!')
-    @patch('src.bot.cogs.events.on_ready.bot_utils.get_bot_stats')
+    @patch("src.bot.cogs.events.on_ready.messages.bot_online", return_value="Bot TestBot is now online!")
+    @patch("src.bot.cogs.events.on_ready.bot_utils.get_bot_stats")
     async def test_on_ready_event_custom_message(self, mock_get_bot_stats, mock_bot_online, mock_bot, mock_bot_stats):
         """Test on_ready event with custom bot online message."""
         mock_get_bot_stats.return_value = mock_bot_stats
@@ -309,4 +309,4 @@ class TestOnReady:
 
         # Verify custom log message format
         mock_bot_online.assert_called_once_with(mock_bot.user)
-        mock_bot.log.info.assert_called_once_with('Bot TestBot is now online!')
+        mock_bot.log.info.assert_called_once_with("Bot TestBot is now online!")

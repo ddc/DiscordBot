@@ -8,7 +8,7 @@ import sys
 from discord.ext import commands
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.open_ai import OpenAi
 
@@ -83,7 +83,7 @@ class TestOpenAi:
 
     def test_openai_client_property_creates_client(self, openai_cog):
         """Test that openai_client property creates client on first access."""
-        with patch('src.bot.cogs.open_ai.OpenAI') as mock_openai_class:
+        with patch("src.bot.cogs.open_ai.OpenAI") as mock_openai_class:
             mock_client = MagicMock()
             mock_openai_class.return_value = mock_client
 
@@ -103,15 +103,15 @@ class TestOpenAi:
         assert client == mock_client
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.open_ai.get_bot_settings')
-    @patch('src.bot.cogs.open_ai.bot_utils.send_embed')
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
     async def test_ai_command_success(
         self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings, mock_openai_response
     ):
         """Test successful AI command execution."""
         mock_get_settings.return_value = mock_bot_settings
 
-        with patch.object(openai_cog, '_get_ai_response', return_value="AI response here"):
+        with patch.object(openai_cog, "_get_ai_response", return_value="AI response here"):
             await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="What is Python?")
 
             mock_ctx.message.channel.typing.assert_called_once()
@@ -125,13 +125,13 @@ class TestOpenAi:
             assert embed.author.icon_url == "https://example.com/avatar.png"
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.open_ai.get_bot_settings')
-    @patch('src.bot.cogs.open_ai.bot_utils.send_embed')
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
     async def test_ai_command_error(self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings):
         """Test AI command with OpenAI API error."""
         mock_get_settings.return_value = mock_bot_settings
 
-        with patch.object(openai_cog, '_get_ai_response', side_effect=Exception("API Error")):
+        with patch.object(openai_cog, "_get_ai_response", side_effect=Exception("API Error")):
             await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="What is Python?")
 
             mock_ctx.message.channel.typing.assert_called_once()
@@ -147,7 +147,7 @@ class TestOpenAi:
             openai_cog.bot.log.error.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.open_ai.get_bot_settings')
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
     async def test_get_ai_response_success(
         self, mock_get_settings, openai_cog, mock_bot_settings, mock_openai_response
     ):
@@ -167,19 +167,19 @@ class TestOpenAi:
         mock_client.chat.completions.create.assert_called_once()
         call_args = mock_client.chat.completions.create.call_args
 
-        assert call_args[1]['model'] == "gpt-3.5-turbo"
-        assert call_args[1]['max_tokens'] == 1000
-        assert call_args[1]['temperature'] == pytest.approx(0.7)
+        assert call_args[1]["model"] == "gpt-3.5-turbo"
+        assert call_args[1]["max_tokens"] == 1000
+        assert call_args[1]["temperature"] == pytest.approx(0.7)
 
         # Verify message types and content
-        messages = call_args[1]['messages']
+        messages = call_args[1]["messages"]
         assert len(messages) == 2
-        assert messages[0]['role'] == "system"
-        assert messages[1]['role'] == "user"
-        assert messages[1]['content'] == "What is Python?"
+        assert messages[0]["role"] == "system"
+        assert messages[1]["role"] == "user"
+        assert messages[1]["content"] == "What is Python?"
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.open_ai.get_bot_settings')
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
     async def test_get_ai_response_with_leading_trailing_spaces(
         self, mock_get_settings, openai_cog, mock_bot_settings, mock_openai_response
     ):
@@ -253,8 +253,8 @@ class TestOpenAi:
         assert "UTC" in embed.footer.text
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.open_ai.get_bot_settings')
-    @patch('src.bot.cogs.open_ai.bot_utils.send_embed')
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
     async def test_ai_command_with_different_models(
         self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_openai_response
     ):
@@ -273,11 +273,11 @@ class TestOpenAi:
 
         # Verify correct model was used
         call_args = mock_client.chat.completions.create.call_args
-        assert call_args[1]['model'] == "gpt-4"
+        assert call_args[1]["model"] == "gpt-4"
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.open_ai.get_bot_settings')
-    @patch('src.bot.cogs.open_ai.bot_utils.send_embed')
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
     async def test_ai_command_with_long_question(
         self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings
     ):
@@ -285,7 +285,7 @@ class TestOpenAi:
         mock_get_settings.return_value = mock_bot_settings
         long_question = "What is " + "very " * 1000 + "long question?"
 
-        with patch.object(openai_cog, '_get_ai_response', return_value="Short answer"):
+        with patch.object(openai_cog, "_get_ai_response", return_value="Short answer"):
             await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text=long_question)
 
             mock_send_embed.assert_called_once()
@@ -293,8 +293,8 @@ class TestOpenAi:
             assert embed.description == "Short answer"
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.open_ai.get_bot_settings')
-    @patch('src.bot.cogs.open_ai.bot_utils.send_embed')
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
     async def test_ai_command_with_special_characters(
         self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings
     ):
@@ -302,7 +302,7 @@ class TestOpenAi:
         mock_get_settings.return_value = mock_bot_settings
         special_question = "What is 2+2? 🤔 And émojis & spéciál chars?"
 
-        with patch.object(openai_cog, '_get_ai_response', return_value="4! 😊"):
+        with patch.object(openai_cog, "_get_ai_response", return_value="4! 😊"):
             await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text=special_question)
 
             mock_send_embed.assert_called_once()
@@ -310,7 +310,7 @@ class TestOpenAi:
             assert embed.description == "4! 😊"
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.open_ai.get_bot_settings')
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
     async def test_get_ai_response_system_message_content(
         self, mock_get_settings, openai_cog, mock_bot_settings, mock_openai_response
     ):
@@ -324,13 +324,13 @@ class TestOpenAi:
 
         await openai_cog._get_ai_response("Test message")
 
-        messages = mock_client.chat.completions.create.call_args[1]['messages']
+        messages = mock_client.chat.completions.create.call_args[1]["messages"]
         system_message = messages[0]
         expected_content = "You are a helpful AI assistant. Provide clear, concise, and accurate responses."
-        assert system_message['content'] == expected_content
+        assert system_message["content"] == expected_content
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.open_ai.get_bot_settings')
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
     async def test_get_ai_response_api_parameters(
         self, mock_get_settings, openai_cog, mock_bot_settings, mock_openai_response
     ):
@@ -345,11 +345,11 @@ class TestOpenAi:
         await openai_cog._get_ai_response("Test message")
 
         call_args = mock_client.chat.completions.create.call_args[1]
-        assert call_args['max_tokens'] == 1000
-        assert call_args['temperature'] == pytest.approx(0.7)
-        assert call_args['model'] == "gpt-3.5-turbo"
+        assert call_args["max_tokens"] == 1000
+        assert call_args["temperature"] == pytest.approx(0.7)
+        assert call_args["model"] == "gpt-3.5-turbo"
 
-    @patch('src.bot.cogs.open_ai.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.open_ai.bot_utils.get_current_date_time_str_long")
     def test_create_ai_embed_footer(self, mock_get_datetime, openai_cog, mock_ctx):
         """Test that embed footer contains correct timestamp."""
         mock_get_datetime.return_value = "2023-01-01 12:00:00"
@@ -374,11 +374,11 @@ class TestOpenAi:
     def test_openai_cog_inheritance(self, openai_cog):
         """Test that OpenAi cog properly inherits from commands.Cog."""
         assert isinstance(openai_cog, commands.Cog)
-        assert hasattr(openai_cog, 'bot')
+        assert hasattr(openai_cog, "bot")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.open_ai.get_bot_settings')
-    @patch('src.bot.cogs.open_ai.bot_utils.send_embed')
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
     async def test_ai_command_error_logging(
         self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings
     ):
@@ -386,7 +386,7 @@ class TestOpenAi:
         mock_get_settings.return_value = mock_bot_settings
         test_error = Exception("Test API Error")
 
-        with patch.object(openai_cog, '_get_ai_response', side_effect=test_error):
+        with patch.object(openai_cog, "_get_ai_response", side_effect=test_error):
             await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="Test question")
 
             # Verify error was logged with correct message
@@ -396,15 +396,15 @@ class TestOpenAi:
             assert "Test API Error" in log_call
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.open_ai.get_bot_settings')
-    @patch('src.bot.cogs.open_ai.bot_utils.send_embed')
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
     async def test_ai_command_send_embed_parameters(
         self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings
     ):
         """Test that send_embed is called with correct parameters."""
         mock_get_settings.return_value = mock_bot_settings
 
-        with patch.object(openai_cog, '_get_ai_response', return_value="Test response"):
+        with patch.object(openai_cog, "_get_ai_response", return_value="Test response"):
             await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="Test question")
 
             # Verify send_embed was called with ctx, embed, and False
@@ -415,7 +415,7 @@ class TestOpenAi:
             assert call_args[2] is False  # dm parameter
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.open_ai.get_bot_settings')
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
     async def test_get_ai_response_empty_response(self, mock_get_settings, openai_cog, mock_bot_settings):
         """Test _get_ai_response with empty response from OpenAI."""
         mock_get_settings.return_value = mock_bot_settings

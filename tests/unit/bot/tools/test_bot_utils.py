@@ -25,29 +25,29 @@ class TestColorsEnum:
         """Test that all expected colors are defined."""
         colors = bot_utils.Colors
         expected_colors = [
-            'black',
-            'teal',
-            'dark_teal',
-            'green',
-            'dark_green',
-            'blue',
-            'dark_blue',
-            'purple',
-            'dark_purple',
-            'magenta',
-            'dark_magenta',
-            'gold',
-            'dark_gold',
-            'orange',
-            'dark_orange',
-            'red',
-            'dark_red',
-            'lighter_grey',
-            'dark_grey',
-            'light_grey',
-            'darker_grey',
-            'blurple',
-            'greyple',
+            "black",
+            "teal",
+            "dark_teal",
+            "green",
+            "dark_green",
+            "blue",
+            "dark_blue",
+            "purple",
+            "dark_purple",
+            "magenta",
+            "dark_magenta",
+            "gold",
+            "dark_gold",
+            "orange",
+            "dark_orange",
+            "red",
+            "dark_red",
+            "lighter_grey",
+            "dark_grey",
+            "light_grey",
+            "darker_grey",
+            "blurple",
+            "greyple",
         ]
 
         for color_name in expected_colors:
@@ -75,8 +75,8 @@ class TestServerUtilities:
         return guild
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.ServersDal')
-    @patch('src.gw2.tools.gw2_utils.insert_gw2_server_configs')
+    @patch("src.bot.tools.bot_utils.ServersDal")
+    @patch("src.gw2.tools.gw2_utils.insert_gw2_server_configs")
     async def test_insert_server_success(self, mock_gw2_insert, mock_servers_dal, mock_bot, mock_server):
         """Test successful server insertion."""
         mock_dal = AsyncMock()
@@ -94,7 +94,7 @@ class TestServerUtilities:
         # Verify GW2 configs were inserted
         mock_gw2_insert.assert_called_once_with(mock_bot, mock_server)
 
-    @patch('src.bot.tools.bot_utils.BackGroundTasks')
+    @patch("src.bot.tools.bot_utils.BackGroundTasks")
     def test_init_background_tasks_enabled(self, mock_bg_tasks_class, mock_bot):
         """Test background task initialization when enabled."""
         mock_bot.settings = {"bot": {"BGActivityTimer": 30}}
@@ -144,12 +144,12 @@ class TestCogLoading:
     async def test_load_cogs_success(self, mock_bot):
         """Test successful cog loading."""
         with patch(
-            'src.bot.tools.bot_utils.variables.ALL_COGS', ['src/bot/cogs/test_cog.py', 'src/bot/events/test_event.py']
+            "src.bot.tools.bot_utils.variables.ALL_COGS", ["src/bot/cogs/test_cog.py", "src/bot/events/test_event.py"]
         ):
             await bot_utils.load_cogs(mock_bot)
 
             # Verify extensions were loaded
-            expected_extensions = ['src.bot.cogs.test_cog', 'src.bot.events.test_event']
+            expected_extensions = ["src.bot.cogs.test_cog", "src.bot.events.test_event"]
 
             assert mock_bot.load_extension.call_count == 2
             actual_calls = [call[0][0] for call in mock_bot.load_extension.call_args_list]
@@ -162,8 +162,8 @@ class TestCogLoading:
     async def test_load_cogs_with_failure(self, mock_bot):
         """Test cog loading with some failures."""
         with patch(
-            'src.bot.tools.bot_utils.variables.ALL_COGS',
-            ['src/bot/cogs/working_cog.py', 'src/bot/cogs/broken_cog.py'],
+            "src.bot.tools.bot_utils.variables.ALL_COGS",
+            ["src/bot/cogs/working_cog.py", "src/bot/cogs/broken_cog.py"],
         ):
             # Make second cog fail to load
             mock_bot.load_extension.side_effect = [None, Exception("Failed to load")]
@@ -196,7 +196,7 @@ class TestCommandUtilities:
         return ctx
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_help_msg')
+    @patch("src.bot.tools.bot_utils.send_help_msg")
     async def test_invoke_subcommand_with_subcommand(self, mock_send_help, mock_ctx):
         """Test invoke_subcommand when subcommand exists."""
         mock_subcommand = MagicMock()
@@ -210,7 +210,7 @@ class TestCommandUtilities:
         mock_ctx.message.channel.typing.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_help_msg')
+    @patch("src.bot.tools.bot_utils.send_help_msg")
     async def test_invoke_subcommand_without_subcommand(self, mock_send_help, mock_ctx):
         """Test invoke_subcommand when no subcommand exists."""
         mock_ctx.invoked_subcommand = None
@@ -223,7 +223,7 @@ class TestCommandUtilities:
         mock_send_help.assert_called_once_with(mock_ctx, mock_ctx.command)
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_help_msg')
+    @patch("src.bot.tools.bot_utils.send_help_msg")
     async def test_invoke_subcommand_no_command(self, mock_send_help, mock_ctx):
         """Test invoke_subcommand when no command exists."""
         mock_ctx.invoked_subcommand = None
@@ -302,7 +302,7 @@ class TestMessageUtilities:
         return ctx
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_embed')
+    @patch("src.bot.tools.bot_utils.send_embed")
     async def test_send_msg_basic(self, mock_send_embed, mock_ctx):
         """Test basic send_msg functionality."""
         await bot_utils.send_msg(mock_ctx, "Test message")
@@ -317,7 +317,7 @@ class TestMessageUtilities:
         assert dm_arg is False
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_embed')
+    @patch("src.bot.tools.bot_utils.send_embed")
     async def test_send_msg_dm(self, mock_send_embed, mock_ctx):
         """Test send_msg with DM enabled."""
         await bot_utils.send_msg(mock_ctx, "DM message", dm=True)
@@ -327,7 +327,7 @@ class TestMessageUtilities:
         assert dm_arg is True
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_embed')
+    @patch("src.bot.tools.bot_utils.send_embed")
     async def test_send_warning_msg(self, mock_send_embed, mock_ctx):
         """Test send_warning_msg functionality."""
         await bot_utils.send_warning_msg(mock_ctx, "Warning message")
@@ -337,7 +337,7 @@ class TestMessageUtilities:
         assert embed_arg.color == discord.Color.orange()
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_embed')
+    @patch("src.bot.tools.bot_utils.send_embed")
     async def test_send_info_msg(self, mock_send_embed, mock_ctx):
         """Test send_info_msg functionality."""
         await bot_utils.send_info_msg(mock_ctx, "Info message")
@@ -347,7 +347,7 @@ class TestMessageUtilities:
         assert embed_arg.color == discord.Color.blue()
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.send_embed')
+    @patch("src.bot.tools.bot_utils.send_embed")
     async def test_send_error_msg(self, mock_send_embed, mock_ctx):
         """Test send_error_msg functionality."""
         await bot_utils.send_error_msg(mock_ctx, "Error message")
@@ -455,7 +455,7 @@ class TestChannelUtilities:
 class TestDateTimeUtilities:
     """Test date and time utility functions."""
 
-    @patch('src.bot.tools.bot_utils.datetime')
+    @patch("src.bot.tools.bot_utils.datetime")
     def test_get_current_date_time(self, mock_datetime):
         """Test get_current_date_time function."""
         mock_now = MagicMock()
@@ -466,8 +466,8 @@ class TestDateTimeUtilities:
         mock_datetime.now.assert_called_once_with(UTC)
         assert result == mock_now
 
-    @patch('src.bot.tools.bot_utils.get_current_date_time')
-    @patch('src.bot.tools.bot_utils.convert_datetime_to_str_long')
+    @patch("src.bot.tools.bot_utils.get_current_date_time")
+    @patch("src.bot.tools.bot_utils.convert_datetime_to_str_long")
     def test_get_current_date_time_str_long(self, mock_convert, mock_get_current):
         """Test get_current_date_time_str_long function."""
         mock_datetime = MagicMock()
@@ -480,7 +480,7 @@ class TestDateTimeUtilities:
         mock_convert.assert_called_once_with(mock_datetime)
         assert result == "formatted_date"
 
-    @patch('src.bot.tools.bot_utils.variables.DATE_TIME_FORMATTER_STR', '%Y-%m-%d %H:%M:%S')
+    @patch("src.bot.tools.bot_utils.variables.DATE_TIME_FORMATTER_STR", "%Y-%m-%d %H:%M:%S")
     def test_convert_datetime_to_str_long(self):
         """Test convert_datetime_to_str_long function."""
         test_date = datetime(2023, 1, 1, 12, 30, 45, tzinfo=UTC)
@@ -489,8 +489,8 @@ class TestDateTimeUtilities:
 
         assert result == "2023-01-01 12:30:45"
 
-    @patch('src.bot.tools.bot_utils.variables.DATE_FORMATTER', '%Y-%m-%d')
-    @patch('src.bot.tools.bot_utils.variables.TIME_FORMATTER', '%H:%M:%S')
+    @patch("src.bot.tools.bot_utils.variables.DATE_FORMATTER", "%Y-%m-%d")
+    @patch("src.bot.tools.bot_utils.variables.TIME_FORMATTER", "%H:%M:%S")
     def test_convert_datetime_to_str_short(self):
         """Test convert_datetime_to_str_short function."""
         test_date = datetime(2023, 1, 1, 12, 30, 45, tzinfo=UTC)
@@ -499,8 +499,8 @@ class TestDateTimeUtilities:
 
         assert result == "2023-01-01 12:30:45"
 
-    @patch('src.bot.tools.bot_utils.variables.DATE_FORMATTER', '%Y-%m-%d')
-    @patch('src.bot.tools.bot_utils.variables.TIME_FORMATTER', '%H:%M:%S')
+    @patch("src.bot.tools.bot_utils.variables.DATE_FORMATTER", "%Y-%m-%d")
+    @patch("src.bot.tools.bot_utils.variables.TIME_FORMATTER", "%H:%M:%S")
     def test_convert_str_to_datetime_short(self):
         """Test convert_str_to_datetime_short function."""
         date_string = "2023-01-01 12:30:45"
@@ -614,7 +614,7 @@ class TestSystemChannelUtilities:
     """Test system channel related utilities."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.get_server_system_channel')
+    @patch("src.bot.tools.bot_utils.get_server_system_channel")
     async def test_send_msg_to_system_channel_success(self, mock_get_channel):
         """Test send_msg_to_system_channel with successful send."""
         mock_log = MagicMock()
@@ -630,7 +630,7 @@ class TestSystemChannelUtilities:
         mock_log.error.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.get_server_system_channel')
+    @patch("src.bot.tools.bot_utils.get_server_system_channel")
     async def test_send_msg_to_system_channel_no_channel(self, mock_get_channel):
         """Test send_msg_to_system_channel when no channel found."""
         mock_log = MagicMock()
@@ -644,7 +644,7 @@ class TestSystemChannelUtilities:
         mock_log.error.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.tools.bot_utils.get_server_system_channel')
+    @patch("src.bot.tools.bot_utils.get_server_system_channel")
     async def test_send_msg_to_system_channel_with_fallback(self, mock_get_channel):
         """Test send_msg_to_system_channel with fallback to plain message."""
         mock_log = MagicMock()
@@ -694,11 +694,11 @@ class TestColorSettings:
 
         assert result is None
 
-    @patch('random.SystemRandom')
+    @patch("random.SystemRandom")
     def test_get_color_settings_random_consistency(self, mock_system_random):
         """Test that random color generation is consistent."""
         mock_random = MagicMock()
-        mock_random.choice.side_effect = ['A', 'B', 'C', 'D', 'E', 'F']
+        mock_random.choice.side_effect = ["A", "B", "C", "D", "E", "F"]
         mock_system_random.return_value = mock_random
 
         result = bot_utils.get_color_settings("random")
@@ -753,7 +753,7 @@ class TestBotStats:
         bot.guilds = []
         bot.start_time = None
 
-        with patch('src.bot.tools.bot_utils.get_current_date_time') as mock_get_time:
+        with patch("src.bot.tools.bot_utils.get_current_date_time") as mock_get_time:
             mock_current_time = MagicMock()
             mock_get_time.return_value = mock_current_time
 

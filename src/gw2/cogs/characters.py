@@ -9,7 +9,7 @@ from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 
 
 class GW2Characters(GuildWars2):
-    """(Commands related to users characters)"""
+    """Guild Wars 2 commands for character information."""
 
     def __init__(self, bot):
         super().__init__(bot)
@@ -18,8 +18,11 @@ class GW2Characters(GuildWars2):
 @GW2Characters.gw2.command()
 @commands.cooldown(1, GW2CoolDowns.Characters.seconds, commands.BucketType.user)
 async def characters(ctx):
-    """(General information about your GW2 characters)
-    Required API permissions: account
+    """Display information about your Guild Wars 2 characters.
+
+    Required API permissions: account, characters
+
+    Usage:
         gw2 characters
     """
 

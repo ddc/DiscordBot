@@ -150,12 +150,12 @@ class TestInfoCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
 
-            with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
-                with patch('src.gw2.cogs.wvw.Gw2Client'):
+            with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
+                with patch("src.gw2.cogs.wvw.Gw2Client"):
                     await cog.info.callback(cog, mock_ctx, world=None)
 
                     mock_error.assert_called_once()
@@ -170,11 +170,11 @@ class TestInfoCommand:
 
         api_key_data = [{"key": "test-api-key-12345"}]
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
@@ -184,7 +184,7 @@ class TestInfoCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                     await cog.info.callback(cog, mock_ctx, world=None)
                     mock_send.assert_called_once()
 
@@ -196,15 +196,15 @@ class TestInfoCommand:
 
         api_key_data = [{"key": "test-api-key-12345"}]
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(side_effect=APIKeyError(mock_ctx.bot, "Invalid key"))
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                     await cog.info.callback(cog, mock_ctx, world=None)
 
                     mock_error.assert_called_once()
@@ -219,16 +219,16 @@ class TestInfoCommand:
 
         api_key_data = [{"key": "test-api-key-12345"}]
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 error = Exception("Something went wrong")
                 mock_client_instance.call_api = AsyncMock(side_effect=error)
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                     await cog.info.callback(cog, mock_ctx, world=None)
 
                     mock_error.assert_called_once_with(mock_ctx, error)
@@ -242,10 +242,10 @@ class TestInfoCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
@@ -254,7 +254,7 @@ class TestInfoCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                     await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
 
                     mock_get_wid.assert_called_once_with(mock_ctx.bot, "Anvil Rock")
@@ -266,11 +266,11 @@ class TestInfoCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = None
 
-            with patch('src.gw2.cogs.wvw.Gw2Client'):
-                with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+            with patch("src.gw2.cogs.wvw.Gw2Client"):
+                with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                     await cog.info.callback(cog, mock_ctx, world="InvalidWorld")
 
                     mock_error.assert_called_once()
@@ -284,15 +284,15 @@ class TestInfoCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 error = Exception("API failure")
                 mock_client_instance.call_api = AsyncMock(side_effect=error)
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                     await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
 
                     mock_error.assert_called_once_with(mock_ctx, error)
@@ -313,10 +313,10 @@ class TestInfoCommand:
             },
         }
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001  # Not in any of the all_worlds lists
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
@@ -325,7 +325,7 @@ class TestInfoCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                     await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
 
                     mock_error.assert_called_once()
@@ -338,10 +338,10 @@ class TestInfoCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001  # NA world
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
@@ -350,7 +350,7 @@ class TestInfoCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                     await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
 
                     embed = mock_send.call_args[0][1]
@@ -388,10 +388,10 @@ class TestInfoCommand:
             "population": "Full",
         }
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 2001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
@@ -400,7 +400,7 @@ class TestInfoCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                     await cog.info.callback(cog, mock_ctx, world="Desolation")
 
                     embed = mock_send.call_args[0][1]
@@ -412,10 +412,10 @@ class TestInfoCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001  # In red all_worlds
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
@@ -424,7 +424,7 @@ class TestInfoCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                     await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
 
                     embed = mock_send.call_args[0][1]
@@ -436,10 +436,10 @@ class TestInfoCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1003  # In green all_worlds
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
@@ -448,7 +448,7 @@ class TestInfoCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                     await cog.info.callback(cog, mock_ctx, world="Some World")
 
                     embed = mock_send.call_args[0][1]
@@ -460,10 +460,10 @@ class TestInfoCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1005  # In blue all_worlds
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
@@ -472,7 +472,7 @@ class TestInfoCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                     await cog.info.callback(cog, mock_ctx, world="Some World")
 
                     embed = mock_send.call_args[0][1]
@@ -490,10 +490,10 @@ class TestInfoCommand:
             "population": "VeryHigh",
         }
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
@@ -502,8 +502,8 @@ class TestInfoCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
-                    with patch('src.gw2.cogs.wvw.chat_formatting.inline', side_effect=lambda x: f"`{x}`"):
+                with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.wvw.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
                         await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
@@ -536,10 +536,10 @@ class TestInfoCommand:
             ],
         }
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
@@ -548,8 +548,8 @@ class TestInfoCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
-                    with patch('src.gw2.cogs.wvw.chat_formatting.inline', side_effect=lambda x: f"`{x}`"):
+                with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.wvw.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
                         await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
@@ -581,10 +581,10 @@ class TestInfoCommand:
             ],
         }
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
@@ -593,8 +593,8 @@ class TestInfoCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
-                    with patch('src.gw2.cogs.wvw.chat_formatting.inline', side_effect=lambda x: f"`{x}`"):
+                with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.wvw.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
                         await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
@@ -607,10 +607,10 @@ class TestInfoCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001  # red world
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
@@ -619,8 +619,8 @@ class TestInfoCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
-                    with patch('src.gw2.cogs.wvw.chat_formatting.inline', side_effect=lambda x: f"`{x}`"):
+                with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.wvw.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
                         await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
@@ -634,10 +634,10 @@ class TestInfoCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
@@ -646,8 +646,8 @@ class TestInfoCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
-                    with patch('src.gw2.cogs.wvw.chat_formatting.inline', side_effect=lambda x: f"`{x}`"):
+                with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.wvw.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
                         await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
 
                         mock_send.assert_called_once()
@@ -758,12 +758,12 @@ class TestMatchCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
 
-            with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
-                with patch('src.gw2.cogs.wvw.Gw2Client'):
+            with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
+                with patch("src.gw2.cogs.wvw.Gw2Client"):
                     await cog.match.callback(cog, mock_ctx, world=None)
 
                     mock_error.assert_called_once()
@@ -778,15 +778,15 @@ class TestMatchCommand:
 
         api_key_data = [{"key": "test-api-key-12345"}]
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(side_effect=APIKeyError(mock_ctx.bot, "Invalid key"))
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                     await cog.match.callback(cog, mock_ctx, world=None)
 
                     mock_error.assert_called_once()
@@ -801,16 +801,16 @@ class TestMatchCommand:
 
         api_key_data = [{"key": "test-api-key-12345"}]
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 error = Exception("Something went wrong")
                 mock_client_instance.call_api = AsyncMock(side_effect=error)
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                     await cog.match.callback(cog, mock_ctx, world=None)
 
                     mock_error.assert_called_once_with(mock_ctx, error)
@@ -822,17 +822,17 @@ class TestMatchCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(return_value=sample_matches_data)
 
-                with patch('src.gw2.cogs.wvw.gw2_utils.get_world_name_population', new_callable=AsyncMock) as mock_pop:
+                with patch("src.gw2.cogs.wvw.gw2_utils.get_world_name_population", new_callable=AsyncMock) as mock_pop:
                     mock_pop.return_value = ["World1 (High)", "World2 (Medium)"]
 
-                    with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
+                    with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                         await cog.match.callback(cog, mock_ctx, world="Anvil Rock")
 
                         mock_get_wid.assert_called_once_with(mock_ctx.bot, "Anvil Rock")
@@ -843,11 +843,11 @@ class TestMatchCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = None
 
-            with patch('src.gw2.cogs.wvw.Gw2Client'):
-                with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+            with patch("src.gw2.cogs.wvw.Gw2Client"):
+                with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                     await cog.match.callback(cog, mock_ctx, world="InvalidWorld")
 
                     mock_error.assert_called_once()
@@ -861,17 +861,17 @@ class TestMatchCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(return_value=sample_matches_data)
 
-                with patch('src.gw2.cogs.wvw.gw2_utils.get_world_name_population', new_callable=AsyncMock) as mock_pop:
+                with patch("src.gw2.cogs.wvw.gw2_utils.get_world_name_population", new_callable=AsyncMock) as mock_pop:
                     mock_pop.return_value = ["World1 (High)"]
 
-                    with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
+                    with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                         await cog.match.callback(cog, mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
@@ -922,17 +922,17 @@ class TestMatchCommand:
             ],
         }
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 2001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(return_value=eu_matches)
 
-                with patch('src.gw2.cogs.wvw.gw2_utils.get_world_name_population', new_callable=AsyncMock) as mock_pop:
+                with patch("src.gw2.cogs.wvw.gw2_utils.get_world_name_population", new_callable=AsyncMock) as mock_pop:
                     mock_pop.return_value = ["World1 (High)"]
 
-                    with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
+                    with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                         await cog.match.callback(cog, mock_ctx, world="Desolation")
 
                         embed = mock_send.call_args[0][1]
@@ -944,15 +944,15 @@ class TestMatchCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 error = Exception("API Error")
                 mock_client_instance.call_api = AsyncMock(side_effect=error)
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                     await cog.match.callback(cog, mock_ctx, world="Anvil Rock")
 
                     mock_error.assert_called_once_with(mock_ctx, error)
@@ -964,17 +964,17 @@ class TestMatchCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(return_value=sample_matches_data)
 
-                with patch('src.gw2.cogs.wvw.gw2_utils.get_world_name_population', new_callable=AsyncMock) as mock_pop:
+                with patch("src.gw2.cogs.wvw.gw2_utils.get_world_name_population", new_callable=AsyncMock) as mock_pop:
                     mock_pop.return_value = ["World1 (High)", "World2 (Medium)"]
 
-                    with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
+                    with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                         await cog.match.callback(cog, mock_ctx, world="Anvil Rock")
 
                         mock_send.assert_called_once()
@@ -1070,12 +1070,12 @@ class TestKdrCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
 
-            with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
-                with patch('src.gw2.cogs.wvw.Gw2Client'):
+            with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
+                with patch("src.gw2.cogs.wvw.Gw2Client"):
                     await cog.kdr.callback(cog, mock_ctx, world=None)
 
                     mock_error.assert_called_once()
@@ -1090,15 +1090,15 @@ class TestKdrCommand:
 
         api_key_data = [{"key": "test-api-key-12345"}]
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(side_effect=APIKeyError(mock_ctx.bot, "Invalid key"))
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                     await cog.kdr.callback(cog, mock_ctx, world=None)
 
                     mock_error.assert_called_once()
@@ -1113,16 +1113,16 @@ class TestKdrCommand:
 
         api_key_data = [{"key": "test-api-key-12345"}]
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 error = Exception("Something went wrong")
                 mock_client_instance.call_api = AsyncMock(side_effect=error)
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                     await cog.kdr.callback(cog, mock_ctx, world=None)
 
                     mock_error.assert_called_once_with(mock_ctx, error)
@@ -1134,17 +1134,17 @@ class TestKdrCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(return_value=sample_matches_data)
 
-                with patch('src.gw2.cogs.wvw.gw2_utils.get_world_name_population', new_callable=AsyncMock) as mock_pop:
+                with patch("src.gw2.cogs.wvw.gw2_utils.get_world_name_population", new_callable=AsyncMock) as mock_pop:
                     mock_pop.return_value = ["World1 (High)"]
 
-                    with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
+                    with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                         await cog.kdr.callback(cog, mock_ctx, world="Anvil Rock")
 
                         mock_get_wid.assert_called_once_with(mock_ctx.bot, "Anvil Rock")
@@ -1155,11 +1155,11 @@ class TestKdrCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = None
 
-            with patch('src.gw2.cogs.wvw.Gw2Client'):
-                with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+            with patch("src.gw2.cogs.wvw.Gw2Client"):
+                with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                     await cog.kdr.callback(cog, mock_ctx, world="InvalidWorld")
 
                     mock_error.assert_called_once()
@@ -1173,17 +1173,17 @@ class TestKdrCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(return_value=sample_matches_data)
 
-                with patch('src.gw2.cogs.wvw.gw2_utils.get_world_name_population', new_callable=AsyncMock) as mock_pop:
+                with patch("src.gw2.cogs.wvw.gw2_utils.get_world_name_population", new_callable=AsyncMock) as mock_pop:
                     mock_pop.return_value = ["World1 (High)"]
 
-                    with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
+                    with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                         await cog.kdr.callback(cog, mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
@@ -1234,17 +1234,17 @@ class TestKdrCommand:
             ],
         }
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 2001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(return_value=eu_matches)
 
-                with patch('src.gw2.cogs.wvw.gw2_utils.get_world_name_population', new_callable=AsyncMock) as mock_pop:
+                with patch("src.gw2.cogs.wvw.gw2_utils.get_world_name_population", new_callable=AsyncMock) as mock_pop:
                     mock_pop.return_value = ["World1 (High)"]
 
-                    with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
+                    with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                         await cog.kdr.callback(cog, mock_ctx, world="Desolation")
 
                         embed = mock_send.call_args[0][1]
@@ -1257,15 +1257,15 @@ class TestKdrCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 error = Exception("API Error")
                 mock_client_instance.call_api = AsyncMock(side_effect=error)
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                     await cog.kdr.callback(cog, mock_ctx, world="Anvil Rock")
 
                     mock_error.assert_called_once_with(mock_ctx, error)
@@ -1277,17 +1277,17 @@ class TestKdrCommand:
         cog = GW2WvW(mock_bot)
         cog.bot = mock_ctx.bot
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(return_value=sample_matches_data)
 
-                with patch('src.gw2.cogs.wvw.gw2_utils.get_world_name_population', new_callable=AsyncMock) as mock_pop:
+                with patch("src.gw2.cogs.wvw.gw2_utils.get_world_name_population", new_callable=AsyncMock) as mock_pop:
                     mock_pop.return_value = ["World1 (High)"]
 
-                    with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
+                    with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                         await cog.kdr.callback(cog, mock_ctx, world="Anvil Rock")
 
                         mock_send.assert_called_once()
@@ -1328,7 +1328,7 @@ class TestGetMapNamesEmbedValues:
     @pytest.mark.asyncio
     async def test_get_map_names_green(self, mock_ctx, sample_matches):
         """Test _get_map_names_embed_values for green color."""
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_name_population', new_callable=AsyncMock) as mock_pop:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_name_population", new_callable=AsyncMock) as mock_pop:
             mock_pop.return_value = ["World1 (High)", "World2 (Medium)", "World3 (Low)"]
 
             result = await _get_map_names_embed_values(mock_ctx, "green", sample_matches)
@@ -1342,7 +1342,7 @@ class TestGetMapNamesEmbedValues:
     @pytest.mark.asyncio
     async def test_get_map_names_primary_server_first(self, mock_ctx, sample_matches):
         """Test that primary server ID is first in the list."""
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_name_population', new_callable=AsyncMock) as mock_pop:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_name_population", new_callable=AsyncMock) as mock_pop:
             mock_pop.return_value = ["World1 (High)"]
 
             await _get_map_names_embed_values(mock_ctx, "green", sample_matches)
@@ -1360,7 +1360,7 @@ class TestGetMapNamesEmbedValues:
             "worlds": {"red": 1001},
         }
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_name_population', new_callable=AsyncMock) as mock_pop:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_name_population", new_callable=AsyncMock) as mock_pop:
             mock_pop.return_value = ["World1 (High)", "World2 (Medium)"]
 
             await _get_map_names_embed_values(mock_ctx, "red", matches)
@@ -1788,7 +1788,7 @@ class TestWvWSubcommand:
         """Test that wvw group command calls invoke_subcommand (line 27)."""
         cog = GW2WvW(mock_bot)
 
-        with patch('src.gw2.cogs.wvw.bot_utils.invoke_subcommand', new_callable=AsyncMock) as mock_invoke:
+        with patch("src.gw2.cogs.wvw.bot_utils.invoke_subcommand", new_callable=AsyncMock) as mock_invoke:
             await cog.wvw.callback(cog, mock_ctx)
             mock_invoke.assert_called_once_with(mock_ctx, "gw2 wvw")
 
@@ -1847,15 +1847,15 @@ class TestInfoDefaultColor:
             "maps": [{"objectives": [{"owner": "Yellow", "points_tick": 5}]}],
         }
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock) as mock_get_wid:
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(side_effect=[matches_data, sample_worldinfo])
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_embed') as mock_send:
-                    with patch('src.gw2.cogs.wvw.chat_formatting.inline', side_effect=lambda x: f"`{x}`"):
+                with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.wvw.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
                         await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
@@ -1902,16 +1902,16 @@ class TestMatchAPIKeyError:
 
         api_key_data = [{"key": "test-api-key"}]
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 # Raise APIKeyError on the account call (results = await gw2_api.call_api("account", api_key))
                 mock_client_instance.call_api = AsyncMock(side_effect=APIKeyError(mock_ctx.bot, "Invalid key"))
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                     result = await cog.match.callback(cog, mock_ctx, world=None)
 
                     mock_error.assert_called_once()
@@ -1959,15 +1959,15 @@ class TestKdrAPIKeyError:
 
         api_key_data = [{"key": "test-api-key"}]
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
-            with patch('src.gw2.cogs.wvw.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(side_effect=APIKeyError(mock_ctx.bot, "Invalid key"))
 
-                with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                     result = await cog.kdr.callback(cog, mock_ctx, world=None)
 
                     mock_error.assert_called_once()
@@ -2037,7 +2037,7 @@ class TestResolveWvwWorldId:
         cog.bot = mock_ctx.bot
         gw2_api = MagicMock()
 
-        with patch('src.gw2.cogs.wvw.gw2_utils.get_world_id', new_callable=AsyncMock, return_value=1001):
+        with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock, return_value=1001):
             result = await cog._resolve_wvw_world_id(mock_ctx, gw2_api, "Anvil Rock", "error msg")
             assert result == 1001
 
@@ -2049,7 +2049,7 @@ class TestResolveWvwWorldId:
         gw2_api = MagicMock()
         gw2_api.call_api = AsyncMock(return_value={"world": 1001, "wvw": {"team_id": 11005}})
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=[{"key": "test-key"}])
 
             result = await cog._resolve_wvw_world_id(mock_ctx, gw2_api, None, "error msg")
@@ -2063,7 +2063,7 @@ class TestResolveWvwWorldId:
         gw2_api = MagicMock()
         gw2_api.call_api = AsyncMock(return_value={"world": 1001})
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=[{"key": "test-key"}])
 
             result = await cog._resolve_wvw_world_id(mock_ctx, gw2_api, None, "error msg")
@@ -2076,10 +2076,10 @@ class TestResolveWvwWorldId:
         cog.bot = mock_ctx.bot
         gw2_api = MagicMock()
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=None)
 
-            with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+            with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                 result = await cog._resolve_wvw_world_id(mock_ctx, gw2_api, None, "no key msg")
                 assert result is None
                 mock_error.assert_called_once()
@@ -2092,10 +2092,10 @@ class TestResolveWvwWorldId:
         gw2_api = MagicMock()
         gw2_api.call_api = AsyncMock(side_effect=APIKeyError(mock_ctx.bot, "bad key"))
 
-        with patch('src.gw2.cogs.wvw.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=[{"key": "test-key"}])
 
-            with patch('src.gw2.cogs.wvw.bot_utils.send_error_msg') as mock_error:
+            with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                 result = await cog._resolve_wvw_world_id(mock_ctx, gw2_api, None, "error msg")
                 assert result is None
                 mock_error.assert_called_once()

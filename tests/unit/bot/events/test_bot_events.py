@@ -7,7 +7,7 @@ import pytest
 import sys
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.events.on_command import CommandLogger, OnCommand
 from src.bot.cogs.events.on_disconnect import OnDisconnect
@@ -217,7 +217,7 @@ class TestOnCommand:
 
         cog = OnCommand(mock_bot)
         assert isinstance(cog, commands.Cog)
-        assert hasattr(cog, 'bot')
+        assert hasattr(cog, "bot")
 
 
 # =============================================================================
@@ -256,7 +256,7 @@ class TestOnDisconnect:
         mock_bot.log.warning.assert_called_once_with(messages.bot_disconnected(mock_bot.user))
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_disconnect.messages')
+    @patch("src.bot.cogs.events.on_disconnect.messages")
     async def test_on_disconnect_event_with_bot_disconnected_message(self, mock_messages, mock_bot):
         """Test on_disconnect event calls bot_disconnected function."""
         mock_messages.bot_disconnected.return_value = f"Bot {mock_bot.user} has disconnected!"
@@ -276,7 +276,7 @@ class TestOnDisconnect:
         cog = OnDisconnect(mock_bot)
 
         # Should not raise; falls through to print fallback
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             await cog.on_disconnect()
             mock_print.assert_called_once()
             print_call = mock_print.call_args[0][0]
@@ -288,7 +288,7 @@ class TestOnDisconnect:
 
         cog = OnDisconnect(mock_bot)
         assert isinstance(cog, commands.Cog)
-        assert hasattr(cog, 'bot')
+        assert hasattr(cog, "bot")
 
 
 # =============================================================================
@@ -333,7 +333,7 @@ class TestOnGuildChannelCreate:
 
         cog = OnGuildChannelCreate(mock_bot)
         assert isinstance(cog, commands.Cog)
-        assert hasattr(cog, 'bot')
+        assert hasattr(cog, "bot")
 
 
 # =============================================================================
@@ -378,7 +378,7 @@ class TestOnGuildChannelDelete:
 
         cog = OnGuildChannelDelete(mock_bot)
         assert isinstance(cog, commands.Cog)
-        assert hasattr(cog, 'bot')
+        assert hasattr(cog, "bot")
 
 
 # =============================================================================
@@ -425,7 +425,7 @@ class TestOnGuildChannelUpdate:
 
         cog = OnGuildChannelUpdate(mock_bot)
         assert isinstance(cog, commands.Cog)
-        assert hasattr(cog, 'bot')
+        assert hasattr(cog, "bot")
 
 
 # =============================================================================
@@ -442,7 +442,7 @@ class TestGuildCleanupHandler:
         assert handler.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_remove.ServersDal')
+    @patch("src.bot.cogs.events.on_guild_remove.ServersDal")
     async def test_cleanup_server_data_success(self, mock_dal_class, mock_bot, mock_guild):
         """Test successful cleanup of server data."""
         mock_dal = AsyncMock()
@@ -460,7 +460,7 @@ class TestGuildCleanupHandler:
         )
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_remove.ServersDal')
+    @patch("src.bot.cogs.events.on_guild_remove.ServersDal")
     async def test_cleanup_server_data_failure(self, mock_dal_class, mock_bot, mock_guild):
         """Test cleanup of server data when exception occurs."""
         mock_dal = AsyncMock()
@@ -479,7 +479,7 @@ class TestGuildCleanupHandler:
         assert str(mock_guild.id) in error_call
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_remove.ServersDal')
+    @patch("src.bot.cogs.events.on_guild_remove.ServersDal")
     async def test_cleanup_server_data_dal_init_failure(self, mock_dal_class, mock_bot, mock_guild):
         """Test cleanup of server data when DAL initialization fails."""
         mock_dal_class.side_effect = RuntimeError("DAL init error")
@@ -520,7 +520,7 @@ class TestOnGuildRemove:
         assert added_cog.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_remove.ServersDal')
+    @patch("src.bot.cogs.events.on_guild_remove.ServersDal")
     async def test_on_guild_remove_event_success(self, mock_dal_class, mock_bot, mock_guild):
         """Test on_guild_remove event handler with successful cleanup."""
         mock_dal = AsyncMock()
@@ -537,7 +537,7 @@ class TestOnGuildRemove:
         mock_dal.delete_server.assert_called_once_with(mock_guild.id)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_remove.ServersDal')
+    @patch("src.bot.cogs.events.on_guild_remove.ServersDal")
     async def test_on_guild_remove_event_cleanup_failure(self, mock_dal_class, mock_bot, mock_guild):
         """Test on_guild_remove event handler when cleanup fails."""
         mock_dal = AsyncMock()
@@ -573,7 +573,7 @@ class TestOnGuildRemove:
 
         cog = OnGuildRemove(mock_bot)
         assert isinstance(cog, commands.Cog)
-        assert hasattr(cog, 'bot')
+        assert hasattr(cog, "bot")
 
 
 # =============================================================================
@@ -602,7 +602,7 @@ class TestOnPresenceUpdate:
         assert added_cog.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_presence_update.gw2_utils.check_gw2_game_activity')
+    @patch("src.bot.cogs.events.on_presence_update.gw2_utils.check_gw2_game_activity")
     async def test_on_presence_update_non_bot_user(self, mock_check_gw2, mock_bot):
         """Test on_presence_update event for a non-bot user."""
         cog = OnPresenceUpdate(mock_bot)
@@ -617,7 +617,7 @@ class TestOnPresenceUpdate:
         mock_check_gw2.assert_called_once_with(mock_bot, mock_before, mock_after)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_presence_update.gw2_utils.check_gw2_game_activity')
+    @patch("src.bot.cogs.events.on_presence_update.gw2_utils.check_gw2_game_activity")
     async def test_on_presence_update_bot_user(self, mock_check_gw2, mock_bot):
         """Test on_presence_update event for a bot user (should be ignored)."""
         cog = OnPresenceUpdate(mock_bot)
@@ -637,4 +637,4 @@ class TestOnPresenceUpdate:
 
         cog = OnPresenceUpdate(mock_bot)
         assert isinstance(cog, commands.Cog)
-        assert hasattr(cog, 'bot')
+        assert hasattr(cog, "bot")

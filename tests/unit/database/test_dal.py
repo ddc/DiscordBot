@@ -4,7 +4,7 @@ import pytest
 import sys
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.database.dal.bot.bot_configs_dal import BotConfigsDal
 from src.database.dal.bot.custom_commands_dal import CustomCommandsDal
@@ -28,7 +28,7 @@ class TestBotConfigsDal:
     def mock_dal(self):
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.bot.bot_configs_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.bot.bot_configs_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = BotConfigsDal(db_session, log)
@@ -39,7 +39,7 @@ class TestBotConfigsDal:
         """Test BotConfigsDal initialization."""
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.bot.bot_configs_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.bot.bot_configs_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = BotConfigsDal(db_session, log)
@@ -117,7 +117,7 @@ class TestCustomCommandsDal:
     def mock_dal(self):
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.bot.custom_commands_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.bot.custom_commands_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = CustomCommandsDal(db_session, log)
@@ -128,7 +128,7 @@ class TestCustomCommandsDal:
         """Test CustomCommandsDal initialization."""
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.bot.custom_commands_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.bot.custom_commands_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = CustomCommandsDal(db_session, log)
@@ -233,7 +233,7 @@ class TestDiceRollsDal:
     def mock_dal(self):
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.bot.dice_rolls_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.bot.dice_rolls_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = DiceRollsDal(db_session, log)
@@ -244,7 +244,7 @@ class TestDiceRollsDal:
         """Test DiceRollsDal initialization."""
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.bot.dice_rolls_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.bot.dice_rolls_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = DiceRollsDal(db_session, log)
@@ -397,7 +397,7 @@ class TestProfanityFilterDal:
     def mock_dal(self):
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.bot.profanity_filters_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.bot.profanity_filters_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = ProfanityFilterDal(db_session, log)
@@ -408,7 +408,7 @@ class TestProfanityFilterDal:
         """Test ProfanityFilterDal initialization."""
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.bot.profanity_filters_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.bot.profanity_filters_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = ProfanityFilterDal(db_session, log)
@@ -496,7 +496,7 @@ class TestServersDal:
     def mock_dal(self):
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.bot.servers_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.bot.servers_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = ServersDal(db_session, log)
@@ -507,7 +507,7 @@ class TestServersDal:
         """Test ServersDal initialization."""
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.bot.servers_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.bot.servers_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = ServersDal(db_session, log)
@@ -697,7 +697,7 @@ class TestGw2ConfigsDal:
     def mock_dal(self):
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.gw2.gw2_configs_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.gw2.gw2_configs_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = Gw2ConfigsDal(db_session, log)
@@ -708,7 +708,7 @@ class TestGw2ConfigsDal:
         """Test Gw2ConfigsDal initialization."""
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.gw2.gw2_configs_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.gw2.gw2_configs_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = Gw2ConfigsDal(db_session, log)
@@ -779,7 +779,7 @@ class TestGw2KeyDal:
     def mock_dal(self):
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.gw2.gw2_key_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.gw2.gw2_key_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = Gw2KeyDal(db_session, log)
@@ -790,7 +790,7 @@ class TestGw2KeyDal:
         """Test Gw2KeyDal initialization."""
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.gw2.gw2_key_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.gw2.gw2_key_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = Gw2KeyDal(db_session, log)
@@ -914,7 +914,7 @@ class TestGw2SessionCharsDal:
     def mock_dal(self):
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.gw2.gw2_session_chars_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.gw2.gw2_session_chars_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = Gw2SessionCharsDal(db_session, log)
@@ -925,7 +925,7 @@ class TestGw2SessionCharsDal:
         """Test Gw2SessionCharsDal initialization."""
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.gw2.gw2_session_chars_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.gw2.gw2_session_chars_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = Gw2SessionCharsDal(db_session, log)
@@ -1059,7 +1059,7 @@ class TestGw2SessionsDal:
     def mock_dal(self):
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.gw2.gw2_sessions_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.gw2.gw2_sessions_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = Gw2SessionsDal(db_session, log)
@@ -1070,7 +1070,7 @@ class TestGw2SessionsDal:
         """Test Gw2SessionsDal initialization."""
         db_session = MagicMock()
         log = MagicMock()
-        with patch('src.database.dal.gw2.gw2_sessions_dal.DBUtilsAsync') as mock_db_utils_class:
+        with patch("src.database.dal.gw2.gw2_sessions_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
             dal = Gw2SessionsDal(db_session, log)

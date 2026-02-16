@@ -14,14 +14,14 @@ class TestBotSettings:
         settings = BotSettings()
 
         # Test that all expected fields exist
-        assert hasattr(settings, 'prefix')
-        assert hasattr(settings, 'token')
-        assert hasattr(settings, 'openai_model')
-        assert hasattr(settings, 'openai_api_key')
-        assert hasattr(settings, 'bg_activity_timer')
-        assert hasattr(settings, 'allowed_dm_commands')
-        assert hasattr(settings, 'embed_color')
-        assert hasattr(settings, 'admin_cooldown')
+        assert hasattr(settings, "prefix")
+        assert hasattr(settings, "token")
+        assert hasattr(settings, "openai_model")
+        assert hasattr(settings, "openai_api_key")
+        assert hasattr(settings, "bg_activity_timer")
+        assert hasattr(settings, "allowed_dm_commands")
+        assert hasattr(settings, "embed_color")
+        assert hasattr(settings, "admin_cooldown")
 
         # Test types are correct (allowing for None due to Optional)
         assert isinstance(settings.prefix, (str, type(None)))
@@ -178,10 +178,10 @@ class TestGetBotSettings:
         settings = get_bot_settings()
 
         # Just verify the structure is correct
-        assert hasattr(settings, 'prefix')
-        assert hasattr(settings, 'token')
-        assert hasattr(settings, 'admin_cooldown')
-        assert hasattr(settings, 'embed_color')
+        assert hasattr(settings, "prefix")
+        assert hasattr(settings, "token")
+        assert hasattr(settings, "admin_cooldown")
+        assert hasattr(settings, "embed_color")
 
         # Verify types
         assert isinstance(settings.prefix, (str, type(None)))

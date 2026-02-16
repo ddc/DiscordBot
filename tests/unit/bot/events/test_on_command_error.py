@@ -6,7 +6,7 @@ import sys
 from discord.ext import commands
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.events.on_command_error import ErrorContext, ErrorMessageBuilder, Errors
 from src.bot.constants import messages, variables
@@ -202,10 +202,10 @@ class TestErrors:
         """Test Errors cog initialization."""
         cog = Errors(mock_bot)
         assert cog.bot == mock_bot
-        assert hasattr(cog, 'message_builder')
+        assert hasattr(cog, "message_builder")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_send_error_message_no_log(self, mock_send_error, mock_ctx):
         """Test sending error message without logging."""
         await Errors._send_error_message(mock_ctx, "Test error", False)
@@ -214,7 +214,7 @@ class TestErrors:
         mock_ctx.bot.log.error.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_send_error_message_with_log(self, mock_send_error, mock_ctx):
         """Test sending error message with logging."""
         await Errors._send_error_message(mock_ctx, "Test error", True)
@@ -228,7 +228,7 @@ class TestErrors:
         assert "Test Server" in log_call
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
     async def test_handle_no_private_message(self, mock_send_error, errors_cog, mock_ctx):
         """Test handling NoPrivateMessage error."""
         context = ErrorContext(mock_ctx, Exception())
@@ -238,7 +238,7 @@ class TestErrors:
         mock_send_error.assert_called_once_with(mock_ctx, "Test error", True)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
     async def test_handle_command_not_found(self, mock_send_error, errors_cog, mock_ctx):
         """Test handling CommandNotFound error."""
         context = ErrorContext(mock_ctx, Exception())
@@ -249,7 +249,7 @@ class TestErrors:
         mock_send_error.assert_called_once_with(mock_ctx, expected_msg, False)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
     async def test_handle_bad_argument_gw2_config_status(self, mock_send_error, errors_cog, mock_ctx):
         """Test handling BadArgument error for GW2 config status."""
         context = ErrorContext(mock_ctx, Exception())
@@ -262,8 +262,8 @@ class TestErrors:
         mock_send_error.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.delete_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.delete_message")
     async def test_handle_command_on_cooldown_sensitive_command(
         self, mock_delete, mock_send_error, errors_cog, mock_ctx
     ):
@@ -278,8 +278,8 @@ class TestErrors:
         mock_send_error.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.delete_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.delete_message")
     async def test_handle_command_on_cooldown_normal_command(self, mock_delete, mock_send_error, errors_cog, mock_ctx):
         """Test handling CommandOnCooldown for normal commands."""
         context = ErrorContext(mock_ctx, Exception())
@@ -292,7 +292,7 @@ class TestErrors:
         mock_send_error.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
     async def test_handle_too_many_arguments(self, mock_send_error, errors_cog, mock_ctx):
         """Test handling TooManyArguments error."""
         context = ErrorContext(mock_ctx, Exception())
@@ -303,7 +303,7 @@ class TestErrors:
         mock_send_error.assert_called_once_with(mock_ctx, expected_msg, False)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
     async def test_handle_unknown_error(self, mock_send_error, errors_cog, mock_ctx):
         """Test handling unknown error types."""
         context = ErrorContext(mock_ctx, Exception())
@@ -328,7 +328,7 @@ class TestErrors:
     def test_errors_cog_inheritance(self, errors_cog):
         """Test that Errors cog properly inherits from commands.Cog."""
         assert isinstance(errors_cog, commands.Cog)
-        assert hasattr(errors_cog, 'bot')
+        assert hasattr(errors_cog, "bot")
 
     def test_error_context_with_complex_command(self, mock_ctx, mock_error):
         """Test ErrorContext with complex command structure."""
@@ -340,7 +340,7 @@ class TestErrors:
         assert context.help_command == "!help admin config profanity on"
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
     async def test_handle_command_error(self, mock_send_error, errors_cog, mock_ctx):
         """Test handling CommandError."""
         context = ErrorContext(mock_ctx, Exception())
@@ -492,7 +492,7 @@ class TestOnCommandErrorEventHandler:
     """Test cases for the on_command_error event handler (lines 133-151)."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_on_command_error_command_not_found(self, mock_send_error, mock_bot, mock_ctx):
         """Test on_command_error dispatches CommandNotFound properly (lines 133-151)."""
         cog = Errors(mock_bot)
@@ -509,7 +509,7 @@ class TestOnCommandErrorEventHandler:
         assert messages.COMMAND_NOT_FOUND in call_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_on_command_error_missing_required_argument(self, mock_send_error, mock_bot, mock_ctx):
         """Test on_command_error dispatches MissingRequiredArgument (lines 140, 175-176)."""
         cog = Errors(mock_bot)
@@ -526,7 +526,7 @@ class TestOnCommandErrorEventHandler:
         assert messages.MISSING_REQUIRED_ARGUMENT_HELP_MESSAGE in call_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_on_command_error_check_failure(self, mock_send_error, mock_bot, mock_ctx):
         """Test on_command_error dispatches CheckFailure (lines 141, 180-181)."""
         cog = Errors(mock_bot)
@@ -540,7 +540,7 @@ class TestOnCommandErrorEventHandler:
         assert messages.NOT_ADMIN_USE_COMMAND in call_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_on_command_error_bad_argument_gw2_server(self, mock_send_error, mock_bot, mock_ctx):
         """Test on_command_error dispatches BadArgument for GW2 server (lines 142, 188-190)."""
         cog = Errors(mock_bot)
@@ -554,7 +554,7 @@ class TestOnCommandErrorEventHandler:
         mock_send_error.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_on_command_error_bad_argument_else_branch(self, mock_send_error, mock_bot, mock_ctx):
         """Test on_command_error dispatches BadArgument else branch (lines 191-192)."""
         cog = Errors(mock_bot)
@@ -569,7 +569,7 @@ class TestOnCommandErrorEventHandler:
         assert messages.UNKNOWN_OPTION in call_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_on_command_error_command_invoke_error(self, mock_send_error, mock_bot, mock_ctx):
         """Test on_command_error dispatches CommandInvokeError (lines 144, 204-205)."""
         cog = Errors(mock_bot)
@@ -584,7 +584,7 @@ class TestOnCommandErrorEventHandler:
         assert messages.COMMAND_INTERNAL_ERROR in call_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_on_command_error_forbidden(self, mock_send_error, mock_bot, mock_ctx):
         """Test on_command_error dispatches discord.Forbidden (lines 147, 234-235)."""
         import discord
@@ -603,7 +603,7 @@ class TestOnCommandErrorEventHandler:
         assert call_msg == messages.DM_CANNOT_EXECUTE_COMMAND
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_on_command_error_forbidden_privilege_low(self, mock_send_error, mock_bot, mock_ctx):
         """Test on_command_error dispatches discord.Forbidden with low privilege (lines 234-235)."""
         import discord
@@ -622,7 +622,7 @@ class TestOnCommandErrorEventHandler:
         assert call_msg == messages.PRIVILEGE_LOW
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_on_command_error_no_private_message(self, mock_send_error, mock_bot, mock_ctx):
         """Test on_command_error dispatches NoPrivateMessage (line 138)."""
         cog = Errors(mock_bot)
@@ -634,7 +634,7 @@ class TestOnCommandErrorEventHandler:
         mock_send_error.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_on_command_error_command_error(self, mock_send_error, mock_bot, mock_ctx):
         """Test on_command_error dispatches CommandError (line 143)."""
         cog = Errors(mock_bot)
@@ -648,7 +648,7 @@ class TestOnCommandErrorEventHandler:
         assert "CommandError:" in call_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_on_command_error_unknown_error_type(self, mock_send_error, mock_bot, mock_ctx):
         """Test on_command_error dispatches unknown error type (line 150)."""
         cog = Errors(mock_bot)
@@ -664,7 +664,7 @@ class TestSendErrorMessageGuildNone:
     """Test cases for _send_error_message when guild is None (lines 204-205 logging branch)."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_send_error_message_with_log_no_guild(self, mock_send_error, mock_ctx):
         """Test sending error message with logging when guild is None."""
         mock_ctx.guild = None
@@ -684,7 +684,7 @@ class TestHandleBadArgumentBranches:
     """Test cases for _handle_bad_argument different branches (lines 188-192)."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
     async def test_handle_bad_argument_gw2_config_server(self, mock_send_error, errors_cog, mock_ctx):
         """Test handling BadArgument for GW2 config server (lines 188-190)."""
         context = ErrorContext(mock_ctx, Exception())
@@ -699,7 +699,7 @@ class TestHandleBadArgumentBranches:
         mock_send_error.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
     async def test_handle_bad_argument_else_branch(self, mock_send_error, errors_cog, mock_ctx):
         """Test handling BadArgument else branch (lines 191-192)."""
         context = ErrorContext(mock_ctx, Exception())
@@ -716,7 +716,7 @@ class TestHandleMissingArgument:
     """Test cases for _handle_missing_argument (lines 175-176)."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
     async def test_handle_missing_argument(self, mock_send_error, errors_cog, mock_ctx):
         """Test handling MissingRequiredArgument (lines 175-176)."""
         context = ErrorContext(mock_ctx, Exception())
@@ -732,7 +732,7 @@ class TestHandleCheckFailure:
     """Test cases for _handle_check_failure (lines 180-181)."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
     async def test_handle_check_failure_not_owner(self, mock_send_error, errors_cog, mock_ctx):
         """Test handling CheckFailure with not owner (lines 180-181)."""
         context = ErrorContext(mock_ctx, Exception())
@@ -744,7 +744,7 @@ class TestHandleCheckFailure:
         mock_send_error.assert_called_once_with(mock_ctx, expected_msg, True)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
     async def test_handle_check_failure_other(self, mock_send_error, errors_cog, mock_ctx):
         """Test handling CheckFailure with generic error (lines 180-181)."""
         context = ErrorContext(mock_ctx, Exception())
@@ -759,7 +759,7 @@ class TestHandleCommandInvokeError:
     """Test cases for _handle_command_invoke_error (lines 204-205)."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
     async def test_handle_command_invoke_error(self, mock_send_error, errors_cog, mock_ctx):
         """Test handling CommandInvokeError (lines 204-205)."""
         context = ErrorContext(mock_ctx, Exception())
@@ -778,7 +778,7 @@ class TestHandleForbidden:
     """Test cases for _handle_forbidden (lines 234-235)."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
     async def test_handle_forbidden_dm_channel(self, mock_send_error, errors_cog, mock_ctx):
         """Test handling Forbidden for DM channel (lines 234-235)."""
         context = ErrorContext(mock_ctx, Exception())
@@ -789,7 +789,7 @@ class TestHandleForbidden:
         mock_send_error.assert_called_once_with(mock_ctx, messages.DM_CANNOT_EXECUTE_COMMAND, True)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_command_error.Errors._send_error_message')
+    @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
     async def test_handle_forbidden_privilege_low(self, mock_send_error, errors_cog, mock_ctx):
         """Test handling Forbidden for low privilege (lines 234-235)."""
         context = ErrorContext(mock_ctx, Exception())

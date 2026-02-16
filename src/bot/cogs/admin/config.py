@@ -273,7 +273,7 @@ async def config_list(ctx: commands.Context) -> None:
 
     # Format channel names
     if pf:
-        channel_names_lst = [channel['channel_name'] for channel in pf]
+        channel_names_lst = [channel["channel_name"] for channel in pf]
         channel_names = "\n".join(channel_names_lst)
     else:
         channel_names = messages.NO_CHANNELS_LISTED
@@ -412,9 +412,9 @@ class ConfigView(discord.ui.View):
         # Set updating state and disable all buttons
         self._updating = True
         for item in self.children:
-            if hasattr(item, 'disabled'):
+            if hasattr(item, "disabled"):
                 item.disabled = True
-                if hasattr(item, 'style'):
+                if hasattr(item, "style"):
                     item.style = discord.ButtonStyle.gray
 
         # Defer the response to allow editing the original message
@@ -466,7 +466,7 @@ class ConfigView(discord.ui.View):
     async def _restore_buttons(self):
         """Restore button states and colors."""
         for item in self.children:
-            if hasattr(item, 'disabled'):
+            if hasattr(item, "disabled"):
                 item.disabled = False
 
         # Restore original button colors
@@ -500,7 +500,7 @@ class ConfigView(discord.ui.View):
 
         # Format channel names
         if pf:
-            channel_names_lst = [channel['channel_name'] for channel in pf]
+            channel_names_lst = [channel["channel_name"] for channel in pf]
             channel_names = "\n".join(channel_names_lst)
         else:
             channel_names = messages.NO_CHANNELS_LISTED

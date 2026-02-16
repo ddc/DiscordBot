@@ -6,7 +6,7 @@ import pytest
 import sys
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.events.on_guild_join import OnGuildJoin, WelcomeMessageBuilder
 from src.bot.constants import messages, variables
@@ -189,9 +189,9 @@ class TestOnGuildJoin:
         assert added_cog.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.insert_server')
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel')
-    @patch('src.bot.cogs.events.on_guild_join.variables.GAMES_INCLUDED', ['GW2', 'WoW'])
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.insert_server")
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel")
+    @patch("src.bot.cogs.events.on_guild_join.variables.GAMES_INCLUDED", ["GW2", "WoW"])
     async def test_on_guild_join_success(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test successful guild join handling."""
         cog = OnGuildJoin(mock_bot)
@@ -213,9 +213,9 @@ class TestOnGuildJoin:
         assert isinstance(call_args[3], str)  # message text
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.insert_server')
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel')
-    @patch('src.bot.cogs.events.on_guild_join.variables.GAMES_INCLUDED', ['GW2'])
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.insert_server")
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel")
+    @patch("src.bot.cogs.events.on_guild_join.variables.GAMES_INCLUDED", ["GW2"])
     async def test_on_guild_join_with_games(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test guild join with specific games included."""
         cog = OnGuildJoin(mock_bot)
@@ -231,8 +231,8 @@ class TestOnGuildJoin:
         assert "GW2" in welcome_text
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.insert_server')
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel')
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.insert_server")
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel")
     async def test_on_guild_join_insert_server_error(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test guild join when server insertion fails."""
         mock_insert_server.side_effect = Exception("Database error")
@@ -246,8 +246,8 @@ class TestOnGuildJoin:
         mock_insert_server.assert_called_once_with(mock_bot, mock_guild)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.insert_server')
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel')
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.insert_server")
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel")
     async def test_on_guild_join_send_message_error(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test guild join when sending message fails."""
         mock_send_msg.side_effect = Exception("Send error")
@@ -266,11 +266,11 @@ class TestOnGuildJoin:
         from discord.ext import commands
 
         assert isinstance(on_guild_join_cog, commands.Cog)
-        assert hasattr(on_guild_join_cog, 'bot')
+        assert hasattr(on_guild_join_cog, "bot")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.insert_server')
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel')
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.insert_server")
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel")
     async def test_on_guild_join_embed_properties(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test that the welcome embed has the correct properties."""
         cog = OnGuildJoin(mock_bot)
@@ -297,9 +297,9 @@ class TestOnGuildJoin:
         assert inspect.isfunction(WelcomeMessageBuilder._set_footer)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.insert_server')
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel')
-    @patch('src.bot.cogs.events.on_guild_join.variables.GAMES_INCLUDED', [])
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.insert_server")
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel")
+    @patch("src.bot.cogs.events.on_guild_join.variables.GAMES_INCLUDED", [])
     async def test_on_guild_join_no_games(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test guild join with no games included."""
         cog = OnGuildJoin(mock_bot)

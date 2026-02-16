@@ -1,7 +1,7 @@
 [project]
 name = "DiscordBot"
 version = "3.0.2"
-description = "A Bot for Discord"
+description = "A simple Discord bot with OpenAI support and server administration tools"
 urls.Repository = "https://github.com/ddc/DiscordBot"
 urls.Homepage = "https://github.com/ddc/DiscordBot"
 license = { text = "MIT" }
@@ -36,7 +36,7 @@ dependencies = [
   "ddcdatabases[postgres]>=3.0.10",
   "discord-py>=2.6.4",
   "gTTS>=2.5.4",
-  "openai>=2.20.0",
+  "openai>=2.21.0",
   "PyNaCl>=1.6.2",
   "pythonLogs>=6.0.2",
 ]
@@ -48,11 +48,10 @@ dev = [
   "testcontainers[postgres]>=4.14.1",
   "poethepoet>=0.41.0",
   "ruff>=0.15.1",
-  "black>=26.1.0",
 ]
 
 [tool.poe.tasks]
-linter.shell = "uv run ruff check --fix . && uv run black ."
+linter.shell = "uv run ruff check --fix . && uv run ruff format ."
 profile = "uv run python -m cProfile -o cprofile_unit.prof -m pytest tests/unit --no-cov"
 profile-integration = "uv run python -m cProfile -o cprofile_integration.prof -m pytest tests/integration --no-cov"
 test = "uv run pytest tests/unit"
@@ -95,10 +94,6 @@ exclude_lines = [
   "class .*\\bProtocol\\):",
   "@(abc\\.)?abstractmethod",
 ]
-
-[tool.black]
-line-length = 120
-skip-string-normalization = true
 
 [tool.ruff]
 line-length = 120

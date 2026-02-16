@@ -5,7 +5,7 @@ import pytest
 import sys
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.events.on_member_update import OnMemberUpdate
 from src.bot.constants import messages
@@ -109,10 +109,10 @@ class TestOnMemberUpdate:
         assert added_cog.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_embed')
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long')
-    @patch('src.bot.cogs.events.on_member_update.ServersDal')
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.send_msg_to_system_channel')
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_embed")
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long")
+    @patch("src.bot.cogs.events.on_member_update.ServersDal")
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.send_msg_to_system_channel")
     async def test_on_member_update_bot_member(
         self,
         mock_send_msg,
@@ -135,10 +135,10 @@ class TestOnMemberUpdate:
         mock_send_msg.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_embed')
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long')
-    @patch('src.bot.cogs.events.on_member_update.ServersDal')
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.send_msg_to_system_channel')
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_embed")
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long")
+    @patch("src.bot.cogs.events.on_member_update.ServersDal")
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.send_msg_to_system_channel")
     async def test_on_member_update_nickname_change(
         self,
         mock_send_msg,
@@ -184,10 +184,10 @@ class TestOnMemberUpdate:
         mock_send_msg.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_embed')
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long')
-    @patch('src.bot.cogs.events.on_member_update.ServersDal')
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.send_msg_to_system_channel')
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_embed")
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long")
+    @patch("src.bot.cogs.events.on_member_update.ServersDal")
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.send_msg_to_system_channel")
     async def test_on_member_update_role_change(
         self,
         mock_send_msg,
@@ -236,9 +236,9 @@ class TestOnMemberUpdate:
         mock_send_msg.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_embed')
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long')
-    @patch('src.bot.cogs.events.on_member_update.ServersDal')
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_embed")
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long")
+    @patch("src.bot.cogs.events.on_member_update.ServersDal")
     async def test_on_member_update_no_changes(
         self,
         mock_dal_class,
@@ -274,10 +274,10 @@ class TestOnMemberUpdate:
         mock_dal.get_server.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_embed')
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long')
-    @patch('src.bot.cogs.events.on_member_update.ServersDal')
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.send_msg_to_system_channel')
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_embed")
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long")
+    @patch("src.bot.cogs.events.on_member_update.ServersDal")
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.send_msg_to_system_channel")
     async def test_on_member_update_disabled_notifications(
         self,
         mock_send_msg,
@@ -315,9 +315,9 @@ class TestOnMemberUpdate:
         mock_send_msg.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_embed')
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long')
-    @patch('src.bot.cogs.events.on_member_update.ServersDal')
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_embed")
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long")
+    @patch("src.bot.cogs.events.on_member_update.ServersDal")
     async def test_on_member_update_no_server_config(
         self,
         mock_dal_class,
@@ -354,8 +354,8 @@ class TestOnMemberUpdate:
         mock_dal.get_server.assert_called_once_with(mock_member.guild.id)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_embed')
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_embed")
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long")
     async def test_on_member_update_no_avatar(
         self,
         mock_datetime,
@@ -384,8 +384,8 @@ class TestOnMemberUpdate:
         mock_embed.set_author.assert_called_with(name=mock_member.display_name)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_embed')
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_embed")
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long")
     async def test_on_member_update_bot_no_avatar(
         self,
         mock_datetime,
@@ -414,9 +414,9 @@ class TestOnMemberUpdate:
         mock_embed.set_footer.assert_called_with(icon_url=None, text="2023-01-01 12:00:00 UTC")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_embed')
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long')
-    @patch('src.bot.cogs.events.on_member_update.ServersDal')
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_embed")
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long")
+    @patch("src.bot.cogs.events.on_member_update.ServersDal")
     async def test_on_member_update_database_error(
         self,
         mock_dal_class,
@@ -455,7 +455,7 @@ class TestOnMemberUpdate:
         assert "Failed to send member update notification" in error_call
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_embed')
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_embed")
     async def test_on_member_update_general_error(self, mock_get_embed, mock_bot, mock_member_before, mock_member):
         """Test on_member_update with general error."""
         # Setup embed to raise exception
@@ -473,8 +473,8 @@ class TestOnMemberUpdate:
         assert str(mock_member) in error_call
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_embed')
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_embed")
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long")
     async def test_on_member_update_null_nick_to_nick(
         self,
         mock_datetime,
@@ -502,8 +502,8 @@ class TestOnMemberUpdate:
         mock_embed.add_field.assert_called_with(name=messages.NEW_NICKNAME, value="NewNick")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_embed')
-    @patch('src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_embed")
+    @patch("src.bot.cogs.events.on_member_update.bot_utils.get_current_date_time_str_long")
     async def test_on_member_update_null_roles(
         self,
         mock_datetime,

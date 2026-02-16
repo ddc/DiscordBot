@@ -3,7 +3,7 @@
 import sys
 from unittest.mock import Mock
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 import discord
 import pytest
@@ -21,7 +21,7 @@ class TestGetCommandPrefix:
         mock_db_session = MagicMock()
         mock_log = MagicMock()
 
-        with patch('src.__main__.BotConfigsDal') as mock_dal_class:
+        with patch("src.__main__.BotConfigsDal") as mock_dal_class:
             mock_dal = AsyncMock()
             mock_dal.get_bot_prefix.return_value = "!!"
             mock_dal_class.return_value = mock_dal
@@ -38,7 +38,7 @@ class TestGetCommandPrefix:
         mock_db_session = MagicMock()
         mock_log = MagicMock()
 
-        with patch('src.__main__.BotConfigsDal') as mock_dal_class:
+        with patch("src.__main__.BotConfigsDal") as mock_dal_class:
             mock_dal = AsyncMock()
             mock_dal.get_bot_prefix.return_value = None
             mock_dal_class.return_value = mock_dal
@@ -53,7 +53,7 @@ class TestGetCommandPrefix:
         mock_db_session = MagicMock()
         mock_log = MagicMock()
 
-        with patch('src.__main__.BotConfigsDal') as mock_dal_class:
+        with patch("src.__main__.BotConfigsDal") as mock_dal_class:
             mock_dal_class.side_effect = RuntimeError("db connection failed")
 
             result = await _get_command_prefix(mock_db_session, mock_log)
@@ -67,14 +67,14 @@ class TestGetCommandPrefix:
 class TestCreateBotActivity:
     """Test cases for _create_bot_activity."""
 
-    @patch('src.__main__.get_bot_settings')
+    @patch("src.__main__.get_bot_settings")
     def test_create_bot_activity_no_exclusive_users(self, mock_get_bot_settings):
         """Verify a Game activity is returned with a game from GAMES_INCLUDED when no exclusive users."""
         mock_settings = MagicMock()
         mock_settings.exclusive_users = ""
         mock_get_bot_settings.return_value = mock_settings
 
-        with patch('src.__main__.random.SystemRandom') as mock_sys_random_class:
+        with patch("src.__main__.random.SystemRandom") as mock_sys_random_class:
             mock_rng = MagicMock()
             mock_rng.choice.return_value = "Guild Wars 2"
             mock_sys_random_class.return_value = mock_rng
@@ -86,7 +86,7 @@ class TestCreateBotActivity:
             assert "!help" in result.name
             mock_rng.choice.assert_called_once_with(variables.GAMES_INCLUDED)
 
-    @patch('src.__main__.get_bot_settings')
+    @patch("src.__main__.get_bot_settings")
     def test_create_bot_activity_exclusive_users(self, mock_get_bot_settings):
         """Verify 'PRIVATE BOT' activity is returned when exclusive_users is non-empty."""
         mock_settings = MagicMock()
@@ -99,7 +99,7 @@ class TestCreateBotActivity:
         assert "PRIVATE BOT" in result.name
         assert "!help" in result.name
 
-    @patch('src.__main__.get_bot_settings')
+    @patch("src.__main__.get_bot_settings")
     def test_create_bot_activity_custom_prefix(self, mock_get_bot_settings):
         """Verify the activity includes the custom prefix in the help command."""
         mock_settings = MagicMock()
@@ -115,11 +115,11 @@ class TestCreateBotActivity:
 class TestRunBot:
     """Test cases for run_bot."""
 
-    @patch('src.__main__.main', new_callable=MagicMock)
-    @patch('src.__main__.sys.exit')
-    @patch('src.__main__.print')
-    @patch('src.__main__.time.sleep')
-    @patch('src.__main__.asyncio.run')
+    @patch("src.__main__.main", new_callable=MagicMock)
+    @patch("src.__main__.sys.exit")
+    @patch("src.__main__.print")
+    @patch("src.__main__.time.sleep")
+    @patch("src.__main__.asyncio.run")
     def test_run_bot_keyboard_interrupt(self, mock_asyncio_run, mock_sleep, mock_print, mock_exit, mock_main):
         """Verify KeyboardInterrupt is caught and CTRLC message is printed."""
         mock_asyncio_run.side_effect = KeyboardInterrupt
@@ -133,11 +133,11 @@ class TestRunBot:
         assert any(messages.BOT_STOPPED_CTRTC == c for c in calls)
         mock_exit.assert_not_called()
 
-    @patch('src.__main__.main', new_callable=MagicMock)
-    @patch('src.__main__.sys.exit')
-    @patch('src.__main__.print')
-    @patch('src.__main__.time.sleep')
-    @patch('src.__main__.asyncio.run')
+    @patch("src.__main__.main", new_callable=MagicMock)
+    @patch("src.__main__.sys.exit")
+    @patch("src.__main__.print")
+    @patch("src.__main__.time.sleep")
+    @patch("src.__main__.asyncio.run")
     def test_run_bot_exception(self, mock_asyncio_run, mock_sleep, mock_print, mock_exit, mock_main):
         """Verify generic exceptions cause sys.exit(1)."""
         mock_asyncio_run.side_effect = RuntimeError("unexpected crash")
@@ -150,11 +150,11 @@ class TestRunBot:
         calls = [call[0][0] for call in mock_print.call_args_list]
         assert any(messages.BOT_CRASHED in c for c in calls)
 
-    @patch('src.__main__.main', new_callable=MagicMock)
-    @patch('src.__main__.sys.exit')
-    @patch('src.__main__.print')
-    @patch('src.__main__.time.sleep')
-    @patch('src.__main__.asyncio.run')
+    @patch("src.__main__.main", new_callable=MagicMock)
+    @patch("src.__main__.sys.exit")
+    @patch("src.__main__.print")
+    @patch("src.__main__.time.sleep")
+    @patch("src.__main__.asyncio.run")
     def test_run_bot_prints_starting_message(self, mock_asyncio_run, mock_sleep, mock_print, mock_exit, mock_main):
         """Verify run_bot prints the starting message and sleeps before running."""
         mock_asyncio_run.return_value = None

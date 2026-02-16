@@ -70,10 +70,10 @@ class TestCheckIsAdmin:
             return "success"
 
         # Verify the decorator added command checks
-        assert hasattr(dummy_command, '__commands_checks__')
+        assert hasattr(dummy_command, "__commands_checks__")
         assert len(dummy_command.__commands_checks__) > 0
 
-    @patch('src.bot.tools.checks.bot_utils.is_member_admin')
+    @patch("src.bot.tools.checks.bot_utils.is_member_admin")
     def test_check_is_admin_predicate_failure(self, mock_is_admin):
         """Test the predicate function when a user is not admin."""
         mock_is_admin.return_value = False
@@ -82,7 +82,7 @@ class TestCheckIsAdmin:
 
         # Extract the predicate function from the decorator
         # commands.check stores the predicate in the decorator's first argument
-        if hasattr(decorator, '__wrapped__'):
+        if hasattr(decorator, "__wrapped__"):
             predicate = decorator.__wrapped__
         else:
             # Get the predicate from the closure
@@ -102,8 +102,8 @@ class TestCheckIsAdmin:
             # If we can't access the predicate, just verify the decorator exists
             assert callable(decorator)
 
-    @patch('src.bot.tools.checks.commands.check')
-    @patch('src.bot.tools.checks.bot_utils.is_member_admin')
+    @patch("src.bot.tools.checks.commands.check")
+    @patch("src.bot.tools.checks.bot_utils.is_member_admin")
     def test_check_is_admin_uses_commands_check(self, mock_is_admin, mock_commands_check):
         """Test that check_is_admin uses commands.check."""
         mock_commands_check.return_value = lambda f: f  # Return identity function
@@ -125,7 +125,7 @@ class TestCheckIsAdmin:
             return "command executed"
 
         # Verify the decorator was applied
-        assert hasattr(test_command, '__commands_checks__')
+        assert hasattr(test_command, "__commands_checks__")
         assert len(test_command.__commands_checks__) > 0
 
         # The check should be a function
@@ -154,10 +154,10 @@ class TestCheckIsBotOwner:
             return "success"
 
         # Verify the decorator added command checks
-        assert hasattr(dummy_command, '__commands_checks__')
+        assert hasattr(dummy_command, "__commands_checks__")
         assert len(dummy_command.__commands_checks__) > 0
 
-    @patch('src.bot.tools.checks.bot_utils.is_bot_owner')
+    @patch("src.bot.tools.checks.bot_utils.is_bot_owner")
     def test_check_is_bot_owner_predicate_failure(self, mock_is_owner):
         """Test the predicate function when user is not bot owner."""
         mock_is_owner.return_value = False
@@ -165,7 +165,7 @@ class TestCheckIsBotOwner:
         decorator = Checks.check_is_bot_owner()
 
         # Extract the predicate function from the decorator
-        if hasattr(decorator, '__wrapped__'):
+        if hasattr(decorator, "__wrapped__"):
             predicate = decorator.__wrapped__
         else:
             # Get the predicate from the closure
@@ -185,8 +185,8 @@ class TestCheckIsBotOwner:
             # If we can't access the predicate, just verify the decorator exists
             assert callable(decorator)
 
-    @patch('src.bot.tools.checks.commands.check')
-    @patch('src.bot.tools.checks.bot_utils.is_bot_owner')
+    @patch("src.bot.tools.checks.commands.check")
+    @patch("src.bot.tools.checks.bot_utils.is_bot_owner")
     def test_check_is_bot_owner_uses_commands_check(self, mock_is_owner, mock_commands_check):
         """Test that check_is_bot_owner uses commands.check."""
         mock_commands_check.return_value = lambda f: f  # Return identity function
@@ -208,7 +208,7 @@ class TestCheckIsBotOwner:
             return "command executed"
 
         # Verify the decorator was applied
-        assert hasattr(test_command, '__commands_checks__')
+        assert hasattr(test_command, "__commands_checks__")
         assert len(test_command.__commands_checks__) > 0
 
         # The check should be a function
@@ -237,7 +237,7 @@ class TestChecksIntegration:
             return "command executed"
 
         # Should have both checks
-        assert hasattr(test_command, '__commands_checks__')
+        assert hasattr(test_command, "__commands_checks__")
         assert len(test_command.__commands_checks__) == 2
 
     def test_combined_decorators_both_pass(self):
@@ -249,7 +249,7 @@ class TestChecksIntegration:
             return "success"
 
         # Should have both checks
-        assert hasattr(test_command, '__commands_checks__')
+        assert hasattr(test_command, "__commands_checks__")
         assert len(test_command.__commands_checks__) == 2
 
     def test_combined_decorators_admin_fails(self):
@@ -261,7 +261,7 @@ class TestChecksIntegration:
             return "command"
 
         # Should have both checks
-        assert hasattr(test_command, '__commands_checks__')
+        assert hasattr(test_command, "__commands_checks__")
         assert len(test_command.__commands_checks__) == 2
 
     def test_combined_decorators_owner_fails(self):
@@ -273,7 +273,7 @@ class TestChecksIntegration:
             return "command"
 
         # Should have both checks
-        assert hasattr(test_command, '__commands_checks__')
+        assert hasattr(test_command, "__commands_checks__")
         assert len(test_command.__commands_checks__) == 2
 
 
@@ -320,7 +320,7 @@ class TestChecksEdgeCases:
             return "success"
 
         # Verify decorator was applied
-        assert hasattr(test_command, '__commands_checks__')
+        assert hasattr(test_command, "__commands_checks__")
 
     def test_owner_check_with_none_context(self):
         """Test owner check decorator can be created."""
@@ -332,7 +332,7 @@ class TestChecksEdgeCases:
             return "success"
 
         # Verify decorator was applied
-        assert hasattr(test_command, '__commands_checks__')
+        assert hasattr(test_command, "__commands_checks__")
 
     def test_decorator_preserves_function_metadata(self):
         """Test that decorators preserve original function metadata."""
@@ -346,7 +346,7 @@ class TestChecksEdgeCases:
         assert "test_command" in test_command.__name__ or "wrapper" in test_command.__name__
 
         # Should have check attributes
-        assert hasattr(test_command, '__commands_checks__')
+        assert hasattr(test_command, "__commands_checks__")
 
     def test_multiple_applications_of_same_decorator(self):
         """Test applying the same decorator multiple times."""
@@ -358,7 +358,7 @@ class TestChecksEdgeCases:
             return "success"
 
         # Should have multiple identical checks
-        assert hasattr(test_command, '__commands_checks__')
+        assert hasattr(test_command, "__commands_checks__")
         assert len(test_command.__commands_checks__) == 2
 
 
@@ -410,7 +410,7 @@ class TestChecksTyping:
 class TestCheckPredicateRaisesCheckFailure:
     """Tests that directly invoke the predicate to cover the raise CheckFailure lines (23 and 41)."""
 
-    @patch('src.bot.tools.checks.bot_utils.is_member_admin', return_value=False)
+    @patch("src.bot.tools.checks.bot_utils.is_member_admin", return_value=False)
     def test_admin_predicate_raises_check_failure(self, mock_is_admin):
         """Test that admin predicate raises CheckFailure when user is not admin (line 23)."""
 
@@ -430,7 +430,7 @@ class TestCheckPredicateRaisesCheckFailure:
         assert "User is not an administrator" in str(exc_info.value)
         mock_is_admin.assert_called_once_with(ctx.message.author)
 
-    @patch('src.bot.tools.checks.bot_utils.is_member_admin', return_value=True)
+    @patch("src.bot.tools.checks.bot_utils.is_member_admin", return_value=True)
     def test_admin_predicate_returns_true_when_admin(self, mock_is_admin):
         """Test that admin predicate returns True when user is admin (line 23)."""
 
@@ -447,7 +447,7 @@ class TestCheckPredicateRaisesCheckFailure:
         assert result is True
         mock_is_admin.assert_called_once_with(ctx.message.author)
 
-    @patch('src.bot.tools.checks.bot_utils.is_bot_owner', return_value=False)
+    @patch("src.bot.tools.checks.bot_utils.is_bot_owner", return_value=False)
     def test_owner_predicate_raises_check_failure(self, mock_is_owner):
         """Test that owner predicate raises CheckFailure when user is not owner (line 41)."""
 
@@ -466,7 +466,7 @@ class TestCheckPredicateRaisesCheckFailure:
         assert "User is not the bot owner" in str(exc_info.value)
         mock_is_owner.assert_called_once_with(ctx, ctx.message.author)
 
-    @patch('src.bot.tools.checks.bot_utils.is_bot_owner', return_value=True)
+    @patch("src.bot.tools.checks.bot_utils.is_bot_owner", return_value=True)
     def test_owner_predicate_returns_true_when_owner(self, mock_is_owner):
         """Test that owner predicate returns True when user is bot owner (line 41)."""
 

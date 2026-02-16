@@ -59,7 +59,7 @@ CONFIG_CHANNEL_ID_INSTEAD_NAME = "Chnanel id should be used instead of its name!
 CONFIG_NOT_ACTIVATED_ERROR = "Profanity Filter could not be activated.\n"
 MISING_REUIRED_ARGUMENT = "Missing required argument!!!"
 CHANNEL_ID_NOT_FOUND = "Channel id not found"
-BOT_MISSING_MANAGE_MESSAGES_PERMISSION = "Bot does not have permission to \"Manage Messages\""
+BOT_MISSING_MANAGE_MESSAGES_PERMISSION = 'Bot does not have permission to "Manage Messages"'
 NO_CHANNELS_LISTED = "No channels listed"
 #################################
 # EVENT CUSTOM COMMAND
@@ -98,7 +98,7 @@ DIRECT_MESSAGES_DISABLED = (
     "Direct messages are disable in your configuration.\n"
     "If you want to receive messages from Bots, "
     "you need to enable this option under Privacy & Safety:"
-    "\"Allow direct messages from server members.\""
+    '"Allow direct messages from server members."'
 )
 #################################
 # EVENT ON GUILD JOIN
@@ -162,7 +162,7 @@ PRIVATE_BOT_MESSAGE = (
 def blocked_invis_message(guild_name: str) -> str:
     return (
         "You are Invisible (offline)\n"
-        f"Server \"{guild_name}\" does not allow messages from invisible members.\n"
+        f'Server "{guild_name}" does not allow messages from invisible members.\n'
         "Please change your status if you want to send messages to this server."
     )
 
@@ -183,7 +183,7 @@ DISABLED_DM = (
     "Direct messages are disable in your configuration.\n"
     "If you want to receive messages from Bots, "
     "you need to enable this option under Privacy & Safety:\n"
-    "\"Allow direct messages from server members.\"\n"
+    '"Allow direct messages from server members."\n'
 )
 MESSAGE_REMOVED_FOR_PRIVACY = "Your message was removed for privacy."
 DELETE_MESSAGE_NO_PERMISSION = "Bot does not have permission to delete messages."

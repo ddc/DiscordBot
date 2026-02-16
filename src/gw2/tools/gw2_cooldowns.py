@@ -16,15 +16,15 @@ class GW2CoolDowns(Enum):
     we use a tuple (value, unique_id) and access the actual cooldown via .value[0]
     """
 
-    Account = (1 if variables.DEBUG else _gw2_settings.account_cooldown, 'account')
-    ApiKeys = (1 if variables.DEBUG else _gw2_settings.api_keys_cooldown, 'api_keys')
-    Characters = (1 if variables.DEBUG else _gw2_settings.characters_cooldown, 'characters')
-    Config = (1 if variables.DEBUG else _gw2_settings.config_cooldown, 'config')
-    Daily = (1 if variables.DEBUG else _gw2_settings.daily_cooldown, 'daily')
-    Misc = (1 if variables.DEBUG else _gw2_settings.misc_cooldown, 'misc')
-    Session = (1 if variables.DEBUG else _gw2_settings.session_cooldown, 'session')
-    Worlds = (1 if variables.DEBUG else _gw2_settings.worlds_cooldown, 'worlds')
-    Wvw = (1 if variables.DEBUG else _gw2_settings.wvw_cooldown, 'wvw')
+    Account = (1 if variables.DEBUG else _gw2_settings.account_cooldown, "account")
+    ApiKeys = (1 if variables.DEBUG else _gw2_settings.api_keys_cooldown, "api_keys")
+    Characters = (1 if variables.DEBUG else _gw2_settings.characters_cooldown, "characters")
+    Config = (1 if variables.DEBUG else _gw2_settings.config_cooldown, "config")
+    Daily = (1 if variables.DEBUG else _gw2_settings.daily_cooldown, "daily")
+    Misc = (1 if variables.DEBUG else _gw2_settings.misc_cooldown, "misc")
+    Session = (1 if variables.DEBUG else _gw2_settings.session_cooldown, "session")
+    Worlds = (1 if variables.DEBUG else _gw2_settings.worlds_cooldown, "worlds")
+    Wvw = (1 if variables.DEBUG else _gw2_settings.wvw_cooldown, "wvw")
 
     def __str__(self) -> str:
         """Return the cooldown value as a string."""

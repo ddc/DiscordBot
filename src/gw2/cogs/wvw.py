@@ -12,17 +12,19 @@ from src.gw2.tools.gw2_exceptions import APIKeyError
 
 
 class GW2WvW(GuildWars2):
-    """(Commands related to GW2 World versus World)"""
+    """Guild Wars 2 World vs World commands."""
 
     def __init__(self, bot):
         super().__init__(bot)
 
     @GuildWars2.gw2.group()
     async def wvw(self, ctx):
-        """(Guild Wars 2 Configuration Commands - Admin)
-        gw2 wvw info world_name
-        gw2 wvw match world_name
-        gw2 wvw kdr world_name
+        """Guild Wars 2 World vs World commands.
+
+        Available subcommands:
+            gw2 wvw info [world] - Info about a WvW world
+            gw2 wvw match [world] - WvW match scores
+            gw2 wvw kdr [world] - WvW kill/death ratios
         """
 
         await bot_utils.invoke_subcommand(ctx, "gw2 wvw")
@@ -57,6 +59,12 @@ class GW2WvW(GuildWars2):
     @wvw.command(name="info")
     @commands.cooldown(1, GW2CoolDowns.Wvw.seconds, commands.BucketType.user)
     async def info(self, ctx, *, world: str = None):
+        """Display WvW information for a world. Defaults to your account's world.
+
+        Usage:
+            gw2 wvw info
+            gw2 wvw info Blackgate
+        """
         await ctx.message.channel.typing()
         gw2_api = Gw2Client(self.bot)
 
@@ -106,7 +114,7 @@ class GW2WvW(GuildWars2):
                 color = discord.Color.default()
 
         ppt = 0
-        score = format(matches["scores"][worldcolor], ',d')
+        score = format(matches["scores"][worldcolor], ",d")
         victoryp = matches["victory_points"][worldcolor]
 
         await ctx.message.channel.typing()
@@ -127,10 +135,10 @@ class GW2WvW(GuildWars2):
             kd = round((kills / deaths), 3)
 
         skirmish_now = len(matches["skirmishes"]) - 1
-        skirmish = format(matches["skirmishes"][skirmish_now]["scores"][worldcolor], ',d')
+        skirmish = format(matches["skirmishes"][skirmish_now]["scores"][worldcolor], ",d")
 
-        kills = format(matches["kills"][worldcolor], ',d')
-        deaths = format(matches["deaths"][worldcolor], ',d')
+        kills = format(matches["kills"][worldcolor], ",d")
+        deaths = format(matches["deaths"][worldcolor], ",d")
 
         embed = discord.Embed(title=world_name, description=tier, color=color)
         embed.add_field(name="Score", value=chat_formatting.inline(score))
@@ -147,10 +155,11 @@ class GW2WvW(GuildWars2):
     @wvw.command(name="match")
     @commands.cooldown(1, GW2CoolDowns.Wvw.seconds, commands.BucketType.user)
     async def match(self, ctx, *, world: str = None):
-        """(Info about a wvw match. Defaults to account's world)
+        """Display WvW match scores. Defaults to your account's world.
 
-        gw2 match
-        gw2 match world_name
+        Usage:
+            gw2 wvw match
+            gw2 wvw match Blackgate
         """
 
         await ctx.message.channel.typing()
@@ -198,9 +207,11 @@ class GW2WvW(GuildWars2):
     @wvw.command(name="kdr")
     @commands.cooldown(1, GW2CoolDowns.Wvw.seconds, commands.BucketType.user)
     async def kdr(self, ctx, *, world: str = None):
-        """(Info about a wvw kdr match. Defaults to account's world)
-        gw2 kdr
-        gw2 kdr world_name
+        """Display WvW kill/death ratios. Defaults to your account's world.
+
+        Usage:
+            gw2 wvw kdr
+            gw2 wvw kdr Blackgate
         """
 
         await ctx.message.channel.typing()

@@ -9,7 +9,7 @@ class TestGW2CoolDowns:
 
     def test_cooldown_enum_values_exist(self):
         """Test that all expected cooldown values exist."""
-        expected_cooldowns = ['Account', 'ApiKeys', 'Characters', 'Config', 'Daily', 'Misc', 'Session', 'Worlds', 'Wvw']
+        expected_cooldowns = ["Account", "ApiKeys", "Characters", "Config", "Daily", "Misc", "Session", "Worlds", "Wvw"]
 
         for cooldown_name in expected_cooldowns:
             assert hasattr(GW2CoolDowns, cooldown_name)
@@ -103,5 +103,5 @@ class TestGW2CoolDowns:
             assert isinstance(cooldown.value[0], int)
 
         # Should have all expected cooldowns
-        expected_names = {'Account', 'ApiKeys', 'Characters', 'Config', 'Daily', 'Misc', 'Session', 'Worlds', 'Wvw'}
+        expected_names = {"Account", "ApiKeys", "Characters", "Config", "Daily", "Misc", "Session", "Worlds", "Wvw"}
         assert cooldown_names == expected_names

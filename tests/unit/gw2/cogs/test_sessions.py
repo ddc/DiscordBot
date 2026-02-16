@@ -135,11 +135,11 @@ class TestSessionCommand:
     @pytest.mark.asyncio
     async def test_session_no_api_key(self, mock_ctx):
         """Test session command when user has no API key."""
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
 
-            with patch('src.gw2.cogs.sessions.bot_utils.send_error_msg') as mock_error:
+            with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                 await session(mock_ctx)
 
                 mock_error.assert_called_once()
@@ -149,15 +149,15 @@ class TestSessionCommand:
     @pytest.mark.asyncio
     async def test_session_not_active_in_config(self, mock_ctx, sample_api_key_data):
         """Test session command when session is not active in server config."""
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": False}])
 
-                with patch('src.gw2.cogs.sessions.bot_utils.send_warning_msg') as mock_warning:
+                with patch("src.gw2.cogs.sessions.bot_utils.send_warning_msg") as mock_warning:
                     await session(mock_ctx)
 
                     mock_warning.assert_called_once()
@@ -165,15 +165,15 @@ class TestSessionCommand:
     @pytest.mark.asyncio
     async def test_session_not_active_empty_config(self, mock_ctx, sample_api_key_data):
         """Test session command when server config is empty."""
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[])
 
-                with patch('src.gw2.cogs.sessions.bot_utils.send_warning_msg') as mock_warning:
+                with patch("src.gw2.cogs.sessions.bot_utils.send_warning_msg") as mock_warning:
                     await session(mock_ctx)
 
                     mock_warning.assert_called_once()
@@ -189,15 +189,15 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=api_key_no_perms)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                     await session(mock_ctx)
 
                     mock_error.assert_called_once()
@@ -215,19 +215,19 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=api_key_some_perms)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=None)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.send_error_msg') as mock_error:
+                    with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                         await session(mock_ctx)
 
                         # Should not error on permissions since at least one is present
@@ -237,19 +237,19 @@ class TestSessionCommand:
     @pytest.mark.asyncio
     async def test_session_no_session_found(self, mock_ctx, sample_api_key_data):
         """Test session command when no session records are found."""
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=None)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.send_error_msg') as mock_error:
+                    with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                         await session(mock_ctx)
 
                         mock_error.assert_called_once()
@@ -267,19 +267,19 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.send_error_msg') as mock_error:
+                    with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                         await session(mock_ctx)
 
                         mock_error.assert_called_once()
@@ -303,25 +303,25 @@ class TestSessionCommand:
         time_obj.minutes = 0
         time_obj.seconds = 30
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = time_obj
 
-                            with patch('src.gw2.cogs.sessions.gw2_utils.send_msg') as mock_send_msg:
+                            with patch("src.gw2.cogs.sessions.gw2_utils.send_msg") as mock_send_msg:
                                 await session(mock_ctx)
 
                                 mock_send_msg.assert_called_once()
@@ -373,34 +373,34 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.gw2_utils.format_gold') as mock_format:
+                            with patch("src.gw2.cogs.sessions.gw2_utils.format_gold") as mock_format:
                                 mock_format.return_value = "5g 00s 00c"
 
-                                with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                                with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                     mock_chars_instance = mock_chars_dal.return_value
                                     mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                    with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                    with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                         with patch(
-                                            'src.gw2.cogs.sessions.chat_formatting.inline',
+                                            "src.gw2.cogs.sessions.chat_formatting.inline",
                                             side_effect=lambda x: f"`{x}`",
                                         ):
                                             await session(mock_ctx)
@@ -458,34 +458,34 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.gw2_utils.format_gold') as mock_format:
+                            with patch("src.gw2.cogs.sessions.gw2_utils.format_gold") as mock_format:
                                 mock_format.return_value = "5g 00s 00c"
 
-                                with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                                with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                     mock_chars_instance = mock_chars_dal.return_value
                                     mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                    with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                    with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                         with patch(
-                                            'src.gw2.cogs.sessions.chat_formatting.inline',
+                                            "src.gw2.cogs.sessions.chat_formatting.inline",
                                             side_effect=lambda x: f"`{x}`",
                                         ):
                                             await session(mock_ctx)
@@ -540,35 +540,35 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.gw2_utils.format_gold') as mock_format:
+                            with patch("src.gw2.cogs.sessions.gw2_utils.format_gold") as mock_format:
                                 # Formatted gold already starts with dash
                                 mock_format.return_value = "-5g 00s 00c"
 
-                                with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                                with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                     mock_chars_instance = mock_chars_dal.return_value
                                     mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                    with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                    with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                         with patch(
-                                            'src.gw2.cogs.sessions.chat_formatting.inline',
+                                            "src.gw2.cogs.sessions.chat_formatting.inline",
                                             side_effect=lambda x: f"`{x}`",
                                         ):
                                             await session(mock_ctx)
@@ -634,32 +634,32 @@ class TestSessionCommand:
             "char2": {"name": "TestChar2", "profession": "Ranger", "deaths": 5},  # No change
         }
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=chars_start)
                                 mock_chars_instance.get_all_end_characters = AsyncMock(return_value=chars_end)
 
-                                with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                     with patch(
-                                        'src.gw2.cogs.sessions.chat_formatting.inline', side_effect=lambda x: f"`{x}`"
+                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
                                     ):
                                         await session(mock_ctx)
 
@@ -718,31 +718,31 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                     with patch(
-                                        'src.gw2.cogs.sessions.chat_formatting.inline', side_effect=lambda x: f"`{x}`"
+                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
                                     ):
                                         await session(mock_ctx)
 
@@ -795,31 +795,31 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                     with patch(
-                                        'src.gw2.cogs.sessions.chat_formatting.inline', side_effect=lambda x: f"`{x}`"
+                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
                                     ):
                                         await session(mock_ctx)
 
@@ -872,31 +872,31 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                     with patch(
-                                        'src.gw2.cogs.sessions.chat_formatting.inline', side_effect=lambda x: f"`{x}`"
+                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
                                     ):
                                         await session(mock_ctx)
 
@@ -951,31 +951,31 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                     with patch(
-                                        'src.gw2.cogs.sessions.chat_formatting.inline', side_effect=lambda x: f"`{x}`"
+                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
                                     ):
                                         await session(mock_ctx)
 
@@ -989,34 +989,34 @@ class TestSessionCommand:
     @pytest.mark.asyncio
     async def test_session_all_wvw_stats(self, mock_ctx, sample_api_key_data, sample_session_data, sample_time_passed):
         """Test session command with all WvW stats changed (yaks, players, keeps, towers, camps, castles)."""
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=sample_session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.gw2_utils.format_gold') as mock_format:
+                            with patch("src.gw2.cogs.sessions.gw2_utils.format_gold") as mock_format:
                                 mock_format.return_value = "5g 00s 00c"
 
-                                with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                                with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                     mock_chars_instance = mock_chars_dal.return_value
                                     mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                    with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                    with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                         with patch(
-                                            'src.gw2.cogs.sessions.chat_formatting.inline',
+                                            "src.gw2.cogs.sessions.chat_formatting.inline",
                                             side_effect=lambda x: f"`{x}`",
                                         ):
                                             await session(mock_ctx)
@@ -1076,31 +1076,31 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                     with patch(
-                                        'src.gw2.cogs.sessions.chat_formatting.inline', side_effect=lambda x: f"`{x}`"
+                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
                                     ):
                                         await session(mock_ctx)
 
@@ -1155,31 +1155,31 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                     with patch(
-                                        'src.gw2.cogs.sessions.chat_formatting.inline', side_effect=lambda x: f"`{x}`"
+                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
                                     ):
                                         await session(mock_ctx)
 
@@ -1234,31 +1234,31 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                     with patch(
-                                        'src.gw2.cogs.sessions.chat_formatting.inline', side_effect=lambda x: f"`{x}`"
+                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
                                     ):
                                         await session(mock_ctx)
 
@@ -1313,31 +1313,31 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                     with patch(
-                                        'src.gw2.cogs.sessions.chat_formatting.inline', side_effect=lambda x: f"`{x}`"
+                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
                                     ):
                                         await session(mock_ctx)
 
@@ -1392,31 +1392,31 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                     with patch(
-                                        'src.gw2.cogs.sessions.chat_formatting.inline', side_effect=lambda x: f"`{x}`"
+                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
                                     ):
                                         await session(mock_ctx)
 
@@ -1476,34 +1476,34 @@ class TestSessionCommand:
         mock_ctx.message.author.activity.name = "Guild Wars 2"
         mock_ctx.channel = MagicMock(spec=discord.TextChannel)  # Not a DMChannel
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
                                 with patch(
-                                    'src.gw2.cogs.sessions.gw2_utils.end_session', new_callable=AsyncMock
+                                    "src.gw2.cogs.sessions.gw2_utils.end_session", new_callable=AsyncMock
                                 ) as mock_end_session:
-                                    with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                    with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                         with patch(
-                                            'src.gw2.cogs.sessions.chat_formatting.inline',
+                                            "src.gw2.cogs.sessions.chat_formatting.inline",
                                             side_effect=lambda x: f"`{x}`",
                                         ):
                                             await session(mock_ctx)
@@ -1560,34 +1560,34 @@ class TestSessionCommand:
 
         mock_ctx.message.author.activity = None
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
                                 with patch(
-                                    'src.gw2.cogs.sessions.gw2_utils.end_session', new_callable=AsyncMock
+                                    "src.gw2.cogs.sessions.gw2_utils.end_session", new_callable=AsyncMock
                                 ) as mock_end_session:
-                                    with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                    with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                         with patch(
-                                            'src.gw2.cogs.sessions.chat_formatting.inline',
+                                            "src.gw2.cogs.sessions.chat_formatting.inline",
                                             side_effect=lambda x: f"`{x}`",
                                         ):
                                             await session(mock_ctx)
@@ -1647,34 +1647,34 @@ class TestSessionCommand:
         mock_ctx.message.author.activity = MagicMock()
         mock_ctx.message.author.activity.name = "Guild Wars 2"
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
                                 with patch(
-                                    'src.gw2.cogs.sessions.gw2_utils.end_session', new_callable=AsyncMock
+                                    "src.gw2.cogs.sessions.gw2_utils.end_session", new_callable=AsyncMock
                                 ) as mock_end_session:
-                                    with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                    with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                         with patch(
-                                            'src.gw2.cogs.sessions.chat_formatting.inline',
+                                            "src.gw2.cogs.sessions.chat_formatting.inline",
                                             side_effect=lambda x: f"`{x}`",
                                         ):
                                             await session(mock_ctx)
@@ -1728,31 +1728,31 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                     with patch(
-                                        'src.gw2.cogs.sessions.chat_formatting.inline', side_effect=lambda x: f"`{x}`"
+                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
                                     ):
                                         await session(mock_ctx)
 
@@ -1816,31 +1816,31 @@ class TestSessionCommand:
         time_obj.seconds = 0
         time_obj.timedelta = "0:01:00"
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = time_obj
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                     with patch(
-                                        'src.gw2.cogs.sessions.chat_formatting.inline', side_effect=lambda x: f"`{x}`"
+                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
                                     ):
                                         await session(mock_ctx)
 
@@ -1892,31 +1892,31 @@ class TestSessionCommand:
             }
         ]
 
-        with patch('src.gw2.cogs.sessions.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.sessions.Gw2ConfigsDal') as mock_configs:
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs_instance = mock_configs.return_value
                 mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch('src.gw2.cogs.sessions.Gw2SessionsDal') as mock_sessions_dal:
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_instance = mock_sessions_dal.return_value
                     mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
 
-                    with patch('src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short') as mock_convert:
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
                         mock_convert.side_effect = lambda x: x
 
-                        with patch('src.gw2.cogs.sessions.gw2_utils.get_time_passed') as mock_time:
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
                             mock_time.return_value = sample_time_passed
 
-                            with patch('src.gw2.cogs.sessions.Gw2SessionCharsDal') as mock_chars_dal:
+                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
                                 mock_chars_instance = mock_chars_dal.return_value
                                 mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
 
-                                with patch('src.gw2.cogs.sessions.bot_utils.send_embed') as mock_send:
+                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
                                     with patch(
-                                        'src.gw2.cogs.sessions.chat_formatting.inline', side_effect=lambda x: f"`{x}`"
+                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
                                     ):
                                         await session(mock_ctx)
 

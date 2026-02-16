@@ -53,8 +53,16 @@ class Bot(commands.Bot):
             # Load bot settings from environment variables
             self.settings["bot"] = {
                 "BGActivityTimer": bot_settings.bg_activity_timer,
-                "AllowedDMCommands": bot_settings.allowed_dm_commands,
-                "BotReactionWords": bot_settings.bot_reaction_words,
+                "AllowedDMCommands": (
+                    [cmd.strip() for cmd in bot_settings.allowed_dm_commands.split(",")]
+                    if bot_settings.allowed_dm_commands
+                    else None
+                ),
+                "BotReactionWords": (
+                    [word.strip() for word in bot_settings.bot_reaction_words.split(",")]
+                    if bot_settings.bot_reaction_words
+                    else []
+                ),
                 "EmbedColor": bot_utils.get_color_settings(bot_settings.embed_color),
                 "EmbedOwnerColor": bot_utils.get_color_settings(bot_settings.embed_owner_color),
                 "ExclusiveUsers": bot_settings.exclusive_users,

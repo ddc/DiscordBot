@@ -5,7 +5,7 @@ import pytest
 import sys
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.events.on_connect import ConnectionHandler, GuildSynchronizer, OnConnect
 
@@ -81,7 +81,7 @@ class TestGuildSynchronizer:
         assert synchronizer.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_connect.ServersDal')
+    @patch("src.bot.cogs.events.on_connect.ServersDal")
     async def test_get_database_server_ids_success(self, mock_dal_class, guild_synchronizer):
         """Test getting database server IDs successfully."""
         # Setup mock
@@ -95,7 +95,7 @@ class TestGuildSynchronizer:
         mock_dal.get_server.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_connect.ServersDal')
+    @patch("src.bot.cogs.events.on_connect.ServersDal")
     async def test_get_database_server_ids_empty(self, mock_dal_class, guild_synchronizer):
         """Test getting database server IDs when empty."""
         # Setup mock
@@ -108,7 +108,7 @@ class TestGuildSynchronizer:
         assert result == set()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_connect.ServersDal')
+    @patch("src.bot.cogs.events.on_connect.ServersDal")
     async def test_get_database_server_ids_error(self, mock_dal_class, guild_synchronizer):
         """Test getting database server IDs with error."""
         # Setup mock to raise exception
@@ -158,7 +158,7 @@ class TestGuildSynchronizer:
         guild_synchronizer.bot.log.error.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_connect.bot_utils.insert_server')
+    @patch("src.bot.cogs.events.on_connect.bot_utils.insert_server")
     async def test_add_missing_guilds_success(self, mock_insert_server, guild_synchronizer, mock_guild):
         """Test adding missing guilds successfully."""
         missing_guild_ids = {12345}
@@ -171,7 +171,7 @@ class TestGuildSynchronizer:
         guild_synchronizer.bot.log.info.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_connect.bot_utils.insert_server')
+    @patch("src.bot.cogs.events.on_connect.bot_utils.insert_server")
     async def test_add_missing_guilds_guild_not_found(self, mock_insert_server, guild_synchronizer):
         """Test adding missing guilds when guild not found."""
         missing_guild_ids = {12345}
@@ -184,7 +184,7 @@ class TestGuildSynchronizer:
         guild_synchronizer.bot.log.warning.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_connect.bot_utils.insert_server')
+    @patch("src.bot.cogs.events.on_connect.bot_utils.insert_server")
     async def test_add_missing_guilds_insert_error(self, mock_insert_server, guild_synchronizer, mock_guild):
         """Test adding missing guilds with insert error."""
         missing_guild_ids = {12345}
@@ -318,7 +318,7 @@ class TestOnConnect:
         from discord.ext import commands
 
         assert isinstance(on_connect_cog, commands.Cog)
-        assert hasattr(on_connect_cog, 'bot')
+        assert hasattr(on_connect_cog, "bot")
 
     @pytest.mark.asyncio
     async def test_guild_synchronizer_integration(self, mock_bot):
@@ -327,13 +327,13 @@ class TestOnConnect:
         cog = OnConnect(mock_bot)
 
         # Verify that connection handler has a guild synchronizer
-        assert hasattr(cog.connection_handler, 'guild_synchronizer')
+        assert hasattr(cog.connection_handler, "guild_synchronizer")
         assert isinstance(cog.connection_handler.guild_synchronizer, GuildSynchronizer)
         assert cog.connection_handler.guild_synchronizer.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_connect.ServersDal')
-    @patch('src.bot.cogs.events.on_connect.bot_utils.insert_server')
+    @patch("src.bot.cogs.events.on_connect.ServersDal")
+    @patch("src.bot.cogs.events.on_connect.bot_utils.insert_server")
     async def test_full_integration_sync_process(self, mock_insert_server, mock_dal_class, mock_bot, mock_guilds):
         """Test full integration of synchronization process."""
         # Setup database mock
