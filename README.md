@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="https://raw.githubusercontent.com/ddc/DiscordBot/main/assets/DiscordBot-icon.svg" alt="DiscordBot" width="150">
+  <img src="https://raw.githubusercontent.com/ddc/DiscordBot/refs/heads/master/assets/DiscordBot-icon.svg" alt="DiscordBot" width="150">
   <br>
   DiscordBot
 </h1>
