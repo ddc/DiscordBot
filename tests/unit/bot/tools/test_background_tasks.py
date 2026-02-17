@@ -25,7 +25,7 @@ class TestBackGroundTasks:
         bg_tasks = BackGroundTasks(mock_bot)
 
         assert bg_tasks.bot is mock_bot
-        assert hasattr(bg_tasks, 'random')
+        assert hasattr(bg_tasks, "random")
         assert bg_tasks.random is not None
 
     @pytest.mark.asyncio
@@ -44,7 +44,7 @@ class TestBackGroundTasks:
         bg_tasks = BackGroundTasks(mock_bot)
 
         # Mock asyncio.sleep to prevent actual waiting
-        with patch('asyncio.sleep', new_callable=AsyncMock) as mock_sleep:
+        with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
             await bg_tasks.change_presence_task(5)
 
         # Verify bot.wait_until_ready was called
@@ -55,18 +55,18 @@ class TestBackGroundTasks:
 
         # Verify the call arguments
         call_args = mock_bot.change_presence.call_args
-        assert call_args[1]['status'] == discord.Status.online
-        assert isinstance(call_args[1]['activity'], discord.Game)
+        assert call_args[1]["status"] == discord.Status.online
+        assert isinstance(call_args[1]["activity"], discord.Game)
 
         # Verify activity description format
-        activity_name = call_args[1]['activity'].name
-        assert ' | !help' in activity_name
+        activity_name = call_args[1]["activity"].name
+        assert " | !help" in activity_name
         # Activity name should contain some game and the help command
 
         # Verify logging
         mock_bot.log.info.assert_called_once()
         log_message = mock_bot.log.info.call_args[0][0]
-        assert 'Background task (5s) - Changing activity:' in log_message
+        assert "Background task (5s) - Changing activity:" in log_message
 
         # Verify sleep was called with correct interval
         mock_sleep.assert_called_once_with(5)
@@ -86,7 +86,7 @@ class TestBackGroundTasks:
 
         bg_tasks = BackGroundTasks(mock_bot)
 
-        with patch('asyncio.sleep', new_callable=AsyncMock) as mock_sleep:
+        with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
             await bg_tasks.change_presence_task(10)
 
         # Verify multiple calls
@@ -113,18 +113,18 @@ class TestBackGroundTasks:
 
         bg_tasks = BackGroundTasks(mock_bot)
 
-        with patch('asyncio.sleep', new_callable=AsyncMock):
+        with patch("asyncio.sleep", new_callable=AsyncMock):
             await bg_tasks.change_presence_task(1)
 
         # Collect all activity names
         activity_names = []
         for call in mock_bot.change_presence.call_args_list:
-            activity_name = call[1]['activity'].name
+            activity_name = call[1]["activity"].name
             activity_names.append(activity_name)
 
         # Verify all names contain the help command
         for name in activity_names:
-            assert ' | !help' in name
+            assert " | !help" in name
 
     @pytest.mark.asyncio
     async def test_change_presence_task_exception_handling(self, mock_bot):
@@ -144,7 +144,7 @@ class TestBackGroundTasks:
 
         bg_tasks = BackGroundTasks(mock_bot)
 
-        with patch('asyncio.sleep', new_callable=AsyncMock) as mock_sleep:
+        with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
             await bg_tasks.change_presence_task(3)
 
         # Verify error was logged
@@ -166,7 +166,7 @@ class TestBackGroundTasks:
         bg_tasks = BackGroundTasks(mock_bot)
 
         # Should raise exception since wait_until_ready fails
-        with patch('asyncio.sleep', new_callable=AsyncMock):
+        with patch("asyncio.sleep", new_callable=AsyncMock):
             with pytest.raises(Exception, match="Ready error"):
                 await bg_tasks.change_presence_task(1)
 
@@ -192,11 +192,11 @@ class TestBackGroundTasks:
 
             bg_tasks = BackGroundTasks(mock_bot)
 
-            with patch('asyncio.sleep', new_callable=AsyncMock):
+            with patch("asyncio.sleep", new_callable=AsyncMock):
                 await bg_tasks.change_presence_task(1)
 
             # Verify activity contains the first prefix
-            activity_name = mock_bot.change_presence.call_args[1]['activity'].name
+            activity_name = mock_bot.change_presence.call_args[1]["activity"].name
             expected_suffix = f" | {prefixes[0]}help"
             assert activity_name.endswith(expected_suffix)
 
@@ -220,7 +220,7 @@ class TestBackGroundTasks:
         # Mock the random choice to raise IndexError
         bg_tasks.random.choice = MagicMock(side_effect=IndexError("list index out of range"))
 
-        with patch('asyncio.sleep', new_callable=AsyncMock):
+        with patch("asyncio.sleep", new_callable=AsyncMock):
             # Should not raise IndexError, should be caught and logged as an error
             await bg_tasks.change_presence_task(1)
 
@@ -247,7 +247,7 @@ class TestBackGroundTasks:
 
         bg_tasks = BackGroundTasks(mock_bot)
 
-        with patch('asyncio.sleep', new_callable=AsyncMock) as mock_sleep:
+        with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
             await bg_tasks.change_presence_task(2)
 
         # Verify errors were logged for each attempt
@@ -289,8 +289,8 @@ class TestBackGroundTasksRandomness:
 
         # Should have different random instances
         assert bg_tasks1.random is not bg_tasks2.random
-        assert type(bg_tasks1.random).__name__ == 'SystemRandom'
-        assert type(bg_tasks2.random).__name__ == 'SystemRandom'
+        assert type(bg_tasks1.random).__name__ == "SystemRandom"
+        assert type(bg_tasks2.random).__name__ == "SystemRandom"
 
     def test_random_choice_usage(self):
         """Test that SystemRandom.choice is used correctly."""
@@ -298,13 +298,13 @@ class TestBackGroundTasksRandomness:
         bg_tasks = BackGroundTasks(mock_bot)
 
         # Mock the random choice method
-        bg_tasks.random.choice = MagicMock(return_value='SelectedGame')
+        bg_tasks.random.choice = MagicMock(return_value="SelectedGame")
 
         # Test the choice method directly with a test list
-        test_games = ['Game1', 'Game2', 'Game3']
+        test_games = ["Game1", "Game2", "Game3"]
         result = bg_tasks.random.choice(test_games)
 
-        assert result == 'SelectedGame'
+        assert result == "SelectedGame"
         bg_tasks.random.choice.assert_called_once_with(test_games)
 
 
@@ -335,7 +335,7 @@ class TestBackGroundTasksIntegration:
 
         bg_tasks = BackGroundTasks(mock_bot)
 
-        with patch('asyncio.sleep', new_callable=AsyncMock) as mock_sleep:
+        with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
             await bg_tasks.change_presence_task(5)
 
         # Comprehensive verification
@@ -348,10 +348,10 @@ class TestBackGroundTasksIntegration:
 
         # Verify activity structure
         for call in mock_bot.change_presence.call_args_list:
-            activity = call[1]['activity']
+            activity = call[1]["activity"]
             assert isinstance(activity, discord.Game)
-            assert ' | !help' in activity.name
-            assert call[1]['status'] == discord.Status.online
+            assert " | !help" in activity.name
+            assert call[1]["status"] == discord.Status.online
 
         # Verify logging messages
         for call in mock_bot.log.info.call_args_list:

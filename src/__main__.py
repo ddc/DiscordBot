@@ -99,7 +99,7 @@ async def main() -> None:
 
 
 def run_bot() -> None:
-    print(messages.BOT_STARTING.format(variables.TIME_BEFORE_START))
+    print(messages.bot_starting(variables.TIME_BEFORE_START))
     time.sleep(variables.TIME_BEFORE_START)
 
     try:

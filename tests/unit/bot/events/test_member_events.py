@@ -6,7 +6,7 @@ import pytest
 import sys
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.events.on_member_join import (
     MemberJoinHandler,
@@ -35,7 +35,6 @@ def mock_bot():
     bot.user.id = 99999
     bot.user.avatar = MagicMock()
     bot.user.avatar.url = "https://example.com/bot.png"
-    bot.event = MagicMock(side_effect=lambda func: func)
     bot.add_cog = AsyncMock()
     return bot
 
@@ -70,7 +69,7 @@ class TestWelcomeMessageBuilder:
         builder = WelcomeMessageBuilder(mock_bot)
         assert builder.bot == mock_bot
 
-    @patch('src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long")
     def test_create_join_embed_with_avatar(self, mock_datetime, mock_bot, mock_member):
         """Test create_join_embed when member has an avatar."""
         mock_datetime.return_value = "2023-06-15 10:30:00"
@@ -86,7 +85,7 @@ class TestWelcomeMessageBuilder:
         assert result.footer.text == "2023-06-15 10:30:00 UTC"
         assert result.footer.icon_url == mock_bot.user.avatar.url
 
-    @patch('src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long")
     def test_create_join_embed_without_avatar(self, mock_datetime, mock_bot, mock_member):
         """Test create_join_embed when member has no avatar."""
         mock_datetime.return_value = "2023-06-15 10:30:00"
@@ -101,7 +100,7 @@ class TestWelcomeMessageBuilder:
         # Thumbnail should not be set when avatar is None
         assert result.thumbnail.url is None
 
-    @patch('src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long")
     def test_create_join_embed_with_exception(self, mock_datetime, mock_bot, mock_member):
         """Test create_join_embed when an exception occurs."""
         mock_datetime.side_effect = Exception("DateTime error")
@@ -115,7 +114,7 @@ class TestWelcomeMessageBuilder:
         assert "joined the server!" in result.description
         mock_bot.log.error.assert_called_once()
 
-    @patch('src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long")
     def test_create_join_message_success(self, mock_datetime, mock_bot, mock_member):
         """Test create_join_message with successful execution."""
         mock_datetime.return_value = "2023-06-15 10:30:00"
@@ -126,7 +125,7 @@ class TestWelcomeMessageBuilder:
         expected = f"TestUser {messages.JOINED_THE_SERVER}\n2023-06-15 10:30:00"
         assert result == expected
 
-    @patch('src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long")
     def test_create_join_message_exception(self, mock_datetime, mock_bot, mock_member):
         """Test create_join_message when an exception occurs."""
         mock_datetime.side_effect = Exception("DateTime error")
@@ -153,7 +152,7 @@ class TestMemberJoinHandler:
         assert isinstance(handler.message_builder, WelcomeMessageBuilder)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_join.ServersDal')
+    @patch("src.bot.cogs.events.on_member_join.ServersDal")
     async def test_process_member_join_no_config(self, mock_dal_class, mock_bot, mock_member):
         """Test process_member_join when no server config is found."""
         mock_dal = AsyncMock()
@@ -168,7 +167,7 @@ class TestMemberJoinHandler:
         assert "No server config found" in mock_bot.log.warning.call_args[0][0]
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_join.ServersDal')
+    @patch("src.bot.cogs.events.on_member_join.ServersDal")
     async def test_process_member_join_msg_on_join_false(self, mock_dal_class, mock_bot, mock_member):
         """Test process_member_join when msg_on_join is False."""
         mock_dal = AsyncMock()
@@ -183,9 +182,9 @@ class TestMemberJoinHandler:
         mock_bot.log.info.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_join.bot_utils.send_msg_to_system_channel', new_callable=AsyncMock)
-    @patch('src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long')
-    @patch('src.bot.cogs.events.on_member_join.ServersDal')
+    @patch("src.bot.cogs.events.on_member_join.bot_utils.send_msg_to_system_channel", new_callable=AsyncMock)
+    @patch("src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long")
+    @patch("src.bot.cogs.events.on_member_join.ServersDal")
     async def test_process_member_join_msg_on_join_true(
         self, mock_dal_class, mock_datetime, mock_send_msg, mock_bot, mock_member
     ):
@@ -204,7 +203,7 @@ class TestMemberJoinHandler:
         assert "Welcome message sent" in mock_bot.log.info.call_args[0][0]
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_join.ServersDal')
+    @patch("src.bot.cogs.events.on_member_join.ServersDal")
     async def test_process_member_join_exception(self, mock_dal_class, mock_bot, mock_member):
         """Test process_member_join when an exception occurs."""
         mock_dal = AsyncMock()
@@ -218,8 +217,8 @@ class TestMemberJoinHandler:
         assert "Error processing member join" in mock_bot.log.error.call_args[0][0]
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_join.bot_utils.send_msg_to_system_channel', new_callable=AsyncMock)
-    @patch('src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_join.bot_utils.send_msg_to_system_channel", new_callable=AsyncMock)
+    @patch("src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long")
     async def test_send_welcome_message_success(self, mock_datetime, mock_send_msg, mock_bot, mock_member):
         """Test _send_welcome_message with successful execution."""
         mock_datetime.return_value = "2023-06-15 10:30:00"
@@ -237,8 +236,8 @@ class TestMemberJoinHandler:
         assert "Welcome message sent" in mock_bot.log.info.call_args[0][0]
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_join.bot_utils.send_msg_to_system_channel', new_callable=AsyncMock)
-    @patch('src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_join.bot_utils.send_msg_to_system_channel", new_callable=AsyncMock)
+    @patch("src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long")
     async def test_send_welcome_message_exception(self, mock_datetime, mock_send_msg, mock_bot, mock_member):
         """Test _send_welcome_message when an exception occurs."""
         mock_datetime.return_value = "2023-06-15 10:30:00"
@@ -264,8 +263,6 @@ class TestOnMemberJoin:
         cog = OnMemberJoin(mock_bot)
         assert cog.bot == mock_bot
         assert isinstance(cog.join_handler, MemberJoinHandler)
-        # Verify event was registered
-        mock_bot.event.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
@@ -293,7 +290,7 @@ class TestFarewellMessageBuilder:
         builder = FarewellMessageBuilder(mock_bot)
         assert builder.bot == mock_bot
 
-    @patch('src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long")
     def test_create_leave_embed_with_avatar(self, mock_datetime, mock_bot, mock_member):
         """Test create_leave_embed when member has an avatar."""
         mock_datetime.return_value = "2023-06-15 10:30:00"
@@ -309,7 +306,7 @@ class TestFarewellMessageBuilder:
         assert result.footer.text == "2023-06-15 10:30:00 UTC"
         assert result.footer.icon_url == mock_bot.user.avatar.url
 
-    @patch('src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long")
     def test_create_leave_embed_without_avatar(self, mock_datetime, mock_bot, mock_member):
         """Test create_leave_embed when member has no avatar."""
         mock_datetime.return_value = "2023-06-15 10:30:00"
@@ -324,7 +321,7 @@ class TestFarewellMessageBuilder:
         # Thumbnail should not be set when avatar is None
         assert result.thumbnail.url is None
 
-    @patch('src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long")
     def test_create_leave_embed_with_exception(self, mock_datetime, mock_bot, mock_member):
         """Test create_leave_embed when an exception occurs."""
         mock_datetime.side_effect = Exception("DateTime error")
@@ -338,7 +335,7 @@ class TestFarewellMessageBuilder:
         assert "left the server!" in result.description
         mock_bot.log.error.assert_called_once()
 
-    @patch('src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long")
     def test_create_leave_message_success(self, mock_datetime, mock_bot, mock_member):
         """Test create_leave_message with successful execution."""
         mock_datetime.return_value = "2023-06-15 10:30:00"
@@ -349,7 +346,7 @@ class TestFarewellMessageBuilder:
         expected = f"TestUser {messages.LEFT_THE_SERVER}\n2023-06-15 10:30:00"
         assert result == expected
 
-    @patch('src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long")
     def test_create_leave_message_exception(self, mock_datetime, mock_bot, mock_member):
         """Test create_leave_message when an exception occurs."""
         mock_datetime.side_effect = Exception("DateTime error")
@@ -376,7 +373,7 @@ class TestMemberLeaveHandler:
         assert isinstance(handler.message_builder, FarewellMessageBuilder)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_remove.ServersDal')
+    @patch("src.bot.cogs.events.on_member_remove.ServersDal")
     async def test_process_member_leave_bot_is_member(self, mock_dal_class, mock_bot, mock_member):
         """Test process_member_leave when the bot itself is the member leaving."""
         mock_member.id = mock_bot.user.id  # Same ID as bot
@@ -388,7 +385,7 @@ class TestMemberLeaveHandler:
         mock_dal_class.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_remove.ServersDal')
+    @patch("src.bot.cogs.events.on_member_remove.ServersDal")
     async def test_process_member_leave_no_config(self, mock_dal_class, mock_bot, mock_member):
         """Test process_member_leave when no server config is found."""
         mock_dal = AsyncMock()
@@ -403,7 +400,7 @@ class TestMemberLeaveHandler:
         assert "No server config found" in mock_bot.log.warning.call_args[0][0]
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_remove.ServersDal')
+    @patch("src.bot.cogs.events.on_member_remove.ServersDal")
     async def test_process_member_leave_msg_on_leave_false(self, mock_dal_class, mock_bot, mock_member):
         """Test process_member_leave when msg_on_leave is False."""
         mock_dal = AsyncMock()
@@ -418,9 +415,9 @@ class TestMemberLeaveHandler:
         mock_bot.log.info.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_remove.bot_utils.send_msg_to_system_channel', new_callable=AsyncMock)
-    @patch('src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long')
-    @patch('src.bot.cogs.events.on_member_remove.ServersDal')
+    @patch("src.bot.cogs.events.on_member_remove.bot_utils.send_msg_to_system_channel", new_callable=AsyncMock)
+    @patch("src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long")
+    @patch("src.bot.cogs.events.on_member_remove.ServersDal")
     async def test_process_member_leave_msg_on_leave_true(
         self, mock_dal_class, mock_datetime, mock_send_msg, mock_bot, mock_member
     ):
@@ -439,7 +436,7 @@ class TestMemberLeaveHandler:
         assert "Farewell message sent" in mock_bot.log.info.call_args[0][0]
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_remove.ServersDal')
+    @patch("src.bot.cogs.events.on_member_remove.ServersDal")
     async def test_process_member_leave_exception(self, mock_dal_class, mock_bot, mock_member):
         """Test process_member_leave when an exception occurs."""
         mock_dal = AsyncMock()
@@ -453,8 +450,8 @@ class TestMemberLeaveHandler:
         assert "Error processing member leave" in mock_bot.log.error.call_args[0][0]
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_remove.bot_utils.send_msg_to_system_channel', new_callable=AsyncMock)
-    @patch('src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_remove.bot_utils.send_msg_to_system_channel", new_callable=AsyncMock)
+    @patch("src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long")
     async def test_send_farewell_message_success(self, mock_datetime, mock_send_msg, mock_bot, mock_member):
         """Test _send_farewell_message with successful execution."""
         mock_datetime.return_value = "2023-06-15 10:30:00"
@@ -472,8 +469,8 @@ class TestMemberLeaveHandler:
         assert "Farewell message sent" in mock_bot.log.info.call_args[0][0]
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_member_remove.bot_utils.send_msg_to_system_channel', new_callable=AsyncMock)
-    @patch('src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long')
+    @patch("src.bot.cogs.events.on_member_remove.bot_utils.send_msg_to_system_channel", new_callable=AsyncMock)
+    @patch("src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long")
     async def test_send_farewell_message_exception(self, mock_datetime, mock_send_msg, mock_bot, mock_member):
         """Test _send_farewell_message when an exception occurs."""
         mock_datetime.return_value = "2023-06-15 10:30:00"
@@ -499,8 +496,6 @@ class TestOnMemberRemove:
         cog = OnMemberRemove(mock_bot)
         assert cog.bot == mock_bot
         assert isinstance(cog.leave_handler, MemberLeaveHandler)
-        # Verify event was registered
-        mock_bot.event.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
@@ -527,8 +522,6 @@ class TestOnUserUpdate:
         """Test OnUserUpdate cog initialization."""
         cog = OnUserUpdate(mock_bot)
         assert cog.bot == mock_bot
-        # Verify event was registered
-        mock_bot.event.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
@@ -543,26 +536,26 @@ class TestOnUserUpdate:
         assert added_cog.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_user_update.bot_utils.get_embed')
+    @patch("src.bot.cogs.events.on_user_update.bot_utils.get_embed")
     async def test_on_user_update_bot_user(self, mock_get_embed, mock_bot):
         """Test on_user_update with a bot user (should return early)."""
         before = MagicMock()
         after = MagicMock()
         after.bot = True
 
-        OnUserUpdate(mock_bot)
-        on_user_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnUserUpdate(mock_bot)
 
-        await on_user_update_event(before, after)
+        # Call the listener method directly
+        await cog.on_user_update(before, after)
 
         # Should not process bot users
         mock_get_embed.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_user_update.bot_utils.get_embed')
-    @patch('src.bot.cogs.events.on_user_update.bot_utils.get_current_date_time_str_long')
-    @patch('src.bot.cogs.events.on_user_update.ServersDal')
-    @patch('src.bot.cogs.events.on_user_update.bot_utils.send_msg_to_system_channel', new_callable=AsyncMock)
+    @patch("src.bot.cogs.events.on_user_update.bot_utils.get_embed")
+    @patch("src.bot.cogs.events.on_user_update.bot_utils.get_current_date_time_str_long")
+    @patch("src.bot.cogs.events.on_user_update.ServersDal")
+    @patch("src.bot.cogs.events.on_user_update.bot_utils.send_msg_to_system_channel", new_callable=AsyncMock)
     async def test_on_user_update_avatar_change(
         self, mock_send_msg, mock_dal_class, mock_datetime, mock_get_embed, mock_bot
     ):
@@ -595,10 +588,10 @@ class TestOnUserUpdate:
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = {"msg_on_member_update": True}
 
-        OnUserUpdate(mock_bot)
-        on_user_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnUserUpdate(mock_bot)
 
-        await on_user_update_event(before, after)
+        # Call the listener method directly
+        await cog.on_user_update(before, after)
 
         # Verify embed has avatar field
         field_names = [f.name for f in embed.fields]
@@ -609,10 +602,10 @@ class TestOnUserUpdate:
         mock_send_msg.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_user_update.bot_utils.get_embed')
-    @patch('src.bot.cogs.events.on_user_update.bot_utils.get_current_date_time_str_long')
-    @patch('src.bot.cogs.events.on_user_update.ServersDal')
-    @patch('src.bot.cogs.events.on_user_update.bot_utils.send_msg_to_system_channel', new_callable=AsyncMock)
+    @patch("src.bot.cogs.events.on_user_update.bot_utils.get_embed")
+    @patch("src.bot.cogs.events.on_user_update.bot_utils.get_current_date_time_str_long")
+    @patch("src.bot.cogs.events.on_user_update.ServersDal")
+    @patch("src.bot.cogs.events.on_user_update.bot_utils.send_msg_to_system_channel", new_callable=AsyncMock)
     async def test_on_user_update_name_change(
         self, mock_send_msg, mock_dal_class, mock_datetime, mock_get_embed, mock_bot
     ):
@@ -645,10 +638,10 @@ class TestOnUserUpdate:
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = {"msg_on_member_update": True}
 
-        OnUserUpdate(mock_bot)
-        on_user_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnUserUpdate(mock_bot)
 
-        await on_user_update_event(before, after)
+        # Call the listener method directly
+        await cog.on_user_update(before, after)
 
         # Verify embed has name fields
         field_names = [f.name for f in embed.fields]
@@ -659,10 +652,10 @@ class TestOnUserUpdate:
         mock_send_msg.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_user_update.bot_utils.get_embed')
-    @patch('src.bot.cogs.events.on_user_update.bot_utils.get_current_date_time_str_long')
-    @patch('src.bot.cogs.events.on_user_update.ServersDal')
-    @patch('src.bot.cogs.events.on_user_update.bot_utils.send_msg_to_system_channel', new_callable=AsyncMock)
+    @patch("src.bot.cogs.events.on_user_update.bot_utils.get_embed")
+    @patch("src.bot.cogs.events.on_user_update.bot_utils.get_current_date_time_str_long")
+    @patch("src.bot.cogs.events.on_user_update.ServersDal")
+    @patch("src.bot.cogs.events.on_user_update.bot_utils.send_msg_to_system_channel", new_callable=AsyncMock)
     async def test_on_user_update_discriminator_change(
         self, mock_send_msg, mock_dal_class, mock_datetime, mock_get_embed, mock_bot
     ):
@@ -695,10 +688,10 @@ class TestOnUserUpdate:
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = {"msg_on_member_update": True}
 
-        OnUserUpdate(mock_bot)
-        on_user_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnUserUpdate(mock_bot)
 
-        await on_user_update_event(before, after)
+        # Call the listener method directly
+        await cog.on_user_update(before, after)
 
         # Verify embed has discriminator fields
         field_names = [f.name for f in embed.fields]
@@ -709,10 +702,10 @@ class TestOnUserUpdate:
         mock_send_msg.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_user_update.bot_utils.get_embed')
-    @patch('src.bot.cogs.events.on_user_update.bot_utils.get_current_date_time_str_long')
-    @patch('src.bot.cogs.events.on_user_update.ServersDal')
-    @patch('src.bot.cogs.events.on_user_update.bot_utils.send_msg_to_system_channel', new_callable=AsyncMock)
+    @patch("src.bot.cogs.events.on_user_update.bot_utils.get_embed")
+    @patch("src.bot.cogs.events.on_user_update.bot_utils.get_current_date_time_str_long")
+    @patch("src.bot.cogs.events.on_user_update.ServersDal")
+    @patch("src.bot.cogs.events.on_user_update.bot_utils.send_msg_to_system_channel", new_callable=AsyncMock)
     async def test_on_user_update_no_changes(
         self, mock_send_msg, mock_dal_class, mock_datetime, mock_get_embed, mock_bot
     ):
@@ -736,10 +729,10 @@ class TestOnUserUpdate:
         after.name = "TestUser"
         after.discriminator = "1234"
 
-        OnUserUpdate(mock_bot)
-        on_user_update_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnUserUpdate(mock_bot)
 
-        await on_user_update_event(before, after)
+        # Call the listener method directly
+        await cog.on_user_update(before, after)
 
         # Verify no fields were added
         assert len(embed.fields) == 0
@@ -755,7 +748,7 @@ class TestOnUserUpdate:
 
 
 class TestOnMemberJoinEvent:
-    """Test cases for the inner on_member_join event function registered in OnMemberJoin.__init__."""
+    """Test cases for the on_member_join listener method in OnMemberJoin."""
 
     @pytest.fixture
     def mock_bot(self):
@@ -770,7 +763,6 @@ class TestOnMemberJoinEvent:
         bot.user.id = 99999
         bot.user.avatar = MagicMock()
         bot.user.avatar.url = "https://example.com/bot.png"
-        bot.event = MagicMock(side_effect=lambda func: func)
         bot.add_cog = AsyncMock()
         return bot
 
@@ -794,11 +786,10 @@ class TestOnMemberJoinEvent:
     async def test_on_member_join_event_calls_handler(self, mock_bot, mock_member):
         """Test that the on_member_join event calls the join handler."""
         cog = OnMemberJoin(mock_bot)
-        # Get the registered event function
-        on_member_join_event = mock_bot.event.call_args_list[0][0][0]
 
-        with patch.object(cog.join_handler, 'process_member_join', new_callable=AsyncMock) as mock_process:
-            await on_member_join_event(mock_member)
+        with patch.object(cog.join_handler, "process_member_join", new_callable=AsyncMock) as mock_process:
+            # Call the listener method directly
+            await cog.on_member_join(mock_member)
             mock_process.assert_called_once_with(mock_member)
             mock_bot.log.info.assert_called_once()
             assert "Member joined" in mock_bot.log.info.call_args[0][0]
@@ -807,12 +798,12 @@ class TestOnMemberJoinEvent:
     async def test_on_member_join_event_handles_exception(self, mock_bot, mock_member):
         """Test that on_member_join catches exceptions and logs critical error."""
         cog = OnMemberJoin(mock_bot)
-        on_member_join_event = mock_bot.event.call_args_list[0][0][0]
 
         with patch.object(
-            cog.join_handler, 'process_member_join', new_callable=AsyncMock, side_effect=RuntimeError("fail")
+            cog.join_handler, "process_member_join", new_callable=AsyncMock, side_effect=RuntimeError("fail")
         ):
-            await on_member_join_event(mock_member)
+            # Call the listener method directly
+            await cog.on_member_join(mock_member)
             mock_bot.log.error.assert_called_once()
             assert "Critical error" in mock_bot.log.error.call_args[0][0]
 
@@ -823,7 +814,7 @@ class TestOnMemberJoinEvent:
 
 
 class TestOnMemberRemoveEvent:
-    """Test cases for the inner on_member_remove event function registered in OnMemberRemove.__init__."""
+    """Test cases for the on_member_remove listener method in OnMemberRemove."""
 
     @pytest.fixture
     def mock_bot(self):
@@ -838,7 +829,6 @@ class TestOnMemberRemoveEvent:
         bot.user.id = 99999
         bot.user.avatar = MagicMock()
         bot.user.avatar.url = "https://example.com/bot.png"
-        bot.event = MagicMock(side_effect=lambda func: func)
         bot.add_cog = AsyncMock()
         return bot
 
@@ -862,11 +852,10 @@ class TestOnMemberRemoveEvent:
     async def test_on_member_remove_event_calls_handler(self, mock_bot, mock_member):
         """Test that the on_member_remove event calls the leave handler."""
         cog = OnMemberRemove(mock_bot)
-        # Get the registered event function
-        on_member_remove_event = mock_bot.event.call_args_list[0][0][0]
 
-        with patch.object(cog.leave_handler, 'process_member_leave', new_callable=AsyncMock) as mock_process:
-            await on_member_remove_event(mock_member)
+        with patch.object(cog.leave_handler, "process_member_leave", new_callable=AsyncMock) as mock_process:
+            # Call the listener method directly
+            await cog.on_member_remove(mock_member)
             mock_process.assert_called_once_with(mock_member)
             mock_bot.log.info.assert_called_once()
             assert "Member left" in mock_bot.log.info.call_args[0][0]
@@ -875,11 +864,11 @@ class TestOnMemberRemoveEvent:
     async def test_on_member_remove_event_handles_exception(self, mock_bot, mock_member):
         """Test that on_member_remove catches exceptions and logs critical error."""
         cog = OnMemberRemove(mock_bot)
-        on_member_remove_event = mock_bot.event.call_args_list[0][0][0]
 
         with patch.object(
-            cog.leave_handler, 'process_member_leave', new_callable=AsyncMock, side_effect=RuntimeError("fail")
+            cog.leave_handler, "process_member_leave", new_callable=AsyncMock, side_effect=RuntimeError("fail")
         ):
-            await on_member_remove_event(mock_member)
+            # Call the listener method directly
+            await cog.on_member_remove(mock_member)
             mock_bot.log.error.assert_called_once()
             assert "Critical error" in mock_bot.log.error.call_args[0][0]

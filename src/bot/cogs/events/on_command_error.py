@@ -65,11 +65,13 @@ class ErrorMessageBuilder:
     @staticmethod
     def build_check_failure(context: ErrorContext) -> str:
         """Build message for check failure error."""
-        if "not admin" in context.error_msg:
-            return f"{messages.NOT_ADMIN_USE_COMMAND}: `{context.command}`"
-        elif "not owner" in context.error_msg:
-            return f"{messages.BOT_OWNERS_ONLY_COMMAND}: `{context.command}`"
-        return context.error_msg
+        match context.error_msg:
+            case msg if "not admin" in msg:
+                return f"{messages.NOT_ADMIN_USE_COMMAND}: `{context.command}`"
+            case msg if "not owner" in msg:
+                return f"{messages.BOT_OWNERS_ONLY_COMMAND}: `{context.command}`"
+            case _:
+                return context.error_msg
 
     @staticmethod
     def build_bad_argument(context: ErrorContext) -> str:
@@ -97,8 +99,8 @@ class ErrorMessageBuilder:
                 "NoOptionError",
             ): f"{messages.NO_OPTION_FOUND}: `{context.error_msg.split()[7] if len(context.error_msg.split()) > 7 else 'unknown'}`",
             ("GW2 API",): (
-                str(context.error_msg).split(',')[1].strip().split('?')[0]
-                if ',' in str(context.error_msg) and len(str(context.error_msg).split(',')) > 1
+                str(context.error_msg).split(",")[1].strip().split("?")[0]
+                if "," in str(context.error_msg) and len(str(context.error_msg).split(",")) > 1
                 else str(context.error_msg)
             ),
             ("No text to send to TTS API",): messages.INVALID_MESSAGE,
@@ -184,13 +186,14 @@ class Errors(commands.Cog):
     async def _handle_bad_argument(self, context: ErrorContext, should_log: bool) -> None:
         """Handle BadArgument error."""
         # Extract bad argument from message content
-        if context.error_msg == "BadArgument_Gw2ConfigStatus":
-            context.bad_argument = context.ctx.message.clean_content.split()[3]
-        elif context.error_msg == "BadArgument_Gw2ConfigServer":
-            bad_server_list = context.ctx.message.clean_content.split()[4:]
-            context.bad_argument = " ".join(bad_server_list)
-        else:
-            context.bad_argument = context.ctx.message.clean_content.replace(context.command, "").strip()
+        match context.error_msg:
+            case "BadArgument_Gw2ConfigStatus":
+                context.bad_argument = context.ctx.message.clean_content.split()[3]
+            case "BadArgument_Gw2ConfigServer":
+                bad_server_list = context.ctx.message.clean_content.split()[4:]
+                context.bad_argument = " ".join(bad_server_list)
+            case _:
+                context.bad_argument = context.ctx.message.clean_content.replace(context.command, "").strip()
 
         error_msg = self.message_builder.build_bad_argument(context)
         await self._send_error_message(context.ctx, error_msg, should_log)

@@ -47,26 +47,26 @@ class OnGuildRemove(commands.Cog):
         self.bot = bot
         self.cleanup_handler = GuildCleanupHandler(bot)
 
-        @self.bot.event
-        async def on_guild_remove(guild: discord.Guild) -> None:
-            """Handle guild removal event.
+    @commands.Cog.listener()
+    async def on_guild_remove(self, guild: discord.Guild) -> None:
+        """Handle guild removal event.
 
-            Called when the bot is removed from a guild (server).
-            This includes being kicked, banned, or the server being deleted.
+        Called when the bot is removed from a guild (server).
+        This includes being kicked, banned, or the server being deleted.
 
-            Args:
-                guild: The Discord guild the bot was removed from
-            """
-            try:
-                self.bot.log.info(f"Bot removed from guild: {guild.name} (ID: {guild.id})")
+        Args:
+            guild: The Discord guild the bot was removed from
+        """
+        try:
+            self.bot.log.info(f"Bot removed from guild: {guild.name} (ID: {guild.id})")
 
-                # Clean up server data from database
-                cleanup_success = await self.cleanup_handler.cleanup_server_data(guild)
+            # Clean up server data from database
+            cleanup_success = await self.cleanup_handler.cleanup_server_data(guild)
 
-                if not cleanup_success:
-                    self.bot.log.warning(f"Database cleanup may be incomplete for guild: {guild.name}")
-            except Exception as e:
-                self.bot.log.error(f"Error handling guild removal for {guild.name}: {e}")
+            if not cleanup_success:
+                self.bot.log.warning(f"Database cleanup may be incomplete for guild: {guild.name}")
+        except Exception as e:
+            self.bot.log.error(f"Error handling guild removal for {guild.name}: {e}")
 
 
 async def setup(bot: Bot) -> None:

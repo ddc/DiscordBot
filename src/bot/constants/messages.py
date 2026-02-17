@@ -1,9 +1,7 @@
 #################################
 # BOT
 #################################
-BOT_ONLINE = "====> {0} IS ONLINE AND CONNECTED TO DISCORD <===="
 BOT_TOKEN_NOT_FOUND = "BOT_TOKEN variable not found"
-BOT_STARTING = "Starting Bot in {0} secs"
 BOT_TERMINATED = "Bot has been terminated."
 BOT_STOPPED_CTRTC = "Bot stopped with Ctrl+C"
 BOT_FATAL_ERROR_MAIN = "Fatal error in main()"
@@ -14,11 +12,33 @@ BOT_INIT_PREFIX_FAILED = "Failed to get prefix from database, using default"
 BOT_LOAD_SETTINGS_FAILED = "Failed to load settings"
 BOT_LOAD_COGS_FAILED = "Failed to load cogs"
 BOT_LOADED_ALL_COGS_SUCCESS = "Successfully loaded all cogs"
+
+
+def bot_online(bot_user) -> str:
+    return f"====> {bot_user} IS ONLINE AND CONNECTED TO DISCORD <===="
+
+
+def bot_starting(seconds: int) -> str:
+    return f"Starting Bot in {seconds} secs"
+
+
+def bot_disconnected(bot_user) -> str:
+    return f"Bot {bot_user} disconnected from Discord"
+
+
 #################################
 # EVENT ADMIN
 #################################
-BOT_ANNOUNCE_PLAYING = "I'm now playing: {0}"
-BG_TASK_WARNING = "Background task running to update bot activity is ON\nActivity will change after {0} secs."
+
+
+def bot_announce_playing(game: str) -> str:
+    return f"I'm now playing: {game}"
+
+
+def bg_task_warning(seconds: int) -> str:
+    return f"Background task running to update bot activity is ON\nActivity will change after {seconds} secs."
+
+
 #################################
 # EVENT CONFIG
 #################################
@@ -28,13 +48,18 @@ CONFIG_SERVER = "Display a message when server gets updated"
 CONFIG_MEMBER = "Display a message when someone changes profile"
 CONFIG_BLOCK_INVIS_MEMBERS = "Block messages from invisible members"
 CONFIG_BOT_WORD_REACTIONS = "Bot word reactions"
-CONFIG_PFILTER = "Profanity Filter `{0}`\nChannel: `{1}`"
 CONFIG_PFILTER_CHANNELS = "Channels with profanity filter activated"
+
+
+def config_pfilter(status: str, channel: str) -> str:
+    return f"Profanity Filter `{status}`\nChannel: `{channel}`"
+
+
 CONFIG_CHANNEL_ID_INSTEAD_NAME = "Chnanel id should be used instead of its name!!!"
 CONFIG_NOT_ACTIVATED_ERROR = "Profanity Filter could not be activated.\n"
 MISING_REUIRED_ARGUMENT = "Missing required argument!!!"
 CHANNEL_ID_NOT_FOUND = "Channel id not found"
-BOT_MISSING_MANAGE_MESSAGES_PERMISSION = "Bot does not have permission to \"Manage Messages\""
+BOT_MISSING_MANAGE_MESSAGES_PERMISSION = 'Bot does not have permission to "Manage Messages"'
 NO_CHANNELS_LISTED = "No channels listed"
 #################################
 # EVENT CUSTOM COMMAND
@@ -73,18 +98,23 @@ DIRECT_MESSAGES_DISABLED = (
     "Direct messages are disable in your configuration.\n"
     "If you want to receive messages from Bots, "
     "you need to enable this option under Privacy & Safety:"
-    "\"Allow direct messages from server members.\""
+    '"Allow direct messages from server members."'
 )
 #################################
 # EVENT ON GUILD JOIN
 #################################
-GUILD_JOIN_BOT_MESSAGE = (
-    "Thanks for using *{0}*\n"
-    "To learn more about this bot: `{1}about`\n"
-    "Games included so far: `{2}`\n\n"
-    "If you are an Admin and wish to list configurations: `{3}config list`\n"
-    "To get a list of commands: `{4}help`"
-)
+
+
+def guild_join_bot_message(bot_name: str, prefix: str, games_included: str) -> str:
+    return (
+        f"Thanks for using *{bot_name}*\n"
+        f"To learn more about this bot: `{prefix}about`\n"
+        f"Games included so far: `{games_included}`\n\n"
+        f"If you are an Admin and wish to list configurations: `{prefix}config list`\n"
+        f"To get a list of commands: `{prefix}help`"
+    )
+
+
 #################################
 # EVENT ON GUILD UPDATE
 #################################
@@ -121,17 +151,22 @@ DM_COMMANDS_ALLOW_LIST = "Commands allowed in direct messages"
 BOT_REACT_STUPID = "I'm not stupid, fu ufk!!!"
 BOT_REACT_RETARD = "I'm not retard, fu ufk!!!"
 MESSAGE_CENSURED = "Your message was censored.\nPlease don't say offensive words in this channel."
-BLOCKED_INVIS_MESSAGE = (
-    "You are Invisible (offline)\n"
-    "Server \"{0}\" does not allow messages from invisible members.\n"
-    "Please change your status if you want to send messages to this server."
-)
 PRIVATE_BOT_MESSAGE = (
     "This is a Private Bot.\n"
     "You are not allowed to execute any commands.\n"
     "Only a few users are allowed to use it.\n"
     "Please don't insist. Thank You!!!"
 )
+
+
+def blocked_invis_message(guild_name: str) -> str:
+    return (
+        "You are Invisible (offline)\n"
+        f'Server "{guild_name}" does not allow messages from invisible members.\n'
+        "Please change your status if you want to send messages to this server."
+    )
+
+
 #################################
 # EVENT ON USER UPDATE
 #################################
@@ -148,7 +183,7 @@ DISABLED_DM = (
     "Direct messages are disable in your configuration.\n"
     "If you want to receive messages from Bots, "
     "you need to enable this option under Privacy & Safety:\n"
-    "\"Allow direct messages from server members.\"\n"
+    '"Allow direct messages from server members."\n'
 )
 MESSAGE_REMOVED_FOR_PRIVACY = "Your message was removed for privacy."
 DELETE_MESSAGE_NO_PERMISSION = "Bot does not have permission to delete messages."
@@ -162,9 +197,14 @@ MEMBER_SERVER_WINNER_ANOUNCE = ":crown: You are the server winner with"
 MEMBER_HIGHEST_ROLL = "Your highest roll is now:"
 MEMBER_HAS_HIGHEST_ROLL = "has the server highest roll with"
 DICE_SIZE_HIGHER_ONE = "Dice size needs to be higher than 1"
-NO_DICE_SIZE_ROLLS = "There are no dice rolls of the size {0} in this server."
 RESET_ALL_ROLLS = "Reset all rolls from this server"
 DELETED_ALL_ROLLS = "Rolls from all members in this server have been deleted."
+
+
+def no_dice_size_rolls(dice_size) -> str:
+    return f"There are no dice rolls of the size {dice_size} in this server."
+
+
 #################################
 # MISC
 #################################
@@ -178,10 +218,15 @@ DO_NOT_DISTURB = "Do Not Disturb"
 JOINED_DISCORD_ON = "Joined Discord on"
 JOINED_THIS_SERVER_ON = "Joined this server on"
 LIST_COMMAND_CATEGORIES = "For a list of command categories"
-DEV_INFO_MSG = (
-    "Developed as an open source project and hosted on [GitHub]({0})\n"
-    "A python discord api wrapper: [discord.py]({1})\n"
-)
+
+
+def dev_info_msg(webpage_url: str, discordpy_url: str) -> str:
+    return (
+        f"Developed as an open source project and hosted on [GitHub]({webpage_url})\n"
+        f"A python discord api wrapper: [discord.py]({discordpy_url})\n"
+    )
+
+
 #################################
 # OWNER
 #################################

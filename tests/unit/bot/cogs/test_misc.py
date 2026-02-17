@@ -8,7 +8,7 @@ from discord.ext import commands
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 # Mock problematic imports before importing the module
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.misc import Misc
 from src.bot.constants import messages, variables
@@ -107,20 +107,20 @@ class TestMisc:
         """Test Misc cog initialization."""
         cog = Misc(mock_bot)
         assert cog.bot == mock_bot
-        assert hasattr(cog, '_random')
+        assert hasattr(cog, "_random")
 
     # Test pepe command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.pepedatabase', ['https://example.com/pepe1.jpg', 'https://example.com/pepe2.jpg'])
+    @patch("src.bot.cogs.misc.pepedatabase", ["https://example.com/pepe1.jpg", "https://example.com/pepe2.jpg"])
     async def test_pepe_command_success(self, misc_cog, mock_ctx):
         """Test successful pepe command execution."""
         mock_ctx.subcommand_passed = None
 
-        with patch.object(misc_cog._random, 'choice', return_value='https://example.com/pepe1.jpg'):
+        with patch.object(misc_cog._random, "choice", return_value="https://example.com/pepe1.jpg"):
             await misc_cog.pepe.callback(misc_cog, mock_ctx)
 
             mock_ctx.message.channel.typing.assert_called_once()
-            mock_ctx.send.assert_called_once_with('https://example.com/pepe1.jpg')
+            mock_ctx.send.assert_called_once_with("https://example.com/pepe1.jpg")
 
     @pytest.mark.asyncio
     async def test_pepe_command_with_subcommand(self, misc_cog, mock_ctx):
@@ -132,8 +132,8 @@ class TestMisc:
 
     # Test TTS command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.gTTS')
-    @patch('src.bot.cogs.misc.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.misc.gTTS")
+    @patch("src.bot.cogs.misc.bot_utils.send_error_msg")
     async def test_tts_command_success(self, mock_send_error, mock_gtts_class, misc_cog, mock_ctx):
         """Test successful TTS command execution."""
         # Setup TTS mock
@@ -148,13 +148,13 @@ class TestMisc:
         mock_ctx.send.assert_called_once()
 
         # Verify file was sent
-        sent_file = mock_ctx.send.call_args[1]['file']
+        sent_file = mock_ctx.send.call_args[1]["file"]
         assert isinstance(sent_file, discord.File)
         assert sent_file.filename == "TestUser.mp3"
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.gTTS')
-    @patch('src.bot.cogs.misc.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.misc.gTTS")
+    @patch("src.bot.cogs.misc.bot_utils.send_error_msg")
     async def test_tts_command_with_mentions(self, mock_send_error, mock_gtts_class, misc_cog, mock_ctx):
         """Test TTS command with user mentions."""
         # Setup mock member
@@ -169,12 +169,12 @@ class TestMisc:
 
         # Should process mention and call gTTS with processed text
         mock_gtts_class.assert_called_once()
-        processed_text = mock_gtts_class.call_args[1]['text']
+        processed_text = mock_gtts_class.call_args[1]["text"]
         assert "@MentionedUser" in processed_text
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.gTTS')
-    @patch('src.bot.cogs.misc.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.misc.gTTS")
+    @patch("src.bot.cogs.misc.bot_utils.send_error_msg")
     async def test_tts_command_with_emojis(self, mock_send_error, mock_gtts_class, misc_cog, mock_ctx):
         """Test TTS command with custom emojis."""
         mock_tts = MagicMock()
@@ -184,12 +184,12 @@ class TestMisc:
 
         # Should process emoji and call gTTS with processed text
         mock_gtts_class.assert_called_once()
-        processed_text = mock_gtts_class.call_args[1]['text']
+        processed_text = mock_gtts_class.call_args[1]["text"]
         assert "smile" in processed_text
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.gTTS', side_effect=AssertionError("TTS Error"))
-    @patch('src.bot.cogs.misc.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.misc.gTTS", side_effect=AssertionError("TTS Error"))
+    @patch("src.bot.cogs.misc.bot_utils.send_error_msg")
     async def test_tts_command_error(self, mock_send_error, mock_gtts_class, misc_cog, mock_ctx):
         """Test TTS command with gTTS error."""
         await misc_cog.tts.callback(misc_cog, mock_ctx, tts_text="Hello world")
@@ -197,7 +197,7 @@ class TestMisc:
         mock_send_error.assert_called_once_with(mock_ctx, messages.INVALID_MESSAGE)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.misc.bot_utils.send_error_msg")
     async def test_tts_command_empty_text(self, mock_send_error, misc_cog, mock_ctx):
         """Test TTS command with empty processed text."""
         await misc_cog.tts.callback(misc_cog, mock_ctx, tts_text="")
@@ -206,7 +206,7 @@ class TestMisc:
 
     # Test echo command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.bot_utils.send_msg')
+    @patch("src.bot.cogs.misc.bot_utils.send_msg")
     async def test_echo_command(self, mock_send_msg, misc_cog, mock_ctx):
         """Test echo command."""
         await misc_cog.echo.callback(misc_cog, mock_ctx, msg="Hello world!")
@@ -216,7 +216,7 @@ class TestMisc:
 
     # Test ping command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.bot_utils.send_embed')
+    @patch("src.bot.cogs.misc.bot_utils.send_embed")
     async def test_ping_command_good_latency(self, mock_send_embed, misc_cog, mock_ctx):
         """Test ping command with good latency."""
         mock_ctx.subcommand_passed = None
@@ -232,7 +232,7 @@ class TestMisc:
         assert embed.color == discord.Color.green()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.bot_utils.send_embed')
+    @patch("src.bot.cogs.misc.bot_utils.send_embed")
     async def test_ping_command_bad_latency(self, mock_send_embed, misc_cog, mock_ctx):
         """Test ping command with bad latency."""
         mock_ctx.subcommand_passed = None
@@ -254,7 +254,7 @@ class TestMisc:
 
     # Test lmgtfy command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.bot_utils.send_msg')
+    @patch("src.bot.cogs.misc.bot_utils.send_msg")
     async def test_lmgtfy_command(self, mock_send_msg, misc_cog, mock_ctx):
         """Test lmgtfy command."""
         await misc_cog.lmgtfy.callback(misc_cog, mock_ctx, user_msg="how to code in python")
@@ -268,8 +268,8 @@ class TestMisc:
 
     # Test invites command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.bot_utils.send_msg')
-    @patch('src.bot.cogs.misc.chat_formatting.inline')
+    @patch("src.bot.cogs.misc.bot_utils.send_msg")
+    @patch("src.bot.cogs.misc.chat_formatting.inline")
     async def test_invites_command_no_invites(self, mock_inline, mock_send_msg, misc_cog, mock_ctx):
         """Test invites command with no invites."""
         mock_ctx.subcommand_passed = None
@@ -282,7 +282,7 @@ class TestMisc:
         mock_send_msg.assert_called_once_with(mock_ctx, "inline_text")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.bot_utils.send_embed')
+    @patch("src.bot.cogs.misc.bot_utils.send_embed")
     async def test_invites_command_with_invites(self, mock_send_embed, misc_cog, mock_ctx):
         """Test invites command with various invite types."""
         mock_ctx.subcommand_passed = None
@@ -329,9 +329,9 @@ class TestMisc:
 
     # Test serverinfo command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.bot_utils.send_embed')
-    @patch('src.bot.cogs.misc.bot_utils.get_current_date_time')
-    @patch('src.bot.cogs.misc.bot_utils.convert_datetime_to_str_long')
+    @patch("src.bot.cogs.misc.bot_utils.send_embed")
+    @patch("src.bot.cogs.misc.bot_utils.get_current_date_time")
+    @patch("src.bot.cogs.misc.bot_utils.convert_datetime_to_str_long")
     async def test_serverinfo_command(
         self, mock_convert_datetime, mock_get_current_time, mock_send_embed, misc_cog, mock_ctx
     ):
@@ -383,9 +383,9 @@ class TestMisc:
 
     # Test userinfo command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.bot_utils.send_embed')
-    @patch('src.bot.cogs.misc.bot_utils.get_object_member_by_str')
-    @patch('src.bot.cogs.misc.bot_utils.get_current_date_time')
+    @patch("src.bot.cogs.misc.bot_utils.send_embed")
+    @patch("src.bot.cogs.misc.bot_utils.get_object_member_by_str")
+    @patch("src.bot.cogs.misc.bot_utils.get_current_date_time")
     async def test_userinfo_command_self(
         self, mock_get_current_time, mock_get_member, mock_send_embed, misc_cog, mock_ctx
     ):
@@ -406,9 +406,9 @@ class TestMisc:
         assert embed.color == discord.Color.blue()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.bot_utils.send_embed')
-    @patch('src.bot.cogs.misc.bot_utils.get_object_member_by_str')
-    @patch('src.bot.cogs.misc.bot_utils.get_current_date_time')
+    @patch("src.bot.cogs.misc.bot_utils.send_embed")
+    @patch("src.bot.cogs.misc.bot_utils.get_object_member_by_str")
+    @patch("src.bot.cogs.misc.bot_utils.get_current_date_time")
     async def test_userinfo_command_other_user(
         self, mock_get_current_time, mock_get_member, mock_send_embed, misc_cog, mock_ctx, mock_member
     ):
@@ -429,8 +429,8 @@ class TestMisc:
 
     # Test about command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.bot_utils.send_embed')
-    @patch('src.bot.cogs.misc.bot_utils.get_bot_stats')
+    @patch("src.bot.cogs.misc.bot_utils.send_embed")
+    @patch("src.bot.cogs.misc.bot_utils.get_bot_stats")
     async def test_about_command(self, mock_get_bot_stats, mock_send_embed, misc_cog, mock_ctx):
         """Test about command."""
         mock_ctx.subcommand_passed = None
@@ -621,7 +621,7 @@ class TestMisc:
         role3.name = "Role3"
         mock_member.roles = [role1, role2, role3]
 
-        with patch('src.bot.cogs.misc.bot_utils.get_current_date_time', return_value=datetime.now(UTC)):
+        with patch("src.bot.cogs.misc.bot_utils.get_current_date_time", return_value=datetime.now(UTC)):
             result = misc_cog._get_user_info(mock_ctx.guild, mock_member)
 
         assert "created_on" in result
@@ -699,7 +699,7 @@ class TestMisc:
     def test_misc_cog_inheritance(self, misc_cog):
         """Test that Misc cog properly inherits from commands.Cog."""
         assert isinstance(misc_cog, commands.Cog)
-        assert hasattr(misc_cog, 'bot')
+        assert hasattr(misc_cog, "bot")
 
     def test_process_tts_text_no_special_tokens(self, misc_cog, mock_ctx):
         """Test _process_tts_text with no special tokens."""
@@ -718,9 +718,9 @@ class TestMisc:
 
     # Test serverinfo with no icon (line 168)
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.bot_utils.send_embed')
-    @patch('src.bot.cogs.misc.bot_utils.get_current_date_time')
-    @patch('src.bot.cogs.misc.bot_utils.convert_datetime_to_str_long')
+    @patch("src.bot.cogs.misc.bot_utils.send_embed")
+    @patch("src.bot.cogs.misc.bot_utils.get_current_date_time")
+    @patch("src.bot.cogs.misc.bot_utils.convert_datetime_to_str_long")
     async def test_serverinfo_no_icon(
         self, mock_convert_datetime, mock_get_current_time, mock_send_embed, misc_cog, mock_ctx
     ):
@@ -752,9 +752,9 @@ class TestMisc:
 
     # Test userinfo with no avatar (line 204)
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.misc.bot_utils.send_embed')
-    @patch('src.bot.cogs.misc.bot_utils.get_object_member_by_str')
-    @patch('src.bot.cogs.misc.bot_utils.get_current_date_time')
+    @patch("src.bot.cogs.misc.bot_utils.send_embed")
+    @patch("src.bot.cogs.misc.bot_utils.get_object_member_by_str")
+    @patch("src.bot.cogs.misc.bot_utils.get_current_date_time")
     async def test_userinfo_no_avatar(
         self, mock_get_current_time, mock_get_member, mock_send_embed, misc_cog, mock_ctx
     ):

@@ -8,7 +8,7 @@ import sys
 from discord.ext import commands
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.admin.config import Config, _get_switch_status
 from src.bot.constants import messages
@@ -85,7 +85,7 @@ class TestConfig:
         assert cog.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.bot_utils.invoke_subcommand')
+    @patch("src.bot.cogs.admin.config.bot_utils.invoke_subcommand")
     async def test_config_group_command(self, mock_invoke, config_cog, mock_ctx):
         """Test config group command."""
         mock_invoke.return_value = "mock_command"
@@ -140,8 +140,8 @@ class TestConfig:
 
     # Test join message configuration
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ServersDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ServersDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_config_join_message_on(self, mock_send_embed, mock_dal_class, config_cog, mock_ctx):
         """Test enabling join messages."""
         mock_dal = AsyncMock()
@@ -160,8 +160,8 @@ class TestConfig:
         assert "ON" in embed.description
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ServersDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ServersDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_config_join_message_off(self, mock_send_embed, mock_dal_class, config_cog, mock_ctx):
         """Test disabling join messages."""
         mock_dal = AsyncMock()
@@ -179,8 +179,8 @@ class TestConfig:
 
     # Test leave message configuration
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ServersDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ServersDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_config_leave_message_on(self, mock_send_embed, mock_dal_class, config_cog, mock_ctx):
         """Test enabling leave messages."""
         mock_dal = AsyncMock()
@@ -196,8 +196,8 @@ class TestConfig:
 
     # Test server message configuration
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ServersDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ServersDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_config_server_message_on(self, mock_send_embed, mock_dal_class, config_cog, mock_ctx):
         """Test enabling server messages."""
         mock_dal = AsyncMock()
@@ -213,8 +213,8 @@ class TestConfig:
 
     # Test member message configuration
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ServersDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ServersDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_config_member_message_on(self, mock_send_embed, mock_dal_class, config_cog, mock_ctx):
         """Test enabling member messages."""
         mock_dal = AsyncMock()
@@ -230,8 +230,8 @@ class TestConfig:
 
     # Test block invisible members configuration
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ServersDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ServersDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_config_block_invis_members_on(self, mock_send_embed, mock_dal_class, config_cog, mock_ctx):
         """Test enabling blocking invisible members."""
         mock_dal = AsyncMock()
@@ -247,8 +247,8 @@ class TestConfig:
 
     # Test bot reactions configuration
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ServersDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ServersDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_config_bot_word_reactions_on(self, mock_send_embed, mock_dal_class, config_cog, mock_ctx):
         """Test enabling bot word reactions."""
         mock_dal = AsyncMock()
@@ -264,8 +264,8 @@ class TestConfig:
 
     # Test profanity filter configuration
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_config_pfilter_on_success(
         self, mock_send_embed, mock_dal_class, config_cog, mock_ctx, mock_text_channel
     ):
@@ -288,8 +288,8 @@ class TestConfig:
         assert embed.color == discord.Color.green()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_config_pfilter_off_success(
         self, mock_send_embed, mock_dal_class, config_cog, mock_ctx, mock_text_channel
     ):
@@ -310,7 +310,7 @@ class TestConfig:
         assert embed.color == discord.Color.red()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.bot_utils.send_error_msg', new_callable=AsyncMock)
+    @patch("src.bot.cogs.admin.config.bot_utils.send_error_msg", new_callable=AsyncMock)
     async def test_config_pfilter_missing_arguments(self, mock_send_error, config_cog, mock_ctx):
         """Test profanity filter with missing arguments."""
         from src.bot.cogs.admin.config import config_pfilter
@@ -322,7 +322,7 @@ class TestConfig:
         assert messages.MISING_REUIRED_ARGUMENT in error_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.bot_utils.send_error_msg', new_callable=AsyncMock)
+    @patch("src.bot.cogs.admin.config.bot_utils.send_error_msg", new_callable=AsyncMock)
     async def test_config_pfilter_invalid_channel_id(self, mock_send_error, config_cog, mock_ctx):
         """Test profanity filter with invalid channel ID."""
         from src.bot.cogs.admin.config import config_pfilter
@@ -334,7 +334,7 @@ class TestConfig:
         assert messages.CHANNEL_ID_NOT_FOUND in error_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.bot_utils.send_error_msg', new_callable=AsyncMock)
+    @patch("src.bot.cogs.admin.config.bot_utils.send_error_msg", new_callable=AsyncMock)
     async def test_config_pfilter_channel_not_found(self, mock_send_error, config_cog, mock_ctx):
         """Test profanity filter with non-existent channel."""
         mock_ctx.guild.text_channels = []
@@ -349,7 +349,7 @@ class TestConfig:
         assert messages.CHANNEL_ID_NOT_FOUND in error_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.admin.config.bot_utils.send_error_msg")
     async def test_config_pfilter_no_permissions(self, mock_send_error, config_cog, mock_ctx, mock_text_channel):
         """Test profanity filter without bot permissions."""
         mock_ctx.guild.text_channels = [mock_text_channel]
@@ -379,11 +379,11 @@ class TestConfig:
 
     # Test config list
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ServersDal')
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
-    @patch('src.bot.cogs.admin.config.chat_formatting.green_text')
-    @patch('src.bot.cogs.admin.config.chat_formatting.red_text')
+    @patch("src.bot.cogs.admin.config.ServersDal")
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
+    @patch("src.bot.cogs.admin.config.chat_formatting.green_text")
+    @patch("src.bot.cogs.admin.config.chat_formatting.red_text")
     async def test_config_list_success(
         self,
         mock_red_text,
@@ -428,13 +428,13 @@ class TestConfig:
 
         # Check the embed sent to DM
         dm_call_args = mock_ctx.author.send.call_args
-        embed = dm_call_args[1]['embed']  # embed is passed as keyword argument
+        embed = dm_call_args[1]["embed"]  # embed is passed as keyword argument
         assert embed.author.name == "Configurations for Test Server"
         assert len(embed.fields) == 7  # 6 config options + profanity filter
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ServersDal')
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
+    @patch("src.bot.cogs.admin.config.ServersDal")
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
     async def test_config_list_no_profanity_channels(
         self, mock_pf_dal_class, mock_servers_dal_class, config_cog, mock_ctx
     ):
@@ -464,14 +464,14 @@ class TestConfig:
 
         # Check the embed sent to DM
         dm_call_args = mock_ctx.author.send.call_args
-        embed = dm_call_args[1]['embed']  # embed is passed as keyword argument
+        embed = dm_call_args[1]["embed"]  # embed is passed as keyword argument
 
         # Check that the profanity filter field shows "No channels listed"
         pf_field = next(field for field in embed.fields if "pfilter" in field.name.lower())
         assert messages.NO_CHANNELS_LISTED in pf_field.value
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ServersDal')
+    @patch("src.bot.cogs.admin.config.ServersDal")
     async def test_config_list_no_guild_icon(self, mock_servers_dal_class, config_cog, mock_ctx):
         """Test listing configurations when guild has no icon."""
         mock_ctx.guild.icon = None
@@ -487,7 +487,7 @@ class TestConfig:
             "bot_word_reactions": False,
         }
 
-        with patch('src.bot.cogs.admin.config.ProfanityFilterDal') as mock_pf_dal_class:
+        with patch("src.bot.cogs.admin.config.ProfanityFilterDal") as mock_pf_dal_class:
             mock_pf_dal = AsyncMock()
             mock_pf_dal_class.return_value = mock_pf_dal
             mock_pf_dal.get_all_server_profanity_filter_channels.return_value = []
@@ -498,7 +498,7 @@ class TestConfig:
 
             # Check the embed sent to DM
             dm_call_args = mock_ctx.author.send.call_args
-            embed = dm_call_args[1]['embed']  # embed is passed as keyword argument
+            embed = dm_call_args[1]["embed"]  # embed is passed as keyword argument
             assert embed.author.icon_url is None
             assert embed.thumbnail.url is None
 
@@ -520,11 +520,11 @@ class TestConfig:
         from src.bot.cogs.admin.admin import Admin
 
         assert isinstance(config_cog, Admin)
-        assert hasattr(config_cog, 'bot')
+        assert hasattr(config_cog, "bot")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_error_msg")
     async def test_config_pfilter_channel_get_returns_none(
         self, mock_send_error, mock_dal_class, config_cog, mock_ctx, mock_text_channel
     ):
@@ -542,8 +542,8 @@ class TestConfig:
         assert "98765" in error_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_config_pfilter_admin_permission_only(
         self, mock_send_embed, mock_dal_class, config_cog, mock_ctx, mock_text_channel
     ):
@@ -565,8 +565,8 @@ class TestConfig:
         mock_send_embed.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_config_pfilter_manage_messages_permission_only(
         self, mock_send_embed, mock_dal_class, config_cog, mock_ctx, mock_text_channel
     ):

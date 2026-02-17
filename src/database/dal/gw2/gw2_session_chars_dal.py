@@ -23,15 +23,17 @@ class Gw2SessionCharsDal:
                 name=name,
                 profession=profession,
                 deaths=deaths,
+                start=insert_args["start"],
+                end=insert_args["end"],
             )
             await self.db_utils.insert(stmt)
 
     async def get_all_start_characters(self, user_id: int):
-        stmt = select(*self.columns).where(Gw2SessionChars.user_id == user_id, Gw2SessionChars.start is True)
+        stmt = select(*self.columns).where(Gw2SessionChars.user_id == user_id, Gw2SessionChars.start.is_(True))
         results = await self.db_utils.fetchall(stmt, True)
         return results
 
     async def get_all_end_characters(self, user_id: int):
-        stmt = select(*self.columns).where(Gw2SessionChars.user_id == user_id, Gw2SessionChars.end is True)
+        stmt = select(*self.columns).where(Gw2SessionChars.user_id == user_id, Gw2SessionChars.end.is_(True))
         results = await self.db_utils.fetchall(stmt, True)
         return results

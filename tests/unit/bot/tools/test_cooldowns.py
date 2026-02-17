@@ -9,13 +9,13 @@ class TestCoolDownsEnum:
 
     def test_cooldowns_enum_exists(self):
         """Test that CoolDowns enum is properly defined."""
-        assert hasattr(CoolDowns, 'Admin')
-        assert hasattr(CoolDowns, 'Config')
-        assert hasattr(CoolDowns, 'CustomCommand')
-        assert hasattr(CoolDowns, 'DiceRolls')
-        assert hasattr(CoolDowns, 'Misc')
-        assert hasattr(CoolDowns, 'OpenAI')
-        assert hasattr(CoolDowns, 'Owner')
+        assert hasattr(CoolDowns, "Admin")
+        assert hasattr(CoolDowns, "Config")
+        assert hasattr(CoolDowns, "CustomCommand")
+        assert hasattr(CoolDowns, "DiceRolls")
+        assert hasattr(CoolDowns, "Misc")
+        assert hasattr(CoolDowns, "OpenAI")
+        assert hasattr(CoolDowns, "Owner")
 
     def test_cooldowns_enum_values_are_integers(self):
         """Test that all cooldown values are integers."""
@@ -29,7 +29,7 @@ class TestCoolDownsEnum:
         assert len(actual_members) >= 1  # At least Admin should exist
 
         # Check that Admin exists (which we know works)
-        assert 'Admin' in actual_members
+        assert "Admin" in actual_members
 
 
 class TestCoolDownsDebugMode:
@@ -112,7 +112,7 @@ class TestCoolDownsConfigurationLoading:
         """Test that configuration loading works."""
         # Since the configuration is loaded at import time, we can't mock it easily
         # Just verify that the CoolDowns enum was successfully created
-        assert hasattr(CoolDowns, 'Admin')
+        assert hasattr(CoolDowns, "Admin")
         assert isinstance(CoolDowns.Admin.value, int)
 
     def test_missing_configuration_values(self):
@@ -171,7 +171,7 @@ class TestCoolDownsEnumBehavior:
 
         # Should have at least Admin
         assert len(cooldown_names) >= 1
-        assert 'Admin' in cooldown_names
+        assert "Admin" in cooldown_names
 
         # All values should be positive integers
         for value in cooldown_values:
@@ -180,10 +180,10 @@ class TestCoolDownsEnumBehavior:
 
     def test_cooldowns_lookup_by_name(self):
         """Test looking up cooldowns by name."""
-        admin = CoolDowns['Admin']
+        admin = CoolDowns["Admin"]
         assert admin == CoolDowns.Admin
 
-        config = CoolDowns['Config']
+        config = CoolDowns["Config"]
         assert config == CoolDowns.Config
 
         # Test all cooldowns can be looked up
@@ -269,7 +269,7 @@ class TestCoolDownsErrorHandling:
     def test_nonexistent_cooldown_access(self):
         """Test accessing non-existent cooldown raises appropriate error."""
         with pytest.raises(KeyError):
-            _ = CoolDowns['NonExistentCooldown']
+            _ = CoolDowns["NonExistentCooldown"]
 
     def test_cooldown_attribute_error(self):
         """Test that accessing non-existent attributes raises appropriate error."""

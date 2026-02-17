@@ -12,7 +12,7 @@ from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 
 
 class GW2Session(GuildWars2):
-    """(Commands related to GW2 player last game session)"""
+    """Guild Wars 2 commands for player session tracking."""
 
     def __init__(self, bot):
         super().__init__(bot)
@@ -21,19 +21,18 @@ class GW2Session(GuildWars2):
 @GW2Session.gw2.command()
 @commands.cooldown(1, GW2CoolDowns.Session.seconds, commands.BucketType.user)
 async def session(ctx):
-    """(Info about the gw2 player last game session)
+    """Display information about your last Guild Wars 2 game session.
 
-    Your API Key needs to have the following permissions:
-    Account, Characters, Progression, Wallet
-    60 secs default cooldown
+    Required API permissions: Account, Characters, Progression, Wallet
 
     Requirements:
-    1) Start discord, make sure you are not set to invisible
-    1) Add GW2 API Key (gw2 key add api_key)
-    2) Need to show, on discord, that you are playing Guild Wars 2, change this on options
-    3) Start gw2
+        1) Start Discord, make sure you are not set to invisible
+        2) Add GW2 API Key (gw2 key add api_key)
+        3) Show on Discord that you are playing Guild Wars 2
+        4) Start GW2
 
-    gw2 session
+    Usage:
+        gw2 session
     """
 
     user_id = ctx.message.author.id
@@ -41,14 +40,14 @@ async def session(ctx):
     rs_api_key = await gw2_key_dal.get_api_key_by_user(user_id)
     if not rs_api_key:
         msg = gw2_messages.NO_API_KEY
-        msg += gw2_messages.KEY_ADD_INFO_HELP.format(ctx.prefix)
-        msg += gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)
+        msg += gw2_messages.key_add_info_help(ctx.prefix)
+        msg += gw2_messages.key_more_info_help(ctx.prefix)
         return await bot_utils.send_error_msg(ctx, msg)
 
     gw2_configs = Gw2ConfigsDal(ctx.bot.db_session, ctx.bot.log)
     rs_gw2_sc = await gw2_configs.get_gw2_server_configs(ctx.guild.id)
     if len(rs_gw2_sc) == 0 or (len(rs_gw2_sc) > 0 and not rs_gw2_sc[0]["session"]):
-        return await bot_utils.send_warning_msg(ctx, gw2_messages.SESSION_NOT_ACTIVE.format(ctx.prefix))
+        return await bot_utils.send_warning_msg(ctx, gw2_messages.session_not_active(ctx.prefix))
 
     api_key = rs_api_key[0]["key"]
     gw2_server = rs_api_key[0]["server"]
@@ -75,8 +74,8 @@ async def session(ctx):
         error_msg += "- wallet is OK\n" if wallet is True else "- wallet is MISSING\n"
         error_msg += (
             f"{gw2_messages.ADD_RIGHT_API_KEY_PERMISSIONS}\n"
-            f"{gw2_messages.KEY_ADD_INFO_HELP}"
-            f"{gw2_messages.KEY_MORE_INFO_HELP.format(ctx.prefix)}"
+            f"{gw2_messages.key_add_info_help(ctx.prefix)}"
+            f"{gw2_messages.key_more_info_help(ctx.prefix)}"
         )
         return await bot_utils.send_error_msg(ctx, error_msg)
 

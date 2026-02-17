@@ -22,6 +22,7 @@ from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
 from src.gw2.constants import gw2_messages
+from src.gw2.constants.gw2_teams import get_team_name, is_wr_team_id
 from src.gw2.tools.gw2_client import Gw2Client
 
 
@@ -200,15 +201,38 @@ async def get_world_id(bot: Bot, world: str | None) -> int | None:
 
 
 async def get_world_name_population(ctx: commands.Context, world_ids: str) -> list[str] | None:
-    """Get world names and population data."""
-    try:
-        gw2_api = Gw2Client(ctx.bot)
-        results = await gw2_api.call_api(f"worlds?ids={world_ids}")
+    """Get world names and population data.
 
-        if not results:
+    Handles both legacy world IDs (1xxx/2xxx) via /v2/worlds API and
+    World Restructuring team IDs (11xxx/12xxx) via hardcoded lookup.
+    """
+    try:
+        id_list = [int(wid.strip()) for wid in world_ids.split(",") if wid.strip()]
+        if not id_list:
             return None
 
-        return [world["name"] for world in results]
+        legacy_ids = [wid for wid in id_list if not is_wr_team_id(wid)]
+
+        # Build name lookup from API for legacy IDs
+        legacy_names: dict[int, str] = {}
+        if legacy_ids:
+            gw2_api = Gw2Client(ctx.bot)
+            legacy_ids_str = ",".join(str(wid) for wid in legacy_ids)
+            results = await gw2_api.call_api(f"worlds?ids={legacy_ids_str}")
+            if results:
+                for world in results:
+                    legacy_names[world["id"]] = world["name"]
+
+        # Resolve all IDs in original order
+        names: list[str] = []
+        for wid in id_list:
+            if is_wr_team_id(wid):
+                name = get_team_name(wid)
+                names.append(name if name else f"Team {wid}")
+            elif wid in legacy_names:
+                names.append(legacy_names[wid])
+
+        return names if names else None
 
     except Exception as e:
         ctx.bot.log.error(f"Error fetching world names for IDs {world_ids}: {e}")
@@ -344,9 +368,10 @@ async def get_user_stats(bot: Bot, api_key: str) -> dict | None:
 
 def _create_initial_user_stats(account_data: dict) -> dict:
     """Create initial user stats structure."""
+    wvw_rank = account_data.get("wvw", {}).get("rank") or account_data.get("wvw_rank", 0)
     return {
         "acc_name": account_data["name"],
-        "wvw_rank": account_data["wvw_rank"],
+        "wvw_rank": wvw_rank,
         "gold": 0,
         "karma": 0,
         "laurels": 0,
@@ -438,19 +463,21 @@ def get_wvw_rank_title(rank: int) -> str:
 
 def _get_wvw_rank_prefix(rank: int) -> str:
     """Get WvW rank prefix (Bronze, Silver, etc.)."""
-    if 150 <= rank <= 619:
-        return "Bronze"
-    elif 620 <= rank <= 1394:
-        return "Silver"
-    elif 1395 <= rank <= 2544:
-        return "Gold"
-    elif 2545 <= rank <= 4094:
-        return "Platinum"
-    elif 4095 <= rank <= 6444:
-        return "Mithril"
-    elif rank >= 6445:
-        return "Diamond"
-    return ""
+    match rank:
+        case r if 150 <= r <= 619:
+            return "Bronze"
+        case r if 620 <= r <= 1394:
+            return "Silver"
+        case r if 1395 <= r <= 2544:
+            return "Gold"
+        case r if 2545 <= r <= 4094:
+            return "Platinum"
+        case r if 4095 <= r <= 6444:
+            return "Mithril"
+        case r if r >= 6445:
+            return "Diamond"
+        case _:
+            return ""
 
 
 def _get_wvw_rank_title(rank: int) -> str:
@@ -490,25 +517,27 @@ def _get_wvw_rank_title(rank: int) -> str:
 
 def get_pvp_rank_title(rank: int) -> str:
     """Get PvP rank title based on rank number."""
-    if 1 <= rank <= 9:
-        return "Rabbit"
-    elif 10 <= rank <= 19:
-        return "Deer"
-    elif 20 <= rank <= 29:
-        return "Dolyak"
-    elif 30 <= rank <= 39:
-        return "Wolf"
-    elif 40 <= rank <= 49:
-        return "Tiger"
-    elif 50 <= rank <= 59:
-        return "Bear"
-    elif 60 <= rank <= 69:
-        return "Shark"
-    elif 70 <= rank <= 79:
-        return "Phoenix"
-    elif rank >= 80:
-        return "Dragon"
-    return ""
+    match rank:
+        case r if 1 <= r <= 9:
+            return "Rabbit"
+        case r if 10 <= r <= 19:
+            return "Deer"
+        case r if 20 <= r <= 29:
+            return "Dolyak"
+        case r if 30 <= r <= 39:
+            return "Wolf"
+        case r if 40 <= r <= 49:
+            return "Tiger"
+        case r if 50 <= r <= 59:
+            return "Bear"
+        case r if 60 <= r <= 69:
+            return "Shark"
+        case r if 70 <= r <= 79:
+            return "Phoenix"
+        case r if r >= 80:
+            return "Dragon"
+        case _:
+            return ""
 
 
 def format_gold(currency: str) -> str:

@@ -55,22 +55,22 @@ class OnCommand(commands.Cog):
         self.bot = bot
         self.command_logger = CommandLogger(bot)
 
-        @self.bot.event
-        async def on_command(ctx: commands.Context) -> None:
-            """Handle command execution event.
+    @commands.Cog.listener()
+    async def on_command(self, ctx: commands.Context) -> None:
+        """Handle command execution event.
 
-            Called when a valid command gets executed successfully.
-            This is useful for logging command usage and monitoring.
+        Called when a valid command gets executed successfully.
+        This is useful for logging command usage and monitoring.
 
-            Args:
-                ctx: The command context containing information about the command execution
-            """
-            try:
-                # Log command execution for monitoring purposes
-                self.command_logger.log_command_execution(ctx)
-                # Future: Add command usage statistics, rate limiting, etc.
-            except Exception as e:
-                self.bot.log.error(f"Error in on_command event: {e}")
+        Args:
+            ctx: The command context containing information about the command execution
+        """
+        try:
+            # Log command execution for monitoring purposes
+            self.command_logger.log_command_execution(ctx)
+            # Future: Add command usage statistics, rate limiting, etc.
+        except Exception as e:
+            self.bot.log.error(f"Error in on_command event: {e}")
 
 
 async def setup(bot: Bot) -> None:

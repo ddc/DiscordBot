@@ -17,29 +17,29 @@ class OnGuildUpdate(commands.Cog):
         """
         self.bot = bot
 
-        @self.bot.event
-        async def on_guild_update(before: discord.Guild, after: discord.Guild) -> None:
-            """Handle guild update event.
+    @commands.Cog.listener()
+    async def on_guild_update(self, before: discord.Guild, after: discord.Guild) -> None:
+        """Handle guild update event.
 
-            Called when a guild is updated (name, icon, owner changes, etc.).
+        Called when a guild is updated (name, icon, owner changes, etc.).
 
-            Args:
-                before: The guild before the update
-                after: The guild after the update
-            """
-            try:
-                embed, msg = self._create_base_embed()
+        Args:
+            before: The guild before the update
+            after: The guild after the update
+        """
+        try:
+            embed, msg = self._create_base_embed()
 
-                # Check for changes and update embed/message
-                self._handle_icon_changes(before, after, embed, msg)
-                self._handle_name_changes(before, after, embed, msg)
-                self._handle_owner_changes(before, after, embed, msg)
+            # Check for changes and update embed/message
+            self._handle_icon_changes(before, after, embed, msg)
+            self._handle_name_changes(before, after, embed, msg)
+            self._handle_owner_changes(before, after, embed, msg)
 
-                # Send notification if changes were detected
-                await self._send_notification_if_enabled(after, embed, msg)
+            # Send notification if changes were detected
+            await self._send_notification_if_enabled(after, embed, msg)
 
-            except Exception as e:
-                self.bot.log.error(f"Error in on_guild_update for {after.name}: {e}")
+        except Exception as e:
+            self.bot.log.error(f"Error in on_guild_update for {after.name}: {e}")
 
     def _create_base_embed(self):
         """Create the base embed and message for guild updates."""
@@ -63,7 +63,7 @@ class OnGuildUpdate(commands.Cog):
         if str(before.icon.url) != str(after.icon.url):
             self._set_thumbnail_if_icon_exists(after, embed)
             embed.add_field(name=messages.NEW_SERVER_ICON, value="")
-            icon_url = after.icon.url if after.icon else 'None'
+            icon_url = after.icon.url if after.icon else "None"
             msg.append(f"{messages.NEW_SERVER_ICON}: \n{icon_url}\n")
 
     @staticmethod

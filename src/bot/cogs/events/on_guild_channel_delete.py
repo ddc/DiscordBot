@@ -5,14 +5,14 @@ class OnGuildChannelDelete(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        @self.bot.event
-        async def on_guild_channel_delete(channel):
-            """
-            Called when a channel gets deleted
-            :param channel: abc.GuildChannel
-            :return: None
-            """
-            pass
+    @commands.Cog.listener()
+    async def on_guild_channel_delete(self, channel):
+        """
+        Called when a channel gets deleted
+        :param channel: abc.GuildChannel
+        :return: None
+        """
+        pass
 
 
 async def setup(bot):

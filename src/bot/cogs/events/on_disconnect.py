@@ -14,26 +14,22 @@ class OnDisconnect(commands.Cog):
         """
         self.bot = bot
 
-        @self.bot.event
-        async def on_disconnect() -> None:
-            """Handle bot disconnect event.
+    @commands.Cog.listener()
+    async def on_disconnect(self) -> None:
+        """Handle bot disconnect event.
 
-            Called when the client has disconnected from Discord,
-            or a connection attempt to Discord has failed.
-            This could happen through:
-            - Internet disconnection
-            - Explicit calls to close
-            - Discord terminating the connection
-            """
-            try:
-                bot.log.warning(
-                    messages.BOT_DISCONNECTED.format(bot.user)
-                    if hasattr(messages, 'BOT_DISCONNECTED')
-                    else f"Bot {bot.user} disconnected from Discord"
-                )
-            except Exception as e:
-                # Fallback logging in case of critical failure
-                print(f"Bot disconnected - logging failed: {e}")
+        Called when the client has disconnected from Discord,
+        or a connection attempt to Discord has failed.
+        This could happen through:
+        - Internet disconnection
+        - Explicit calls to close
+        - Discord terminating the connection
+        """
+        try:
+            self.bot.log.warning(messages.bot_disconnected(self.bot.user))
+        except Exception as e:
+            # Fallback logging in case of critical failure
+            print(f"Bot disconnected - logging failed: {e}")
 
 
 async def setup(bot: Bot) -> None:

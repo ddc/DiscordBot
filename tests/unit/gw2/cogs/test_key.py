@@ -52,7 +52,7 @@ class TestKeyGroupCommand:
     @pytest.mark.asyncio
     async def test_key_group_invokes_subcommand(self, mock_ctx):
         """Test that key group command calls invoke_subcommand."""
-        with patch('src.gw2.cogs.key.bot_utils.invoke_subcommand') as mock_invoke:
+        with patch("src.gw2.cogs.key.bot_utils.invoke_subcommand") as mock_invoke:
             mock_invoke.return_value = None
             await key(mock_ctx)
             mock_invoke.assert_called_once_with(mock_ctx, "gw2 key")
@@ -101,13 +101,13 @@ class TestAddCommand:
     async def test_add_deletes_message_for_privacy(self, mock_ctx):
         """Test that add command deletes the user's message for privacy."""
         api_key = "test-api-key-12345"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message') as mock_delete:
-            with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message") as mock_delete:
+            with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 invalid_error = APIInvalidKey(mock_ctx.bot, "Invalid key")
                 invalid_error.args = ("error", "Invalid API key")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
-                with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                     mock_error.return_value = None
                     await add(mock_ctx, api_key)
                     mock_delete.assert_called_once_with(mock_ctx, warning=True)
@@ -116,13 +116,13 @@ class TestAddCommand:
     async def test_add_invalid_api_key_sends_error(self, mock_ctx):
         """Test add command with invalid API key sends error message."""
         api_key = "invalid-key"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message'):
-            with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message"):
+            with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 invalid_error = APIInvalidKey(mock_ctx.bot, "Invalid key")
                 invalid_error.args = ("error", "This API Key is INVALID")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
-                with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                     mock_error.return_value = None
                     await add(mock_ctx, api_key)
                     mock_error.assert_called_once()
@@ -134,14 +134,14 @@ class TestAddCommand:
     async def test_add_account_info_api_fails(self, mock_ctx):
         """Test add command when account info API call fails."""
         api_key = "valid-api-key-12345"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message'):
-            with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message"):
+            with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(
                     return_value={"name": "TestKey", "permissions": ["account", "characters"]}
                 )
                 mock_client_instance.call_api = AsyncMock(side_effect=Exception("Account API error"))
-                with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                     await add(mock_ctx, api_key)
                     mock_error.assert_called_once()
                     mock_ctx.bot.log.error.assert_called_once()
@@ -150,8 +150,8 @@ class TestAddCommand:
     async def test_add_server_name_api_fails(self, mock_ctx):
         """Test add command when server name API call fails."""
         api_key = "valid-api-key-12345"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message'):
-            with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message"):
+            with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(
                     return_value={"name": "TestKey", "permissions": ["account", "characters"]}
@@ -162,7 +162,7 @@ class TestAddCommand:
                         Exception("Server API error"),  # world call
                     ]
                 )
-                with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                     result = await add(mock_ctx, api_key)
                     mock_error.assert_called_once()
                     mock_ctx.bot.log.error.assert_called_once()
@@ -172,8 +172,8 @@ class TestAddCommand:
     async def test_add_user_already_has_key_shows_error_with_options(self, mock_ctx):
         """Test add command when user already has a key registered."""
         api_key = "valid-api-key-12345"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message'):
-            with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message"):
+            with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(
                     return_value={"name": "TestKey", "permissions": ["account", "characters"]}
@@ -184,12 +184,12 @@ class TestAddCommand:
                         {"name": "Anvil Rock"},
                     ]
                 )
-                with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+                with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
                     mock_instance = mock_dal.return_value
                     mock_instance.get_api_key_by_user = AsyncMock(
                         return_value=[{"name": "OldKey", "gw2_acc_name": "TestUser.1234"}]
                     )
-                    with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+                    with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                         result = await add(mock_ctx, api_key)
                         mock_error.assert_called_once()
                         error_msg = mock_error.call_args[0][1]
@@ -203,8 +203,8 @@ class TestAddCommand:
     async def test_add_key_already_in_use_by_someone_else(self, mock_ctx):
         """Test add command when the API key is already in use by another user."""
         api_key = "valid-api-key-12345"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message'):
-            with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message"):
+            with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(
                     return_value={"name": "TestKey", "permissions": ["account", "characters"]}
@@ -215,11 +215,11 @@ class TestAddCommand:
                         {"name": "Anvil Rock"},
                     ]
                 )
-                with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+                with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
                     mock_instance = mock_dal.return_value
                     mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
                     mock_instance.get_api_key = AsyncMock(return_value=[{"user_id": 99999, "key": api_key}])
-                    with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+                    with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                         result = await add(mock_ctx, api_key)
                         mock_error.assert_called_once()
                         error_msg = mock_error.call_args[0][1]
@@ -230,8 +230,8 @@ class TestAddCommand:
     async def test_add_successful_insert(self, mock_ctx):
         """Test add command with successful key insertion."""
         api_key = "valid-api-key-12345"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message'):
-            with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message"):
+            with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(
                     return_value={"name": "TestKey", "permissions": ["account", "characters"]}
@@ -242,12 +242,12 @@ class TestAddCommand:
                         {"name": "Anvil Rock"},
                     ]
                 )
-                with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+                with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
                     mock_instance = mock_dal.return_value
                     mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
                     mock_instance.get_api_key = AsyncMock(return_value=None)
                     mock_instance.insert_api_key = AsyncMock()
-                    with patch('src.gw2.cogs.key.bot_utils.send_msg') as mock_send:
+                    with patch("src.gw2.cogs.key.bot_utils.send_msg") as mock_send:
                         result = await add(mock_ctx, api_key)
                         mock_instance.insert_api_key.assert_called_once()
                         insert_args = mock_instance.insert_api_key.call_args[0][0]
@@ -267,8 +267,8 @@ class TestAddCommand:
     async def test_add_insert_raises_exception(self, mock_ctx):
         """Test add command when database insert raises an exception."""
         api_key = "valid-api-key-12345"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message'):
-            with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message"):
+            with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(
                     return_value={"name": "TestKey", "permissions": ["account", "characters"]}
@@ -279,12 +279,12 @@ class TestAddCommand:
                         {"name": "Anvil Rock"},
                     ]
                 )
-                with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+                with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
                     mock_instance = mock_dal.return_value
                     mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
                     mock_instance.get_api_key = AsyncMock(return_value=None)
                     mock_instance.insert_api_key = AsyncMock(side_effect=Exception("DB insert error"))
-                    with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+                    with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                         result = await add(mock_ctx, api_key)
                         mock_error.assert_called_once()
                         error_msg = mock_error.call_args[0][1]
@@ -329,11 +329,11 @@ class TestUpdateCommand:
     async def test_update_deletes_message_for_privacy(self, mock_ctx):
         """Test that update command deletes the user's message for privacy."""
         api_key = "new-api-key-12345"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message') as mock_delete:
-            with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message") as mock_delete:
+            with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
                 mock_instance = mock_dal.return_value
                 mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
-                with patch('src.gw2.cogs.key.bot_utils.send_error_msg'):
+                with patch("src.gw2.cogs.key.bot_utils.send_error_msg"):
                     await update(mock_ctx, api_key)
                     mock_delete.assert_called_once_with(mock_ctx, warning=True)
 
@@ -341,11 +341,11 @@ class TestUpdateCommand:
     async def test_update_no_existing_key_sends_error(self, mock_ctx):
         """Test update command when user has no existing key."""
         api_key = "new-api-key-12345"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message'):
-            with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message"):
+            with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
                 mock_instance = mock_dal.return_value
                 mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
-                with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                     result = await update(mock_ctx, api_key)
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
@@ -357,16 +357,16 @@ class TestUpdateCommand:
     async def test_update_invalid_api_key_sends_error(self, mock_ctx):
         """Test update command with invalid new API key."""
         api_key = "invalid-new-key"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message'):
-            with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message"):
+            with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
                 mock_instance = mock_dal.return_value
                 mock_instance.get_api_key_by_user = AsyncMock(return_value=[{"name": "OldKey", "key": "old-key-12345"}])
-                with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+                with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                     mock_client_instance = mock_client.return_value
                     invalid_error = APIInvalidKey(mock_ctx.bot, "Invalid key")
                     invalid_error.args = ("error", "This API Key is INVALID")
                     mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
-                    with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+                    with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                         mock_error.return_value = None
                         await update(mock_ctx, api_key)
                         mock_error.assert_called_once()
@@ -377,17 +377,17 @@ class TestUpdateCommand:
     async def test_update_account_info_api_fails(self, mock_ctx):
         """Test update command when account info API call fails."""
         api_key = "new-api-key-12345"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message'):
-            with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message"):
+            with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
                 mock_instance = mock_dal.return_value
                 mock_instance.get_api_key_by_user = AsyncMock(return_value=[{"name": "OldKey", "key": "old-key-12345"}])
-                with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+                with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                     mock_client_instance = mock_client.return_value
                     mock_client_instance.check_api_key = AsyncMock(
                         return_value={"name": "NewKey", "permissions": ["account", "characters"]}
                     )
                     mock_client_instance.call_api = AsyncMock(side_effect=Exception("Account API error"))
-                    with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+                    with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                         await update(mock_ctx, api_key)
                         mock_error.assert_called_once()
                         mock_ctx.bot.log.error.assert_called_once()
@@ -396,11 +396,11 @@ class TestUpdateCommand:
     async def test_update_server_name_api_fails(self, mock_ctx):
         """Test update command when server name API call fails."""
         api_key = "new-api-key-12345"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message'):
-            with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message"):
+            with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
                 mock_instance = mock_dal.return_value
                 mock_instance.get_api_key_by_user = AsyncMock(return_value=[{"name": "OldKey", "key": "old-key-12345"}])
-                with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+                with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                     mock_client_instance = mock_client.return_value
                     mock_client_instance.check_api_key = AsyncMock(
                         return_value={"name": "NewKey", "permissions": ["account", "characters"]}
@@ -411,7 +411,7 @@ class TestUpdateCommand:
                             Exception("Server API error"),
                         ]
                     )
-                    with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+                    with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                         result = await update(mock_ctx, api_key)
                         mock_error.assert_called_once()
                         mock_ctx.bot.log.error.assert_called_once()
@@ -421,14 +421,14 @@ class TestUpdateCommand:
     async def test_update_key_in_use_by_different_user(self, mock_ctx):
         """Test update command when the new API key is in use by another user."""
         api_key = "new-api-key-12345"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message'):
-            with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message"):
+            with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
                 mock_instance = mock_dal.return_value
                 mock_instance.get_api_key_by_user = AsyncMock(return_value=[{"name": "OldKey", "key": "old-key-12345"}])
                 mock_instance.get_api_key = AsyncMock(
                     return_value=[{"user_id": 99999, "key": api_key}]  # different user
                 )
-                with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+                with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                     mock_client_instance = mock_client.return_value
                     mock_client_instance.check_api_key = AsyncMock(
                         return_value={"name": "NewKey", "permissions": ["account", "characters"]}
@@ -439,7 +439,7 @@ class TestUpdateCommand:
                             {"name": "Anvil Rock"},
                         ]
                     )
-                    with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+                    with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                         result = await update(mock_ctx, api_key)
                         mock_error.assert_called_once()
                         error_msg = mock_error.call_args[0][1]
@@ -450,13 +450,13 @@ class TestUpdateCommand:
     async def test_update_successful(self, mock_ctx):
         """Test update command with successful key update."""
         api_key = "new-api-key-12345"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message'):
-            with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message"):
+            with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
                 mock_instance = mock_dal.return_value
                 mock_instance.get_api_key_by_user = AsyncMock(return_value=[{"name": "OldKey", "key": "old-key-12345"}])
                 mock_instance.get_api_key = AsyncMock(return_value=None)
                 mock_instance.update_api_key = AsyncMock()
-                with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+                with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                     mock_client_instance = mock_client.return_value
                     mock_client_instance.check_api_key = AsyncMock(
                         return_value={"name": "NewKey", "permissions": ["account", "characters"]}
@@ -467,7 +467,7 @@ class TestUpdateCommand:
                             {"name": "Anvil Rock"},
                         ]
                     )
-                    with patch('src.gw2.cogs.key.bot_utils.send_msg') as mock_send:
+                    with patch("src.gw2.cogs.key.bot_utils.send_msg") as mock_send:
                         result = await update(mock_ctx, api_key)
                         mock_instance.update_api_key.assert_called_once()
                         update_args = mock_instance.update_api_key.call_args[0][0]
@@ -488,14 +488,14 @@ class TestUpdateCommand:
     async def test_update_same_user_key_allowed(self, mock_ctx):
         """Test update command when API key is already owned by same user (re-using own key)."""
         api_key = "same-user-api-key"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message'):
-            with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message"):
+            with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
                 mock_instance = mock_dal.return_value
                 mock_instance.get_api_key_by_user = AsyncMock(return_value=[{"name": "OldKey", "key": "old-key-12345"}])
                 # Key is found but belongs to same user
                 mock_instance.get_api_key = AsyncMock(return_value=[{"user_id": 12345, "key": api_key}])  # same user
                 mock_instance.update_api_key = AsyncMock()
-                with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+                with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                     mock_client_instance = mock_client.return_value
                     mock_client_instance.check_api_key = AsyncMock(
                         return_value={"name": "NewKey", "permissions": ["account"]}
@@ -506,7 +506,7 @@ class TestUpdateCommand:
                             {"name": "Anvil Rock"},
                         ]
                     )
-                    with patch('src.gw2.cogs.key.bot_utils.send_msg') as mock_send:
+                    with patch("src.gw2.cogs.key.bot_utils.send_msg") as mock_send:
                         result = await update(mock_ctx, api_key)
                         mock_instance.update_api_key.assert_called_once()
                         mock_send.assert_called_once()
@@ -516,13 +516,13 @@ class TestUpdateCommand:
     async def test_update_raises_exception_on_db_update(self, mock_ctx):
         """Test update command when database update raises an exception."""
         api_key = "new-api-key-12345"
-        with patch('src.gw2.cogs.key.bot_utils.delete_message'):
-            with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.key.bot_utils.delete_message"):
+            with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
                 mock_instance = mock_dal.return_value
                 mock_instance.get_api_key_by_user = AsyncMock(return_value=[{"name": "OldKey", "key": "old-key-12345"}])
                 mock_instance.get_api_key = AsyncMock(return_value=None)
                 mock_instance.update_api_key = AsyncMock(side_effect=Exception("DB update error"))
-                with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+                with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                     mock_client_instance = mock_client.return_value
                     mock_client_instance.check_api_key = AsyncMock(
                         return_value={"name": "NewKey", "permissions": ["account"]}
@@ -533,7 +533,7 @@ class TestUpdateCommand:
                             {"name": "Anvil Rock"},
                         ]
                     )
-                    with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+                    with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                         result = await update(mock_ctx, api_key)
                         mock_error.assert_called_once()
                         error_msg = mock_error.call_args[0][1]
@@ -563,10 +563,10 @@ class TestRemoveCommand:
     @pytest.mark.asyncio
     async def test_remove_no_api_key_sends_error(self, mock_ctx):
         """Test remove command when user has no API key."""
-        with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
-            with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+            with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                 mock_error.return_value = None
                 await remove(mock_ctx)
                 mock_error.assert_called_once()
@@ -576,11 +576,11 @@ class TestRemoveCommand:
     @pytest.mark.asyncio
     async def test_remove_has_api_key_deletes_and_confirms(self, mock_ctx):
         """Test remove command when user has an API key."""
-        with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=[{"key": "test-api-key", "name": "TestKey"}])
             mock_instance.delete_user_api_key = AsyncMock()
-            with patch('src.gw2.cogs.key.bot_utils.send_msg') as mock_send:
+            with patch("src.gw2.cogs.key.bot_utils.send_msg") as mock_send:
                 result = await remove(mock_ctx)
                 mock_instance.delete_user_api_key.assert_called_once_with(12345)
                 mock_send.assert_called_once()
@@ -616,10 +616,10 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_no_api_key_sends_error(self, mock_ctx):
         """Test info command when user has no API key."""
-        with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
-            with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+            with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                 await info(mock_ctx)
                 mock_error.assert_called_once()
                 error_msg = mock_error.call_args[0][1]
@@ -629,7 +629,7 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_valid_api_key_shows_embed(self, mock_ctx):
         """Test info command with a valid API key shows info embed."""
-        with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(
                 return_value=[
@@ -642,13 +642,13 @@ class TestInfoCommand:
                     }
                 ]
             )
-            with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(
                     return_value={"name": "TestKey", "permissions": ["account", "characters", "progression"]}
                 )
-                with patch('src.gw2.cogs.key.bot_utils.send_embed') as mock_send:
-                    with patch('src.gw2.cogs.key.bot_utils.get_current_date_time_str_long') as mock_time:
+                with patch("src.gw2.cogs.key.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.key.bot_utils.get_current_date_time_str_long") as mock_time:
                         mock_time.return_value = "2025-01-01 12:00:00"
                         await info(mock_ctx)
                         mock_send.assert_called_once()
@@ -661,7 +661,7 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_invalid_api_key_on_check_shows_no_valid(self, mock_ctx):
         """Test info command when API key is invalid on check shows NO valid with invalid name."""
-        with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(
                 return_value=[
@@ -674,13 +674,13 @@ class TestInfoCommand:
                     }
                 ]
             )
-            with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 invalid_error = APIInvalidKey(mock_ctx.bot, "Invalid key")
                 invalid_error.args = ("error", "Invalid key")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
-                with patch('src.gw2.cogs.key.bot_utils.send_embed') as mock_send:
-                    with patch('src.gw2.cogs.key.bot_utils.get_current_date_time_str_long') as mock_time:
+                with patch("src.gw2.cogs.key.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.key.bot_utils.get_current_date_time_str_long") as mock_time:
                         mock_time.return_value = "2025-01-01 12:00:00"
                         await info(mock_ctx)
                         mock_send.assert_called_once()
@@ -697,7 +697,7 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_exception_during_check(self, mock_ctx):
         """Test info command when an exception occurs during API key check."""
-        with patch('src.gw2.cogs.key.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(
                 return_value=[
@@ -710,10 +710,10 @@ class TestInfoCommand:
                     }
                 ]
             )
-            with patch('src.gw2.cogs.key.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(side_effect=Exception("Connection error"))
-                with patch('src.gw2.cogs.key.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                     await info(mock_ctx)
                     mock_error.assert_called_once()
                     mock_ctx.bot.log.error.assert_called_once()

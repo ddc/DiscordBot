@@ -7,7 +7,7 @@ import sys
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.admin.custom_cmd import CustomCommand
 from src.bot.constants import messages
@@ -78,7 +78,7 @@ class TestCustomCommand:
         assert cog.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.invoke_subcommand')
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.invoke_subcommand")
     async def test_custom_command_group(self, mock_invoke, custom_cmd_cog, mock_ctx):
         """Test custom_command group command."""
         mock_invoke.return_value = "mock_command"
@@ -92,9 +92,9 @@ class TestCustomCommand:
 
     # Test add command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.delete_message')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_msg")
     async def test_add_custom_command_success(
         self, mock_send_msg, mock_delete_msg, mock_dal_class, custom_cmd_cog, mock_ctx
     ):
@@ -117,8 +117,8 @@ class TestCustomCommand:
         assert "!hello" in success_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.delete_message')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg")
     async def test_add_custom_command_missing_args(self, mock_send_error, mock_delete_msg, custom_cmd_cog, mock_ctx):
         """Test add command with missing arguments."""
         from src.bot.cogs.admin.custom_cmd import add_custom_command
@@ -132,8 +132,8 @@ class TestCustomCommand:
         assert messages.MISSING_REQUIRED_ARGUMENT_HELP_MESSAGE in error_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.delete_message')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg")
     async def test_add_custom_command_name_too_long(self, mock_send_error, mock_delete_msg, custom_cmd_cog, mock_ctx):
         """Test add command with name too long."""
         long_name = "a" * 21  # 21 characters, exceeds limit of 20
@@ -146,8 +146,8 @@ class TestCustomCommand:
         mock_send_error.assert_called_once_with(mock_ctx, messages.COMMAND_LENGHT_ERROR)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.delete_message')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg")
     async def test_add_custom_command_conflicts_with_bot_command(
         self, mock_send_error, mock_delete_msg, custom_cmd_cog, mock_ctx
     ):
@@ -164,9 +164,9 @@ class TestCustomCommand:
         assert "!help" in error_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.delete_message')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_warning_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_warning_msg")
     async def test_add_custom_command_already_exists(
         self, mock_send_warning, mock_delete_msg, mock_dal_class, custom_cmd_cog, mock_ctx
     ):
@@ -189,9 +189,9 @@ class TestCustomCommand:
 
     # Test edit command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.delete_message')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_msg")
     async def test_edit_custom_command_success(
         self, mock_send_msg, mock_delete_msg, mock_dal_class, custom_cmd_cog, mock_ctx, mock_command_data
     ):
@@ -214,8 +214,8 @@ class TestCustomCommand:
         assert "!hello" in success_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.delete_message')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg")
     async def test_edit_custom_command_missing_args(self, mock_send_error, mock_delete_msg, custom_cmd_cog, mock_ctx):
         """Test edit command with missing arguments."""
         from src.bot.cogs.admin.custom_cmd import edit_custom_command
@@ -229,9 +229,9 @@ class TestCustomCommand:
         assert messages.MISSING_REQUIRED_ARGUMENT_HELP_MESSAGE in error_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.delete_message')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg")
     async def test_edit_custom_command_no_commands_exist(
         self, mock_send_error, mock_delete_msg, mock_dal_class, custom_cmd_cog, mock_ctx
     ):
@@ -248,9 +248,9 @@ class TestCustomCommand:
         mock_send_error.assert_called_once_with(mock_ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.delete_message')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg")
     async def test_edit_custom_command_not_found(
         self, mock_send_error, mock_delete_msg, mock_dal_class, custom_cmd_cog, mock_ctx, mock_command_data
     ):
@@ -272,8 +272,8 @@ class TestCustomCommand:
 
     # Test remove command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_msg")
     async def test_remove_custom_command_success(
         self, mock_send_msg, mock_dal_class, custom_cmd_cog, mock_ctx, mock_command_data
     ):
@@ -295,8 +295,8 @@ class TestCustomCommand:
         assert "!hello" in success_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_warning_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_warning_msg")
     async def test_remove_custom_command_no_commands_exist(
         self, mock_send_warning, mock_dal_class, custom_cmd_cog, mock_ctx
     ):
@@ -312,8 +312,8 @@ class TestCustomCommand:
         mock_send_warning.assert_called_once_with(mock_ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg")
     async def test_remove_custom_command_not_found(
         self, mock_send_error, mock_dal_class, custom_cmd_cog, mock_ctx, mock_command_data
     ):
@@ -335,8 +335,8 @@ class TestCustomCommand:
 
     # Test removeall command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_msg")
     async def test_remove_all_custom_commands_success(
         self, mock_send_msg, mock_dal_class, custom_cmd_cog, mock_ctx, mock_command_data
     ):
@@ -354,8 +354,8 @@ class TestCustomCommand:
         mock_send_msg.assert_called_once_with(mock_ctx, messages.CUSTOM_COMMAND_ALL_REMOVED)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg")
     async def test_remove_all_custom_commands_no_commands_exist(
         self, mock_send_error, mock_dal_class, custom_cmd_cog, mock_ctx
     ):
@@ -372,11 +372,11 @@ class TestCustomCommand:
 
     # Test list command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_embed')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.get_member_by_id')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.convert_datetime_to_str_short')
-    @patch('src.bot.cogs.admin.custom_cmd.chat_formatting.inline')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_embed")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.get_member_by_id")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.convert_datetime_to_str_short")
+    @patch("src.bot.cogs.admin.custom_cmd.chat_formatting.inline")
     async def test_list_custom_commands_success(
         self,
         mock_inline,
@@ -420,8 +420,8 @@ class TestCustomCommand:
         assert embed.footer.text == "For more info: !help admin cc"
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_warning_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_warning_msg")
     async def test_list_custom_commands_no_commands_exist(
         self, mock_send_warning, mock_dal_class, custom_cmd_cog, mock_ctx
     ):
@@ -437,11 +437,11 @@ class TestCustomCommand:
         mock_send_warning.assert_called_once_with(mock_ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_embed')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.get_member_by_id')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.convert_datetime_to_str_short')
-    @patch('src.bot.cogs.admin.custom_cmd.chat_formatting.inline')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_embed")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.get_member_by_id")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.convert_datetime_to_str_short")
+    @patch("src.bot.cogs.admin.custom_cmd.chat_formatting.inline")
     async def test_list_custom_commands_unknown_user(
         self,
         mock_inline,
@@ -475,11 +475,11 @@ class TestCustomCommand:
         assert "Unknown User" in created_by_field.value
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_embed')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.get_member_by_id')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.convert_datetime_to_str_short')
-    @patch('src.bot.cogs.admin.custom_cmd.chat_formatting.inline')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_embed")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.get_member_by_id")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.convert_datetime_to_str_short")
+    @patch("src.bot.cogs.admin.custom_cmd.chat_formatting.inline")
     async def test_list_custom_commands_no_guild_icon(
         self,
         mock_inline,
@@ -531,12 +531,12 @@ class TestCustomCommand:
         from src.bot.cogs.admin.admin import Admin
 
         assert isinstance(custom_cmd_cog, Admin)
-        assert hasattr(custom_cmd_cog, 'bot')
+        assert hasattr(custom_cmd_cog, "bot")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.delete_message')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_msg")
     async def test_add_custom_command_case_insensitive_conflict(
         self, mock_send_msg, mock_delete_msg, mock_dal_class, custom_cmd_cog, mock_ctx
     ):
@@ -548,7 +548,7 @@ class TestCustomCommand:
 
         from src.bot.cogs.admin.custom_cmd import add_custom_command
 
-        with patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg') as mock_send_error:
+        with patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg") as mock_send_error:
             await add_custom_command(mock_ctx, subcommand_passed="help Some description")
 
             mock_send_error.assert_called_once()
@@ -556,9 +556,9 @@ class TestCustomCommand:
             assert messages.ALREADY_A_STANDARD_COMMAND in error_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.delete_message')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_msg")
     async def test_add_custom_command_with_spaces_in_description(
         self, mock_send_msg, mock_delete_msg, mock_dal_class, custom_cmd_cog, mock_ctx
     ):
@@ -576,9 +576,9 @@ class TestCustomCommand:
         )
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.CustomCommandsDal')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.delete_message')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_msg")
     async def test_add_custom_command_exact_20_chars(
         self, mock_send_msg, mock_delete_msg, mock_dal_class, custom_cmd_cog, mock_ctx
     ):
@@ -597,8 +597,8 @@ class TestCustomCommand:
         mock_send_msg.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.delete_message')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg")
     async def test_add_custom_command_empty_args(self, mock_send_error, mock_delete_msg, custom_cmd_cog, mock_ctx):
         """Test add command with completely empty arguments."""
         from src.bot.cogs.admin.custom_cmd import add_custom_command
@@ -609,8 +609,8 @@ class TestCustomCommand:
         mock_send_error.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.delete_message')
-    @patch('src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
+    @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg")
     async def test_edit_custom_command_empty_args(self, mock_send_error, mock_delete_msg, custom_cmd_cog, mock_ctx):
         """Test edit command with completely empty arguments."""
         from src.bot.cogs.admin.custom_cmd import edit_custom_command

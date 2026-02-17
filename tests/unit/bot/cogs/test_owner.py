@@ -8,7 +8,7 @@ import sys
 from discord.ext import commands
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.owner import Owner
 from src.bot.constants import messages, variables
@@ -88,7 +88,7 @@ class TestOwner:
         assert cog.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.bot_utils.invoke_subcommand')
+    @patch("src.bot.cogs.owner.bot_utils.invoke_subcommand")
     async def test_owner_group_command(self, mock_invoke, owner_cog, mock_ctx):
         """Test owner group command."""
         mock_invoke.return_value = "mock_command"
@@ -100,8 +100,8 @@ class TestOwner:
 
     # Test prefix change command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.BotConfigsDal')
-    @patch('src.bot.cogs.owner.bot_utils.send_embed')
+    @patch("src.bot.cogs.owner.BotConfigsDal")
+    @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_change_prefix_success(self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx):
         """Test successful prefix change."""
         mock_dal = AsyncMock()
@@ -131,8 +131,8 @@ class TestOwner:
         assert ", ".join(variables.ALLOWED_PREFIXES) in error_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.BotConfigsDal')
-    @patch('src.bot.cogs.owner.bot_utils.send_embed')
+    @patch("src.bot.cogs.owner.BotConfigsDal")
+    @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_change_prefix_with_activity_update(self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx):
         """Test prefix change with bot activity update."""
         mock_dal = AsyncMock()
@@ -142,13 +142,13 @@ class TestOwner:
 
         # Verify activity was updated
         owner_cog.bot.change_presence.assert_called_once()
-        activity_call = owner_cog.bot.change_presence.call_args[1]['activity']
+        activity_call = owner_cog.bot.change_presence.call_args[1]["activity"]
         assert isinstance(activity_call, discord.Game)
         assert activity_call.name == "Test Game | %help"
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.BotConfigsDal')
-    @patch('src.bot.cogs.owner.bot_utils.send_embed')
+    @patch("src.bot.cogs.owner.BotConfigsDal")
+    @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_change_prefix_no_activity(self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx):
         """Test prefix change when bot has no activity."""
         owner_cog.bot.user.activity = None
@@ -167,8 +167,8 @@ class TestOwner:
         mock_send_embed.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.BotConfigsDal')
-    @patch('src.bot.cogs.owner.bot_utils.send_embed')
+    @patch("src.bot.cogs.owner.BotConfigsDal")
+    @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_change_prefix_non_playing_activity(self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx):
         """Test prefix change when bot has non-playing activity."""
         # Set the guild's bot member activity type to listening (not playing)
@@ -184,9 +184,9 @@ class TestOwner:
 
     # Test description update command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.BotConfigsDal')
-    @patch('src.bot.cogs.owner.bot_utils.delete_message')
-    @patch('src.bot.cogs.owner.bot_utils.send_embed')
+    @patch("src.bot.cogs.owner.BotConfigsDal")
+    @patch("src.bot.cogs.owner.bot_utils.delete_message")
+    @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_description_success(
         self, mock_send_embed, mock_delete_msg, mock_dal_class, owner_cog, mock_ctx
     ):
@@ -211,8 +211,8 @@ class TestOwner:
 
     # Test servers list command
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.ServersDal')
-    @patch('src.bot.cogs.owner.bot_utils.send_embed')
+    @patch("src.bot.cogs.owner.ServersDal")
+    @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_servers_success(self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx, mock_server_data):
         """Test successful servers list."""
         mock_dal = AsyncMock()
@@ -234,8 +234,8 @@ class TestOwner:
         assert mock_send_embed.call_args[0][2] is True
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.ServersDal')
-    @patch('src.bot.cogs.owner.bot_utils.send_embed')
+    @patch("src.bot.cogs.owner.ServersDal")
+    @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_servers_no_servers(self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx):
         """Test servers list with no servers."""
         mock_dal = AsyncMock()
@@ -254,8 +254,8 @@ class TestOwner:
         assert result == mock_send_embed.return_value
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.ServersDal')
-    @patch('src.bot.cogs.owner.bot_utils.send_embed')
+    @patch("src.bot.cogs.owner.ServersDal")
+    @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_servers_many_servers(self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx):
         """Test servers list with more than 25 servers (pagination)."""
         # Create 30 mock servers
@@ -285,8 +285,8 @@ class TestOwner:
         assert embed.footer.text == "Total servers: 30"
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.ServersDal')
-    @patch('src.bot.cogs.owner.bot_utils.send_embed')
+    @patch("src.bot.cogs.owner.ServersDal")
+    @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_servers_no_bot_avatar(
         self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx, mock_server_data
     ):
@@ -310,12 +310,12 @@ class TestOwner:
         await owner_cog._update_bot_activity_prefix("$")
 
         owner_cog.bot.change_presence.assert_called_once()
-        activity_call = owner_cog.bot.change_presence.call_args[1]['activity']
+        activity_call = owner_cog.bot.change_presence.call_args[1]["activity"]
         assert isinstance(activity_call, discord.Game)
         assert activity_call.name == "Test Game | $help"
 
         # Check status and activity parameters
-        assert owner_cog.bot.change_presence.call_args[1]['status'] == discord.Status.online
+        assert owner_cog.bot.change_presence.call_args[1]["status"] == discord.Status.online
 
     @pytest.mark.asyncio
     async def test_update_bot_activity_prefix_no_activity(self, owner_cog):
@@ -357,8 +357,8 @@ class TestOwner:
         assert embed.color == discord.Color.gold()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.BotConfigsDal')
-    @patch('src.bot.cogs.owner.bot_utils.send_embed')
+    @patch("src.bot.cogs.owner.BotConfigsDal")
+    @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_change_prefix_all_valid_prefixes(self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx):
         """Test prefix change with all valid prefixes."""
         mock_dal = AsyncMock()
@@ -369,8 +369,8 @@ class TestOwner:
             assert owner_cog.bot.command_prefix == prefix
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.BotConfigsDal')
-    @patch('src.bot.cogs.owner.bot_utils.send_embed')
+    @patch("src.bot.cogs.owner.BotConfigsDal")
+    @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_description_with_special_characters(
         self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx
     ):
@@ -380,29 +380,29 @@ class TestOwner:
 
         special_desc = "Bot with émojis 🤖 and spéciál chars & symbols!"
 
-        with patch('src.bot.cogs.owner.bot_utils.delete_message'):
+        with patch("src.bot.cogs.owner.bot_utils.delete_message"):
             await owner_cog.owner_description.callback(owner_cog, mock_ctx, desc=special_desc)
 
             assert owner_cog.bot.description == special_desc
             mock_dal.update_bot_description.assert_called_once_with(special_desc)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.BotConfigsDal')
-    @patch('src.bot.cogs.owner.bot_utils.send_embed')
+    @patch("src.bot.cogs.owner.BotConfigsDal")
+    @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_description_empty_string(self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx):
         """Test description update with empty string."""
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
 
-        with patch('src.bot.cogs.owner.bot_utils.delete_message'):
+        with patch("src.bot.cogs.owner.bot_utils.delete_message"):
             await owner_cog.owner_description.callback(owner_cog, mock_ctx, desc="")
 
             assert owner_cog.bot.description == ""
             mock_dal.update_bot_description.assert_called_once_with("")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.ServersDal')
-    @patch('src.bot.cogs.owner.bot_utils.send_embed')
+    @patch("src.bot.cogs.owner.ServersDal")
+    @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_servers_exactly_25_servers(self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx):
         """Test servers list with exactly 25 servers (edge case)."""
         # Create exactly 25 mock servers
@@ -438,7 +438,7 @@ class TestOwner:
         await owner_cog._update_bot_activity_prefix("$")
 
         # Should only take the first part before the first pipe
-        activity_call = owner_cog.bot.change_presence.call_args[1]['activity']
+        activity_call = owner_cog.bot.change_presence.call_args[1]["activity"]
         assert activity_call.name == "Complex | $help"
 
     @pytest.mark.asyncio
@@ -456,11 +456,11 @@ class TestOwner:
     def test_owner_cog_inheritance(self, owner_cog):
         """Test that Owner cog properly inherits from commands.Cog."""
         assert isinstance(owner_cog, commands.Cog)
-        assert hasattr(owner_cog, 'bot')
+        assert hasattr(owner_cog, "bot")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.ServersDal')
-    @patch('src.bot.cogs.owner.bot_utils.send_embed')
+    @patch("src.bot.cogs.owner.ServersDal")
+    @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_servers_return_value_none_case(
         self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx, mock_server_data
     ):
@@ -474,8 +474,8 @@ class TestOwner:
         assert result is None
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.owner.BotConfigsDal')
-    @patch('src.bot.cogs.owner.bot_utils.send_embed')
+    @patch("src.bot.cogs.owner.BotConfigsDal")
+    @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_change_prefix_case_sensitivity(self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx):
         """Test that prefix validation is case-sensitive."""
         mock_dal = AsyncMock()
@@ -498,5 +498,5 @@ class TestOwner:
 
         await owner_cog._update_bot_activity_prefix("$")
 
-        activity_call = owner_cog.bot.change_presence.call_args[1]['activity']
+        activity_call = owner_cog.bot.change_presence.call_args[1]["activity"]
         assert activity_call.name == "SimpleGameName | $help"

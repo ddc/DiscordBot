@@ -54,7 +54,7 @@ async def _execute(db_session, stmt):
 async def test_updated_at_function_exists(db_session):
     rows = await _fetch_rows(
         db_session,
-        text("SELECT routine_name FROM information_schema.routines " "WHERE routine_name = 'updated_at_column_func'"),
+        text("SELECT routine_name FROM information_schema.routines WHERE routine_name = 'updated_at_column_func'"),
     )
     assert len(rows) == 1
     assert rows[0]["routine_name"] == "updated_at_column_func"
@@ -83,9 +83,7 @@ async def test_all_triggers_exist(db_session):
     rows = await _fetch_rows(
         db_session,
         text(
-            "SELECT trigger_name FROM information_schema.triggers "
-            "WHERE trigger_schema = 'public' "
-            "ORDER BY trigger_name"
+            "SELECT trigger_name FROM information_schema.triggers WHERE trigger_schema = 'public' ORDER BY trigger_name"
         ),
     )
     trigger_names = [r["trigger_name"] for r in rows]
@@ -183,7 +181,7 @@ async def test_servers_columns(db_session):
 async def test_servers_index_exists(db_session):
     rows = await _fetch_rows(
         db_session,
-        text("SELECT indexname FROM pg_indexes " "WHERE tablename = 'servers' AND indexname = 'ix_servers_id'"),
+        text("SELECT indexname FROM pg_indexes WHERE tablename = 'servers' AND indexname = 'ix_servers_id'"),
     )
     assert len(rows) == 1
 
@@ -264,9 +262,7 @@ async def test_custom_commands_cascade_delete(db_session):
     await _execute(db_session, text("INSERT INTO servers (id, name) VALUES (10003, 'Cascade CC')"))
     await _execute(
         db_session,
-        text(
-            "INSERT INTO custom_commands (server_id, name, description) " "VALUES (10003, 'temp', 'will be cascaded')"
-        ),
+        text("INSERT INTO custom_commands (server_id, name, description) VALUES (10003, 'temp', 'will be cascaded')"),
     )
     await _execute(db_session, text("DELETE FROM servers WHERE id = 10003"))
     rows = await _fetch_rows(
@@ -318,7 +314,7 @@ async def test_profanity_filters_cascade_delete(db_session):
     await _execute(db_session, text("INSERT INTO servers (id, name) VALUES (10005, 'Cascade PF')"))
     await _execute(
         db_session,
-        text("INSERT INTO profanity_filters (server_id, channel_id, channel_name) " "VALUES (10005, 80002, 'spam')"),
+        text("INSERT INTO profanity_filters (server_id, channel_id, channel_name) VALUES (10005, 80002, 'spam')"),
     )
     await _execute(db_session, text("DELETE FROM servers WHERE id = 10005"))
     rows = await _fetch_rows(
@@ -350,7 +346,7 @@ async def test_dice_rolls_insert_and_read(db_session):
     await _execute(db_session, text("INSERT INTO servers (id, name) VALUES (10006, 'Dice Server')"))
     await _execute(
         db_session,
-        text("INSERT INTO dice_rolls (server_id, user_id, roll, dice_size) " "VALUES (10006, 555, 18, 20)"),
+        text("INSERT INTO dice_rolls (server_id, user_id, roll, dice_size) VALUES (10006, 555, 18, 20)"),
     )
     rows = await _fetch_rows(
         db_session,

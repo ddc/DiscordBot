@@ -125,21 +125,21 @@ class OnMemberJoin(commands.Cog):
         self.bot = bot
         self.join_handler = MemberJoinHandler(bot)
 
-        @self.bot.event
-        async def on_member_join(member: discord.Member) -> None:
-            """Handle member join event.
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member) -> None:
+        """Handle member join event.
 
-            Called when a member joins a guild where the bot is present.
-            Sends welcome messages if configured to do so.
+        Called when a member joins a guild where the bot is present.
+        Sends welcome messages if configured to do so.
 
-            Args:
-                member: The Discord member who joined the guild
-            """
-            try:
-                self.bot.log.info(f"Member joined: {member} in guild: {member.guild.name}")
-                await self.join_handler.process_member_join(member)
-            except Exception as e:
-                self.bot.log.error(f"Critical error in on_member_join for {member}: {e}")
+        Args:
+            member: The Discord member who joined the guild
+        """
+        try:
+            self.bot.log.info(f"Member joined: {member} in guild: {member.guild.name}")
+            await self.join_handler.process_member_join(member)
+        except Exception as e:
+            self.bot.log.error(f"Critical error in on_member_join for {member}: {e}")
 
 
 async def setup(bot: Bot) -> None:

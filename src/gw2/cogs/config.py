@@ -9,7 +9,7 @@ from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 
 
 class GW2Config(GuildWars2):
-    """(Guild Wars 2 Configuration Commands - Admin)"""
+    """Guild Wars 2 configuration commands for server settings management."""
 
     def __init__(self, bot):
         super().__init__(bot)
@@ -18,9 +18,11 @@ class GW2Config(GuildWars2):
 @GuildWars2.gw2.group()
 @Checks.check_is_admin()
 async def config(ctx):
-    """(Guild Wars 2 Configuration Commands - Admin)
-    gw2 config list
-    gw2 config session [on | off]
+    """Guild Wars 2 server configuration commands.
+
+    Available subcommands:
+        gw2 config list - List all GW2 configurations
+        gw2 config session [on | off] - Toggle session recording
     """
 
     await bot_utils.invoke_subcommand(ctx, "gw2 config")
@@ -29,8 +31,10 @@ async def config(ctx):
 @config.command(name="list")
 @commands.cooldown(1, GW2CoolDowns.Config.seconds, commands.BucketType.user)
 async def config_list(ctx):
-    """(List all Guild Wars 2 Current Server Configurations)
-    gw2 config list
+    """List all Guild Wars 2 configurations for the current server.
+
+    Usage:
+        gw2 config list
     """
 
     color = ctx.bot.settings["gw2"]["EmbedColor"]
@@ -41,7 +45,7 @@ async def config_list(ctx):
         name=f"{gw2_messages.CONFIG_TITLE} {ctx.guild.name}",
         icon_url=guild_icon_url,
     )
-    embed.set_footer(text=gw2_messages.CONFIG_MORE_INFO.format(ctx.prefix))
+    embed.set_footer(text=gw2_messages.config_more_info(ctx.prefix))
 
     gw2_configs = Gw2ConfigsDal(ctx.bot.db_session, ctx.bot.log)
     rs = await gw2_configs.get_gw2_server_configs(ctx.guild.id)
@@ -73,9 +77,11 @@ async def config_list(ctx):
 @config.command(name="session")
 @commands.cooldown(1, GW2CoolDowns.Config.seconds, commands.BucketType.user)
 async def config_session(ctx, subcommand_passed: str):
-    """(Configure Guild Wars 2 Sessions)
-    gw2 config session on
-    gw2 config session off
+    """Toggle Guild Wars 2 session recording.
+
+    Usage:
+        gw2 config session on
+        gw2 config session off
     """
 
     match subcommand_passed:
@@ -127,9 +133,9 @@ class GW2ConfigView(discord.ui.View):
         # Set updating state and disable all buttons
         self._updating = True
         for item in self.children:
-            if hasattr(item, 'disabled'):
+            if hasattr(item, "disabled"):
                 item.disabled = True
-                if hasattr(item, 'style'):
+                if hasattr(item, "style"):
                     item.style = discord.ButtonStyle.gray
 
         # Defer the response to allow editing the original message
@@ -190,7 +196,7 @@ class GW2ConfigView(discord.ui.View):
     async def _restore_buttons(self):
         """Restore button states and colors."""
         for item in self.children:
-            if hasattr(item, 'disabled'):
+            if hasattr(item, "disabled"):
                 item.disabled = False
 
         # Restore original button colors
@@ -208,7 +214,7 @@ class GW2ConfigView(discord.ui.View):
             name=f"{gw2_messages.CONFIG_TITLE} {self.ctx.guild.name}",
             icon_url=guild_icon_url,
         )
-        embed.set_footer(text=gw2_messages.CONFIG_MORE_INFO.format(self.ctx.prefix))
+        embed.set_footer(text=gw2_messages.config_more_info(self.ctx.prefix))
 
         # Format status indicators
         on = chat_formatting.green_text("ON")

@@ -9,7 +9,7 @@ import pytest
 import sys
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.events.on_message import (
     DMMessageHandler,
@@ -105,7 +105,7 @@ class TestProfanityFilterHTTPException:
     """Tests for ProfanityFilter._censor_message HTTPException fallback (lines 83-84)."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.bot_utils.delete_message')
+    @patch("src.bot.cogs.events.on_message.bot_utils.delete_message")
     async def test_censor_message_embed_http_exception_fallback(self, mock_delete, mock_bot, mock_ctx):
         """When embed send raises HTTPException, fallback to text mention (lines 83-84)."""
         mock_bot.profanity.contains_profanity.return_value = True
@@ -141,7 +141,7 @@ class TestDMMessageHandlerProcess:
     """Tests for DMMessageHandler.process routing (lines 198-201)."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.bot_utils.is_bot_owner')
+    @patch("src.bot.cogs.events.on_message.bot_utils.is_bot_owner")
     async def test_process_not_command_routes_to_non_command(self, mock_is_owner, mock_bot, mock_dm_ctx):
         """When is_command=False, routes to _handle_dm_non_command (lines 198-199)."""
         mock_is_owner.return_value = False
@@ -181,7 +181,7 @@ class TestDMMessageHandlerNonCommand:
         mock_dm_ctx.message.author.send.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.bot_utils.is_bot_owner')
+    @patch("src.bot.cogs.events.on_message.bot_utils.is_bot_owner")
     async def test_is_bot_owner_sends_owner_help(self, mock_is_owner, mock_bot, mock_dm_ctx):
         """When user is bot owner, sends owner help (lines 209-210)."""
         mock_is_owner.return_value = True
@@ -199,7 +199,7 @@ class TestDMMessageHandlerNonCommand:
         assert mock_dm_ctx.message.author.send.call_count >= 1
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.bot_utils.is_bot_owner')
+    @patch("src.bot.cogs.events.on_message.bot_utils.is_bot_owner")
     async def test_not_bot_owner_sends_dm_not_allowed(self, mock_is_owner, mock_bot, mock_dm_ctx):
         """When user is not bot owner, sends dm not allowed (lines 211-212)."""
         mock_is_owner.return_value = False
@@ -210,7 +210,7 @@ class TestDMMessageHandlerNonCommand:
 
         mock_dm_ctx.message.author.send.assert_called_once()
         embed_sent = (
-            mock_dm_ctx.message.author.send.call_args[1].get('embed') or mock_dm_ctx.message.author.send.call_args[0][0]
+            mock_dm_ctx.message.author.send.call_args[1].get("embed") or mock_dm_ctx.message.author.send.call_args[0][0]
             if mock_dm_ctx.message.author.send.call_args[0]
             else None
         )
@@ -221,7 +221,7 @@ class TestDMMessageHandlerCommand:
     """Tests for DMMessageHandler._handle_dm_command (lines 214-230)."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.ExclusiveUsersChecker.check_exclusive_users')
+    @patch("src.bot.cogs.events.on_message.ExclusiveUsersChecker.check_exclusive_users")
     async def test_exclusive_users_check_fails_returns(self, mock_check, mock_bot, mock_dm_ctx):
         """When exclusive users check fails, returns early (line 217)."""
         mock_check.return_value = False
@@ -244,7 +244,7 @@ class TestDMMessageHandlerCommand:
 
         mock_dm_ctx.message.author.send.assert_called_once()
         embed_arg = (
-            mock_dm_ctx.message.author.send.call_args[1].get('embed') or mock_dm_ctx.message.author.send.call_args[0][0]
+            mock_dm_ctx.message.author.send.call_args[1].get("embed") or mock_dm_ctx.message.author.send.call_args[0][0]
         )
         assert isinstance(embed_arg, discord.Embed)
         mock_bot.process_commands.assert_not_called()
@@ -284,7 +284,7 @@ class TestDMMessageHandlerSendMethods:
         await handler._send_no_dm_commands_allowed(mock_dm_ctx)
 
         mock_dm_ctx.message.author.send.assert_called_once()
-        embed_sent = mock_dm_ctx.message.author.send.call_args[1]['embed']
+        embed_sent = mock_dm_ctx.message.author.send.call_args[1]["embed"]
         assert embed_sent.color == discord.Color.red()
         assert messages.DM_COMMAND_NOT_ALLOWED in embed_sent.description
 
@@ -297,7 +297,7 @@ class TestDMMessageHandlerSendMethods:
         await handler._send_command_not_allowed(mock_dm_ctx, allowed_commands)
 
         mock_dm_ctx.message.author.send.assert_called_once()
-        embed_sent = mock_dm_ctx.message.author.send.call_args[1]['embed']
+        embed_sent = mock_dm_ctx.message.author.send.call_args[1]["embed"]
         assert embed_sent.color == discord.Color.red()
         assert messages.DM_COMMAND_NOT_ALLOWED in embed_sent.description
         assert len(embed_sent.fields) == 1
@@ -311,7 +311,7 @@ class TestDMMessageHandlerSendMethods:
         await handler._send_dm_not_allowed(mock_dm_ctx)
 
         mock_dm_ctx.message.author.send.assert_called_once()
-        embed_sent = mock_dm_ctx.message.author.send.call_args[1]['embed']
+        embed_sent = mock_dm_ctx.message.author.send.call_args[1]["embed"]
         assert embed_sent.color == discord.Color.red()
         assert messages.NO_DM_MESSAGES in embed_sent.description
 
@@ -335,7 +335,7 @@ class TestDMMessageHandlerSendMethods:
         # Second call: box(owner_command.help)
         assert mock_dm_ctx.message.author.send.call_count == 2
         first_call = mock_dm_ctx.message.author.send.call_args_list[0]
-        embed_sent = first_call[1]['embed']
+        embed_sent = first_call[1]["embed"]
         assert embed_sent.color == discord.Color.green()
         assert messages.OWNER_DM_BOT_MESSAGE in embed_sent.description
         second_call = mock_dm_ctx.message.author.send.call_args_list[1]
@@ -346,7 +346,7 @@ class TestServerMessageHandlerProcess:
     """Tests for ServerMessageHandler.process (lines 281-301, specifically 298-301)."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.ServersDal')
+    @patch("src.bot.cogs.events.on_message.ServersDal")
     async def test_no_configs_not_command_logs_warning_no_process(self, mock_dal_class, mock_bot, mock_ctx):
         """When no configs and not a command, logs warning and returns (lines 288-291)."""
         mock_dal = AsyncMock()
@@ -360,7 +360,7 @@ class TestServerMessageHandlerProcess:
         mock_bot.process_commands.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.ServersDal')
+    @patch("src.bot.cogs.events.on_message.ServersDal")
     async def test_no_configs_is_command_processes_commands(self, mock_dal_class, mock_bot, mock_ctx):
         """When no configs but is_command, processes commands (lines 289-290, 298-301 related)."""
         mock_dal = AsyncMock()
@@ -374,7 +374,7 @@ class TestServerMessageHandlerProcess:
         mock_bot.process_commands.assert_called_once_with(mock_ctx.message)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.ServersDal')
+    @patch("src.bot.cogs.events.on_message.ServersDal")
     async def test_not_command_routes_to_non_command(self, mock_dal_class, mock_bot, mock_ctx):
         """When not a command, routes to _handle_server_non_command (lines 298-299)."""
         mock_dal = AsyncMock()
@@ -392,8 +392,8 @@ class TestServerMessageHandlerProcess:
         mock_bot.process_commands.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.ServersDal')
-    @patch('src.bot.cogs.events.on_message.CustomCommandsDal')
+    @patch("src.bot.cogs.events.on_message.ServersDal")
+    @patch("src.bot.cogs.events.on_message.CustomCommandsDal")
     async def test_is_command_routes_to_command_handler(self, mock_cmd_dal_class, mock_dal_class, mock_bot, mock_ctx):
         """When is a command, routes to _handle_server_command (lines 300-301)."""
         mock_dal = AsyncMock()
@@ -419,7 +419,7 @@ class TestServerMessageHandlerInvisibleMember:
     """Tests for ServerMessageHandler._handle_invisible_member (lines 303-322)."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.bot_utils.delete_message')
+    @patch("src.bot.cogs.events.on_message.bot_utils.delete_message")
     async def test_invisible_member_dm_succeeds(self, mock_delete, mock_bot, mock_ctx):
         """When DM send succeeds, invisible member is notified via DM (lines 316-317)."""
         handler = ServerMessageHandler(mock_bot)
@@ -428,11 +428,11 @@ class TestServerMessageHandlerInvisibleMember:
 
         mock_delete.assert_called_once_with(mock_ctx)
         mock_ctx.message.author.send.assert_called_once()
-        embed_sent = mock_ctx.message.author.send.call_args[1]['embed']
+        embed_sent = mock_ctx.message.author.send.call_args[1]["embed"]
         assert embed_sent.color == discord.Color.red()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.bot_utils.delete_message')
+    @patch("src.bot.cogs.events.on_message.bot_utils.delete_message")
     async def test_invisible_member_dm_http_exception_channel_send(self, mock_delete, mock_bot, mock_ctx):
         """When DM raises HTTPException, tries channel send (lines 318-319)."""
         handler = ServerMessageHandler(mock_bot)
@@ -444,11 +444,11 @@ class TestServerMessageHandlerInvisibleMember:
         mock_ctx.message.author.send.assert_called_once()
         # Falls back to ctx.send with embed
         mock_ctx.send.assert_called_once()
-        embed_sent = mock_ctx.send.call_args[1]['embed']
+        embed_sent = mock_ctx.send.call_args[1]["embed"]
         assert embed_sent.color == discord.Color.red()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.bot_utils.delete_message')
+    @patch("src.bot.cogs.events.on_message.bot_utils.delete_message")
     async def test_invisible_member_both_exceptions_fallback_mention(self, mock_delete, mock_bot, mock_ctx):
         """When both DM and channel embed raise HTTPException, fallback to mention (lines 320-322)."""
         handler = ServerMessageHandler(mock_bot)
@@ -458,7 +458,7 @@ class TestServerMessageHandlerInvisibleMember:
 
         async def send_side_effect(*args, **kwargs):
             call_count[0] += 1
-            if call_count[0] == 1 and 'embed' in kwargs:
+            if call_count[0] == 1 and "embed" in kwargs:
                 raise discord.HTTPException(MagicMock(), "Channel embed failed")
             return MagicMock()
 
@@ -542,7 +542,7 @@ class TestServerMessageHandlerCommand:
         mock_bot.process_commands.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.ExclusiveUsersChecker.check_exclusive_users')
+    @patch("src.bot.cogs.events.on_message.ExclusiveUsersChecker.check_exclusive_users")
     async def test_exclusive_users_fails_returns(self, mock_check, mock_bot, mock_ctx):
         """When exclusive users check fails, returns early (lines 341-342)."""
         mock_check.return_value = False
@@ -555,7 +555,7 @@ class TestServerMessageHandlerCommand:
         mock_bot.process_commands.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.CustomCommandsDal')
+    @patch("src.bot.cogs.events.on_message.CustomCommandsDal")
     async def test_custom_command_found_returns(self, mock_dal_class, mock_bot, mock_ctx):
         """When custom command is found, returns True (lines 345-347)."""
         mock_dal = AsyncMock()
@@ -572,7 +572,7 @@ class TestServerMessageHandlerCommand:
         mock_bot.process_commands.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.CustomCommandsDal')
+    @patch("src.bot.cogs.events.on_message.CustomCommandsDal")
     async def test_no_custom_command_processes_regular(self, mock_dal_class, mock_bot, mock_ctx):
         """When no custom command found, processes regular commands (line 350)."""
         mock_dal = AsyncMock()
@@ -597,7 +597,7 @@ class TestServerMessageHandlerCommand:
         mock_bot.process_commands.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.CustomCommandsDal')
+    @patch("src.bot.cogs.events.on_message.CustomCommandsDal")
     async def test_alpha_second_char_not_double_prefix(self, mock_dal_class, mock_bot, mock_ctx):
         """Alpha character after prefix is NOT double prefix (line 338)."""
         mock_dal = AsyncMock()
@@ -620,8 +620,8 @@ class TestOnMessageCogEvent:
         cog = OnMessage(mock_bot)
 
         assert cog.bot == mock_bot
-        assert hasattr(cog, 'dm_handler')
-        assert hasattr(cog, 'server_handler')
+        assert hasattr(cog, "dm_handler")
+        assert hasattr(cog, "server_handler")
         mock_bot.event.assert_called_once()
 
     @pytest.mark.asyncio
@@ -735,8 +735,8 @@ class TestServerMessageHandlerBlockInvisible:
     """Additional tests for block invisible member flow (lines 294-296)."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.ServersDal')
-    @patch('src.bot.cogs.events.on_message.bot_utils.delete_message')
+    @patch("src.bot.cogs.events.on_message.ServersDal")
+    @patch("src.bot.cogs.events.on_message.bot_utils.delete_message")
     async def test_block_invisible_enabled_member_invisible(self, mock_delete, mock_dal_class, mock_bot, mock_ctx):
         """When block invisible is True and member is invisible, handles invisible (lines 294-296)."""
         mock_dal = AsyncMock()
@@ -756,8 +756,8 @@ class TestServerMessageHandlerBlockInvisible:
         mock_bot.process_commands.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.ServersDal')
-    @patch('src.bot.cogs.events.on_message.CustomCommandsDal')
+    @patch("src.bot.cogs.events.on_message.ServersDal")
+    @patch("src.bot.cogs.events.on_message.CustomCommandsDal")
     async def test_block_invisible_enabled_member_online(self, mock_cmd_dal_class, mock_dal_class, mock_bot, mock_ctx):
         """When block invisible is True but member is online, proceeds normally."""
         mock_dal = AsyncMock()
@@ -801,7 +801,7 @@ class TestExclusiveUsersCheckerExtra:
         assert result is True
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_message.bot_utils.send_error_msg')
+    @patch("src.bot.cogs.events.on_message.bot_utils.send_error_msg")
     async def test_exclusive_users_single_id_no_match(self, mock_send_error, mock_bot, mock_ctx):
         """When ExclusiveUsers is a single int not matching user, returns False."""
         mock_bot.settings["bot"]["ExclusiveUsers"] = 11111

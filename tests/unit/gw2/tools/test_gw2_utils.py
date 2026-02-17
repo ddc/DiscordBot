@@ -54,7 +54,7 @@ class TestSendMsg:
     @pytest.mark.asyncio
     async def test_send_msg_default_settings(self, mock_ctx):
         """Test send_msg with default settings."""
-        with patch('src.gw2.tools.gw2_utils.bot_utils.send_embed') as mock_send:
+        with patch("src.gw2.tools.gw2_utils.bot_utils.send_embed") as mock_send:
             await send_msg(mock_ctx, "Test message")
 
             mock_send.assert_called_once()
@@ -69,7 +69,7 @@ class TestSendMsg:
     @pytest.mark.asyncio
     async def test_send_msg_with_dm(self, mock_ctx):
         """Test send_msg with DM option."""
-        with patch('src.gw2.tools.gw2_utils.bot_utils.send_embed') as mock_send:
+        with patch("src.gw2.tools.gw2_utils.bot_utils.send_embed") as mock_send:
             await send_msg(mock_ctx, "DM message", dm=True)
 
             mock_send.assert_called_once()
@@ -99,7 +99,7 @@ class TestInsertGw2ServerConfigs:
     @pytest.mark.asyncio
     async def test_insert_configs_when_not_exists(self, mock_bot, mock_server):
         """Test inserting configs when they don't exist."""
-        with patch('src.gw2.tools.gw2_utils.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.tools.gw2_utils.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_gw2_server_configs = AsyncMock(return_value=None)
             mock_instance.insert_gw2_server_configs = AsyncMock(return_value=None)
@@ -112,7 +112,7 @@ class TestInsertGw2ServerConfigs:
     @pytest.mark.asyncio
     async def test_skip_insert_when_configs_exist(self, mock_bot, mock_server):
         """Test skipping insert when configs already exist."""
-        with patch('src.gw2.tools.gw2_utils.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.tools.gw2_utils.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_gw2_server_configs = AsyncMock(return_value={"existing": "config"})
             mock_instance.insert_gw2_server_configs = AsyncMock(return_value=None)
@@ -282,14 +282,14 @@ class TestCalculateUserAchievPoints:
     @pytest.mark.asyncio
     async def test_calculate_achievement_points(self, mock_ctx, sample_user_achievements, sample_account_data):
         """Test calculating achievement points."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client'):
-            with patch('src.gw2.tools.gw2_utils._fetch_achievement_data_in_batches') as mock_fetch:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client"):
+            with patch("src.gw2.tools.gw2_utils._fetch_achievement_data_in_batches") as mock_fetch:
                 mock_fetch.return_value = [
                     {"id": 1, "tiers": [{"count": 5, "points": 10}, {"count": 10, "points": 20}]},
                     {"id": 2, "tiers": [{"count": 3, "points": 5}]},
                 ]
 
-                with patch('src.gw2.tools.gw2_utils._calculate_earned_points') as mock_calc:
+                with patch("src.gw2.tools.gw2_utils._calculate_earned_points") as mock_calc:
                     mock_calc.return_value = 75
 
                     result = await calculate_user_achiev_points(mock_ctx, sample_user_achievements, sample_account_data)
@@ -416,7 +416,7 @@ class TestGetWorldId:
     @pytest.mark.asyncio
     async def test_get_world_id_exact_match(self, mock_bot):
         """Test successful world ID retrieval with exact match."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(
                 return_value=[{"id": 1001, "name": "Anvil Rock"}, {"id": 1002, "name": "Borlis Pass"}]
@@ -428,7 +428,7 @@ class TestGetWorldId:
     @pytest.mark.asyncio
     async def test_get_world_id_case_insensitive(self, mock_bot):
         """Test world ID retrieval with case-insensitive match."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(
                 return_value=[
@@ -442,7 +442,7 @@ class TestGetWorldId:
     @pytest.mark.asyncio
     async def test_get_world_id_partial_match(self, mock_bot):
         """Test world ID retrieval with partial match (line 196)."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(
                 return_value=[
@@ -459,7 +459,7 @@ class TestGetWorldId:
     @pytest.mark.asyncio
     async def test_get_world_id_not_found(self, mock_bot):
         """Test world ID not found."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(return_value=[{"id": 1001, "name": "Anvil Rock"}])
 
@@ -477,7 +477,7 @@ class TestGetWorldId:
         """Test get_world_id with API error."""
         mock_bot.log.error = MagicMock()
 
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(side_effect=Exception("API Error"))
 
@@ -499,24 +499,25 @@ class TestGetWorldNamePopulation:
 
     @pytest.mark.asyncio
     async def test_successful_retrieval(self, mock_ctx):
-        """Test successful world name population retrieval (lines 206-213)."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        """Test successful world name population retrieval for legacy IDs."""
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(
                 return_value=[
-                    {"name": "Anvil Rock", "population": "High"},
-                    {"name": "Borlis Pass", "population": "Medium"},
+                    {"id": 1001, "name": "Anvil Rock", "population": "High"},
+                    {"id": 1002, "name": "Borlis Pass", "population": "Medium"},
                 ]
             )
 
             result = await get_world_name_population(mock_ctx, "1001,1002")
 
             assert result == ["Anvil Rock", "Borlis Pass"]
+            mock_client.call_api.assert_called_once_with("worlds?ids=1001,1002")
 
     @pytest.mark.asyncio
     async def test_empty_results(self, mock_ctx):
         """Test when API returns empty results (line 211)."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(return_value=[])
 
@@ -527,7 +528,7 @@ class TestGetWorldNamePopulation:
     @pytest.mark.asyncio
     async def test_none_results(self, mock_ctx):
         """Test when API returns None."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(return_value=None)
 
@@ -538,7 +539,7 @@ class TestGetWorldNamePopulation:
     @pytest.mark.asyncio
     async def test_exception_returns_none(self, mock_ctx):
         """Test that exception returns None (lines 215-217)."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(side_effect=Exception("API Error"))
 
@@ -561,7 +562,7 @@ class TestGetWorldName:
     @pytest.mark.asyncio
     async def test_successful_retrieval(self, mock_bot):
         """Test successful world name retrieval (lines 222-225)."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(return_value={"name": "Anvil Rock", "id": 1001})
 
@@ -572,7 +573,7 @@ class TestGetWorldName:
     @pytest.mark.asyncio
     async def test_no_result_returns_none(self, mock_bot):
         """Test that empty result returns None (line 225)."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(return_value=None)
 
@@ -583,7 +584,7 @@ class TestGetWorldName:
     @pytest.mark.asyncio
     async def test_result_without_name_key(self, mock_bot):
         """Test result dict without name key."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(return_value={"id": 1001})
 
@@ -594,7 +595,7 @@ class TestGetWorldName:
     @pytest.mark.asyncio
     async def test_exception_returns_none(self, mock_bot):
         """Test that exception returns None (lines 227-229)."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(side_effect=Exception("API Error"))
 
@@ -628,7 +629,7 @@ class TestCheckGw2GameActivity:
         before.activities = []
         after.activities = [gw2_activity]
 
-        with patch('src.gw2.tools.gw2_utils._handle_gw2_activity_change') as mock_handle:
+        with patch("src.gw2.tools.gw2_utils._handle_gw2_activity_change") as mock_handle:
             mock_handle.return_value = None
             await check_gw2_game_activity(mock_bot, before, after)
             mock_handle.assert_called_once_with(mock_bot, after, gw2_activity)
@@ -646,7 +647,7 @@ class TestCheckGw2GameActivity:
         before.activities = []
         after.activities = [other_activity]
 
-        with patch('src.gw2.tools.gw2_utils._handle_gw2_activity_change') as mock_handle:
+        with patch("src.gw2.tools.gw2_utils._handle_gw2_activity_change") as mock_handle:
             await check_gw2_game_activity(mock_bot, before, after)
             mock_handle.assert_not_called()
 
@@ -663,7 +664,7 @@ class TestCheckGw2GameActivity:
         before.activities = [custom_activity]
         after.activities = [custom_activity]
 
-        with patch('src.gw2.tools.gw2_utils._handle_gw2_activity_change') as mock_handle:
+        with patch("src.gw2.tools.gw2_utils._handle_gw2_activity_change") as mock_handle:
             await check_gw2_game_activity(mock_bot, before, after)
             mock_handle.assert_not_called()
 
@@ -691,7 +692,7 @@ class TestHandleGw2ActivityChange:
     @pytest.mark.asyncio
     async def test_no_server_configs_returns(self, mock_bot, mock_member):
         """Test that no server configs returns early (line 281)."""
-        with patch('src.gw2.tools.gw2_utils.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.tools.gw2_utils.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_gw2_server_configs = AsyncMock(return_value=None)
 
@@ -699,13 +700,13 @@ class TestHandleGw2ActivityChange:
             await _handle_gw2_activity_change(mock_bot, mock_member, after_activity)
 
             # Should not proceed to Gw2KeyDal
-            with patch('src.gw2.tools.gw2_utils.Gw2KeyDal') as mock_key_dal:
+            with patch("src.gw2.tools.gw2_utils.Gw2KeyDal") as mock_key_dal:
                 mock_key_dal.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_session_not_active_returns(self, mock_bot, mock_member):
         """Test that inactive session returns early (line 281)."""
-        with patch('src.gw2.tools.gw2_utils.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.tools.gw2_utils.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": False}])
 
@@ -715,11 +716,11 @@ class TestHandleGw2ActivityChange:
     @pytest.mark.asyncio
     async def test_no_api_key_returns(self, mock_bot, mock_member):
         """Test that no API key returns early (lines 287-288)."""
-        with patch('src.gw2.tools.gw2_utils.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.tools.gw2_utils.Gw2ConfigsDal") as mock_dal:
             mock_configs = mock_dal.return_value
             mock_configs.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-            with patch('src.gw2.tools.gw2_utils.Gw2KeyDal') as mock_key_dal:
+            with patch("src.gw2.tools.gw2_utils.Gw2KeyDal") as mock_key_dal:
                 mock_key_instance = mock_key_dal.return_value
                 mock_key_instance.get_api_key_by_user = AsyncMock(return_value=None)
 
@@ -729,15 +730,15 @@ class TestHandleGw2ActivityChange:
     @pytest.mark.asyncio
     async def test_after_activity_not_none_starts_session(self, mock_bot, mock_member):
         """Test that non-None after_activity starts a session (lines 292-293)."""
-        with patch('src.gw2.tools.gw2_utils.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.tools.gw2_utils.Gw2ConfigsDal") as mock_dal:
             mock_configs = mock_dal.return_value
             mock_configs.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-            with patch('src.gw2.tools.gw2_utils.Gw2KeyDal') as mock_key_dal:
+            with patch("src.gw2.tools.gw2_utils.Gw2KeyDal") as mock_key_dal:
                 mock_key_instance = mock_key_dal.return_value
                 mock_key_instance.get_api_key_by_user = AsyncMock(return_value=[{"key": "test-api-key-123"}])
 
-                with patch('src.gw2.tools.gw2_utils.start_session') as mock_start:
+                with patch("src.gw2.tools.gw2_utils.start_session") as mock_start:
                     mock_start.return_value = None
                     after_activity = MagicMock()  # Not None
 
@@ -748,15 +749,15 @@ class TestHandleGw2ActivityChange:
     @pytest.mark.asyncio
     async def test_after_activity_none_ends_session(self, mock_bot, mock_member):
         """Test that None after_activity ends a session (lines 294-295)."""
-        with patch('src.gw2.tools.gw2_utils.Gw2ConfigsDal') as mock_dal:
+        with patch("src.gw2.tools.gw2_utils.Gw2ConfigsDal") as mock_dal:
             mock_configs = mock_dal.return_value
             mock_configs.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-            with patch('src.gw2.tools.gw2_utils.Gw2KeyDal') as mock_key_dal:
+            with patch("src.gw2.tools.gw2_utils.Gw2KeyDal") as mock_key_dal:
                 mock_key_instance = mock_key_dal.return_value
                 mock_key_instance.get_api_key_by_user = AsyncMock(return_value=[{"key": "test-api-key-123"}])
 
-                with patch('src.gw2.tools.gw2_utils.end_session') as mock_end:
+                with patch("src.gw2.tools.gw2_utils.end_session") as mock_end:
                     mock_end.return_value = None
 
                     await _handle_gw2_activity_change(mock_bot, mock_member, None)
@@ -785,13 +786,13 @@ class TestStartSession:
     @pytest.mark.asyncio
     async def test_get_user_stats_returns_none(self, mock_bot, mock_member):
         """Test that None user stats returns early (lines 300-302)."""
-        with patch('src.gw2.tools.gw2_utils.get_user_stats') as mock_stats:
+        with patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats:
             mock_stats.return_value = None
 
             await start_session(mock_bot, mock_member, "api-key")
 
             # Should not proceed to session dal
-            with patch('src.gw2.tools.gw2_utils.Gw2SessionsDal') as mock_dal:
+            with patch("src.gw2.tools.gw2_utils.Gw2SessionsDal") as mock_dal:
                 mock_dal.assert_not_called()
 
     @pytest.mark.asyncio
@@ -799,20 +800,20 @@ class TestStartSession:
         """Test successful session start (lines 304-309)."""
         session_data = {"acc_name": "TestUser.1234", "wvw_rank": 50, "gold": 1000}
 
-        with patch('src.gw2.tools.gw2_utils.get_user_stats') as mock_stats:
+        with patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats:
             mock_stats.return_value = session_data.copy()
 
-            with patch('src.gw2.tools.gw2_utils.bot_utils.convert_datetime_to_str_short') as mock_convert:
+            with patch("src.gw2.tools.gw2_utils.bot_utils.convert_datetime_to_str_short") as mock_convert:
                 mock_convert.return_value = "2023-01-01"
 
-                with patch('src.gw2.tools.gw2_utils.bot_utils.get_current_date_time') as mock_time:
+                with patch("src.gw2.tools.gw2_utils.bot_utils.get_current_date_time") as mock_time:
                     mock_time.return_value = datetime(2023, 1, 1, 12, 0, 0)
 
-                    with patch('src.gw2.tools.gw2_utils.Gw2SessionsDal') as mock_session_dal:
+                    with patch("src.gw2.tools.gw2_utils.Gw2SessionsDal") as mock_session_dal:
                         mock_instance = mock_session_dal.return_value
                         mock_instance.insert_start_session = AsyncMock(return_value=42)
 
-                        with patch('src.gw2.tools.gw2_utils.insert_session_char') as mock_insert_char:
+                        with patch("src.gw2.tools.gw2_utils.insert_session_char") as mock_insert_char:
                             mock_insert_char.return_value = None
 
                             await start_session(mock_bot, mock_member, "api-key")
@@ -846,7 +847,7 @@ class TestEndSession:
     @pytest.mark.asyncio
     async def test_get_user_stats_returns_none(self, mock_bot, mock_member):
         """Test that None user stats returns early (lines 314-316)."""
-        with patch('src.gw2.tools.gw2_utils.get_user_stats') as mock_stats:
+        with patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats:
             mock_stats.return_value = None
 
             await end_session(mock_bot, mock_member, "api-key")
@@ -856,20 +857,20 @@ class TestEndSession:
         """Test successful session end (lines 318-323)."""
         session_data = {"acc_name": "TestUser.1234", "wvw_rank": 50, "gold": 1000}
 
-        with patch('src.gw2.tools.gw2_utils.get_user_stats') as mock_stats:
+        with patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats:
             mock_stats.return_value = session_data.copy()
 
-            with patch('src.gw2.tools.gw2_utils.bot_utils.convert_datetime_to_str_short') as mock_convert:
+            with patch("src.gw2.tools.gw2_utils.bot_utils.convert_datetime_to_str_short") as mock_convert:
                 mock_convert.return_value = "2023-01-01"
 
-                with patch('src.gw2.tools.gw2_utils.bot_utils.get_current_date_time') as mock_time:
+                with patch("src.gw2.tools.gw2_utils.bot_utils.get_current_date_time") as mock_time:
                     mock_time.return_value = datetime(2023, 1, 1, 12, 0, 0)
 
-                    with patch('src.gw2.tools.gw2_utils.Gw2SessionsDal') as mock_session_dal:
+                    with patch("src.gw2.tools.gw2_utils.Gw2SessionsDal") as mock_session_dal:
                         mock_instance = mock_session_dal.return_value
                         mock_instance.update_end_session = AsyncMock(return_value=42)
 
-                        with patch('src.gw2.tools.gw2_utils.insert_session_char') as mock_insert_char:
+                        with patch("src.gw2.tools.gw2_utils.insert_session_char") as mock_insert_char:
                             mock_insert_char.return_value = None
 
                             await end_session(mock_bot, mock_member, "api-key")
@@ -896,7 +897,7 @@ class TestGetUserStats:
     @pytest.mark.asyncio
     async def test_api_exception_returns_none(self, mock_bot):
         """Test that API exception returns None (lines 336-338)."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(side_effect=Exception("API Error"))
 
@@ -907,7 +908,7 @@ class TestGetUserStats:
 
     @pytest.mark.asyncio
     async def test_successful_stats_retrieval(self, mock_bot):
-        """Test successful user stats retrieval (lines 328-344)."""
+        """Test successful user stats retrieval with legacy wvw_rank."""
         account_data = {"name": "TestUser.1234", "wvw_rank": 50}
         wallet_data = [
             {"id": 1, "value": 50000},  # gold
@@ -919,7 +920,7 @@ class TestGetUserStats:
             {"id": 291, "current": 42},  # camps
         ]
 
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(side_effect=[account_data, wallet_data, achievements_data])
 
@@ -933,6 +934,22 @@ class TestGetUserStats:
             assert result["laurels"] == 25
             assert result["players"] == 150
             assert result["camps"] == 42
+
+    @pytest.mark.asyncio
+    async def test_successful_stats_retrieval_new_wvw_format(self, mock_bot):
+        """Test user stats retrieval with new wvw.rank format."""
+        account_data = {"name": "TestUser.1234", "wvw": {"rank": 200}}
+        wallet_data = []
+        achievements_data = []
+
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
+            mock_client = mock_client_class.return_value
+            mock_client.call_api = AsyncMock(side_effect=[account_data, wallet_data, achievements_data])
+
+            result = await get_user_stats(mock_bot, "api-key")
+
+            assert result is not None
+            assert result["wvw_rank"] == 200
 
     @pytest.mark.asyncio
     async def test_stats_with_all_wallet_items(self, mock_bot):
@@ -950,7 +967,7 @@ class TestGetUserStats:
         ]
         achievements_data = []
 
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(side_effect=[account_data, wallet_data, achievements_data])
 
@@ -1155,12 +1172,12 @@ class TestInsertSessionChar:
     @pytest.mark.asyncio
     async def test_successful_insert(self, mock_bot, mock_member):
         """Test successful session character insert (lines 415-428)."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             characters_data = [{"name": "CharName", "level": 80}]
             mock_client.call_api = AsyncMock(return_value=characters_data)
 
-            with patch('src.gw2.tools.gw2_utils.Gw2SessionCharsDal') as mock_dal:
+            with patch("src.gw2.tools.gw2_utils.Gw2SessionCharsDal") as mock_dal:
                 mock_instance = mock_dal.return_value
                 mock_instance.insert_session_char = AsyncMock()
 
@@ -1182,11 +1199,11 @@ class TestInsertSessionChar:
     @pytest.mark.asyncio
     async def test_insert_end_session_type(self, mock_bot, mock_member):
         """Test insert with end session type."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(return_value=[])
 
-            with patch('src.gw2.tools.gw2_utils.Gw2SessionCharsDal') as mock_dal:
+            with patch("src.gw2.tools.gw2_utils.Gw2SessionCharsDal") as mock_dal:
                 mock_instance = mock_dal.return_value
                 mock_instance.insert_session_char = AsyncMock()
 
@@ -1200,7 +1217,7 @@ class TestInsertSessionChar:
     @pytest.mark.asyncio
     async def test_exception_logs_error(self, mock_bot, mock_member):
         """Test that exception is caught and logged (lines 430-431)."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(side_effect=Exception("API Error"))
 
@@ -1510,7 +1527,7 @@ class TestDeleteApiKey:
     @pytest.mark.asyncio
     async def test_delete_api_key_in_guild(self, mock_ctx_guild):
         """Test deleting API key message in guild."""
-        with patch('src.gw2.tools.gw2_utils.send_msg') as mock_send:
+        with patch("src.gw2.tools.gw2_utils.send_msg") as mock_send:
             await delete_api_key(mock_ctx_guild, message=True)
 
             mock_ctx_guild.message.delete.assert_called_once()
@@ -1528,14 +1545,14 @@ class TestDeleteApiKey:
             side_effect=discord.HTTPException(response=MagicMock(), message="Forbidden")
         )
 
-        with patch('src.gw2.tools.gw2_utils.bot_utils.send_error_msg') as mock_error:
+        with patch("src.gw2.tools.gw2_utils.bot_utils.send_error_msg") as mock_error:
             await delete_api_key(mock_ctx_guild, message=True)
             mock_error.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_delete_api_key_no_message_flag(self, mock_ctx_guild):
         """Test delete without message flag."""
-        with patch('src.gw2.tools.gw2_utils.send_msg') as mock_send:
+        with patch("src.gw2.tools.gw2_utils.send_msg") as mock_send:
             await delete_api_key(mock_ctx_guild, message=False)
 
             mock_ctx_guild.message.delete.assert_called_once()
@@ -1581,7 +1598,7 @@ class TestGetWorldsIds:
     @pytest.mark.asyncio
     async def test_get_worlds_ids_success(self, mock_ctx):
         """Test successful world IDs retrieval."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(return_value=[{"id": 1001, "name": "Anvil Rock"}])
 
@@ -1594,11 +1611,11 @@ class TestGetWorldsIds:
     @pytest.mark.asyncio
     async def test_get_worlds_ids_api_error(self, mock_ctx):
         """Test get_worlds_ids with API error."""
-        with patch('src.gw2.tools.gw2_utils.Gw2Client') as mock_client_class:
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(side_effect=APIConnectionError(mock_ctx.bot, "API Error"))
 
-            with patch('src.gw2.tools.gw2_utils.bot_utils.send_error_msg') as mock_error:
+            with patch("src.gw2.tools.gw2_utils.bot_utils.send_error_msg") as mock_error:
                 success, results = await get_worlds_ids(mock_ctx)
 
                 assert success is False
@@ -1679,7 +1696,7 @@ class TestCreateInitialUserStats:
     """Test cases for _create_initial_user_stats function."""
 
     def test_creates_correct_structure(self):
-        """Test that initial stats structure is correct."""
+        """Test that initial stats structure is correct with legacy wvw_rank."""
         account_data = {"name": "TestUser.1234", "wvw_rank": 75}
 
         result = _create_initial_user_stats(account_data)
@@ -1701,3 +1718,80 @@ class TestCreateInitialUserStats:
         assert result["castles"] == 0
         assert result["towers"] == 0
         assert result["keeps"] == 0
+
+    def test_new_wvw_rank_format(self):
+        """Test that wvw.rank (new API format) is preferred over wvw_rank."""
+        account_data = {"name": "TestUser.1234", "wvw": {"rank": 200}, "wvw_rank": 75}
+
+        result = _create_initial_user_stats(account_data)
+
+        assert result["wvw_rank"] == 200
+
+    def test_fallback_to_legacy_wvw_rank(self):
+        """Test fallback to wvw_rank when wvw.rank is absent."""
+        account_data = {"name": "TestUser.1234", "wvw_rank": 75}
+
+        result = _create_initial_user_stats(account_data)
+
+        assert result["wvw_rank"] == 75
+
+    def test_no_wvw_rank_defaults_to_zero(self):
+        """Test that missing both wvw.rank and wvw_rank defaults to 0."""
+        account_data = {"name": "TestUser.1234"}
+
+        result = _create_initial_user_stats(account_data)
+
+        assert result["wvw_rank"] == 0
+
+    def test_wvw_rank_zero_in_new_format_falls_back(self):
+        """Test that wvw.rank=0 (falsy) falls back to wvw_rank."""
+        account_data = {"name": "TestUser.1234", "wvw": {"rank": 0}, "wvw_rank": 50}
+
+        result = _create_initial_user_stats(account_data)
+
+        # 0 is falsy, so it falls back to wvw_rank
+        assert result["wvw_rank"] == 50
+
+
+class TestGetWorldNamePopulationWithWR:
+    """Test cases for get_world_name_population with WR team IDs."""
+
+    @pytest.fixture
+    def mock_ctx(self):
+        """Create a mock command context."""
+        ctx = MagicMock()
+        ctx.bot = MagicMock()
+        ctx.bot.log = MagicMock()
+        return ctx
+
+    @pytest.mark.asyncio
+    async def test_wr_team_ids_only(self, mock_ctx):
+        """Test resolving only WR team IDs (no API call needed)."""
+        result = await get_world_name_population(mock_ctx, "11001,12001")
+
+        assert result is not None
+        assert len(result) == 2
+        assert "Team 1 (NA)" in result
+        assert "Team 1 (EU)" in result
+
+    @pytest.mark.asyncio
+    async def test_mixed_legacy_and_wr_ids(self, mock_ctx):
+        """Test resolving a mix of legacy world IDs and WR team IDs."""
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
+            mock_client = mock_client_class.return_value
+            mock_client.call_api = AsyncMock(return_value=[{"id": 1001, "name": "Anvil Rock", "population": "High"}])
+
+            result = await get_world_name_population(mock_ctx, "1001,11005")
+
+            assert result is not None
+            assert len(result) == 2
+            assert result[0] == "Anvil Rock"
+            assert result[1] == "Team 5 (NA)"
+
+    @pytest.mark.asyncio
+    async def test_unknown_wr_team_id(self, mock_ctx):
+        """Test resolving an unknown WR team ID uses fallback name."""
+        result = await get_world_name_population(mock_ctx, "11999")
+
+        assert result is not None
+        assert result[0] == "Team 11999"

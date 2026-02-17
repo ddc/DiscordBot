@@ -289,5 +289,5 @@ def get_bot_stats(bot: commands.Bot) -> dict[str, str | datetime]:
         "servers": f"{len(bot.guilds)} servers",
         "users": f"({unique_users} users)({bot_users} bots)[{len(bot.users)} total]",
         "channels": f"({text_channels} text)({voice_channels} voice)[{total_channels} total]",
-        "start_time": getattr(bot, 'start_time', None) or get_current_date_time(),
+        "start_time": getattr(bot, "start_time", None) or get_current_date_time(),
     }

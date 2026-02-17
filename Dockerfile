@@ -38,9 +38,9 @@ COPY --chmod=555 uv.lock ${WORKDIR}
 COPY --chmod=555 .env ${WORKDIR}
 
 RUN set -ex && \
-    mkdir -p ${LOG_DIRECTORY} && \
+    mkdir -p "${LOG_DIRECTORY}" && \
     uv sync --frozen --no-dev && \
     uv cache clean && \
-    chown -R botuser:botuser ${WORKDIR}
+    chown -R botuser:botuser "${WORKDIR}"
 
 USER botuser

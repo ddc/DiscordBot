@@ -10,7 +10,7 @@ from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 
 
 class GW2Misc(GuildWars2):
-    """(Commands related to GW2)"""
+    """Guild Wars 2 miscellaneous commands for wiki search and item info."""
 
     def __init__(self, bot):
         super().__init__(bot)
@@ -19,8 +19,11 @@ class GW2Misc(GuildWars2):
 @GW2Misc.gw2.command()
 @commands.cooldown(1, GW2CoolDowns.Misc.seconds, commands.BucketType.user)
 async def wiki(ctx, *, search):
-    """(Search the Guild wars 2 wiki)
-    gw2 wiki name_to_search
+    """Search the Guild Wars 2 wiki.
+
+    Usage:
+        gw2 wiki elementalist
+        gw2 wiki ascended armor
     """
 
     if len(search) > 300:
@@ -35,7 +38,7 @@ async def wiki(ctx, *, search):
     await ctx.message.channel.typing()
     async with ctx.bot.aiosession.get(full_wiki_url) as r:
         results = await r.text()
-        soup = BeautifulSoup(results, 'html.parser')
+        soup = BeautifulSoup(results, "html.parser")
         posts = soup.find_all("div", {"class": "mw-search-result-heading"})[:50]
         total_posts = len(posts)
         if not posts:
@@ -54,7 +57,7 @@ async def wiki(ctx, *, search):
                 while i <= times_to_run:
                     post = posts[i]
                     post = post.a
-                    url = wiki_url + post['href']
+                    url = wiki_url + post["href"]
                     url = url.replace(")", "\\)")
                     keyword = search.lower().replace("+", " ")
                     found = False
@@ -75,7 +78,7 @@ async def wiki(ctx, *, search):
             except IndexError:
                 pass
 
-            embed.description = gw2_messages.DISPLAYIN_WIKI_SEARCH_TITLE.format(len(embed.fields), keyword.title())
+            embed.description = gw2_messages.displaying_wiki_search_title(len(embed.fields), keyword.title())
         else:
             embed.add_field(name=gw2_messages.NO_RESULTS, value=f"[{gw2_messages.CLICK_HERE}]({full_wiki_url})")
 
@@ -86,8 +89,13 @@ async def wiki(ctx, *, search):
 @GW2Misc.gw2.command()
 @commands.cooldown(1, GW2CoolDowns.Misc.seconds, commands.BucketType.user)
 async def info(ctx, *, skill):
-    """(Information about a given name/skill/rune)
-    gw2 info info_to_search
+    """Display information about a given name, skill, or rune.
+
+    Shows wiki description and Trading Post prices when available.
+
+    Usage:
+        gw2 info Eternity
+        gw2 info Superior Rune of the Scholar
     """
 
     await ctx.message.channel.typing()
@@ -108,7 +116,7 @@ async def info(ctx, *, skill):
         skill_icon_url = ""
 
         results = await r.text()
-        soup = BeautifulSoup(results, 'html.parser')
+        soup = BeautifulSoup(results, "html.parser")
         for br in soup.find_all("br"):
             br.replace_with("\n")
 
@@ -141,8 +149,8 @@ async def info(ctx, *, skill):
                             f"https://www.gw2bltc.com/en/item/{item_id}-{skill_sanitized.replace('_', '-').lower()}"
                         )
                         tp_results = await tp_r.text()
-                        sell_td = BeautifulSoup(tp_results, 'html.parser').find_all("td", {"id": "sell-price"})
-                        buy_td = BeautifulSoup(tp_results, 'html.parser').find_all("td", {"id": "buy-price"})
+                        sell_td = BeautifulSoup(tp_results, "html.parser").find_all("td", {"id": "sell-price"})
+                        buy_td = BeautifulSoup(tp_results, "html.parser").find_all("td", {"id": "buy-price"})
                         tp_sell_price = gw2_utils.format_gold(sell_td[0]["data-price"])
                         tp_buy_price = gw2_utils.format_gold(buy_td[0]["data-price"])
                         skill_description = (

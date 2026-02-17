@@ -7,7 +7,7 @@ import sys
 from discord.ext import commands
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.admin.admin import Admin
 from src.bot.constants import messages
@@ -69,7 +69,7 @@ class TestAdmin:
         assert cog.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.admin.bot_utils.invoke_subcommand')
+    @patch("src.bot.cogs.admin.admin.bot_utils.invoke_subcommand")
     async def test_admin_group_command(self, mock_invoke, admin_cog, mock_ctx):
         """Test admin group command."""
         mock_invoke.return_value = "mock_command"
@@ -80,7 +80,7 @@ class TestAdmin:
         assert result == "mock_command"
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.admin.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.admin.bot_utils.send_embed")
     async def test_botgame_command_success(self, mock_send_embed, admin_cog, mock_ctx):
         """Test successful botgame command execution."""
         game = "Minecraft"
@@ -92,7 +92,7 @@ class TestAdmin:
 
         # Verify bot presence change
         admin_cog.bot.change_presence.assert_called_once()
-        activity_call = admin_cog.bot.change_presence.call_args[1]['activity']
+        activity_call = admin_cog.bot.change_presence.call_args[1]["activity"]
         assert isinstance(activity_call, discord.Game)
         assert activity_call.name == f"{game} | !help"
 
@@ -101,12 +101,12 @@ class TestAdmin:
 
         embed_call = mock_send_embed.call_args_list[0]
         embed = embed_call[0][1]
-        assert messages.BOT_ANNOUNCE_PLAYING.format(game) in embed.description
+        assert messages.bot_announce_playing(game) in embed.description
         assert embed.author.name == "TestBot"
         assert embed.author.icon_url == "https://example.com/bot_avatar.png"
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.admin.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.admin.bot_utils.send_embed")
     async def test_botgame_command_with_bg_timer_warning(self, mock_send_embed, admin_cog, mock_ctx):
         """Test botgame command with background activity timer warning."""
         game = "Reading documentation"
@@ -119,11 +119,11 @@ class TestAdmin:
 
         # Check success embed
         success_embed = mock_send_embed.call_args_list[0][0][1]
-        assert messages.BOT_ANNOUNCE_PLAYING.format(game) in success_embed.description
+        assert messages.bot_announce_playing(game) in success_embed.description
 
         # Check warning embed
         warning_embed = mock_send_embed.call_args_list[1][0][1]
-        assert messages.BG_TASK_WARNING.format(300) in warning_embed.description
+        assert messages.bg_task_warning(300) in warning_embed.description
 
         # Verify warning embed was sent with dm=False
         warning_call = mock_send_embed.call_args_list[1]
@@ -135,12 +135,12 @@ class TestAdmin:
         """Test _warn_about_bg_activity_timer when timer is enabled."""
         admin_cog.bot.settings["bot"]["BGActivityTimer"] = 600
 
-        with patch('src.bot.cogs.admin.admin.bot_utils.send_embed') as mock_send_embed:
+        with patch("src.bot.cogs.admin.admin.bot_utils.send_embed") as mock_send_embed:
             await admin_cog._warn_about_bg_activity_timer(mock_ctx)
 
             mock_send_embed.assert_called_once()
             embed = mock_send_embed.call_args[0][1]
-            assert messages.BG_TASK_WARNING.format(600) in embed.description
+            assert messages.bg_task_warning(600) in embed.description
             # Verify dm=False parameter
             assert mock_send_embed.call_args[0][2] is False
 
@@ -149,7 +149,7 @@ class TestAdmin:
         """Test _warn_about_bg_activity_timer when timer is disabled."""
         admin_cog.bot.settings["bot"]["BGActivityTimer"] = 0
 
-        with patch('src.bot.cogs.admin.admin.bot_utils.send_embed') as mock_send_embed:
+        with patch("src.bot.cogs.admin.admin.bot_utils.send_embed") as mock_send_embed:
             await admin_cog._warn_about_bg_activity_timer(mock_ctx)
 
             mock_send_embed.assert_not_called()
@@ -159,7 +159,7 @@ class TestAdmin:
         """Test _warn_about_bg_activity_timer when timer is None."""
         admin_cog.bot.settings["bot"]["BGActivityTimer"] = None
 
-        with patch('src.bot.cogs.admin.admin.bot_utils.send_embed') as mock_send_embed:
+        with patch("src.bot.cogs.admin.admin.bot_utils.send_embed") as mock_send_embed:
             await admin_cog._warn_about_bg_activity_timer(mock_ctx)
 
             mock_send_embed.assert_not_called()
@@ -173,7 +173,7 @@ class TestAdmin:
         assert embed.description == description
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.admin.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.admin.bot_utils.send_embed")
     async def test_botgame_with_special_characters(self, mock_send_embed, admin_cog, mock_ctx):
         """Test botgame command with special characters in game name."""
         game = "Game with émojis 🎮 and spéciál chars!"
@@ -181,7 +181,7 @@ class TestAdmin:
         await admin_cog.botgame.callback(admin_cog, mock_ctx, game=game)
 
         # Verify the game name is properly handled
-        activity_call = admin_cog.bot.change_presence.call_args[1]['activity']
+        activity_call = admin_cog.bot.change_presence.call_args[1]["activity"]
         expected_name = f"{game} | !help"
         assert activity_call.name == expected_name
 
@@ -190,7 +190,7 @@ class TestAdmin:
         assert game in embed.description
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.admin.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.admin.bot_utils.send_embed")
     async def test_botgame_with_empty_game_name(self, mock_send_embed, admin_cog, mock_ctx):
         """Test botgame command with empty game name."""
         game = ""
@@ -198,11 +198,11 @@ class TestAdmin:
         await admin_cog.botgame.callback(admin_cog, mock_ctx, game=game)
 
         # Even empty game name should work
-        activity_call = admin_cog.bot.change_presence.call_args[1]['activity']
+        activity_call = admin_cog.bot.change_presence.call_args[1]["activity"]
         assert activity_call.name == " | !help"
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.admin.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.admin.bot_utils.send_embed")
     async def test_botgame_with_no_bot_avatar(self, mock_send_embed, admin_cog, mock_ctx):
         """Test botgame command when bot has no avatar."""
         admin_cog.bot.user.avatar = None
@@ -220,10 +220,10 @@ class TestAdmin:
         admin_cog.bot.command_prefix = ("$",)
         game = "Test Game"
 
-        with patch('src.bot.cogs.admin.admin.bot_utils.send_embed'):
+        with patch("src.bot.cogs.admin.admin.bot_utils.send_embed"):
             await admin_cog.botgame.callback(admin_cog, mock_ctx, game=game)
 
-            activity_call = admin_cog.bot.change_presence.call_args[1]['activity']
+            activity_call = admin_cog.bot.change_presence.call_args[1]["activity"]
             assert activity_call.name == f"{game} | $help"
 
     @pytest.mark.asyncio
@@ -239,7 +239,7 @@ class TestAdmin:
         assert added_cog.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.admin.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.admin.bot_utils.send_embed")
     async def test_botgame_preserve_embed_formatting(self, mock_send_embed, admin_cog, mock_ctx):
         """Test that botgame preserves proper embed formatting."""
         game = "Markdown **test** `code`"
@@ -249,21 +249,21 @@ class TestAdmin:
         embed = mock_send_embed.call_args[0][1]
         # Should be wrapped in code block
         assert "```" in embed.description
-        assert messages.BOT_ANNOUNCE_PLAYING.format(game) in embed.description
+        assert messages.bot_announce_playing(game) in embed.description
 
     def test_admin_cog_inheritance(self, admin_cog):
         """Test that Admin cog properly inherits from commands.Cog."""
         assert isinstance(admin_cog, commands.Cog)
-        assert hasattr(admin_cog, 'bot')
+        assert hasattr(admin_cog, "bot")
 
     @pytest.mark.asyncio
     async def test_botgame_activity_type(self, admin_cog, mock_ctx):
         """Test that botgame creates the correct activity type."""
         game = "Test Activity"
 
-        with patch('src.bot.cogs.admin.admin.bot_utils.send_embed'):
+        with patch("src.bot.cogs.admin.admin.bot_utils.send_embed"):
             await admin_cog.botgame.callback(admin_cog, mock_ctx, game=game)
 
-            activity_call = admin_cog.bot.change_presence.call_args[1]['activity']
+            activity_call = admin_cog.bot.change_presence.call_args[1]["activity"]
             assert isinstance(activity_call, discord.Game)
             assert activity_call.type == discord.ActivityType.playing

@@ -9,7 +9,7 @@ import sys
 from discord.ext import commands
 from unittest.mock import AsyncMock, MagicMock, Mock, PropertyMock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.admin.config import Config, ConfigView, _get_switch_status
 from src.bot.constants import messages
@@ -127,8 +127,8 @@ class TestConfigPfilterChannelResolution:
     """Tests for config_pfilter channel resolution (around line 208)."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_pfilter_no_channel_specified_uses_current(
         self, mock_send_embed, mock_dal_class, config_cog, mock_ctx
     ):
@@ -144,8 +144,8 @@ class TestConfigPfilterChannelResolution:
         mock_send_embed.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_pfilter_channel_found_by_numeric_id(
         self, mock_send_embed, mock_dal_class, config_cog, mock_ctx, mock_text_channel
     ):
@@ -162,8 +162,8 @@ class TestConfigPfilterChannelResolution:
         mock_dal.insert_profanity_filter_channel.assert_called_once_with(99999, 22222, "general", 12345)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_pfilter_channel_found_by_name(
         self, mock_send_embed, mock_dal_class, config_cog, mock_ctx, mock_text_channel
     ):
@@ -174,7 +174,7 @@ class TestConfigPfilterChannelResolution:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
 
-        with patch('src.bot.cogs.admin.config.discord.utils.get', return_value=mock_text_channel):
+        with patch("src.bot.cogs.admin.config.discord.utils.get", return_value=mock_text_channel):
             from src.bot.cogs.admin.config import config_pfilter
 
             await config_pfilter(mock_ctx, subcommand_passed="on general")
@@ -182,12 +182,12 @@ class TestConfigPfilterChannelResolution:
         mock_dal.insert_profanity_filter_channel.assert_called_once_with(99999, 22222, "general", 12345)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.bot_utils.send_error_msg', new_callable=AsyncMock)
+    @patch("src.bot.cogs.admin.config.bot_utils.send_error_msg", new_callable=AsyncMock)
     async def test_pfilter_channel_not_found_by_id_or_name(self, mock_send_error, config_cog, mock_ctx):
         """When channel is not found by ID or name, sends error (lines 221-224)."""
         mock_ctx.guild.get_channel.return_value = None
 
-        with patch('src.bot.cogs.admin.config.discord.utils.get', return_value=None):
+        with patch("src.bot.cogs.admin.config.discord.utils.get", return_value=None):
             from src.bot.cogs.admin.config import config_pfilter
 
             await config_pfilter(mock_ctx, subcommand_passed="on nonexistent")
@@ -198,7 +198,7 @@ class TestConfigPfilterChannelResolution:
         assert "nonexistent" in error_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.bot_utils.send_error_msg', new_callable=AsyncMock)
+    @patch("src.bot.cogs.admin.config.bot_utils.send_error_msg", new_callable=AsyncMock)
     async def test_pfilter_on_no_bot_permissions(self, mock_send_error, config_cog, mock_ctx):
         """When 'on' status with insufficient bot permissions, sends error (lines 231-233)."""
         mock_ctx.guild.me.guild_permissions.administrator = False
@@ -214,8 +214,8 @@ class TestConfigPfilterChannelResolution:
         assert messages.BOT_MISSING_MANAGE_MESSAGES_PERMISSION in error_msg
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_pfilter_off_deletes(self, mock_send_embed, mock_dal_class, config_cog, mock_ctx):
         """When 'off' status, deletes channel filter (lines 240-243)."""
         mock_dal = AsyncMock()
@@ -238,8 +238,8 @@ class TestConfigPfilterChannelResolution:
             await config_pfilter(mock_ctx, subcommand_passed="maybe")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_pfilter_on_uppercase(self, mock_send_embed, mock_dal_class, config_cog, mock_ctx):
         """When 'ON' (uppercase) status, inserts channel filter (line 229)."""
         mock_dal = AsyncMock()
@@ -252,8 +252,8 @@ class TestConfigPfilterChannelResolution:
         mock_dal.insert_profanity_filter_channel.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
-    @patch('src.bot.cogs.admin.config.bot_utils.send_embed')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
+    @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
     async def test_pfilter_off_uppercase(self, mock_send_embed, mock_dal_class, config_cog, mock_ctx):
         """When 'OFF' (uppercase) status, deletes channel filter (line 240)."""
         mock_dal = AsyncMock()
@@ -304,7 +304,7 @@ class TestConfigViewHandleUpdate:
         assert "Please wait" in interaction.response.send_message.call_args[0][0]
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ServersDal')
+    @patch("src.bot.cogs.admin.config.ServersDal")
     async def test_handle_update_successful(self, mock_dal_class, config_view, mock_ctx, server_config):
         """When update succeeds, updates config and edits message (lines 414-458)."""
         mock_dal = AsyncMock()
@@ -329,7 +329,7 @@ class TestConfigViewHandleUpdate:
         mock_child = MagicMock()
         mock_child.disabled = False
         mock_child.style = discord.ButtonStyle.success
-        with patch.object(type(config_view), 'children', new_callable=PropertyMock, return_value=[mock_child]):
+        with patch.object(type(config_view), "children", new_callable=PropertyMock, return_value=[mock_child]):
             await config_view._handle_update(interaction, button, "msg_on_join", update_method, "Join Messages")
 
         interaction.response.defer.assert_called_once()
@@ -344,7 +344,7 @@ class TestConfigViewHandleUpdate:
         assert config_view._updating is False
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ServersDal')
+    @patch("src.bot.cogs.admin.config.ServersDal")
     async def test_handle_update_exception_error_message(self, mock_dal_class, config_view, mock_ctx, server_config):
         """When update raises exception, sends error message (lines 461-464)."""
         interaction = MagicMock()
@@ -363,17 +363,17 @@ class TestConfigViewHandleUpdate:
         mock_child = MagicMock()
         mock_child.disabled = False
         mock_child.style = discord.ButtonStyle.success
-        with patch.object(type(config_view), 'children', new_callable=PropertyMock, return_value=[mock_child]):
+        with patch.object(type(config_view), "children", new_callable=PropertyMock, return_value=[mock_child]):
             await config_view._handle_update(interaction, button, "msg_on_join", update_method, "Join Messages")
 
         # Should have error response
         last_call = interaction.edit_original_response.call_args_list[-1]
-        assert "Error updating configuration" in last_call[1]['content']
+        assert "Error updating configuration" in last_call[1]["content"]
         # _updating should be reset to False in finally block
         assert config_view._updating is False
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ServersDal')
+    @patch("src.bot.cogs.admin.config.ServersDal")
     async def test_handle_update_toggles_from_false_to_true(self, mock_dal_class, config_view, mock_ctx, server_config):
         """When toggling from False to True, button becomes success style (lines 447-448)."""
         mock_dal = AsyncMock()
@@ -398,14 +398,14 @@ class TestConfigViewHandleUpdate:
         mock_child = MagicMock()
         mock_child.disabled = False
         mock_child.style = discord.ButtonStyle.success
-        with patch.object(type(config_view), 'children', new_callable=PropertyMock, return_value=[mock_child]):
+        with patch.object(type(config_view), "children", new_callable=PropertyMock, return_value=[mock_child]):
             await config_view._handle_update(interaction, button, "msg_on_leave", update_method, "Leave Messages")
 
         assert server_config["msg_on_leave"] is True
         assert button.style == discord.ButtonStyle.success
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ServersDal')
+    @patch("src.bot.cogs.admin.config.ServersDal")
     async def test_handle_update_disables_buttons_during_processing(
         self, mock_dal_class, config_view, mock_ctx, server_config
     ):
@@ -431,7 +431,7 @@ class TestConfigViewHandleUpdate:
         mock_child.disabled = False
         mock_child.style = discord.ButtonStyle.success
 
-        with patch.object(type(config_view), 'children', new_callable=PropertyMock, return_value=[mock_child]):
+        with patch.object(type(config_view), "children", new_callable=PropertyMock, return_value=[mock_child]):
             await config_view._handle_update(interaction, button, "msg_on_join", update_method, "Join Messages")
 
         # After completion, _updating should be False
@@ -453,7 +453,7 @@ class TestConfigViewRestoreButtons:
 
         # Use property mock for children iteration
         with patch.object(
-            type(config_view), 'children', new_callable=PropertyMock, return_value=[mock_child1, mock_child2]
+            type(config_view), "children", new_callable=PropertyMock, return_value=[mock_child1, mock_child2]
         ):
             await config_view._restore_buttons()
 
@@ -480,7 +480,7 @@ class TestConfigViewRestoreButtons:
         mock_child2.disabled = True
 
         with patch.object(
-            type(config_view), 'children', new_callable=PropertyMock, return_value=[mock_child1, mock_child2]
+            type(config_view), "children", new_callable=PropertyMock, return_value=[mock_child1, mock_child2]
         ):
             await config_view._restore_buttons()
 
@@ -492,7 +492,7 @@ class TestConfigViewCreateUpdatedEmbed:
     """Tests for ConfigView._create_updated_embed (lines 494-559)."""
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
     async def test_create_updated_embed_with_pfilter_channels(self, mock_dal_class, config_view, server_config):
         """Creates embed with profanity filter channels listed (lines 504-506)."""
         mock_dal = AsyncMock()
@@ -513,7 +513,7 @@ class TestConfigViewCreateUpdatedEmbed:
         assert "random" in pf_field.value
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
     async def test_create_updated_embed_without_pfilter_channels(self, mock_dal_class, config_view, server_config):
         """Creates embed without profanity filter channels (lines 507-508)."""
         mock_dal = AsyncMock()
@@ -527,7 +527,7 @@ class TestConfigViewCreateUpdatedEmbed:
         assert messages.NO_CHANNELS_LISTED in pf_field.value
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
     async def test_create_updated_embed_status_indicators(self, mock_dal_class, config_view, server_config):
         """Status indicators match config (lines 510-512, 522-556)."""
         mock_dal = AsyncMock()
@@ -544,7 +544,7 @@ class TestConfigViewCreateUpdatedEmbed:
         assert "OFF" in leave_field.value
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
     async def test_create_updated_embed_no_guild_icon(self, mock_dal_class, mock_ctx, server_config):
         """Handles no guild icon gracefully (line 518)."""
         mock_ctx.guild.icon = None
@@ -566,7 +566,7 @@ class TestConfigViewCreateUpdatedEmbed:
         assert embed.thumbnail.url is None
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.admin.config.ProfanityFilterDal')
+    @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
     async def test_create_updated_embed_footer(self, mock_dal_class, config_view, server_config):
         """Embed footer contains help info (line 558)."""
         mock_dal = AsyncMock()
@@ -588,7 +588,7 @@ class TestConfigViewButtonCallbacks:
 
     def _get_real_config_view(self, mock_ctx, server_config):
         """Create a ConfigView with real button methods but no event loop dependency."""
-        with patch.object(discord.ui.View, '__init__', lambda self, **kwargs: None):
+        with patch.object(discord.ui.View, "__init__", lambda self, **kwargs: None):
             view = object.__new__(ConfigView)
             view.ctx = mock_ctx
             view.server_config = server_config
@@ -714,7 +714,7 @@ class TestConfigViewOnTimeout:
         mock_child2.disabled = False
 
         with patch.object(
-            type(config_view), 'children', new_callable=PropertyMock, return_value=[mock_child1, mock_child2]
+            type(config_view), "children", new_callable=PropertyMock, return_value=[mock_child1, mock_child2]
         ):
             await config_view.on_timeout()
 
@@ -732,7 +732,7 @@ class TestConfigViewOnTimeout:
         mock_child = MagicMock()
         mock_child.disabled = False
 
-        with patch.object(type(config_view), 'children', new_callable=PropertyMock, return_value=[mock_child]):
+        with patch.object(type(config_view), "children", new_callable=PropertyMock, return_value=[mock_child]):
             # Should not raise
             await config_view.on_timeout()
 
@@ -748,7 +748,7 @@ class TestConfigViewOnTimeout:
         mock_child = MagicMock()
         mock_child.disabled = False
 
-        with patch.object(type(config_view), 'children', new_callable=PropertyMock, return_value=[mock_child]):
+        with patch.object(type(config_view), "children", new_callable=PropertyMock, return_value=[mock_child]):
             # Should not raise
             await config_view.on_timeout()
 
@@ -815,7 +815,7 @@ class TestConfigViewButtonUpdateMethodLambdas:
 
     def _get_real_config_view(self, mock_ctx, server_config):
         """Create a ConfigView with real button methods but no event loop dependency."""
-        with patch.object(discord.ui.View, '__init__', lambda self, **kwargs: None):
+        with patch.object(discord.ui.View, "__init__", lambda self, **kwargs: None):
             view = object.__new__(ConfigView)
             view.ctx = mock_ctx
             view.server_config = server_config

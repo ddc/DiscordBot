@@ -134,22 +134,22 @@ class OnConnect(commands.Cog):
         self.bot = bot
         self.connection_handler = ConnectionHandler(bot)
 
-        @self.bot.event
-        async def on_connect() -> None:
-            """Handle bot connection event.
+    @commands.Cog.listener()
+    async def on_connect(self) -> None:
+        """Handle bot connection event.
 
-            Called when the client has successfully connected to Discord.
-            This is not the same as the client being fully prepared (see on_ready for that).
+        Called when the client has successfully connected to Discord.
+        This is not the same as the client being fully prepared (see on_ready for that).
 
-            This event handles:
-            - Database synchronization
-            - Guild verification
-            - Connection logging
-            """
-            try:
-                await self.connection_handler.process_connection()
-            except Exception as e:
-                self.bot.log.error(f"Critical error in on_connect event: {e}")
+        This event handles:
+        - Database synchronization
+        - Guild verification
+        - Connection logging
+        """
+        try:
+            await self.connection_handler.process_connection()
+        except Exception as e:
+            self.bot.log.error(f"Critical error in on_connect event: {e}")
 
 
 async def setup(bot: Bot) -> None:

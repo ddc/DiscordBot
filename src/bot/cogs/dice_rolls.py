@@ -79,7 +79,7 @@ class DiceRolls(commands.Cog):
         server_rolls = await dice_rolls_dal.get_all_server_rolls(ctx.guild.id, dice_size)
 
         if not server_rolls:
-            return await bot_utils.send_error_msg(ctx, messages.NO_DICE_SIZE_ROLLS.format(dice_size))
+            return await bot_utils.send_error_msg(ctx, messages.no_dice_size_rolls(dice_size))
 
         embed = self._create_results_embed(ctx, server_rolls, dice_size)
         await bot_utils.send_embed(ctx, embed)

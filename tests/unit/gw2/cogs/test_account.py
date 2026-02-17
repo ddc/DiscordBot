@@ -97,11 +97,11 @@ class TestAccountCommand:
     @pytest.mark.asyncio
     async def test_account_command_no_api_key(self, mock_ctx):
         """Test account command when user has no API key."""
-        with patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
 
-            with patch('src.gw2.cogs.account.bot_utils.send_error_msg') as mock_error:
+            with patch("src.gw2.cogs.account.bot_utils.send_error_msg") as mock_error:
                 await account(mock_ctx)
 
                 mock_error.assert_called_once()
@@ -111,18 +111,18 @@ class TestAccountCommand:
     @pytest.mark.asyncio
     async def test_account_command_invalid_api_key(self, mock_ctx, sample_api_key_data):
         """Test account command with invalid API key."""
-        with patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.account.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.account.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 invalid_key_error = APIInvalidKey(mock_ctx.bot, "Invalid API key")
                 # Make the error have an args attribute like a real exception
                 invalid_key_error.args = ("error", "Invalid API key message")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_key_error)
 
-                with patch('src.gw2.cogs.account.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.account.bot_utils.send_error_msg") as mock_error:
                     await account(mock_ctx)
 
                     mock_error.assert_called_once()
@@ -136,15 +136,15 @@ class TestAccountCommand:
             {"key": "test-api-key-12345", "permissions": "characters"}  # Missing 'account' permission
         ]
 
-        with patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=insufficient_permissions_data)
 
-            with patch('src.gw2.cogs.account.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.account.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(return_value=sample_account_data)
 
-                with patch('src.gw2.cogs.account.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.account.bot_utils.send_error_msg") as mock_error:
                     await account(mock_ctx)
 
                     mock_error.assert_called_once()
@@ -156,11 +156,11 @@ class TestAccountCommand:
         self, mock_ctx, sample_api_key_data, sample_account_data, sample_world_data
     ):
         """Test successful account command with basic information."""
-        with patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.account.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.account.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(return_value=sample_account_data)
                 mock_client_instance.call_api = AsyncMock(
@@ -170,7 +170,7 @@ class TestAccountCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.account.bot_utils.send_embed') as mock_send:
+                with patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send:
                     await account(mock_ctx)
 
                     mock_send.assert_called_once()
@@ -184,11 +184,11 @@ class TestAccountCommand:
 
         characters_data = ["Character1", "Character2", "Character3"]
 
-        with patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=characters_api_key_data)
 
-            with patch('src.gw2.cogs.account.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.account.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(return_value=sample_account_data)
                 mock_client_instance.call_api = AsyncMock(
@@ -199,7 +199,7 @@ class TestAccountCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.account.bot_utils.send_embed') as mock_send:
+                with patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send:
                     await account(mock_ctx)
 
                     mock_send.assert_called_once()
@@ -213,11 +213,11 @@ class TestAccountCommand:
 
         achievements_data = [{"id": 1, "current": 10}, {"id": 2, "current": 5}]
 
-        with patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=progression_api_key_data)
 
-            with patch('src.gw2.cogs.account.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.account.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(return_value=sample_account_data)
                 mock_client_instance.call_api = AsyncMock(
@@ -228,13 +228,13 @@ class TestAccountCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.account.gw2_utils.calculate_user_achiev_points') as mock_calc:
+                with patch("src.gw2.cogs.account.gw2_utils.calculate_user_achiev_points") as mock_calc:
                     mock_calc.return_value = 15000
 
-                    with patch('src.gw2.cogs.account.gw2_utils.get_wvw_rank_title') as mock_wvw_title:
+                    with patch("src.gw2.cogs.account.gw2_utils.get_wvw_rank_title") as mock_wvw_title:
                         mock_wvw_title.return_value = "Gold General"
 
-                        with patch('src.gw2.cogs.account.bot_utils.send_embed') as mock_send:
+                        with patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send:
                             await account(mock_ctx)
 
                             mock_send.assert_called_once()
@@ -248,11 +248,11 @@ class TestAccountCommand:
 
         pvp_stats_data = {"pvp_rank": 45, "pvp_rank_rollovers": 5}
 
-        with patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=pvp_api_key_data)
 
-            with patch('src.gw2.cogs.account.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.account.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(return_value=sample_account_data)
                 mock_client_instance.call_api = AsyncMock(
@@ -263,10 +263,10 @@ class TestAccountCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.account.gw2_utils.get_pvp_rank_title') as mock_pvp_title:
+                with patch("src.gw2.cogs.account.gw2_utils.get_pvp_rank_title") as mock_pvp_title:
                     mock_pvp_title.return_value = "Tiger"
 
-                    with patch('src.gw2.cogs.account.bot_utils.send_embed') as mock_send:
+                    with patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send:
                         await account(mock_ctx)
 
                         mock_send.assert_called_once()
@@ -282,11 +282,11 @@ class TestAccountCommand:
 
         guild_data_2 = {"id": "guild-id-2", "name": "Test Guild Two", "tag": "TG2"}
 
-        with patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=full_permissions_data)
 
-            with patch('src.gw2.cogs.account.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.account.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(return_value=sample_account_data)
                 mock_client_instance.call_api = AsyncMock(
@@ -298,7 +298,7 @@ class TestAccountCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.account.bot_utils.send_embed') as mock_send:
+                with patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send:
                     await account(mock_ctx)
 
                     mock_send.assert_called_once()
@@ -308,16 +308,16 @@ class TestAccountCommand:
     @pytest.mark.asyncio
     async def test_account_command_api_error_during_execution(self, mock_ctx, sample_api_key_data, sample_account_data):
         """Test account command when API error occurs during execution."""
-        with patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
 
-            with patch('src.gw2.cogs.account.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.account.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(return_value=sample_account_data)
                 mock_client_instance.call_api = AsyncMock(side_effect=Exception("API Error"))
 
-                with patch('src.gw2.cogs.account.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.account.bot_utils.send_error_msg") as mock_error:
                     await account(mock_ctx)
 
                     mock_error.assert_called_once()
@@ -328,11 +328,11 @@ class TestAccountCommand:
         """Test account command when guild API call fails."""
         full_permissions_data = [{"key": "test-api-key-12345", "permissions": "account,guilds"}]
 
-        with patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal:
+        with patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=full_permissions_data)
 
-            with patch('src.gw2.cogs.account.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.account.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.check_api_key = AsyncMock(return_value=sample_account_data)
                 mock_client_instance.call_api = AsyncMock(
@@ -343,7 +343,7 @@ class TestAccountCommand:
                     ]
                 )
 
-                with patch('src.gw2.cogs.account.bot_utils.send_error_msg') as mock_error:
+                with patch("src.gw2.cogs.account.bot_utils.send_error_msg") as mock_error:
                     await account(mock_ctx)
 
                     mock_error.assert_called_once()
@@ -450,7 +450,7 @@ class TestKeepTypingAlive:
 
         mock_ctx.message.channel.typing = AsyncMock(side_effect=typing_side_effect)
 
-        with patch('src.gw2.cogs.account.asyncio.sleep', new_callable=AsyncMock):
+        with patch("src.gw2.cogs.account.asyncio.sleep", new_callable=AsyncMock):
             await _keep_typing_alive(mock_ctx, stop_event)
 
         assert call_count >= 1
@@ -599,15 +599,14 @@ class TestAccountCommandFullPaths:
         mock_ctx.send.return_value = progress_msg
 
         with (
-            patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal,
-            patch('src.gw2.cogs.account.Gw2Client') as mock_client,
-            patch('src.gw2.cogs.account.bot_utils.send_embed') as mock_send_embed,
-            patch('src.gw2.cogs.account.bot_utils.get_current_date_time_str_long', return_value="2024-01-01 12:00:00"),
-            patch('src.gw2.cogs.account._keep_typing_alive', new=MagicMock()),
-            patch('src.gw2.cogs.account.asyncio.create_task') as mock_create_task,
-            patch('src.gw2.cogs.account.asyncio.Event') as mock_event_cls,
+            patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal,
+            patch("src.gw2.cogs.account.Gw2Client") as mock_client,
+            patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
+            patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
+            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
+            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
+            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
         ):
-
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
             mock_client_instance = mock_client.return_value
@@ -654,11 +653,10 @@ class TestAccountCommandFullPaths:
         mock_ctx.send = AsyncMock(side_effect=RuntimeError("send failed"))
 
         with (
-            patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal,
-            patch('src.gw2.cogs.account.Gw2Client') as mock_client,
-            patch('src.gw2.cogs.account.bot_utils.send_error_msg') as mock_error_msg,
+            patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal,
+            patch("src.gw2.cogs.account.Gw2Client") as mock_client,
+            patch("src.gw2.cogs.account.bot_utils.send_error_msg") as mock_error_msg,
         ):
-
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
             mock_client_instance = mock_client.return_value
@@ -683,14 +681,13 @@ class TestAccountCommandFullPaths:
         mock_ctx.send.return_value = progress_msg
 
         with (
-            patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal,
-            patch('src.gw2.cogs.account.Gw2Client') as mock_client,
-            patch('src.gw2.cogs.account.bot_utils.send_error_msg') as mock_error_msg,
-            patch('src.gw2.cogs.account._keep_typing_alive', new=MagicMock()),
-            patch('src.gw2.cogs.account.asyncio.create_task') as mock_create_task,
-            patch('src.gw2.cogs.account.asyncio.Event') as mock_event_cls,
+            patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal,
+            patch("src.gw2.cogs.account.Gw2Client") as mock_client,
+            patch("src.gw2.cogs.account.bot_utils.send_error_msg") as mock_error_msg,
+            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
+            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
+            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
         ):
-
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
             mock_client_instance = mock_client.return_value
@@ -724,22 +721,21 @@ class TestAccountCommandFullPaths:
         mock_ctx.send.return_value = progress_msg
 
         with (
-            patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal,
-            patch('src.gw2.cogs.account.Gw2Client') as mock_client,
-            patch('src.gw2.cogs.account.bot_utils.send_embed') as mock_send_embed,
-            patch('src.gw2.cogs.account.bot_utils.get_current_date_time_str_long', return_value="2024-01-01 12:00:00"),
-            patch('src.gw2.cogs.account._keep_typing_alive', new=MagicMock()),
-            patch('src.gw2.cogs.account.asyncio.create_task') as mock_create_task,
-            patch('src.gw2.cogs.account.asyncio.Event') as mock_event_cls,
+            patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal,
+            patch("src.gw2.cogs.account.Gw2Client") as mock_client,
+            patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
+            patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
+            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
+            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
+            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
             patch(
-                'src.gw2.cogs.account.gw2_utils.calculate_user_achiev_points',
+                "src.gw2.cogs.account.gw2_utils.calculate_user_achiev_points",
                 new_callable=AsyncMock,
                 return_value=15000,
             ) as mock_achiev,
-            patch('src.gw2.cogs.account.gw2_utils.get_wvw_rank_title', return_value="Gold General") as mock_wvw,
-            patch('src.gw2.cogs.account.gw2_utils.get_pvp_rank_title', return_value="Tiger") as mock_pvp,
+            patch("src.gw2.cogs.account.gw2_utils.get_wvw_rank_title", return_value="Gold General") as mock_wvw,
+            patch("src.gw2.cogs.account.gw2_utils.get_pvp_rank_title", return_value="Tiger") as mock_pvp,
         ):
-
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
             mock_client_instance = mock_client.return_value
@@ -792,15 +788,14 @@ class TestAccountCommandFullPaths:
         mock_ctx.send.return_value = progress_msg
 
         with (
-            patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal,
-            patch('src.gw2.cogs.account.Gw2Client') as mock_client,
-            patch('src.gw2.cogs.account.bot_utils.send_embed') as mock_send_embed,
-            patch('src.gw2.cogs.account.bot_utils.get_current_date_time_str_long', return_value="2024-01-01 12:00:00"),
-            patch('src.gw2.cogs.account._keep_typing_alive', new=MagicMock()),
-            patch('src.gw2.cogs.account.asyncio.create_task') as mock_create_task,
-            patch('src.gw2.cogs.account.asyncio.Event') as mock_event_cls,
+            patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal,
+            patch("src.gw2.cogs.account.Gw2Client") as mock_client,
+            patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
+            patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
+            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
+            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
+            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
         ):
-
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
             mock_client_instance = mock_client.return_value
@@ -860,15 +855,14 @@ class TestAccountCommandFullPaths:
         mock_ctx.send.return_value = progress_msg
 
         with (
-            patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal,
-            patch('src.gw2.cogs.account.Gw2Client') as mock_client,
-            patch('src.gw2.cogs.account.bot_utils.send_embed') as mock_send_embed,
-            patch('src.gw2.cogs.account.bot_utils.get_current_date_time_str_long', return_value="2024-01-01 12:00:00"),
-            patch('src.gw2.cogs.account._keep_typing_alive', new=MagicMock()),
-            patch('src.gw2.cogs.account.asyncio.create_task') as mock_create_task,
-            patch('src.gw2.cogs.account.asyncio.Event') as mock_event_cls,
+            patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal,
+            patch("src.gw2.cogs.account.Gw2Client") as mock_client,
+            patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
+            patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
+            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
+            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
+            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
         ):
-
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
             mock_client_instance = mock_client.return_value
@@ -935,20 +929,19 @@ class TestAccountCommandFullPaths:
         mock_ctx.send.return_value = progress_msg
 
         with (
-            patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal,
-            patch('src.gw2.cogs.account.Gw2Client') as mock_client,
-            patch('src.gw2.cogs.account.bot_utils.send_embed') as mock_send_embed,
-            patch('src.gw2.cogs.account.bot_utils.get_current_date_time_str_long', return_value="2024-01-01 12:00:00"),
-            patch('src.gw2.cogs.account._keep_typing_alive', new=MagicMock()),
-            patch('src.gw2.cogs.account.asyncio.create_task') as mock_create_task,
-            patch('src.gw2.cogs.account.asyncio.Event') as mock_event_cls,
+            patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal,
+            patch("src.gw2.cogs.account.Gw2Client") as mock_client,
+            patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
+            patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
+            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
+            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
+            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
             patch(
-                'src.gw2.cogs.account._fetch_guild_info_standalone',
+                "src.gw2.cogs.account._fetch_guild_info_standalone",
                 new_callable=AsyncMock,
                 return_value=(None, "guild-id-1"),
             ),
         ):
-
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
             mock_client_instance = mock_client.return_value
@@ -997,15 +990,14 @@ class TestAccountCommandFullPaths:
         mock_ctx.send.return_value = progress_msg
 
         with (
-            patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal,
-            patch('src.gw2.cogs.account.Gw2Client') as mock_client,
-            patch('src.gw2.cogs.account.bot_utils.send_embed') as mock_send_embed,
-            patch('src.gw2.cogs.account.bot_utils.get_current_date_time_str_long', return_value="2024-01-01 12:00:00"),
-            patch('src.gw2.cogs.account._keep_typing_alive', new=MagicMock()),
-            patch('src.gw2.cogs.account.asyncio.create_task') as mock_create_task,
-            patch('src.gw2.cogs.account.asyncio.Event') as mock_event_cls,
+            patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal,
+            patch("src.gw2.cogs.account.Gw2Client") as mock_client,
+            patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
+            patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
+            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
+            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
+            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
         ):
-
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
             mock_client_instance = mock_client.return_value
@@ -1050,15 +1042,14 @@ class TestAccountCommandFullPaths:
         mock_ctx.send.return_value = progress_msg
 
         with (
-            patch('src.gw2.cogs.account.Gw2KeyDal') as mock_dal,
-            patch('src.gw2.cogs.account.Gw2Client') as mock_client,
-            patch('src.gw2.cogs.account.bot_utils.send_embed') as mock_send_embed,
-            patch('src.gw2.cogs.account.bot_utils.get_current_date_time_str_long', return_value="2024-01-01 12:00:00"),
-            patch('src.gw2.cogs.account._keep_typing_alive', new=MagicMock()),
-            patch('src.gw2.cogs.account.asyncio.create_task') as mock_create_task,
-            patch('src.gw2.cogs.account.asyncio.Event') as mock_event_cls,
+            patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal,
+            patch("src.gw2.cogs.account.Gw2Client") as mock_client,
+            patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
+            patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
+            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
+            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
+            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
         ):
-
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
             mock_client_instance = mock_client.return_value

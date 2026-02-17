@@ -28,9 +28,8 @@ async def _insert_char_directly(db_session, session_id, user_id, name, professio
     await db_utils.insert(stmt)
 
 
-async def test_insert_session_char_missing_start_field(db_session, log):
-    """The DAL's insert_session_char does not set the `start` boolean, which is NOT NULL.
-    This test documents that the DAL raises IntegrityError against a real DB."""
+async def test_insert_session_char_with_start_field(db_session, log):
+    """The DAL's insert_session_char now correctly sets start/end booleans."""
     sessions_dal = Gw2SessionsDal(db_session, log)
     chars_dal = Gw2SessionCharsDal(db_session, log)
 
@@ -47,9 +46,20 @@ async def test_insert_session_char_missing_start_field(db_session, log):
         "profession": "Warrior",
         "deaths": 10,
     }
-    insert_args = {"session_id": session_id, "user_id": USER_ID, "api_key": API_KEY}
-    with pytest.raises(IntegrityError):
-        await chars_dal.insert_session_char(gw2_api, ["TestChar"], insert_args)
+    insert_args = {
+        "session_id": session_id,
+        "user_id": USER_ID,
+        "api_key": API_KEY,
+        "start": True,
+        "end": False,
+    }
+    # Should no longer raise IntegrityError now that start/end are passed
+    await chars_dal.insert_session_char(gw2_api, ["TestChar"], insert_args)
+
+    # Verify the data was inserted correctly
+    results = await chars_dal.get_all_start_characters(USER_ID)
+    assert isinstance(results, list)
+    assert len(results) >= 1
 
 
 async def test_get_all_start_characters(db_session, log):

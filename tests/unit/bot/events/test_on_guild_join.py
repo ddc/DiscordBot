@@ -6,7 +6,7 @@ import pytest
 import sys
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-sys.modules['ddcDatabases'] = Mock()
+sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.events.on_guild_join import OnGuildJoin, WelcomeMessageBuilder
 from src.bot.constants import messages, variables
@@ -28,8 +28,6 @@ def mock_bot():
     bot.get_user = MagicMock()
     # Ensure add_cog doesn't return a coroutine
     bot.add_cog = AsyncMock(return_value=None)
-    # Mock the event decorator to prevent coroutine issues
-    bot.event = MagicMock(side_effect=lambda func: func)
     return bot
 
 
@@ -77,7 +75,7 @@ class TestWelcomeMessageBuilder:
         result = welcome_message_builder.build_welcome_message(bot_name, prefix, games_included)
 
         # Should use the message template with proper formatting
-        expected = messages.GUILD_JOIN_BOT_MESSAGE.format(bot_name, prefix, games_included, prefix, prefix)
+        expected = messages.guild_join_bot_message(bot_name, prefix, games_included)
         assert result == expected
 
     def test_build_welcome_embed_with_avatar(self, welcome_message_builder, mock_bot):
@@ -191,17 +189,15 @@ class TestOnGuildJoin:
         assert added_cog.bot == mock_bot
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.insert_server')
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel')
-    @patch('src.bot.cogs.events.on_guild_join.variables.GAMES_INCLUDED', ['GW2', 'WoW'])
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.insert_server")
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel")
+    @patch("src.bot.cogs.events.on_guild_join.variables.GAMES_INCLUDED", ["GW2", "WoW"])
     async def test_on_guild_join_success(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test successful guild join handling."""
-        OnGuildJoin(mock_bot)
+        cog = OnGuildJoin(mock_bot)
 
-        # Access the event handler directly
-        on_guild_join_event = mock_bot.event.call_args_list[0][0][0]
-
-        await on_guild_join_event(mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_join(mock_guild)
 
         # Verify server was inserted
         mock_insert_server.assert_called_once_with(mock_bot, mock_guild)
@@ -217,17 +213,15 @@ class TestOnGuildJoin:
         assert isinstance(call_args[3], str)  # message text
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.insert_server')
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel')
-    @patch('src.bot.cogs.events.on_guild_join.variables.GAMES_INCLUDED', ['GW2'])
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.insert_server")
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel")
+    @patch("src.bot.cogs.events.on_guild_join.variables.GAMES_INCLUDED", ["GW2"])
     async def test_on_guild_join_with_games(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test guild join with specific games included."""
-        OnGuildJoin(mock_bot)
+        cog = OnGuildJoin(mock_bot)
 
-        # Access the event handler directly
-        on_guild_join_event = mock_bot.event.call_args_list[0][0][0]
-
-        await on_guild_join_event(mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_join(mock_guild)
 
         # Verify the welcome message includes games
         call_args = mock_send_msg.call_args[0]
@@ -237,37 +231,31 @@ class TestOnGuildJoin:
         assert "GW2" in welcome_text
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.insert_server')
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel')
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.insert_server")
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel")
     async def test_on_guild_join_insert_server_error(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test guild join when server insertion fails."""
         mock_insert_server.side_effect = Exception("Database error")
-        OnGuildJoin(mock_bot)
-
-        # Access the event handler directly
-        on_guild_join_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnGuildJoin(mock_bot)
 
         # Should raise exception since we're not handling it
         with pytest.raises(Exception, match="Database error"):
-            await on_guild_join_event(mock_guild)
+            await cog.on_guild_join(mock_guild)
 
         # Insert should still have been attempted
         mock_insert_server.assert_called_once_with(mock_bot, mock_guild)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.insert_server')
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel')
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.insert_server")
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel")
     async def test_on_guild_join_send_message_error(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test guild join when sending message fails."""
         mock_send_msg.side_effect = Exception("Send error")
-        OnGuildJoin(mock_bot)
-
-        # Access the event handler directly
-        on_guild_join_event = mock_bot.event.call_args_list[0][0][0]
+        cog = OnGuildJoin(mock_bot)
 
         # Should raise exception since we're not handling it
         with pytest.raises(Exception, match="Send error"):
-            await on_guild_join_event(mock_guild)
+            await cog.on_guild_join(mock_guild)
 
         # Both operations should have been attempted
         mock_insert_server.assert_called_once_with(mock_bot, mock_guild)
@@ -278,19 +266,17 @@ class TestOnGuildJoin:
         from discord.ext import commands
 
         assert isinstance(on_guild_join_cog, commands.Cog)
-        assert hasattr(on_guild_join_cog, 'bot')
+        assert hasattr(on_guild_join_cog, "bot")
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.insert_server')
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel')
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.insert_server")
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel")
     async def test_on_guild_join_embed_properties(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test that the welcome embed has the correct properties."""
-        OnGuildJoin(mock_bot)
+        cog = OnGuildJoin(mock_bot)
 
-        # Access the event handler directly
-        on_guild_join_event = mock_bot.event.call_args_list[0][0][0]
-
-        await on_guild_join_event(mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_join(mock_guild)
 
         # Get the embed that was sent
         call_args = mock_send_msg.call_args[0]
@@ -311,17 +297,15 @@ class TestOnGuildJoin:
         assert inspect.isfunction(WelcomeMessageBuilder._set_footer)
 
     @pytest.mark.asyncio
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.insert_server')
-    @patch('src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel')
-    @patch('src.bot.cogs.events.on_guild_join.variables.GAMES_INCLUDED', [])
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.insert_server")
+    @patch("src.bot.cogs.events.on_guild_join.bot_utils.send_msg_to_system_channel")
+    @patch("src.bot.cogs.events.on_guild_join.variables.GAMES_INCLUDED", [])
     async def test_on_guild_join_no_games(self, mock_send_msg, mock_insert_server, mock_bot, mock_guild):
         """Test guild join with no games included."""
-        OnGuildJoin(mock_bot)
+        cog = OnGuildJoin(mock_bot)
 
-        # Access the event handler directly
-        on_guild_join_event = mock_bot.event.call_args_list[0][0][0]
-
-        await on_guild_join_event(mock_guild)
+        # Call the listener method directly
+        await cog.on_guild_join(mock_guild)
 
         # Should still work with empty games list
         mock_insert_server.assert_called_once_with(mock_bot, mock_guild)

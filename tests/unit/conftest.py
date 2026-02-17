@@ -17,7 +17,7 @@ if _project_root not in sys.path:
 # Mock problematic imports before any test modules are loaded
 def setup_mocks():
     """Setup mocks for problematic dependencies."""
-    sys.modules['ddcDatabases'] = Mock()
+    sys.modules["ddcDatabases"] = Mock()
 
 
 def auto_import_modules():

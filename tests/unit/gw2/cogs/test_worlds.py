@@ -1,9 +1,16 @@
 """Comprehensive tests for GW2 Worlds cog."""
 
-import asyncio
 import discord
 import pytest
-from src.gw2.cogs.worlds import GW2Worlds, _send_paginated_worlds_embed, setup, worlds, worlds_eu, worlds_na
+from src.gw2.cogs.worlds import (
+    EmbedPaginatorView,
+    GW2Worlds,
+    _send_paginated_worlds_embed,
+    setup,
+    worlds,
+    worlds_eu,
+    worlds_na,
+)
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
@@ -60,7 +67,7 @@ class TestWorldsGroupCommand:
     @pytest.mark.asyncio
     async def test_worlds_calls_invoke_subcommand(self, mock_ctx):
         """Test that worlds group command calls invoke_subcommand."""
-        with patch('src.gw2.cogs.worlds.bot_utils.invoke_subcommand', new_callable=AsyncMock) as mock_invoke:
+        with patch("src.gw2.cogs.worlds.bot_utils.invoke_subcommand", new_callable=AsyncMock) as mock_invoke:
             await worlds(mock_ctx)
             mock_invoke.assert_called_once_with(mock_ctx, "gw2 worlds")
 
@@ -78,7 +85,6 @@ class TestWorldsNACommand:
         ctx.bot.settings = {"gw2": {"EmbedColor": 0x00FF00}}
         ctx.bot.user = MagicMock()
         ctx.bot.user.mention = "<@bot>"
-        ctx.bot.wait_for = AsyncMock()
         ctx.message = MagicMock()
         ctx.message.author = MagicMock()
         ctx.message.author.id = 12345
@@ -98,7 +104,7 @@ class TestWorldsNACommand:
     @pytest.mark.asyncio
     async def test_worlds_na_get_worlds_ids_returns_false(self, mock_ctx):
         """Test worlds_na returns None when get_worlds_ids returns False."""
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
             mock_utils.get_worlds_ids = AsyncMock(return_value=(False, None))
             result = await worlds_na(mock_ctx)
             assert result is None
@@ -113,12 +119,12 @@ class TestWorldsNACommand:
         ]
         matches_data = {"id": "1-3"}
 
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch('src.gw2.cogs.worlds.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(return_value=matches_data)
-                with patch('src.gw2.cogs.worlds._send_paginated_worlds_embed', new_callable=AsyncMock) as mock_send:
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_na(mock_ctx)
                     mock_send.assert_called_once()
                     embed = mock_send.call_args[0][1]
@@ -137,12 +143,12 @@ class TestWorldsNACommand:
         matches_data_na = {"id": "1-2"}
         matches_data_eu = {"id": "2-1"}
 
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch('src.gw2.cogs.worlds.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(side_effect=[matches_data_na, matches_data_eu])
-                with patch('src.gw2.cogs.worlds._send_paginated_worlds_embed', new_callable=AsyncMock) as mock_send:
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_na(mock_ctx)
                     embed = mock_send.call_args[0][1]
                     # Only NA world should be added
@@ -158,12 +164,12 @@ class TestWorldsNACommand:
         ]
         matches_data = {"id": "1-3"}
 
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch('src.gw2.cogs.worlds.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(side_effect=[Exception("API timeout"), matches_data])
-                with patch('src.gw2.cogs.worlds._send_paginated_worlds_embed', new_callable=AsyncMock) as mock_send:
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_na(mock_ctx)
                     mock_ctx.bot.log.warning.assert_called_once()
                     warning_msg = mock_ctx.bot.log.warning.call_args[0][0]
@@ -182,12 +188,12 @@ class TestWorldsNACommand:
             {"id": 1002, "name": "Borlis Pass", "population": "Medium"},
         ]
 
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch('src.gw2.cogs.worlds.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(side_effect=[Exception("Error1"), Exception("Error2")])
-                with patch('src.gw2.cogs.worlds._send_paginated_worlds_embed', new_callable=AsyncMock) as mock_send:
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_na(mock_ctx)
                     embed = mock_send.call_args[0][1]
                     assert embed.footer is not None
@@ -204,12 +210,12 @@ class TestWorldsNACommand:
             {"id": 1004, "name": "World4", "population": "VeryHigh"},
         ]
 
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch('src.gw2.cogs.worlds.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(side_effect=Exception("Error"))
-                with patch('src.gw2.cogs.worlds._send_paginated_worlds_embed', new_callable=AsyncMock) as mock_send:
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_na(mock_ctx)
                     embed = mock_send.call_args[0][1]
                     assert "..." in embed.footer.text
@@ -220,12 +226,12 @@ class TestWorldsNACommand:
         worlds_ids = [{"id": 1001, "name": "Anvil Rock", "population": "High"}]
         matches_data = {"id": "1-1"}
 
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch('src.gw2.cogs.worlds.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(return_value=matches_data)
-                with patch('src.gw2.cogs.worlds._send_paginated_worlds_embed', new_callable=AsyncMock) as mock_send:
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_na(mock_ctx)
                     mock_send.assert_called_once_with(mock_ctx, mock_send.call_args[0][1])
 
@@ -235,12 +241,12 @@ class TestWorldsNACommand:
         worlds_ids = [{"id": 1001, "name": "Anvil Rock", "population": "High"}]
         matches_data = {"id": "1-2"}
 
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch('src.gw2.cogs.worlds.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(return_value=matches_data)
-                with patch('src.gw2.cogs.worlds._send_paginated_worlds_embed', new_callable=AsyncMock) as mock_send:
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_na(mock_ctx)
                     embed = mock_send.call_args[0][1]
                     assert embed.footer.text is None
@@ -259,7 +265,6 @@ class TestWorldsEUCommand:
         ctx.bot.settings = {"gw2": {"EmbedColor": 0x00FF00}}
         ctx.bot.user = MagicMock()
         ctx.bot.user.mention = "<@bot>"
-        ctx.bot.wait_for = AsyncMock()
         ctx.message = MagicMock()
         ctx.message.author = MagicMock()
         ctx.message.author.id = 12345
@@ -279,7 +284,7 @@ class TestWorldsEUCommand:
     @pytest.mark.asyncio
     async def test_worlds_eu_get_worlds_ids_returns_false(self, mock_ctx):
         """Test worlds_eu returns None when get_worlds_ids returns False."""
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
             mock_utils.get_worlds_ids = AsyncMock(return_value=(False, None))
             result = await worlds_eu(mock_ctx)
             assert result is None
@@ -294,12 +299,12 @@ class TestWorldsEUCommand:
         ]
         matches_data = {"id": "2-1"}
 
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch('src.gw2.cogs.worlds.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(return_value=matches_data)
-                with patch('src.gw2.cogs.worlds._send_paginated_worlds_embed', new_callable=AsyncMock) as mock_send:
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_eu(mock_ctx)
                     mock_send.assert_called_once()
                     embed = mock_send.call_args[0][1]
@@ -318,12 +323,12 @@ class TestWorldsEUCommand:
         matches_data_na = {"id": "1-2"}
         matches_data_eu = {"id": "2-1"}
 
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch('src.gw2.cogs.worlds.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(side_effect=[matches_data_na, matches_data_eu])
-                with patch('src.gw2.cogs.worlds._send_paginated_worlds_embed', new_callable=AsyncMock) as mock_send:
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_eu(mock_ctx)
                     embed = mock_send.call_args[0][1]
                     # Only EU world should be added
@@ -339,12 +344,12 @@ class TestWorldsEUCommand:
         ]
         matches_data = {"id": "2-2"}
 
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch('src.gw2.cogs.worlds.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(side_effect=[Exception("API timeout"), matches_data])
-                with patch('src.gw2.cogs.worlds._send_paginated_worlds_embed', new_callable=AsyncMock) as mock_send:
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_eu(mock_ctx)
                     mock_ctx.bot.log.warning.assert_called_once()
                     warning_msg = mock_ctx.bot.log.warning.call_args[0][0]
@@ -362,12 +367,12 @@ class TestWorldsEUCommand:
             {"id": 2003, "name": "Gandara", "population": "VeryHigh"},
         ]
 
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch('src.gw2.cogs.worlds.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(side_effect=Exception("Error"))
-                with patch('src.gw2.cogs.worlds._send_paginated_worlds_embed', new_callable=AsyncMock) as mock_send:
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_eu(mock_ctx)
                     embed = mock_send.call_args[0][1]
                     assert embed.footer is not None
@@ -384,12 +389,12 @@ class TestWorldsEUCommand:
             {"id": 2005, "name": "World4", "population": "VeryHigh"},
         ]
 
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch('src.gw2.cogs.worlds.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(side_effect=Exception("Error"))
-                with patch('src.gw2.cogs.worlds._send_paginated_worlds_embed', new_callable=AsyncMock) as mock_send:
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_eu(mock_ctx)
                     embed = mock_send.call_args[0][1]
                     assert "..." in embed.footer.text
@@ -400,15 +405,190 @@ class TestWorldsEUCommand:
         worlds_ids = [{"id": 2002, "name": "Desolation", "population": "Full"}]
         matches_data = {"id": "2-4"}
 
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch('src.gw2.cogs.worlds.Gw2Client') as mock_client:
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(return_value=matches_data)
-                with patch('src.gw2.cogs.worlds._send_paginated_worlds_embed', new_callable=AsyncMock) as mock_send:
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_eu(mock_ctx)
                     embed = mock_send.call_args[0][1]
                     assert "T4" in embed.fields[0].value
+
+
+class TestEmbedPaginatorView:
+    """Test cases for the EmbedPaginatorView class."""
+
+    def _make_embed_pages(self, count):
+        """Helper to create a list of embed pages."""
+        pages = []
+        for i in range(count):
+            embed = discord.Embed(description=f"Page {i + 1}", color=0x00FF00)
+            embed.set_footer(text=f"Page {i + 1}/{count}")
+            pages.append(embed)
+        return pages
+
+    @pytest.mark.asyncio
+    async def test_initial_state(self):
+        """Test view starts on page 0 with correct button states."""
+        pages = self._make_embed_pages(3)
+        view = EmbedPaginatorView(pages, author_id=123)
+
+        assert view.current_page == 0
+        assert view.previous_button.disabled is True
+        assert view.next_button.disabled is False
+        assert view.page_indicator.label == "1/3"
+        assert view.page_indicator.disabled is True
+
+    @pytest.mark.asyncio
+    async def test_update_buttons_middle_page(self):
+        """Test buttons state on middle page: both enabled."""
+        pages = self._make_embed_pages(3)
+        view = EmbedPaginatorView(pages, author_id=1)
+        view.current_page = 1
+        view._update_buttons()
+
+        assert view.previous_button.disabled is False
+        assert view.next_button.disabled is False
+        assert view.page_indicator.label == "2/3"
+
+    @pytest.mark.asyncio
+    async def test_update_buttons_last_page(self):
+        """Test buttons state on last page: next disabled."""
+        pages = self._make_embed_pages(3)
+        view = EmbedPaginatorView(pages, author_id=1)
+        view.current_page = 2
+        view._update_buttons()
+
+        assert view.previous_button.disabled is False
+        assert view.next_button.disabled is True
+        assert view.page_indicator.label == "3/3"
+
+    @pytest.mark.asyncio
+    async def test_next_button_advances_page(self):
+        """Test clicking next button advances current_page and edits embed."""
+        pages = self._make_embed_pages(3)
+        view = EmbedPaginatorView(pages, author_id=42)
+        interaction = MagicMock()
+        interaction.user.id = 42
+        interaction.response = AsyncMock()
+
+        await view.next_button.callback(interaction)
+
+        assert view.current_page == 1
+        interaction.response.edit_message.assert_called_once()
+        call_kwargs = interaction.response.edit_message.call_args[1]
+        assert call_kwargs["embed"] is pages[1]
+
+    @pytest.mark.asyncio
+    async def test_previous_button_goes_back(self):
+        """Test clicking previous button goes back a page."""
+        pages = self._make_embed_pages(3)
+        view = EmbedPaginatorView(pages, author_id=42)
+        view.current_page = 2
+        view._update_buttons()
+        interaction = MagicMock()
+        interaction.user.id = 42
+        interaction.response = AsyncMock()
+
+        await view.previous_button.callback(interaction)
+
+        assert view.current_page == 1
+        interaction.response.edit_message.assert_called_once()
+        call_kwargs = interaction.response.edit_message.call_args[1]
+        assert call_kwargs["embed"] is pages[1]
+
+    @pytest.mark.asyncio
+    async def test_next_button_rejects_non_author(self):
+        """Test non-author clicking next gets ephemeral rejection."""
+        pages = self._make_embed_pages(2)
+        view = EmbedPaginatorView(pages, author_id=42)
+        interaction = MagicMock()
+        interaction.user.id = 999
+        interaction.response = AsyncMock()
+
+        await view.next_button.callback(interaction)
+
+        assert view.current_page == 0  # unchanged
+        interaction.response.send_message.assert_called_once_with(
+            "Only the command invoker can use these buttons.", ephemeral=True
+        )
+
+    @pytest.mark.asyncio
+    async def test_previous_button_rejects_non_author(self):
+        """Test non-author clicking previous gets ephemeral rejection."""
+        pages = self._make_embed_pages(2)
+        view = EmbedPaginatorView(pages, author_id=42)
+        view.current_page = 1
+        view._update_buttons()
+        interaction = MagicMock()
+        interaction.user.id = 999
+        interaction.response = AsyncMock()
+
+        await view.previous_button.callback(interaction)
+
+        assert view.current_page == 1  # unchanged
+        interaction.response.send_message.assert_called_once_with(
+            "Only the command invoker can use these buttons.", ephemeral=True
+        )
+
+    @pytest.mark.asyncio
+    async def test_page_indicator_defers(self):
+        """Test page indicator button just defers (non-interactive)."""
+        pages = self._make_embed_pages(2)
+        view = EmbedPaginatorView(pages, author_id=1)
+        interaction = MagicMock()
+        interaction.response = AsyncMock()
+
+        await view.page_indicator.callback(interaction)
+
+        interaction.response.defer.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_on_timeout_disables_all_buttons(self):
+        """Test on_timeout disables all children and edits message."""
+        pages = self._make_embed_pages(2)
+        view = EmbedPaginatorView(pages, author_id=1)
+        view.message = AsyncMock()
+
+        await view.on_timeout()
+
+        for item in view.children:
+            assert item.disabled is True
+        view.message.edit.assert_called_once_with(view=view)
+
+    @pytest.mark.asyncio
+    async def test_on_timeout_no_message(self):
+        """Test on_timeout with no message reference does not raise."""
+        pages = self._make_embed_pages(2)
+        view = EmbedPaginatorView(pages, author_id=1)
+        view.message = None
+
+        await view.on_timeout()
+
+        for item in view.children:
+            assert item.disabled is True
+
+    @pytest.mark.asyncio
+    async def test_timeout_is_300(self):
+        """Test view timeout is 300 seconds."""
+        pages = self._make_embed_pages(2)
+        view = EmbedPaginatorView(pages, author_id=1)
+        assert view.timeout == 300
+
+    @pytest.mark.asyncio
+    async def test_pages_stored(self):
+        """Test pages list is stored correctly."""
+        pages = self._make_embed_pages(2)
+        view = EmbedPaginatorView(pages, author_id=1)
+        assert view.pages is pages
+
+    @pytest.mark.asyncio
+    async def test_author_id_stored(self):
+        """Test author_id is stored correctly."""
+        pages = self._make_embed_pages(2)
+        view = EmbedPaginatorView(pages, author_id=12345)
+        assert view.author_id == 12345
 
 
 class TestSendPaginatedWorldsEmbed:
@@ -424,7 +604,6 @@ class TestSendPaginatedWorldsEmbed:
         ctx.bot.settings = {"gw2": {"EmbedColor": 0x00FF00}}
         ctx.bot.user = MagicMock()
         ctx.bot.user.mention = "<@bot>"
-        ctx.bot.wait_for = AsyncMock()
         ctx.message = MagicMock()
         ctx.message.author = MagicMock()
         ctx.message.author.id = 12345
@@ -467,422 +646,191 @@ class TestSendPaginatedWorldsEmbed:
 
     @pytest.mark.asyncio
     async def test_paginates_when_more_than_25_fields(self, mock_ctx):
-        """Test that embed with >25 fields is paginated."""
+        """Test that embed with >25 fields sends first page with view."""
         embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.clear_reactions = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=asyncio.TimeoutError)
-
         await _send_paginated_worlds_embed(mock_ctx, embed)
-        # Should send the first page
-        assert mock_ctx.send.called
+        mock_ctx.send.assert_called_once()
+        call_kwargs = mock_ctx.send.call_args[1]
+        assert isinstance(call_kwargs["view"], EmbedPaginatorView)
+        sent_embed = call_kwargs["embed"]
+        assert len(sent_embed.fields) == 25
 
     @pytest.mark.asyncio
-    async def test_dm_channel_different_footer_text(self, mock_ctx):
-        """Test that DM channel gets different footer text."""
+    async def test_paginated_footer_shows_page_numbers(self, mock_ctx):
+        """Test that paginated embeds have correct page footer."""
         embed = self._make_embed_with_fields(30)
-        mock_ctx.channel = MagicMock(spec=discord.DMChannel)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=asyncio.TimeoutError)
-
         await _send_paginated_worlds_embed(mock_ctx, embed)
-        sent_embed = mock_ctx.send.call_args[1]["embed"]
-        assert "reactions won't disappear in DMs" in sent_embed.footer.text
-
-    @pytest.mark.asyncio
-    async def test_non_dm_channel_simple_footer(self, mock_ctx):
-        """Test that non-DM channel gets simple page footer."""
-        embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.id = 111
-        mock_message.clear_reactions = AsyncMock()
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=asyncio.TimeoutError)
-
-        await _send_paginated_worlds_embed(mock_ctx, embed)
-        sent_embed = mock_ctx.send.call_args[1]["embed"]
+        call_kwargs = mock_ctx.send.call_args[1]
+        sent_embed = call_kwargs["embed"]
         assert "Page 1/2" in sent_embed.footer.text
-        assert "reactions won't disappear" not in sent_embed.footer.text
 
     @pytest.mark.asyncio
-    async def test_single_page_after_split_sends_without_reactions(self, mock_ctx):
-        """Test that a single page after splitting sends without reactions."""
-        # 25 fields exactly fits one page after split logic
+    async def test_paginated_view_has_second_page(self, mock_ctx):
+        """Test that the view contains both pages with correct fields."""
+        embed = self._make_embed_with_fields(30)
+        await _send_paginated_worlds_embed(mock_ctx, embed)
+        call_kwargs = mock_ctx.send.call_args[1]
+        view = call_kwargs["view"]
+        assert len(view.pages) == 2
+        assert len(view.pages[0].fields) == 25
+        assert len(view.pages[1].fields) == 5
+        assert "Page 2/2" in view.pages[1].footer.text
+
+    @pytest.mark.asyncio
+    async def test_single_page_after_split_sends_without_view(self, mock_ctx):
+        """Test that a single page after splitting sends without view."""
         embed = self._make_embed_with_fields(25)
         await _send_paginated_worlds_embed(mock_ctx, embed)
         mock_ctx.send.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_multiple_pages_adds_reactions(self, mock_ctx):
-        """Test that multiple pages adds left and right arrow reactions."""
-        embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.id = 111
-        mock_message.clear_reactions = AsyncMock()
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=asyncio.TimeoutError)
-
-        await _send_paginated_worlds_embed(mock_ctx, embed)
-        # Check that both reactions were added
-        calls = mock_message.add_reaction.call_args_list
-        emojis = [call[0][0] for call in calls]
-        assert "\u2b05\ufe0f" in emojis  # left arrow
-        assert "\u27a1\ufe0f" in emojis  # right arrow
-
-    @pytest.mark.asyncio
-    async def test_reaction_add_fails_sends_first_page(self, mock_ctx):
-        """Test that when reaction add fails, first page is sent without pagination."""
-        embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock(side_effect=discord.HTTPException(MagicMock(), "error"))
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-
-        await _send_paginated_worlds_embed(mock_ctx, embed)
-        # Should send twice: once for failed pagination, once for fallback
-        assert mock_ctx.send.call_count == 2
-
-    @pytest.mark.asyncio
-    async def test_right_arrow_next_page(self, mock_ctx):
-        """Test that right arrow reaction navigates to next page."""
-        embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.edit = AsyncMock()
-        mock_message.remove_reaction = AsyncMock()
-        mock_message.clear_reactions = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-
-        # First call returns right arrow reaction, second call times out
-        mock_reaction = MagicMock()
-        mock_reaction.emoji = "\u27a1\ufe0f"
-        mock_reaction.message = mock_message
-        mock_user = MagicMock()
-        mock_user.bot = False
-
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=[(mock_reaction, mock_user), asyncio.TimeoutError])
-
-        await _send_paginated_worlds_embed(mock_ctx, embed)
-        # Should have edited the message to show page 2
-        mock_message.edit.assert_called_once()
-        edited_embed = mock_message.edit.call_args[1]["embed"]
-        assert "Page 2/2" in edited_embed.footer.text
-
-    @pytest.mark.asyncio
-    async def test_left_arrow_previous_page(self, mock_ctx):
-        """Test that left arrow reaction navigates to previous page."""
-        embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.edit = AsyncMock()
-        mock_message.remove_reaction = AsyncMock()
-        mock_message.clear_reactions = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-
-        # Navigate right first, then left
-        mock_reaction_right = MagicMock()
-        mock_reaction_right.emoji = "\u27a1\ufe0f"
-        mock_reaction_right.message = mock_message
-
-        mock_reaction_left = MagicMock()
-        mock_reaction_left.emoji = "\u2b05\ufe0f"
-        mock_reaction_left.message = mock_message
-
-        mock_user = MagicMock()
-        mock_user.bot = False
-
-        mock_ctx.bot.wait_for = AsyncMock(
-            side_effect=[
-                (mock_reaction_right, mock_user),
-                (mock_reaction_left, mock_user),
-                asyncio.TimeoutError,
-            ]
-        )
-
-        await _send_paginated_worlds_embed(mock_ctx, embed)
-        # Should have edited the message twice (once right, once left)
-        assert mock_message.edit.call_count == 2
-        # Last edit should be back to page 1
-        last_edited_embed = mock_message.edit.call_args_list[1][1]["embed"]
-        assert "Page 1/2" in last_edited_embed.footer.text
-
-    @pytest.mark.asyncio
-    async def test_left_arrow_on_first_page_does_nothing(self, mock_ctx):
-        """Test that left arrow on first page does not change page."""
-        embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.edit = AsyncMock()
-        mock_message.remove_reaction = AsyncMock()
-        mock_message.clear_reactions = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-
-        mock_reaction_left = MagicMock()
-        mock_reaction_left.emoji = "\u2b05\ufe0f"
-        mock_reaction_left.message = mock_message
-
-        mock_user = MagicMock()
-        mock_user.bot = False
-
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=[(mock_reaction_left, mock_user), asyncio.TimeoutError])
-
-        await _send_paginated_worlds_embed(mock_ctx, embed)
-        # Should not edit message since already on first page
-        mock_message.edit.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_right_arrow_on_last_page_does_nothing(self, mock_ctx):
-        """Test that right arrow on last page does not change page."""
-        embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.edit = AsyncMock()
-        mock_message.remove_reaction = AsyncMock()
-        mock_message.clear_reactions = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-
-        mock_reaction_right = MagicMock()
-        mock_reaction_right.emoji = "\u27a1\ufe0f"
-        mock_reaction_right.message = mock_message
-
-        mock_user = MagicMock()
-        mock_user.bot = False
-
-        # Go right twice (only first should work since only 2 pages)
-        mock_ctx.bot.wait_for = AsyncMock(
-            side_effect=[
-                (mock_reaction_right, mock_user),
-                (mock_reaction_right, mock_user),
-                asyncio.TimeoutError,
-            ]
-        )
-
-        await _send_paginated_worlds_embed(mock_ctx, embed)
-        # Only one edit (the first right arrow)
-        assert mock_message.edit.call_count == 1
-
-    @pytest.mark.asyncio
-    async def test_not_in_dm_removes_user_reaction(self, mock_ctx):
-        """Test that in non-DM channel, user reaction is removed."""
-        embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.edit = AsyncMock()
-        mock_message.remove_reaction = AsyncMock()
-        mock_message.clear_reactions = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-        # Non-DM channel (TextChannel)
-        mock_ctx.channel = MagicMock(spec=discord.TextChannel)
-
-        mock_reaction = MagicMock()
-        mock_reaction.emoji = "\u27a1\ufe0f"
-        mock_reaction.message = mock_message
-
-        mock_user = MagicMock()
-        mock_user.bot = False
-
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=[(mock_reaction, mock_user), asyncio.TimeoutError])
-
-        await _send_paginated_worlds_embed(mock_ctx, embed)
-        mock_message.remove_reaction.assert_called_once_with(mock_reaction.emoji, mock_user)
-
-    @pytest.mark.asyncio
-    async def test_in_dm_skips_reaction_removal(self, mock_ctx):
-        """Test that in DM channel, user reaction is NOT removed."""
-        embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.edit = AsyncMock()
-        mock_message.remove_reaction = AsyncMock()
-        mock_message.clear_reactions = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-        mock_ctx.channel = MagicMock(spec=discord.DMChannel)
-
-        mock_reaction = MagicMock()
-        mock_reaction.emoji = "\u27a1\ufe0f"
-        mock_reaction.message = mock_message
-
-        mock_user = MagicMock()
-        mock_user.bot = False
-
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=[(mock_reaction, mock_user), asyncio.TimeoutError])
-
-        await _send_paginated_worlds_embed(mock_ctx, embed)
-        mock_message.remove_reaction.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_timeout_error_silently_passes(self, mock_ctx):
-        """Test that TimeoutError is handled silently."""
-        embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.clear_reactions = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=asyncio.TimeoutError)
-
-        # Should not raise
-        await _send_paginated_worlds_embed(mock_ctx, embed)
-
-    @pytest.mark.asyncio
-    async def test_not_in_dm_after_timeout_clears_reactions(self, mock_ctx):
-        """Test that reactions are cleared after timeout in non-DM channel."""
-        embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.clear_reactions = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-        mock_ctx.channel = MagicMock(spec=discord.TextChannel)
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=asyncio.TimeoutError)
-
-        await _send_paginated_worlds_embed(mock_ctx, embed)
-        mock_message.clear_reactions.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_in_dm_after_timeout_does_not_clear_reactions(self, mock_ctx):
-        """Test that reactions are NOT cleared after timeout in DM channel."""
-        embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.clear_reactions = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-        mock_ctx.channel = MagicMock(spec=discord.DMChannel)
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=asyncio.TimeoutError)
-
-        await _send_paginated_worlds_embed(mock_ctx, embed)
-        mock_message.clear_reactions.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_forbidden_on_clear_reactions_silently_passes(self, mock_ctx):
-        """Test that Forbidden error on clear_reactions is silently handled."""
-        embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.clear_reactions = AsyncMock(side_effect=discord.Forbidden(MagicMock(), "Missing permissions"))
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-        mock_ctx.channel = MagicMock(spec=discord.TextChannel)
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=asyncio.TimeoutError)
-
-        # Should not raise
-        await _send_paginated_worlds_embed(mock_ctx, embed)
-
-    @pytest.mark.asyncio
-    async def test_remove_reaction_forbidden_silently_passes(self, mock_ctx):
-        """Test that Forbidden on remove_reaction is silently handled."""
-        embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.edit = AsyncMock()
-        mock_message.remove_reaction = AsyncMock(side_effect=discord.Forbidden(MagicMock(), "Missing permissions"))
-        mock_message.clear_reactions = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-        mock_ctx.channel = MagicMock(spec=discord.TextChannel)
-
-        mock_reaction = MagicMock()
-        mock_reaction.emoji = "\u27a1\ufe0f"
-        mock_reaction.message = mock_message
-
-        mock_user = MagicMock()
-        mock_user.bot = False
-
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=[(mock_reaction, mock_user), asyncio.TimeoutError])
-
-        # Should not raise
-        await _send_paginated_worlds_embed(mock_ctx, embed)
+        call_kwargs = mock_ctx.send.call_args[1]
+        assert "view" not in call_kwargs
 
     @pytest.mark.asyncio
     async def test_embed_description_preserved_in_pages(self, mock_ctx):
         """Test that embed description is preserved in paginated pages."""
         embed = self._make_embed_with_fields(30, description="~~~~~ NA Servers ~~~~~")
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.clear_reactions = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=asyncio.TimeoutError)
-
         await _send_paginated_worlds_embed(mock_ctx, embed)
-        sent_embed = mock_ctx.send.call_args[1]["embed"]
+        call_kwargs = mock_ctx.send.call_args[1]
+        sent_embed = call_kwargs["embed"]
         assert sent_embed.description == "~~~~~ NA Servers ~~~~~"
 
     @pytest.mark.asyncio
     async def test_color_applied_to_all_pages(self, mock_ctx):
         """Test that color is applied to paginated pages."""
         embed = self._make_embed_with_fields(30)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.edit = AsyncMock()
-        mock_message.remove_reaction = AsyncMock()
-        mock_message.clear_reactions = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-
-        mock_reaction = MagicMock()
-        mock_reaction.emoji = "\u27a1\ufe0f"
-        mock_reaction.message = mock_message
-        mock_user = MagicMock()
-        mock_user.bot = False
-
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=[(mock_reaction, mock_user), asyncio.TimeoutError])
-
         await _send_paginated_worlds_embed(mock_ctx, embed)
-        # First page
-        first_page = mock_ctx.send.call_args[1]["embed"]
-        assert first_page.color.value == 0x00FF00
-        # Second page
-        second_page = mock_message.edit.call_args[1]["embed"]
-        assert second_page.color.value == 0x00FF00
+        call_kwargs = mock_ctx.send.call_args[1]
+        view = call_kwargs["view"]
+        for page in view.pages:
+            assert page.color.value == 0x00FF00
 
     @pytest.mark.asyncio
     async def test_fields_split_correctly_across_pages(self, mock_ctx):
         """Test that fields are correctly distributed across pages."""
         embed = self._make_embed_with_fields(55)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.edit = AsyncMock()
-        mock_message.remove_reaction = AsyncMock()
-        mock_message.clear_reactions = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-
-        mock_reaction = MagicMock()
-        mock_reaction.emoji = "\u27a1\ufe0f"
-        mock_reaction.message = mock_message
-        mock_user = MagicMock()
-        mock_user.bot = False
-
-        mock_ctx.bot.wait_for = AsyncMock(
-            side_effect=[
-                (mock_reaction, mock_user),
-                (mock_reaction, mock_user),
-                asyncio.TimeoutError,
-            ]
-        )
-
         await _send_paginated_worlds_embed(mock_ctx, embed)
-        # First page should have 25 fields
-        first_page = mock_ctx.send.call_args[1]["embed"]
-        assert len(first_page.fields) == 25
-        # Page 1/3
-        assert "Page 1/3" in first_page.footer.text
+        call_kwargs = mock_ctx.send.call_args[1]
+        view = call_kwargs["view"]
+        assert len(view.pages) == 3
+        assert len(view.pages[0].fields) == 25
+        assert len(view.pages[1].fields) == 25
+        assert len(view.pages[2].fields) == 5
+        assert "Page 1/3" in view.pages[0].footer.text
+
+    @pytest.mark.asyncio
+    async def test_view_message_reference_is_set(self, mock_ctx):
+        """Test that view.message is set to the sent message."""
+        embed = self._make_embed_with_fields(30)
+        mock_msg = AsyncMock()
+        mock_ctx.send.return_value = mock_msg
+        await _send_paginated_worlds_embed(mock_ctx, embed)
+        call_kwargs = mock_ctx.send.call_args[1]
+        view = call_kwargs["view"]
+        assert view.message is mock_msg
+
+    @pytest.mark.asyncio
+    async def test_view_author_id_matches_ctx_author(self, mock_ctx):
+        """Test that view.author_id matches ctx.author.id."""
+        embed = self._make_embed_with_fields(30)
+        await _send_paginated_worlds_embed(mock_ctx, embed)
+        call_kwargs = mock_ctx.send.call_args[1]
+        view = call_kwargs["view"]
+        assert view.author_id == 12345
+
+
+class TestSendPaginatedWorldsEmbedEdgeCases:
+    """Additional edge case tests for _send_paginated_worlds_embed."""
+
+    @pytest.fixture
+    def mock_ctx(self):
+        """Create a mock command context."""
+        ctx = MagicMock()
+        ctx.bot = MagicMock()
+        ctx.bot.db_session = MagicMock()
+        ctx.bot.log = MagicMock()
+        ctx.bot.settings = {"gw2": {"EmbedColor": 0x00FF00}}
+        ctx.bot.user = MagicMock()
+        ctx.bot.user.mention = "<@bot>"
+        ctx.message = MagicMock()
+        ctx.message.author = MagicMock()
+        ctx.message.author.id = 12345
+        ctx.message.channel = MagicMock()
+        ctx.message.channel.typing = AsyncMock()
+        ctx.prefix = "!"
+        ctx.guild = MagicMock()
+        ctx.guild.id = 99999
+        ctx.channel = MagicMock(spec=discord.TextChannel)
+        ctx.send = AsyncMock()
+        ctx.author = ctx.message.author
+        return ctx
+
+    def _make_embed_with_fields(self, num_fields, description="Test"):
+        """Helper to create an embed with a given number of fields."""
+        embed = discord.Embed(description=description)
+        for i in range(num_fields):
+            embed.add_field(name=f"World {i}", value=f"Value {i}")
+        return embed
+
+    @pytest.mark.asyncio
+    async def test_single_page_after_split_sends_directly(self, mock_ctx):
+        """Test that when fields fit in one page, it sends without view."""
+        embed = self._make_embed_with_fields(25)
+        await _send_paginated_worlds_embed(mock_ctx, embed)
+        mock_ctx.send.assert_called_once()
+        sent_embed = mock_ctx.send.call_args[1]["embed"]
+        assert len(sent_embed.fields) == 25
+
+    @pytest.mark.asyncio
+    async def test_paginated_26_fields_creates_two_pages(self, mock_ctx):
+        """Test pagination with 26 fields creates exactly 2 pages."""
+        embed = self._make_embed_with_fields(26)
+        await _send_paginated_worlds_embed(mock_ctx, embed)
+        call_kwargs = mock_ctx.send.call_args[1]
+        view = call_kwargs["view"]
+        assert len(view.pages) == 2
+        assert len(view.pages[0].fields) == 25
+        assert len(view.pages[1].fields) == 1
+        assert "Page 1/2" in view.pages[0].footer.text
+
+    @pytest.mark.asyncio
+    async def test_worlds_na_exact_2001_boundary(self, mock_ctx):
+        """Test worlds_na does not include world ID exactly at 2001."""
+        worlds_ids = [
+            {"id": 2001, "name": "Boundary World", "population": "High"},
+        ]
+        # wid=2001 is NOT < 2001, so NA should NOT add it
+        matches_data = {"id": "2-1"}
+
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
+                mock_client_instance = mock_client.return_value
+                mock_client_instance.call_api = AsyncMock(return_value=matches_data)
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
+                    await worlds_na(mock_ctx)
+                    embed = mock_send.call_args[0][1]
+                    # 2001 is NOT < 2001, so should not be added to NA embed
+                    assert len(embed.fields) == 0
+
+    @pytest.mark.asyncio
+    async def test_worlds_eu_exact_2001_boundary(self, mock_ctx):
+        """Test worlds_eu does not include world ID exactly at 2001."""
+        worlds_ids = [
+            {"id": 2001, "name": "Boundary World", "population": "High"},
+        ]
+        # wid=2001 is NOT > 2001, so EU should NOT add it
+        matches_data = {"id": "2-1"}
+
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
+                mock_client_instance = mock_client.return_value
+                mock_client_instance.call_api = AsyncMock(return_value=matches_data)
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
+                    await worlds_eu(mock_ctx)
+                    embed = mock_send.call_args[0][1]
+                    # 2001 is NOT > 2001, so should not be added to EU embed
+                    assert len(embed.fields) == 0
 
 
 class TestWorldsSetup:
@@ -914,106 +862,3 @@ class TestWorldsSetup:
         mock_bot.add_cog.assert_called_once()
         cog_instance = mock_bot.add_cog.call_args[0][0]
         assert isinstance(cog_instance, GW2Worlds)
-
-
-class TestSendPaginatedWorldsEmbedEdgeCases:
-    """Additional edge case tests for _send_paginated_worlds_embed (lines 154-155, 177)."""
-
-    @pytest.fixture
-    def mock_ctx(self):
-        """Create a mock command context."""
-        ctx = MagicMock()
-        ctx.bot = MagicMock()
-        ctx.bot.db_session = MagicMock()
-        ctx.bot.log = MagicMock()
-        ctx.bot.settings = {"gw2": {"EmbedColor": 0x00FF00}}
-        ctx.bot.user = MagicMock()
-        ctx.bot.user.mention = "<@bot>"
-        ctx.bot.wait_for = AsyncMock()
-        ctx.message = MagicMock()
-        ctx.message.author = MagicMock()
-        ctx.message.author.id = 12345
-        ctx.message.channel = MagicMock()
-        ctx.message.channel.typing = AsyncMock()
-        ctx.prefix = "!"
-        ctx.guild = MagicMock()
-        ctx.guild.id = 99999
-        ctx.channel = MagicMock(spec=discord.TextChannel)
-        ctx.send = AsyncMock()
-        ctx.author = ctx.message.author
-        return ctx
-
-    def _make_embed_with_fields(self, num_fields, description="Test"):
-        """Helper to create an embed with a given number of fields."""
-        embed = discord.Embed(description=description)
-        for i in range(num_fields):
-            embed.add_field(name=f"World {i}", value=f"Value {i}")
-        return embed
-
-    @pytest.mark.asyncio
-    async def test_single_page_after_split_sends_directly(self, mock_ctx):
-        """Test that when fields split into exactly one page, it sends without reactions (lines 153-155)."""
-        # 26 fields -> split gives: page1=25, page2=1 -> 2 pages
-        # But 25 fields -> split gives 1 page only since len<=25
-        embed = self._make_embed_with_fields(25)
-        await _send_paginated_worlds_embed(mock_ctx, embed)
-        mock_ctx.send.assert_called_once()
-        sent_embed = mock_ctx.send.call_args[1]["embed"]
-        assert len(sent_embed.fields) == 25
-
-    @pytest.mark.asyncio
-    async def test_paginated_26_fields_creates_two_pages(self, mock_ctx):
-        """Test pagination with 26 fields creates exactly 2 pages (lines 153-155)."""
-        embed = self._make_embed_with_fields(26)
-        mock_message = MagicMock()
-        mock_message.add_reaction = AsyncMock()
-        mock_message.clear_reactions = AsyncMock()
-        mock_message.id = 111
-        mock_ctx.send = AsyncMock(return_value=mock_message)
-        mock_ctx.bot.wait_for = AsyncMock(side_effect=asyncio.TimeoutError)
-
-        await _send_paginated_worlds_embed(mock_ctx, embed)
-        # Should send first page
-        sent_embed = mock_ctx.send.call_args[1]["embed"]
-        assert len(sent_embed.fields) == 25
-        assert "Page 1/2" in sent_embed.footer.text
-
-    @pytest.mark.asyncio
-    async def test_worlds_na_exact_2001_boundary(self, mock_ctx):
-        """Test worlds_na does not include world ID exactly at 2001 (line 177 equivalence)."""
-        worlds_ids = [
-            {"id": 2001, "name": "Boundary World", "population": "High"},
-        ]
-        # wid=2001 is NOT < 2001, so NA should NOT add it
-        matches_data = {"id": "2-1"}
-
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
-            mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch('src.gw2.cogs.worlds.Gw2Client') as mock_client:
-                mock_client_instance = mock_client.return_value
-                mock_client_instance.call_api = AsyncMock(return_value=matches_data)
-                with patch('src.gw2.cogs.worlds._send_paginated_worlds_embed', new_callable=AsyncMock) as mock_send:
-                    await worlds_na(mock_ctx)
-                    embed = mock_send.call_args[0][1]
-                    # 2001 is NOT < 2001, so should not be added to NA embed
-                    assert len(embed.fields) == 0
-
-    @pytest.mark.asyncio
-    async def test_worlds_eu_exact_2001_boundary(self, mock_ctx):
-        """Test worlds_eu does not include world ID exactly at 2001 (line 177)."""
-        worlds_ids = [
-            {"id": 2001, "name": "Boundary World", "population": "High"},
-        ]
-        # wid=2001 is NOT > 2001, so EU should NOT add it
-        matches_data = {"id": "2-1"}
-
-        with patch('src.gw2.cogs.worlds.gw2_utils') as mock_utils:
-            mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch('src.gw2.cogs.worlds.Gw2Client') as mock_client:
-                mock_client_instance = mock_client.return_value
-                mock_client_instance.call_api = AsyncMock(return_value=matches_data)
-                with patch('src.gw2.cogs.worlds._send_paginated_worlds_embed', new_callable=AsyncMock) as mock_send:
-                    await worlds_eu(mock_ctx)
-                    embed = mock_send.call_args[0][1]
-                    # 2001 is NOT > 2001, so should not be added to EU embed
-                    assert len(embed.fields) == 0

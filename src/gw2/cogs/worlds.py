@@ -1,4 +1,3 @@
-import asyncio
 import discord
 from discord.ext import commands
 from src.bot.tools import bot_utils, chat_formatting
@@ -9,8 +8,58 @@ from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 
 
+class EmbedPaginatorView(discord.ui.View):
+    """Interactive pagination view for embed pages with Previous/Next buttons."""
+
+    def __init__(self, pages: list[discord.Embed], author_id: int):
+        super().__init__(timeout=300)
+        self.pages = pages
+        self.current_page = 0
+        self.author_id = author_id
+        self.message: discord.Message | None = None
+        self._update_buttons()
+
+    def _update_buttons(self):
+        self.previous_button.disabled = self.current_page == 0
+        self.page_indicator.label = f"{self.current_page + 1}/{len(self.pages)}"
+        self.next_button.disabled = self.current_page == len(self.pages) - 1
+
+    @discord.ui.button(label="\u25c0", style=discord.ButtonStyle.secondary)
+    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.author_id:
+            return await interaction.response.send_message(
+                "Only the command invoker can use these buttons.", ephemeral=True
+            )
+        self.current_page -= 1
+        self._update_buttons()
+        await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+
+    @discord.ui.button(label="1/1", style=discord.ButtonStyle.secondary, disabled=True)
+    async def page_indicator(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+
+    @discord.ui.button(label="\u25b6", style=discord.ButtonStyle.secondary)
+    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.author_id:
+            return await interaction.response.send_message(
+                "Only the command invoker can use these buttons.", ephemeral=True
+            )
+        self.current_page += 1
+        self._update_buttons()
+        await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+
+    async def on_timeout(self):
+        for item in self.children:
+            item.disabled = True
+        try:
+            if self.message:
+                await self.message.edit(view=self)
+        except discord.NotFound, discord.HTTPException:
+            pass
+
+
 class GW2Worlds(GuildWars2):
-    """(Guild Wars 2 List of Worlds Commands)"""
+    """Guild Wars 2 commands for listing worlds and WvW tiers."""
 
     def __init__(self, bot):
         super().__init__(bot)
@@ -18,9 +67,11 @@ class GW2Worlds(GuildWars2):
 
 @GW2Worlds.gw2.group()
 async def worlds(ctx):
-    """(List all worlds)
-    gw2 worlds na
-    gw2 worlds eu
+    """List all Guild Wars 2 worlds by region.
+
+    Available subcommands:
+        gw2 worlds na - List all NA worlds with WvW tier
+        gw2 worlds eu - List all EU worlds with WvW tier
     """
 
     await bot_utils.invoke_subcommand(ctx, "gw2 worlds")
@@ -29,8 +80,10 @@ async def worlds(ctx):
 @worlds.command(name="na")
 @commands.cooldown(1, GW2CoolDowns.Worlds.seconds, commands.BucketType.user)
 async def worlds_na(ctx):
-    """(List all NA worlds and wvw tier)
-    gw2 worlds na
+    """List all North American worlds with WvW tier and population.
+
+    Usage:
+        gw2 worlds na
     """
 
     result, worlds_ids = await gw2_utils.get_worlds_ids(ctx)
@@ -72,8 +125,10 @@ async def worlds_na(ctx):
 @worlds.command(name="eu")
 @commands.cooldown(1, GW2CoolDowns.Worlds.seconds, commands.BucketType.user)
 async def worlds_eu(ctx):
-    """(List all EU worlds and wvw tier)
-    gw2 worlds eu
+    """List all European worlds with WvW tier and population.
+
+    Usage:
+        gw2 worlds eu
     """
 
     result, worlds_ids = await gw2_utils.get_worlds_ids(ctx)
@@ -114,7 +169,7 @@ async def worlds_eu(ctx):
 
 async def _send_paginated_worlds_embed(ctx, embed):
     """
-    Send worlds with pagination using reactions for navigation
+    Send worlds with pagination using buttons for navigation
     """
     max_fields = 25
     color = ctx.bot.settings["gw2"]["EmbedColor"]
@@ -138,80 +193,16 @@ async def _send_paginated_worlds_embed(ctx, embed):
 
         page_number = (i // max_fields) + 1
         total_pages = (total_fields + max_fields - 1) // max_fields
-
-        # Check if we're in a DM for the footer message
-        if isinstance(ctx.channel, discord.DMChannel):
-            footer_text = (
-                f"Page {page_number}/{total_pages} • Use reactions to navigate (reactions won't disappear in DMs)"
-            )
-        else:
-            footer_text = f"Page {page_number}/{total_pages}"
-
-        page_embed.set_footer(text=footer_text)
+        page_embed.set_footer(text=f"Page {page_number}/{total_pages}")
         pages.append(page_embed)
 
     if len(pages) == 1:
         await ctx.send(embed=pages[0])
         return
 
-    # Check if we're in a DM channel
-    is_dm = isinstance(ctx.channel, discord.DMChannel)
-
-    # Send first page with reactions
-    current_page = 0
-    message = await ctx.send(embed=pages[current_page])
-
-    # Add reaction controls with small delays to ensure they're all added
-    try:
-        await message.add_reaction("⬅️")
-        await asyncio.sleep(0.2)
-        await message.add_reaction("➡️")
-        await asyncio.sleep(0.2)
-    except discord.HTTPException as e:
-        ctx.bot.log.error(f"Failed to add pagination reactions: {e}")
-        # Send without pagination if reactions fail
-        await ctx.send(embed=pages[0])
-        return
-
-    def check(react, react_user):
-        return (
-            react_user == ctx.author
-            and react.message.id == message.id
-            and str(react.emoji) in ["⬅️", "➡️"]
-            and not react_user.bot  # Ensure it's not a bot reaction
-        )
-
-    timeout = 60
-
-    try:
-        while True:
-            reaction, user = await ctx.bot.wait_for("reaction_add", timeout=timeout, check=check)
-
-            emoji_str = str(reaction.emoji)
-
-            if emoji_str == "➡️" and current_page < len(pages) - 1:
-                current_page += 1
-                await message.edit(embed=pages[current_page])
-            elif emoji_str == "⬅️" and current_page > 0:
-                current_page -= 1
-                await message.edit(embed=pages[current_page])
-
-            # Remove user's reaction to keep the interface clean (skip in DM channels)
-            if not is_dm:
-                try:
-                    await message.remove_reaction(reaction.emoji, user)
-                except discord.Forbidden, discord.NotFound, discord.HTTPException:
-                    pass  # Silently handle permission issues
-
-    except TimeoutError:
-        pass  # Silently handle timeout
-
-    # Clean up by removing all reactions (skip in DM channels)
-    if not is_dm:
-        try:
-            await message.clear_reactions()
-        except discord.Forbidden:
-            pass  # Silently handle permission issues
+    view = EmbedPaginatorView(pages, ctx.author.id)
+    msg = await ctx.send(embed=pages[0], view=view)
+    view.message = msg
 
 
 async def setup(bot):

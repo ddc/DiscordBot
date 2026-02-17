@@ -162,15 +162,15 @@ class TestGw2Settings:
         settings = Gw2Settings()
 
         cooldown_fields = [
-            'account_cooldown',
-            'api_keys_cooldown',
-            'characters_cooldown',
-            'config_cooldown',
-            'daily_cooldown',
-            'misc_cooldown',
-            'session_cooldown',
-            'worlds_cooldown',
-            'wvw_cooldown',
+            "account_cooldown",
+            "api_keys_cooldown",
+            "characters_cooldown",
+            "config_cooldown",
+            "daily_cooldown",
+            "misc_cooldown",
+            "session_cooldown",
+            "worlds_cooldown",
+            "wvw_cooldown",
         ]
 
         for field in cooldown_fields:
@@ -207,10 +207,10 @@ class TestGetGw2Settings:
         settings = get_gw2_settings()
 
         # Just verify the structure is correct
-        assert hasattr(settings, 'embed_color')
-        assert hasattr(settings, 'api_version')
-        assert hasattr(settings, 'account_cooldown')
-        assert hasattr(settings, 'session_cooldown')
+        assert hasattr(settings, "embed_color")
+        assert hasattr(settings, "api_version")
+        assert hasattr(settings, "account_cooldown")
+        assert hasattr(settings, "session_cooldown")
 
         # Verify types
         assert isinstance(settings.embed_color, (str, type(None)))
