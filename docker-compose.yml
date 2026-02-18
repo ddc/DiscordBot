@@ -31,7 +31,7 @@ services:
     restart: always
     env_file: .env
     volumes:
-        - ${LOG_DIRECTORY}:${LOG_DIRECTORY}
+        - ./logs:${LOG_DIRECTORY}
     networks:
       - postgres_network
     depends_on:
