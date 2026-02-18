@@ -9,7 +9,7 @@ services:
     environment:
       DOCKER_BUILDKIT: 1
     networks:
-      - discordbot_net
+      - postgres_network
     command: ["sh", "-c", "uv run --frozen alembic upgrade head && touch /tmp/alembic_done && sleep infinity"]
     deploy:
       restart_policy:
@@ -33,7 +33,7 @@ services:
     volumes:
         - ${LOG_DIRECTORY}:${LOG_DIRECTORY}
     networks:
-      - discordbot_net
+      - postgres_network
     depends_on:
       discordbot_alembic:
         condition: service_healthy
@@ -43,5 +43,5 @@ services:
     command: ["uv", "run", "--frozen", "python", "-m", "src"]
 
 networks:
-  discordbot_net:
-    name: discordbot_net
+  postgres_network:
+    external: true
