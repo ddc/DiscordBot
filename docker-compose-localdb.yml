@@ -2,7 +2,7 @@ services:
   discordbot_database:
     image: postgres:latest
     container_name: discordbot_database
-    hostname: discordbot_database
+    hostname: postgres
     restart: always
     env_file: .env
     environment:
@@ -18,7 +18,7 @@ services:
     volumes:
         - discordbot_database_data:/var/lib/postgresql:rw
     networks:
-        - discordbot_net
+        - postgres_network
     command: >
       bash -c "
         docker-entrypoint.sh postgres &
@@ -38,5 +38,5 @@ volumes:
     name: "discordbot_database_data"
 
 networks:
-  discordbot_net:
-    name: discordbot_net
+  postgres_network:
+    name: postgres_network

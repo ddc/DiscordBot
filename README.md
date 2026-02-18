@@ -82,8 +82,8 @@ BOT_TOKEN=your_discord_bot_token
 # Optional
 OPENAI_API_KEY=your_openai_api_key
 
-# Database (defaults work with the included docker-compose)
-POSTGRESQL_HOST=discordbot_database
+# Database
+POSTGRESQL_HOST=postgres
 POSTGRESQL_PORT=5432
 POSTGRESQL_USER=postgres
 POSTGRESQL_PASSWORD=postgres
@@ -93,16 +93,23 @@ POSTGRESQL_DATABASE=discordbot
 See [Configuration](#configuration) for all available options.
 
 ### 3. Start the bot
+
+The bot expects an external PostgreSQL instance running on a Docker network named `postgres_network`.
+If you don't have one, you can start a local database using the included compose file:
+```shell
+docker compose -f docker-compose-localdb.yml up -d
+```
+
+Then start the bot:
 ```shell
 sudo systemctl enable docker
-docker-compose up --build -d
+docker compose up --build -d
 ```
 
 This will:
 1. Build the Docker image
-2. Start the PostgreSQL database
-3. Run database migrations automatically
-4. Start the bot
+2. Run database migrations automatically
+3. Start the bot
 
 ### 4. Verify the bot is running
 ```shell
@@ -137,7 +144,7 @@ All configuration is done through environment variables in the `.env` file.
 ### PostgreSQL Settings
 | Variable              | Default               | Description       |
 |:----------------------|:----------------------|:------------------|
-| `POSTGRESQL_HOST`     | `discordbot_database` | Database host     |
+| `POSTGRESQL_HOST`     | `postgres`            | Database host     |
 | `POSTGRESQL_PORT`     | `5432`                | Database port     |
 | `POSTGRESQL_USER`     | `postgres`            | Database user     |
 | `POSTGRESQL_PASSWORD` | `postgres`            | Database password |
