@@ -10,7 +10,7 @@ services:
       DOCKER_BUILDKIT: 1
     networks:
       - postgres_network
-    command: ["sh", "-c", "uv run --frozen alembic upgrade head && touch /tmp/alembic_done && sleep infinity"]
+    command: ["sh", "-c", "uv run --frozen --no-sync alembic upgrade head && touch /tmp/alembic_done && sleep infinity"]
     deploy:
       restart_policy:
         delay: 60s
@@ -40,7 +40,7 @@ services:
     deploy:
       restart_policy:
         delay: 60s
-    command: ["uv", "run", "--frozen", "python", "-m", "src"]
+    command: ["uv", "run", "--frozen", "--no-sync", "python", "-m", "src"]
 
 networks:
   postgres_network:
