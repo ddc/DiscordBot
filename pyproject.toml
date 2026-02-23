@@ -63,7 +63,7 @@ updatedev.sequence = ["linter", {shell = "uv lock --upgrade && uv sync --all-ext
 migration = "uv run --frozen alembic upgrade head"
 
 [tool.pytest.ini_options]
-addopts = "-v --junitxml=junit.xml"
+addopts = "-v --junitxml=junit.xml --import-mode=importlib"
 junit_family = "legacy"
 asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
