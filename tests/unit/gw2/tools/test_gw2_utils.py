@@ -882,6 +882,31 @@ class TestEndSession:
 
                             mock_insert_char.assert_called_once_with(mock_bot, mock_member, "api-key", 42, "end")
 
+    @pytest.mark.asyncio
+    async def test_end_session_no_active_session(self, mock_bot, mock_member):
+        """Test end_session skips insert_session_char when no active session exists."""
+        session_data = {"acc_name": "TestUser.1234", "wvw_rank": 50, "gold": 1000}
+
+        with patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats:
+            mock_stats.return_value = session_data.copy()
+
+            with patch("src.gw2.tools.gw2_utils.bot_utils.convert_datetime_to_str_short") as mock_convert:
+                mock_convert.return_value = "2023-01-01"
+
+                with patch("src.gw2.tools.gw2_utils.bot_utils.get_current_date_time") as mock_time:
+                    mock_time.return_value = datetime(2023, 1, 1, 12, 0, 0)
+
+                    with patch("src.gw2.tools.gw2_utils.Gw2SessionsDal") as mock_session_dal:
+                        mock_instance = mock_session_dal.return_value
+                        mock_instance.update_end_session = AsyncMock(return_value=None)
+
+                        with patch("src.gw2.tools.gw2_utils.insert_session_char") as mock_insert_char:
+                            await end_session(mock_bot, mock_member, "api-key")
+
+                            mock_instance.update_end_session.assert_called_once()
+                            mock_insert_char.assert_not_called()
+                            mock_bot.log.warning.assert_called_once()
+
 
 class TestGetUserStats:
     """Test cases for get_user_stats function."""

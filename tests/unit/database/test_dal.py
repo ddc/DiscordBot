@@ -1120,23 +1120,42 @@ class TestGw2SessionsDal:
 
     @pytest.mark.asyncio
     async def test_update_end_session(self, mock_dal):
-        """Test update_end_session calls execute."""
+        """Test update_end_session fetches session id then calls execute."""
+        mock_dal.db_utils.fetchall.return_value = [{"id": 42}]
         session = {
             "user_id": 67890,
             "gold": 150,
         }
-        await mock_dal.update_end_session(session)
+        result = await mock_dal.update_end_session(session)
+        mock_dal.db_utils.fetchall.assert_called_once()
         mock_dal.db_utils.execute.assert_called_once()
+        assert result == 42
 
     @pytest.mark.asyncio
     async def test_update_end_session_different_user(self, mock_dal):
         """Test update_end_session with different user."""
+        mock_dal.db_utils.fetchall.return_value = [{"id": 99}]
         session = {
             "user_id": 11111,
             "gold": 75,
         }
-        await mock_dal.update_end_session(session)
+        result = await mock_dal.update_end_session(session)
+        mock_dal.db_utils.fetchall.assert_called_once()
         mock_dal.db_utils.execute.assert_called_once()
+        assert result == 99
+
+    @pytest.mark.asyncio
+    async def test_update_end_session_no_session_found(self, mock_dal):
+        """Test update_end_session returns None when no session exists."""
+        mock_dal.db_utils.fetchall.return_value = []
+        session = {
+            "user_id": 67890,
+            "gold": 150,
+        }
+        result = await mock_dal.update_end_session(session)
+        mock_dal.db_utils.fetchall.assert_called_once()
+        mock_dal.db_utils.execute.assert_not_called()
+        assert result is None
 
     @pytest.mark.asyncio
     async def test_get_user_last_session(self, mock_dal):

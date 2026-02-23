@@ -30,6 +30,13 @@ class Gw2SessionsDal:
         return stmt.id
 
     async def update_end_session(self, session: dict):
+        results = await self.db_utils.fetchall(
+            select(Gw2Sessions.id).where(Gw2Sessions.user_id == session["user_id"]),
+            True,
+        )
+        if not results:
+            return None
+
         stmt = (
             sa.update(Gw2Sessions)
             .where(
@@ -38,6 +45,7 @@ class Gw2SessionsDal:
             .values(end=session)
         )
         await self.db_utils.execute(stmt)
+        return results[0]["id"]
 
     async def get_user_last_session(self, user_id: int):
         stmt = select(*self.columns).where(Gw2Sessions.user_id == user_id)
