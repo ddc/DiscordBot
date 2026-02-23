@@ -7,8 +7,8 @@ PROJECT_DIR=/opt/DiscordBot
 pushd "$PROJECT_DIR" > /dev/null
 
 # update project
-git fetch --all
-git reset --hard origin/master
+sudo git fetch --all
+sudo git reset --hard origin/master
 
 # change perms
 sudo chown -R "$PROJECT_USERNAME":"$PROJECT_USERNAME" "$PROJECT_DIR"
