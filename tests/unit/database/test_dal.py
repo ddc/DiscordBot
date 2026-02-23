@@ -866,14 +866,13 @@ class TestGw2KeyDal:
 
     @pytest.mark.asyncio
     async def test_get_api_key_by_name(self, mock_dal):
-        """Test get_api_key_by_name calls fetchall without True."""
+        """Test get_api_key_by_name calls fetchall with True for dict conversion."""
         expected = [{"user_id": 67890, "name": "My Key"}]
         mock_dal.db_utils.fetchall.return_value = expected
         results = await mock_dal.get_api_key_by_name(key_name="My Key")
         mock_dal.db_utils.fetchall.assert_called_once()
-        # get_api_key_by_name does NOT pass True as second argument
         call_args = mock_dal.db_utils.fetchall.call_args
-        assert len(call_args[0]) == 1
+        assert call_args[0][1] is True
         assert results == expected
 
     @pytest.mark.asyncio

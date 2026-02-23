@@ -576,6 +576,8 @@ class TestOnUserUpdate:
         after.display_name = "TestUser"
         after.avatar = MagicMock()
         after.avatar.url = "https://example.com/new_avatar.png"
+        after.display_avatar = MagicMock()
+        after.display_avatar.url = "https://example.com/new_avatar.png"
         after.name = "TestUser"
         after.discriminator = "1234"
 
@@ -615,17 +617,21 @@ class TestOnUserUpdate:
         mock_get_embed.return_value = embed
 
         # Setup before/after with different names
+        # Use the same avatar object so avatar comparison shows no change
+        shared_avatar = MagicMock()
+        shared_avatar.url = "https://example.com/avatar.png"
+
         before = MagicMock()
-        before.avatar = MagicMock()
-        before.avatar.url = "https://example.com/avatar.png"
+        before.avatar = shared_avatar
         before.name = "OldName"
         before.discriminator = "1234"
 
         after = MagicMock()
         after.bot = False
         after.display_name = "NewName"
-        after.avatar = MagicMock()
-        after.avatar.url = "https://example.com/avatar.png"
+        after.avatar = shared_avatar
+        after.display_avatar = MagicMock()
+        after.display_avatar.url = "https://example.com/avatar.png"
         after.name = "NewName"
         after.discriminator = "1234"
 
@@ -665,17 +671,21 @@ class TestOnUserUpdate:
         mock_get_embed.return_value = embed
 
         # Setup before/after with different discriminators
+        # Use the same avatar object so avatar comparison shows no change
+        shared_avatar = MagicMock()
+        shared_avatar.url = "https://example.com/avatar.png"
+
         before = MagicMock()
-        before.avatar = MagicMock()
-        before.avatar.url = "https://example.com/avatar.png"
+        before.avatar = shared_avatar
         before.name = "TestUser"
         before.discriminator = "1234"
 
         after = MagicMock()
         after.bot = False
         after.display_name = "TestUser"
-        after.avatar = MagicMock()
-        after.avatar.url = "https://example.com/avatar.png"
+        after.avatar = shared_avatar
+        after.display_avatar = MagicMock()
+        after.display_avatar.url = "https://example.com/avatar.png"
         after.name = "TestUser"
         after.discriminator = "5678"
 
@@ -715,17 +725,21 @@ class TestOnUserUpdate:
         mock_get_embed.return_value = embed
 
         # Setup before/after with identical values
+        # Use the same avatar object so before.avatar == after.avatar is True
+        shared_avatar = MagicMock()
+        shared_avatar.url = "https://example.com/avatar.png"
+
         before = MagicMock()
-        before.avatar = MagicMock()
-        before.avatar.url = "https://example.com/avatar.png"
+        before.avatar = shared_avatar
         before.name = "TestUser"
         before.discriminator = "1234"
 
         after = MagicMock()
         after.bot = False
         after.display_name = "TestUser"
-        after.avatar = MagicMock()
-        after.avatar.url = "https://example.com/avatar.png"
+        after.avatar = shared_avatar
+        after.display_avatar = MagicMock()
+        after.display_avatar.url = "https://example.com/avatar.png"
         after.name = "TestUser"
         after.discriminator = "1234"
 

@@ -168,7 +168,7 @@ class TestOpenAi:
         call_args = mock_client.chat.completions.create.call_args
 
         assert call_args[1]["model"] == "gpt-3.5-turbo"
-        assert call_args[1]["max_tokens"] == 1000
+        assert call_args[1]["max_completion_tokens"] == 1000
         assert call_args[1]["temperature"] == pytest.approx(0.7)
 
         # Verify message types and content
@@ -345,7 +345,7 @@ class TestOpenAi:
         await openai_cog._get_ai_response("Test message")
 
         call_args = mock_client.chat.completions.create.call_args[1]
-        assert call_args["max_tokens"] == 1000
+        assert call_args["max_completion_tokens"] == 1000
         assert call_args["temperature"] == pytest.approx(0.7)
         assert call_args["model"] == "gpt-3.5-turbo"
 

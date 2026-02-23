@@ -96,7 +96,7 @@ class TestBotSettings:
             assert settings.admin_cooldown == 35
 
             # Default values for non-overridden fields
-            assert settings.openai_model == "gpt-4o-mini"
+            assert settings.openai_model == "gpt-5.2"
             # Note: openai_api_key might have a value from actual env, so we'll check it's set
             assert settings.embed_color == "green"
             assert settings.config_cooldown == 20

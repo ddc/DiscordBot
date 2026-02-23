@@ -120,7 +120,7 @@ async def send_embed(ctx, embed, dm=False):
         if not embed.color:
             embed.color = ctx.bot.settings["bot"]["EmbedColor"]
         if not embed.author:
-            embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
+            embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.display_avatar.url)
 
         if is_private_message(ctx):
             # Already in DM, just send the embed

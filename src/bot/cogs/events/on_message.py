@@ -77,7 +77,7 @@ class ProfanityFilter:
 
         # Send censorship notification
         embed = discord.Embed(title="", color=discord.Color.red(), description=messages.MESSAGE_CENSURED)
-        embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
+        embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.display_avatar.url)
 
         try:
             await ctx.message.channel.send(embed=embed)
@@ -161,7 +161,7 @@ class CustomReactionHandler:
         await message.channel.typing()
         description = f"{messages.BOT_REACT_EMOJIS}\n{chat_formatting.inline(response)}"
         embed = discord.Embed(color=discord.Color.red(), description=description)
-        embed.set_author(name=message.author.display_name, icon_url=message.author.avatar.url)
+        embed.set_author(name=message.author.display_name, icon_url=message.author.display_avatar.url)
         await message.channel.send(embed=embed)
 
 
@@ -311,7 +311,7 @@ class ServerMessageHandler:
             color=discord.Color.red(),
             description=chat_formatting.error_inline(message_text),
         )
-        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.display_avatar.url)
 
         # Try to send DM, fall back to channel, then mention
         try:

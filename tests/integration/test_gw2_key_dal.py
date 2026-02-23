@@ -40,6 +40,8 @@ async def test_get_api_key_by_name(db_session, log):
     await dal.insert_api_key(_make_key_args())
     results = await dal.get_api_key_by_name("Main Key")
     assert len(results) == 1
+    assert isinstance(results[0], dict)
+    assert results[0]["name"] == "Main Key"
 
 
 async def test_update_api_key(db_session, log):
