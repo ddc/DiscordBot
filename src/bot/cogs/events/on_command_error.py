@@ -154,7 +154,9 @@ class Errors(commands.Cog):
             await handler(context, should_log)
 
     @staticmethod
-    async def _send_error_message(ctx: commands.Context, error_msg: str, should_log: bool) -> None:
+    async def _send_error_message(
+        ctx: commands.Context, error_msg: str, should_log: bool, original_error: Exception | None = None
+    ) -> None:
         """Send an error message to user and optionally log it."""
         await bot_utils.send_error_msg(ctx, error_msg)
         if should_log:
@@ -162,6 +164,8 @@ class Errors(commands.Cog):
             if ctx.guild is not None:
                 log_msg += f"(Server[{ctx.guild.name}:{ctx.guild.id}])"
             log_msg += f"(Channel[{ctx.message.channel}:{ctx.message.channel.id}])"
+            if original_error is not None:
+                log_msg += f"(Error[{original_error}])"
             ctx.bot.log.error(log_msg)
 
     async def _handle_no_private_message(self, context: ErrorContext, should_log: bool) -> None:
@@ -206,7 +210,8 @@ class Errors(commands.Cog):
     async def _handle_command_invoke_error(self, context: ErrorContext, should_log: bool) -> None:
         """Handle CommandInvokeError."""
         error_msg = self.message_builder.build_command_invoke_error(context)
-        await self._send_error_message(context.ctx, error_msg, should_log)
+        original = getattr(context.error, "original", context.error)
+        await self._send_error_message(context.ctx, error_msg, should_log, original)
 
     async def _handle_command_on_cooldown(self, context: ErrorContext, should_log: bool) -> None:
         """Handle CommandOnCooldown error."""

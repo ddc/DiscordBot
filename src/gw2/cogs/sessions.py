@@ -19,6 +19,7 @@ class GW2Session(GuildWars2):
 
 
 @GW2Session.gw2.command()
+@commands.guild_only()
 @commands.cooldown(1, GW2CoolDowns.Session.seconds, commands.BucketType.user)
 async def session(ctx):
     """Display information about your last Guild Wars 2 game session.
@@ -87,7 +88,7 @@ async def session(ctx):
     rs_start = rs_session[0]["start"]
     rs_end = rs_session[0]["end"]
 
-    if rs_end["date"] is None:
+    if rs_end is None or rs_end.get("date") is None:
         return await bot_utils.send_error_msg(ctx, gw2_messages.SESSION_SAVE_ERROR, True)
 
     await ctx.message.channel.typing()
@@ -108,7 +109,7 @@ async def session(ctx):
     embed = discord.Embed(color=color)
     embed.set_author(
         name=f"{ctx.message.author.display_name}'s {gw2_messages.SESSION_TITLE} ({rs_start['date'].split()[0]})",
-        icon_url=ctx.message.author.avatar.url,
+        icon_url=ctx.message.author.display_avatar.url,
     )
     embed.add_field(name=gw2_messages.ACCOUNT_NAME, value=chat_formatting.inline(acc_name))
     embed.add_field(name=gw2_messages.SERVER, value=chat_formatting.inline(gw2_server))
