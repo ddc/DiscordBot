@@ -93,7 +93,6 @@ class ErrorMessageBuilder:
         """Build message for command invoke error."""
         error_conditions = {
             ("Cannot send messages to this user", "status code: 403"): messages.DIRECT_MESSAGES_DISABLED,
-            ("AttributeError",): f"{messages.COMMAND_ERROR}: `{context.command}`",
             ("Missing Permissions",): f"{messages.NO_PERMISSION_EXECUTE_COMMAND}: `{context.command}`",
             (
                 "NoOptionError",
@@ -111,7 +110,7 @@ class ErrorMessageBuilder:
                 base_msg = message
                 break
         else:
-            base_msg = f"{messages.COMMAND_INTERNAL_ERROR}: `{context.command}`"
+            base_msg = f"{messages.COMMAND_ERROR}: `{context.command}`\n{context.error_msg}"
 
         return f"{base_msg}\n{messages.HELP_COMMAND_MORE_INFO}: `{context.help_command}`"
 

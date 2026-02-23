@@ -625,14 +625,14 @@ class TestSessionCommand:
             }
         ]
 
-        chars_start = {
-            "char1": {"name": "TestChar", "profession": "Warrior", "deaths": 10},
-            "char2": {"name": "TestChar2", "profession": "Ranger", "deaths": 5},
-        }
-        chars_end = {
-            "char1": {"name": "TestChar", "profession": "Warrior", "deaths": 15},
-            "char2": {"name": "TestChar2", "profession": "Ranger", "deaths": 5},  # No change
-        }
+        chars_start = [
+            {"name": "TestChar", "profession": "Warrior", "deaths": 10},
+            {"name": "TestChar2", "profession": "Ranger", "deaths": 5},
+        ]
+        chars_end = [
+            {"name": "TestChar", "profession": "Warrior", "deaths": 15},
+            {"name": "TestChar2", "profession": "Ranger", "deaths": 5},  # No change
+        ]
 
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value

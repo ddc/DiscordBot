@@ -137,8 +137,8 @@ async def session(ctx):
         prof_names = ""
         total_deaths = 0
 
-        for _, char_start in rs_chars_start.items():
-            for _, char_end in rs_chars_end.items():
+        for char_start in rs_chars_start:
+            for char_end in rs_chars_end:
                 if char_start["name"] == char_end["name"]:
                     if char_start["deaths"] != char_end["deaths"]:
                         name = char_start["name"]
