@@ -2,7 +2,15 @@
 
 import discord
 import pytest
-from src.gw2.cogs.sessions import GW2Session, session, setup
+from src.gw2.cogs.sessions import (
+    GW2Session,
+    _add_deaths_field,
+    _add_gold_field,
+    _add_wallet_currency_fields,
+    _add_wvw_stats,
+    session,
+    setup,
+)
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
@@ -33,6 +41,44 @@ class TestGW2Session:
         from src.gw2.cogs.gw2 import GuildWars2
 
         assert isinstance(gw2_session_cog, GuildWars2)
+
+
+def _make_session_data(start_overrides=None, end_overrides=None):
+    """Helper to create session data with defaults."""
+    base_stats = {
+        "date": "2024-01-15 10:00:00",
+        "age": 5000000,
+        "gold": 100000,
+        "karma": 50000,
+        "laurels": 100,
+        "wvw_rank": 500,
+        "yaks": 10,
+        "yaks_scorted": 5,
+        "players": 20,
+        "keeps": 2,
+        "towers": 5,
+        "camps": 10,
+        "castles": 1,
+        "wvw_tickets": 100,
+        "proof_heroics": 50,
+        "badges_honor": 200,
+        "guild_commendations": 30,
+        "spirit_shards": 100,
+        "transmutation_charges": 50,
+        "volatile_magic": 1000,
+        "unbound_magic": 500,
+        "gems": 0,
+    }
+    end_stats = {
+        "date": "2024-01-15 12:30:00",
+        "age": 5009000,
+        **{k: v for k, v in base_stats.items() if k not in ("date", "age")},
+    }
+    if start_overrides:
+        base_stats.update(start_overrides)
+    if end_overrides:
+        end_stats.update(end_overrides)
+    return [{"acc_name": "TestUser.1234", "start": base_stats, "end": end_stats}]
 
 
 class TestSessionCommand:
@@ -76,48 +122,28 @@ class TestSessionCommand:
 
     @pytest.fixture
     def sample_session_data(self):
-        """Create sample session data."""
-        return [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 150000,
-                    "karma": 55000,
-                    "laurels": 105,
-                    "wvw_rank": 502,
-                    "yaks": 15,
-                    "yaks_scorted": 8,
-                    "players": 35,
-                    "keeps": 4,
-                    "towers": 8,
-                    "camps": 15,
-                    "castles": 2,
-                    "wvw_tickets": 120,
-                    "proof_heroics": 60,
-                    "badges_honor": 230,
-                    "guild_commendations": 35,
-                },
-            }
-        ]
+        """Create sample session data with all stats changed."""
+        return _make_session_data(
+            end_overrides={
+                "gold": 150000,
+                "karma": 55000,
+                "laurels": 105,
+                "wvw_rank": 502,
+                "yaks": 15,
+                "yaks_scorted": 8,
+                "players": 35,
+                "keeps": 4,
+                "towers": 8,
+                "camps": 15,
+                "castles": 2,
+                "wvw_tickets": 120,
+                "proof_heroics": 60,
+                "badges_honor": 230,
+                "guild_commendations": 35,
+                "spirit_shards": 110,
+                "volatile_magic": 1200,
+            },
+        )
 
     @pytest.fixture
     def sample_time_passed(self):
@@ -132,170 +158,136 @@ class TestSessionCommand:
         time_obj.timedelta = "2:30:00"
         return time_obj
 
+    def _run_session(self, mock_ctx, sample_api_key_data, session_data, sample_time_passed, extra_patches=None):
+        """Helper that sets up all patches for a successful session command call.
+        Returns a context manager dict with mock references."""
+        import contextlib
+
+        class SessionRunner:
+            def __init__(self):
+                self.mock_send = None
+                self.mock_chars_dal = None
+                self.mock_end_session = None
+
+            @contextlib.asynccontextmanager
+            async def run(self_runner):
+                with (
+                    patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal,
+                    patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs,
+                    patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal,
+                    patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short", side_effect=lambda x: x),
+                    patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed", return_value=sample_time_passed),
+                    patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal_class,
+                    patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send,
+                    patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"),
+                ):
+                    mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
+                    mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
+                    mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=session_data)
+                    mock_chars_dal_class.return_value.get_all_start_characters = AsyncMock(return_value=None)
+                    mock_chars_dal_class.return_value.get_all_end_characters = AsyncMock(return_value=None)
+
+                    self_runner.mock_send = mock_send
+                    self_runner.mock_chars_dal = mock_chars_dal_class.return_value
+
+                    yield self_runner
+
+        return SessionRunner()
+
+    # === Error path tests ===
+
     @pytest.mark.asyncio
     async def test_session_no_api_key(self, mock_ctx):
         """Test session command when user has no API key."""
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
-
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=None)
             with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                 await session(mock_ctx)
-
                 mock_error.assert_called_once()
-                error_msg = mock_error.call_args[0][1]
-                assert "You dont have an API key registered" in error_msg
+                assert "You dont have an API key registered" in mock_error.call_args[0][1]
 
     @pytest.mark.asyncio
     async def test_session_not_active_in_config(self, mock_ctx, sample_api_key_data):
         """Test session command when session is not active in server config."""
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
             with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": False}])
-
+                mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": False}])
                 with patch("src.gw2.cogs.sessions.bot_utils.send_warning_msg") as mock_warning:
                     await session(mock_ctx)
-
                     mock_warning.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_session_not_active_empty_config(self, mock_ctx, sample_api_key_data):
         """Test session command when server config is empty."""
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
             with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[])
-
+                mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[])
                 with patch("src.gw2.cogs.sessions.bot_utils.send_warning_msg") as mock_warning:
                     await session(mock_ctx)
-
                     mock_warning.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_session_missing_all_permissions(self, mock_ctx):
         """Test session command when all required permissions are missing."""
-        api_key_no_perms = [
-            {
-                "key": "test-api-key-12345",
-                "server": "Anvil Rock",
-                "permissions": "guilds,pvp",
-            }
-        ]
-
+        api_key_no_perms = [{"key": "test-api-key", "server": "Anvil Rock", "permissions": "guilds,pvp"}]
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=api_key_no_perms)
-
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_no_perms)
             with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
+                mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
                 with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                     await session(mock_ctx)
-
                     mock_error.assert_called_once()
-                    error_msg = mock_error.call_args[0][1]
-                    assert "permissions" in error_msg.lower()
+                    assert "permissions" in mock_error.call_args[0][1].lower()
 
     @pytest.mark.asyncio
     async def test_session_has_some_permissions_not_all_missing(self, mock_ctx):
         """Test session command when some but not all permissions are present (should pass)."""
-        api_key_some_perms = [
-            {
-                "key": "test-api-key-12345",
-                "server": "Anvil Rock",
-                "permissions": "account,guilds",  # Only account present, missing wallet/progression/characters
-            }
-        ]
-
+        api_key_some_perms = [{"key": "test-api-key", "server": "Anvil Rock", "permissions": "account,guilds"}]
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=api_key_some_perms)
-
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_some_perms)
             with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
+                mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
                 with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=None)
-
+                    mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=None)
                     with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                         await session(mock_ctx)
-
-                        # Should not error on permissions since at least one is present
-                        # Should error on no session found instead
                         mock_error.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_session_no_session_found(self, mock_ctx, sample_api_key_data):
         """Test session command when no session records are found."""
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
             with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
+                mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
                 with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=None)
-
+                    mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=None)
                     with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                         await session(mock_ctx)
-
                         mock_error.assert_called_once()
-                        # Second arg is the message, third is True for dm
                         assert mock_error.call_args[0][2] is True
 
     @pytest.mark.asyncio
     async def test_session_end_date_is_none(self, mock_ctx, sample_api_key_data):
         """Test session command when session end date is None."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {"date": "2024-01-15 10:00:00"},
-                "end": {"date": None},
-            }
-        ]
-
+        session_data = [{"acc_name": "TestUser.1234", "start": {"date": "2024-01-15 10:00:00"}, "end": {"date": None}}]
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
             with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
+                mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
                 with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
+                    mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=session_data)
                     with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                         await session(mock_ctx)
-
                         mock_error.assert_called_once()
                         assert mock_error.call_args[0][2] is True
 
     @pytest.mark.asyncio
     async def test_session_time_passed_less_than_one_minute(self, mock_ctx, sample_api_key_data):
         """Test session command when time passed is less than 1 minute."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {"date": "2024-01-15 10:00:00"},
-                "end": {"date": "2024-01-15 10:00:30"},
-            }
-        ]
-
+        session_data = _make_session_data(end_overrides={"date": "2024-01-15 10:00:30"})
         from src.gw2.tools.gw2_utils import TimeObject
 
         time_obj = TimeObject()
@@ -304,1510 +296,436 @@ class TestSessionCommand:
         time_obj.seconds = 30
 
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
             with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
+                mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
                 with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = time_obj
-
+                    mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=session_data)
+                    with patch(
+                        "src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short", side_effect=lambda x: x
+                    ):
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed", return_value=time_obj):
                             with patch("src.gw2.cogs.sessions.gw2_utils.send_msg") as mock_send_msg:
                                 await session(mock_ctx)
-
                                 mock_send_msg.assert_called_once()
                                 msg = mock_send_msg.call_args[0][1]
                                 assert "still updating" in msg.lower() or "Bot still updating" in msg
 
+    # === Playtime tests ===
+
+    @pytest.mark.asyncio
+    async def test_session_play_time_from_api_age(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test that play time uses API age difference when available."""
+        session_data = _make_session_data(
+            start_overrides={"age": 5000000},
+            end_overrides={"age": 5009000},
+        )
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            play_time_field = next((f for f in embed.fields if f.name == "Play time"), None)
+            assert play_time_field is not None
+            assert "2h 30m" in play_time_field.value
+
+    @pytest.mark.asyncio
+    async def test_session_play_time_fallback_when_no_age(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test that play time falls back to timedelta when age is 0/missing."""
+        session_data = _make_session_data(
+            start_overrides={"age": 0},
+            end_overrides={"age": 0},
+        )
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            play_time_field = next((f for f in embed.fields if f.name == "Play time"), None)
+            assert play_time_field is not None
+            assert "2:30:00" in play_time_field.value
+
+    # === Gold tests ===
+
     @pytest.mark.asyncio
     async def test_session_gold_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command when gold is gained (positive)."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 150000,  # Gained 50000
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
-
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.gw2_utils.format_gold") as mock_format:
-                                mock_format.return_value = "5g 00s 00c"
-
-                                with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                    mock_chars_instance = mock_chars_dal.return_value
-                                    mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                    with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                        with patch(
-                                            "src.gw2.cogs.sessions.chat_formatting.inline",
-                                            side_effect=lambda x: f"`{x}`",
-                                        ):
-                                            await session(mock_ctx)
-
-                                            mock_send.assert_called_once()
-                                            embed = mock_send.call_args[0][1]
-                                            gold_field = next(
-                                                (f for f in embed.fields if f.name == "Gained gold"), None
-                                            )
-                                            assert gold_field is not None
-                                            assert "+" in gold_field.value
+        session_data = _make_session_data(end_overrides={"gold": 150000})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            with patch("src.gw2.cogs.sessions.gw2_utils.format_gold", return_value="5 Gold 00 Silver 00 Copper"):
+                await session(mock_ctx)
+                embed = r.mock_send.call_args[0][1]
+                gold_field = next((f for f in embed.fields if f.name == "Gained Gold"), None)
+                assert gold_field is not None
+                assert "+" in gold_field.value
 
     @pytest.mark.asyncio
     async def test_session_gold_lost(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command when gold is lost (negative)."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 150000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,  # Lost 50000
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
-
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.gw2_utils.format_gold") as mock_format:
-                                mock_format.return_value = "5g 00s 00c"
-
-                                with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                    mock_chars_instance = mock_chars_dal.return_value
-                                    mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                    with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                        with patch(
-                                            "src.gw2.cogs.sessions.chat_formatting.inline",
-                                            side_effect=lambda x: f"`{x}`",
-                                        ):
-                                            await session(mock_ctx)
-
-                                            mock_send.assert_called_once()
-                                            embed = mock_send.call_args[0][1]
-                                            gold_field = next((f for f in embed.fields if f.name == "Lost gold"), None)
-                                            assert gold_field is not None
+        session_data = _make_session_data(start_overrides={"gold": 150000}, end_overrides={"gold": 100000})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            with patch("src.gw2.cogs.sessions.gw2_utils.format_gold", return_value="5 Gold 00 Silver 00 Copper"):
+                await session(mock_ctx)
+                embed = r.mock_send.call_args[0][1]
+                gold_field = next((f for f in embed.fields if f.name == "Lost Gold"), None)
+                assert gold_field is not None
 
     @pytest.mark.asyncio
     async def test_session_gold_lost_with_leading_dash(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command when gold is lost and formatted gold starts with dash."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 150000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
+        session_data = _make_session_data(start_overrides={"gold": 150000}, end_overrides={"gold": 100000})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            with patch("src.gw2.cogs.sessions.gw2_utils.format_gold", return_value="-5 Gold 00 Silver 00 Copper"):
+                await session(mock_ctx)
+                embed = r.mock_send.call_args[0][1]
+                gold_field = next((f for f in embed.fields if f.name == "Lost Gold"), None)
+                assert gold_field is not None
+                assert "--" not in gold_field.value
 
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.gw2_utils.format_gold") as mock_format:
-                                # Formatted gold already starts with dash
-                                mock_format.return_value = "-5g 00s 00c"
-
-                                with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                    mock_chars_instance = mock_chars_dal.return_value
-                                    mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                    with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                        with patch(
-                                            "src.gw2.cogs.sessions.chat_formatting.inline",
-                                            side_effect=lambda x: f"`{x}`",
-                                        ):
-                                            await session(mock_ctx)
-
-                                            mock_send.assert_called_once()
-                                            embed = mock_send.call_args[0][1]
-                                            gold_field = next((f for f in embed.fields if f.name == "Lost gold"), None)
-                                            assert gold_field is not None
-                                            # Should not have double dash
-                                            assert "--" not in gold_field.value
+    # === Deaths tests ===
 
     @pytest.mark.asyncio
     async def test_session_characters_with_deaths(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command with character deaths."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
-
+        session_data = _make_session_data()
         chars_start = [
             {"name": "TestChar", "profession": "Warrior", "deaths": 10},
             {"name": "TestChar2", "profession": "Ranger", "deaths": 5},
         ]
         chars_end = [
             {"name": "TestChar", "profession": "Warrior", "deaths": 15},
-            {"name": "TestChar2", "profession": "Ranger", "deaths": 5},  # No change
+            {"name": "TestChar2", "profession": "Ranger", "deaths": 5},
         ]
-
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=chars_start)
-                                mock_chars_instance.get_all_end_characters = AsyncMock(return_value=chars_end)
-
-                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                    with patch(
-                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
-                                    ):
-                                        await session(mock_ctx)
-
-                                        mock_send.assert_called_once()
-                                        embed = mock_send.call_args[0][1]
-                                        deaths_field = next(
-                                            (f for f in embed.fields if f.name == "Times you died"), None
-                                        )
-                                        assert deaths_field is not None
-                                        assert "Warrior" in deaths_field.value
-                                        assert "TestChar" in deaths_field.value
-                                        assert "Total:5" in deaths_field.value
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            r.mock_chars_dal.get_all_start_characters = AsyncMock(return_value=chars_start)
+            r.mock_chars_dal.get_all_end_characters = AsyncMock(return_value=chars_end)
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            deaths_field = next((f for f in embed.fields if f.name == "Times you died"), None)
+            assert deaths_field is not None
+            assert "Warrior" in deaths_field.value
+            assert "TestChar" in deaths_field.value
+            assert "Total:5" in deaths_field.value
 
     @pytest.mark.asyncio
-    async def test_session_karma_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
-        """Test session command when karma is gained."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 55000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
-
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                    with patch(
-                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
-                                    ):
-                                        await session(mock_ctx)
-
-                                        embed = mock_send.call_args[0][1]
-                                        karma_field = next((f for f in embed.fields if f.name == "Gained karma"), None)
-                                        assert karma_field is not None
+    async def test_session_no_deaths_when_unchanged(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test session command shows no deaths field when deaths unchanged."""
+        session_data = _make_session_data()
+        chars_start = [{"name": "TestChar", "profession": "Warrior", "deaths": 10}]
+        chars_end = [{"name": "TestChar", "profession": "Warrior", "deaths": 10}]
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            r.mock_chars_dal.get_all_start_characters = AsyncMock(return_value=chars_start)
+            r.mock_chars_dal.get_all_end_characters = AsyncMock(return_value=chars_end)
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            deaths_field = next((f for f in embed.fields if f.name == "Times you died"), None)
+            assert deaths_field is None
 
     @pytest.mark.asyncio
-    async def test_session_karma_lost(self, mock_ctx, sample_api_key_data, sample_time_passed):
-        """Test session command when karma is lost."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 55000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
+    async def test_session_multiple_character_deaths(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test session command with multiple characters dying."""
+        session_data = _make_session_data()
+        chars_start = [
+            {"name": "Char1", "profession": "Warrior", "deaths": 10},
+            {"name": "Char2", "profession": "Mesmer", "deaths": 5},
         ]
-
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                    with patch(
-                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
-                                    ):
-                                        await session(mock_ctx)
-
-                                        embed = mock_send.call_args[0][1]
-                                        karma_field = next((f for f in embed.fields if f.name == "Lost karma"), None)
-                                        assert karma_field is not None
-
-    @pytest.mark.asyncio
-    async def test_session_laurels_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
-        """Test session command when laurels are gained."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 105,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
+        chars_end = [
+            {"name": "Char1", "profession": "Warrior", "deaths": 13},
+            {"name": "Char2", "profession": "Mesmer", "deaths": 8},
         ]
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            r.mock_chars_dal.get_all_start_characters = AsyncMock(return_value=chars_start)
+            r.mock_chars_dal.get_all_end_characters = AsyncMock(return_value=chars_end)
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            deaths_field = next((f for f in embed.fields if f.name == "Times you died"), None)
+            assert deaths_field is not None
+            assert "Total:6" in deaths_field.value
+            assert "Warrior" in deaths_field.value
+            assert "Mesmer" in deaths_field.value
 
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                    with patch(
-                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
-                                    ):
-                                        await session(mock_ctx)
-
-                                        embed = mock_send.call_args[0][1]
-                                        laurels_field = next(
-                                            (f for f in embed.fields if f.name == "Gained laurels"), None
-                                        )
-                                        assert laurels_field is not None
+    # === WvW stats tests ===
 
     @pytest.mark.asyncio
     async def test_session_wvw_rank_change(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command when WvW rank changes."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 502,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
-
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                    with patch(
-                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
-                                    ):
-                                        await session(mock_ctx)
-
-                                        embed = mock_send.call_args[0][1]
-                                        wvw_rank_field = next(
-                                            (f for f in embed.fields if f.name == "Gained wvw ranks"), None
-                                        )
-                                        assert wvw_rank_field is not None
-                                        assert "2" in wvw_rank_field.value
+        session_data = _make_session_data(end_overrides={"wvw_rank": 502})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            wvw_field = next((f for f in embed.fields if f.name == "Gained WvW ranks"), None)
+            assert wvw_field is not None
+            assert "2" in wvw_field.value
 
     @pytest.mark.asyncio
     async def test_session_all_wvw_stats(self, mock_ctx, sample_api_key_data, sample_session_data, sample_time_passed):
-        """Test session command with all WvW stats changed (yaks, players, keeps, towers, camps, castles)."""
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
+        """Test session command with all WvW stats changed."""
+        runner = self._run_session(mock_ctx, sample_api_key_data, sample_session_data, sample_time_passed)
+        async with runner.run() as r:
+            with patch("src.gw2.cogs.sessions.gw2_utils.format_gold", return_value="5 Gold"):
+                await session(mock_ctx)
+                embed = r.mock_send.call_args[0][1]
+                field_names = [f.name for f in embed.fields]
+                assert "Yaks killed" in field_names
+                assert "Yaks escorted" in field_names
+                assert "Players killed" in field_names
+                assert "Keeps captured" in field_names
+                assert "Towers captured" in field_names
+                assert "Camps captured" in field_names
+                assert "SMC captured" in field_names
 
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
+    # === Wallet currency tests ===
 
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=sample_session_data)
+    @pytest.mark.asyncio
+    async def test_session_karma_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test session command when karma is gained."""
+        session_data = _make_session_data(end_overrides={"karma": 55000})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            karma_field = next((f for f in embed.fields if f.name == "Gained Karma"), None)
+            assert karma_field is not None
 
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
+    @pytest.mark.asyncio
+    async def test_session_karma_lost(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test session command when karma is lost."""
+        session_data = _make_session_data(start_overrides={"karma": 55000}, end_overrides={"karma": 50000})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            karma_field = next((f for f in embed.fields if f.name == "Lost Karma"), None)
+            assert karma_field is not None
 
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
+    @pytest.mark.asyncio
+    async def test_session_laurels_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test session command when laurels are gained."""
+        session_data = _make_session_data(end_overrides={"laurels": 105})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            field = next((f for f in embed.fields if f.name == "Gained Laurels"), None)
+            assert field is not None
 
-                            with patch("src.gw2.cogs.sessions.gw2_utils.format_gold") as mock_format:
-                                mock_format.return_value = "5g 00s 00c"
-
-                                with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                    mock_chars_instance = mock_chars_dal.return_value
-                                    mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                    with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                        with patch(
-                                            "src.gw2.cogs.sessions.chat_formatting.inline",
-                                            side_effect=lambda x: f"`{x}`",
-                                        ):
-                                            await session(mock_ctx)
-
-                                            embed = mock_send.call_args[0][1]
-                                            field_names = [f.name for f in embed.fields]
-                                            assert "Yaks killed" in field_names
-                                            assert "Yaks scorted" in field_names
-                                            assert "Players killed" in field_names
-                                            assert "Keeps captured" in field_names
-                                            assert "Towers captured" in field_names
-                                            assert "Camps captured" in field_names
-                                            assert "SMC captured" in field_names
+    @pytest.mark.asyncio
+    async def test_session_laurels_lost(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test session command when laurels are lost."""
+        session_data = _make_session_data(start_overrides={"laurels": 105}, end_overrides={"laurels": 100})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            field = next((f for f in embed.fields if f.name == "Lost Laurels"), None)
+            assert field is not None
 
     @pytest.mark.asyncio
     async def test_session_wvw_tickets_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command when WvW tickets are gained."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 120,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
-
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                    with patch(
-                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
-                                    ):
-                                        await session(mock_ctx)
-
-                                        embed = mock_send.call_args[0][1]
-                                        tickets_field = next(
-                                            (f for f in embed.fields if f.name == "Gained wvw tickets"), None
-                                        )
-                                        assert tickets_field is not None
+        session_data = _make_session_data(end_overrides={"wvw_tickets": 120})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            field = next((f for f in embed.fields if f.name == "Gained WvW Skirmish Tickets"), None)
+            assert field is not None
 
     @pytest.mark.asyncio
     async def test_session_wvw_tickets_lost(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command when WvW tickets are lost."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 120,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
-
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                    with patch(
-                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
-                                    ):
-                                        await session(mock_ctx)
-
-                                        embed = mock_send.call_args[0][1]
-                                        tickets_field = next(
-                                            (f for f in embed.fields if f.name == "Lost wvw tickets"), None
-                                        )
-                                        assert tickets_field is not None
+        session_data = _make_session_data(start_overrides={"wvw_tickets": 120}, end_overrides={"wvw_tickets": 100})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            field = next((f for f in embed.fields if f.name == "Lost WvW Skirmish Tickets"), None)
+            assert field is not None
 
     @pytest.mark.asyncio
     async def test_session_proof_heroics_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command when proof of heroics are gained."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 60,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
-
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                    with patch(
-                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
-                                    ):
-                                        await session(mock_ctx)
-
-                                        embed = mock_send.call_args[0][1]
-                                        heroics_field = next(
-                                            (f for f in embed.fields if f.name == "Gained proof heroics"), None
-                                        )
-                                        assert heroics_field is not None
+        session_data = _make_session_data(end_overrides={"proof_heroics": 60})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            field = next((f for f in embed.fields if f.name == "Gained Proof of Heroics"), None)
+            assert field is not None
 
     @pytest.mark.asyncio
     async def test_session_badges_honor_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command when badges of honor are gained."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 230,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
-
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                    with patch(
-                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
-                                    ):
-                                        await session(mock_ctx)
-
-                                        embed = mock_send.call_args[0][1]
-                                        badges_field = next(
-                                            (f for f in embed.fields if f.name == "Gained badges of honor"), None
-                                        )
-                                        assert badges_field is not None
+        session_data = _make_session_data(end_overrides={"badges_honor": 230})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            field = next((f for f in embed.fields if f.name == "Gained Badges of Honor"), None)
+            assert field is not None
 
     @pytest.mark.asyncio
     async def test_session_guild_commendations_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command when guild commendations are gained."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 35,
-                },
-            }
-        ]
+        session_data = _make_session_data(end_overrides={"guild_commendations": 35})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            field = next((f for f in embed.fields if f.name == "Gained Guild Commendations"), None)
+            assert field is not None
 
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
+    # === New currency tests ===
 
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
+    @pytest.mark.asyncio
+    async def test_session_spirit_shards_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test session command when spirit shards are gained."""
+        session_data = _make_session_data(end_overrides={"spirit_shards": 110})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            field = next((f for f in embed.fields if f.name == "Gained Spirit Shards"), None)
+            assert field is not None
+            assert "+10" in field.value
 
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
+    @pytest.mark.asyncio
+    async def test_session_volatile_magic_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test session command when volatile magic is gained."""
+        session_data = _make_session_data(end_overrides={"volatile_magic": 1200})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            field = next((f for f in embed.fields if f.name == "Gained Volatile Magic"), None)
+            assert field is not None
+            assert "+200" in field.value
 
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
+    @pytest.mark.asyncio
+    async def test_session_unbound_magic_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test session command when unbound magic is gained."""
+        session_data = _make_session_data(end_overrides={"unbound_magic": 700})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            field = next((f for f in embed.fields if f.name == "Gained Unbound Magic"), None)
+            assert field is not None
+            assert "+200" in field.value
 
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
+    @pytest.mark.asyncio
+    async def test_session_transmutation_charges_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test session command when transmutation charges are gained."""
+        session_data = _make_session_data(end_overrides={"transmutation_charges": 55})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            field = next((f for f in embed.fields if f.name == "Gained Transmutation Charges"), None)
+            assert field is not None
+            assert "+5" in field.value
 
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
+    @pytest.mark.asyncio
+    async def test_session_currency_lost(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test session command when a currency is lost (negative diff)."""
+        session_data = _make_session_data(start_overrides={"spirit_shards": 110}, end_overrides={"spirit_shards": 100})
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            field = next((f for f in embed.fields if f.name == "Lost Spirit Shards"), None)
+            assert field is not None
+            assert "-10" in field.value
 
-                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                    with patch(
-                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
-                                    ):
-                                        await session(mock_ctx)
+    @pytest.mark.asyncio
+    async def test_session_no_currency_field_when_unchanged(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test that no currency field is added when values are unchanged."""
+        session_data = _make_session_data()  # All values same between start/end
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            field_names = [f.name for f in embed.fields]
+            # Only basic fields should be present
+            assert "Account Name" in field_names
+            assert "Server" in field_names
+            assert "Play time" in field_names
+            # No gained/lost fields
+            gained_lost = [n for n in field_names if "Gained" in n or "Lost" in n]
+            assert len(gained_lost) == 0
 
-                                        embed = mock_send.call_args[0][1]
-                                        commendations_field = next(
-                                            (f for f in embed.fields if f.name == "Gained guild commendations"), None
-                                        )
-                                        assert commendations_field is not None
+    # === Still playing / DM tests ===
 
     @pytest.mark.asyncio
     async def test_session_still_playing_gw2(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command when user is still playing GW2."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
-
-        # Set up activity
+        session_data = _make_session_data()
         mock_ctx.message.author.activity = MagicMock()
         mock_ctx.message.author.activity.name = "Guild Wars 2"
-        mock_ctx.channel = MagicMock(spec=discord.TextChannel)  # Not a DMChannel
+        mock_ctx.channel = MagicMock(spec=discord.TextChannel)
 
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                with patch(
-                                    "src.gw2.cogs.sessions.gw2_utils.end_session", new_callable=AsyncMock
-                                ) as mock_end_session:
-                                    with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                        with patch(
-                                            "src.gw2.cogs.sessions.chat_formatting.inline",
-                                            side_effect=lambda x: f"`{x}`",
-                                        ):
-                                            await session(mock_ctx)
-
-                                            mock_end_session.assert_called_once()
-                                            mock_ctx.send.assert_called_once()
-                                            still_playing_msg = mock_ctx.send.call_args[0][0]
-                                            assert "playing Guild Wars 2" in still_playing_msg
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            with patch("src.gw2.cogs.sessions.gw2_utils.end_session", new_callable=AsyncMock) as mock_end_session:
+                await session(mock_ctx)
+                mock_end_session.assert_called_once()
+                mock_ctx.send.assert_called_once()
+                assert "playing Guild Wars 2" in mock_ctx.send.call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_session_not_playing_gw2_no_activity(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command when user has no activity (not playing)."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
-
+        session_data = _make_session_data()
         mock_ctx.message.author.activity = None
 
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                with patch(
-                                    "src.gw2.cogs.sessions.gw2_utils.end_session", new_callable=AsyncMock
-                                ) as mock_end_session:
-                                    with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                        with patch(
-                                            "src.gw2.cogs.sessions.chat_formatting.inline",
-                                            side_effect=lambda x: f"`{x}`",
-                                        ):
-                                            await session(mock_ctx)
-
-                                            # end_session should NOT be called
-                                            mock_end_session.assert_not_called()
-                                            mock_ctx.send.assert_not_called()
-                                            mock_send.assert_called_once()
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            with patch("src.gw2.cogs.sessions.gw2_utils.end_session", new_callable=AsyncMock) as mock_end_session:
+                await session(mock_ctx)
+                mock_end_session.assert_not_called()
+                mock_ctx.send.assert_not_called()
+                r.mock_send.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_session_dm_channel_no_still_playing(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command in DM channel does not trigger still playing message."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
-
-        # Set channel to DMChannel
+        session_data = _make_session_data()
         mock_ctx.channel = MagicMock(spec=discord.DMChannel)
         mock_ctx.message.author.activity = MagicMock()
         mock_ctx.message.author.activity.name = "Guild Wars 2"
 
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            with patch("src.gw2.cogs.sessions.gw2_utils.end_session", new_callable=AsyncMock) as mock_end_session:
+                await session(mock_ctx)
+                mock_end_session.assert_not_called()
+                r.mock_send.assert_called_once()
 
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                with patch(
-                                    "src.gw2.cogs.sessions.gw2_utils.end_session", new_callable=AsyncMock
-                                ) as mock_end_session:
-                                    with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                        with patch(
-                                            "src.gw2.cogs.sessions.chat_formatting.inline",
-                                            side_effect=lambda x: f"`{x}`",
-                                        ):
-                                            await session(mock_ctx)
-
-                                            # In DM channel, end_session should NOT be called
-                                            mock_end_session.assert_not_called()
-                                            mock_send.assert_called_once()
+    # === Basic embed tests ===
 
     @pytest.mark.asyncio
     async def test_session_successful_embed_basic_fields(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command sends embed with basic fields."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
-
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
-
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
-
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
-
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
-
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
-
-                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                    with patch(
-                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
-                                    ):
-                                        await session(mock_ctx)
-
-                                        mock_send.assert_called_once()
-                                        embed = mock_send.call_args[0][1]
-                                        field_names = [f.name for f in embed.fields]
-                                        assert "Account Name" in field_names
-                                        assert "Server" in field_names
-                                        assert "Total played time" in field_names
+        session_data = _make_session_data()
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            r.mock_send.assert_called_once()
+            embed = r.mock_send.call_args[0][1]
+            field_names = [f.name for f in embed.fields]
+            assert "Account Name" in field_names
+            assert "Server" in field_names
+            assert "Play time" in field_names
 
     @pytest.mark.asyncio
     async def test_session_time_passed_exactly_one_minute(self, mock_ctx, sample_api_key_data):
         """Test session command when time passed is exactly 1 minute (should proceed)."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 10:01:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
-
+        session_data = _make_session_data(end_overrides={"date": "2024-01-15 10:01:00"})
         from src.gw2.tools.gw2_utils import TimeObject
 
         time_obj = TimeObject()
@@ -1816,115 +734,160 @@ class TestSessionCommand:
         time_obj.seconds = 0
         time_obj.timedelta = "0:01:00"
 
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, time_obj)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            r.mock_send.assert_called_once()
 
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
 
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
+class TestAddGoldField:
+    """Test the _add_gold_field helper function."""
 
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
+    def test_gold_gained(self):
+        embed = discord.Embed()
+        with patch("src.gw2.cogs.sessions.gw2_utils.format_gold", return_value="5 Gold"):
+            with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
+                _add_gold_field(embed, {"gold": 100}, {"gold": 200})
+                assert len(embed.fields) == 1
+                assert embed.fields[0].name == "Gained Gold"
 
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = time_obj
+    def test_gold_lost(self):
+        embed = discord.Embed()
+        with patch("src.gw2.cogs.sessions.gw2_utils.format_gold", return_value="5 Gold"):
+            with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
+                _add_gold_field(embed, {"gold": 200}, {"gold": 100})
+                assert len(embed.fields) == 1
+                assert embed.fields[0].name == "Lost Gold"
 
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
+    def test_gold_unchanged(self):
+        embed = discord.Embed()
+        _add_gold_field(embed, {"gold": 100}, {"gold": 100})
+        assert len(embed.fields) == 0
 
-                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                    with patch(
-                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
-                                    ):
-                                        await session(mock_ctx)
+    def test_gold_missing_defaults_to_zero(self):
+        embed = discord.Embed()
+        _add_gold_field(embed, {}, {})
+        assert len(embed.fields) == 0
 
-                                        # Should proceed normally since minutes >= 1
-                                        mock_send.assert_called_once()
 
-    @pytest.mark.asyncio
-    async def test_session_laurels_lost(self, mock_ctx, sample_api_key_data, sample_time_passed):
-        """Test session command when laurels are lost."""
-        session_data = [
-            {
-                "acc_name": "TestUser.1234",
-                "start": {
-                    "date": "2024-01-15 10:00:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 105,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-                "end": {
-                    "date": "2024-01-15 12:30:00",
-                    "gold": 100000,
-                    "karma": 50000,
-                    "laurels": 100,
-                    "wvw_rank": 500,
-                    "yaks": 10,
-                    "yaks_scorted": 5,
-                    "players": 20,
-                    "keeps": 2,
-                    "towers": 5,
-                    "camps": 10,
-                    "castles": 1,
-                    "wvw_tickets": 100,
-                    "proof_heroics": 50,
-                    "badges_honor": 200,
-                    "guild_commendations": 30,
-                },
-            }
-        ]
+class TestAddDeathsField:
+    """Test the _add_deaths_field helper function."""
 
-        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
-            mock_instance = mock_dal.return_value
-            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
+    def test_deaths_changed(self):
+        embed = discord.Embed()
+        start = [{"name": "Char1", "profession": "Warrior", "deaths": 10}]
+        end = [{"name": "Char1", "profession": "Warrior", "deaths": 15}]
+        with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
+            _add_deaths_field(embed, start, end)
+            assert len(embed.fields) == 1
+            assert "Total:5" in embed.fields[0].value
 
-            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
-                mock_configs_instance = mock_configs.return_value
-                mock_configs_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
+    def test_no_deaths(self):
+        embed = discord.Embed()
+        start = [{"name": "Char1", "profession": "Warrior", "deaths": 10}]
+        end = [{"name": "Char1", "profession": "Warrior", "deaths": 10}]
+        _add_deaths_field(embed, start, end)
+        assert len(embed.fields) == 0
 
-                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    mock_sessions_instance = mock_sessions_dal.return_value
-                    mock_sessions_instance.get_user_last_session = AsyncMock(return_value=session_data)
+    def test_empty_end_chars(self):
+        embed = discord.Embed()
+        start = [{"name": "Char1", "profession": "Warrior", "deaths": 10}]
+        _add_deaths_field(embed, start, [])
+        assert len(embed.fields) == 0
 
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short") as mock_convert:
-                        mock_convert.side_effect = lambda x: x
+    def test_none_end_chars(self):
+        embed = discord.Embed()
+        start = [{"name": "Char1", "profession": "Warrior", "deaths": 10}]
+        _add_deaths_field(embed, start, None)
+        assert len(embed.fields) == 0
 
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed") as mock_time:
-                            mock_time.return_value = sample_time_passed
 
-                            with patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal:
-                                mock_chars_instance = mock_chars_dal.return_value
-                                mock_chars_instance.get_all_start_characters = AsyncMock(return_value=None)
+class TestAddWvwStats:
+    """Test the _add_wvw_stats helper function."""
 
-                                with patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send:
-                                    with patch(
-                                        "src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"
-                                    ):
-                                        await session(mock_ctx)
+    def test_all_stats_changed(self):
+        embed = discord.Embed()
+        start = {
+            "wvw_rank": 10,
+            "yaks": 5,
+            "yaks_scorted": 3,
+            "players": 10,
+            "keeps": 1,
+            "towers": 2,
+            "camps": 3,
+            "castles": 0,
+        }
+        end = {
+            "wvw_rank": 12,
+            "yaks": 8,
+            "yaks_scorted": 5,
+            "players": 15,
+            "keeps": 3,
+            "towers": 4,
+            "camps": 6,
+            "castles": 1,
+        }
+        with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
+            _add_wvw_stats(embed, start, end)
+            assert len(embed.fields) == 8
 
-                                        embed = mock_send.call_args[0][1]
-                                        laurels_field = next(
-                                            (f for f in embed.fields if f.name == "Lost laurels"), None
-                                        )
-                                        assert laurels_field is not None
+    def test_no_stats_changed(self):
+        embed = discord.Embed()
+        stats = {
+            "wvw_rank": 10,
+            "yaks": 5,
+            "yaks_scorted": 3,
+            "players": 10,
+            "keeps": 1,
+            "towers": 2,
+            "camps": 3,
+            "castles": 0,
+        }
+        _add_wvw_stats(embed, stats, stats)
+        assert len(embed.fields) == 0
+
+    def test_missing_keys_default_to_zero(self):
+        embed = discord.Embed()
+        _add_wvw_stats(embed, {}, {})
+        assert len(embed.fields) == 0
+
+
+class TestAddWalletCurrencyFields:
+    """Test the _add_wallet_currency_fields helper function."""
+
+    def test_currency_gained(self):
+        embed = discord.Embed()
+        start = {"karma": 100, "laurels": 10}
+        end = {"karma": 200, "laurels": 15}
+        with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
+            _add_wallet_currency_fields(embed, start, end)
+            field_names = [f.name for f in embed.fields]
+            assert "Gained Karma" in field_names
+            assert "Gained Laurels" in field_names
+
+    def test_currency_lost(self):
+        embed = discord.Embed()
+        start = {"karma": 200}
+        end = {"karma": 100}
+        with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
+            _add_wallet_currency_fields(embed, start, end)
+            field = next((f for f in embed.fields if f.name == "Lost Karma"), None)
+            assert field is not None
+            assert "-100" in field.value
+
+    def test_gold_is_skipped(self):
+        embed = discord.Embed()
+        start = {"gold": 100}
+        end = {"gold": 200}
+        _add_wallet_currency_fields(embed, start, end)
+        assert len(embed.fields) == 0
+
+    def test_no_change(self):
+        embed = discord.Embed()
+        start = {"karma": 100}
+        end = {"karma": 100}
+        _add_wallet_currency_fields(embed, start, end)
+        assert len(embed.fields) == 0
 
 
 class TestSessionSetup:
@@ -1941,9 +904,7 @@ class TestSessionSetup:
         mock_bot = MagicMock()
         mock_bot.remove_command = MagicMock()
         mock_bot.add_cog = AsyncMock()
-
         await setup(mock_bot)
-
         mock_bot.remove_command.assert_called_once_with("gw2")
 
     @pytest.mark.asyncio
@@ -1952,9 +913,7 @@ class TestSessionSetup:
         mock_bot = MagicMock()
         mock_bot.remove_command = MagicMock()
         mock_bot.add_cog = AsyncMock()
-
         await setup(mock_bot)
-
         mock_bot.add_cog.assert_called_once()
         cog_instance = mock_bot.add_cog.call_args[0][0]
         assert isinstance(cog_instance, GW2Session)

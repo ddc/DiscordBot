@@ -168,12 +168,14 @@ async def test_session_start_end_lifecycle(db_session, log):
     assert session["end"]["gold"] == 120000
     assert session["end"]["karma"] == 55000
 
-    # NOTE: End character insertion fails due to UniqueConstraint("name") on
-    # gw2_session_chars — start chars already occupy those names.  The code
-    # catches the IntegrityError silently (logged as error).  This is a known
-    # schema limitation; start chars are still queryable.
+    # Migration 0011 dropped the unique constraint on name, so end chars
+    # can now be inserted alongside start chars for the same character name.
     end_chars = await chars_dal.get_all_end_characters(USER_ID)
-    assert len(end_chars) == 0  # blocked by unique constraint on name
+    assert len(end_chars) == 2
+    end_char_names = {c["name"] for c in end_chars}
+    assert end_char_names == {"Warrior Prime", "Thief Shadow"}
+    end_warrior = next(c for c in end_chars if c["name"] == "Warrior Prime")
+    assert end_warrior["deaths"] == 45
 
 
 async def test_end_session_without_start_is_noop(db_session, log):

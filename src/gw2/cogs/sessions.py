@@ -7,6 +7,7 @@ from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
 from src.gw2.cogs.gw2 import GuildWars2
 from src.gw2.constants import gw2_messages
+from src.gw2.constants.gw2_currencies import WALLET_DISPLAY_NAMES
 from src.gw2.tools import gw2_utils
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 
@@ -113,107 +114,32 @@ async def session(ctx):
     )
     embed.add_field(name=gw2_messages.ACCOUNT_NAME, value=chat_formatting.inline(acc_name))
     embed.add_field(name=gw2_messages.SERVER, value=chat_formatting.inline(gw2_server))
-    embed.add_field(name=gw2_messages.TOTAL_PLAYED_TIME, value=chat_formatting.inline(str(time_passed.timedelta)))
 
-    if rs_start["gold"] != rs_end["gold"]:
-        full_gold = str(rs_end["gold"] - rs_start["gold"])
-        formatted_gold = gw2_utils.format_gold(full_gold)
-        if int(full_gold) > 0:
-            embed.add_field(
-                name=gw2_messages.GAINED_GOLD,
-                value=chat_formatting.inline(f"+{formatted_gold}"),
-                inline=False,
-            )
-        elif int(full_gold) < 0:
-            final_result = f"{formatted_gold}"
-            if formatted_gold[0] != "-":
-                final_result = f"-{formatted_gold}"
-            embed.add_field(name=gw2_messages.LOST_GOLD, value=chat_formatting.inline(str(final_result)), inline=False)
+    # Play time from API age (actual in-game time)
+    start_age = rs_start.get("age", 0)
+    end_age = rs_end.get("age", 0)
+    play_time_seconds = end_age - start_age
+    if play_time_seconds > 0:
+        play_time_str = gw2_utils.format_seconds_to_time(play_time_seconds)
+    else:
+        play_time_str = str(time_passed.timedelta)
+    embed.add_field(name=gw2_messages.PLAY_TIME, value=chat_formatting.inline(play_time_str))
 
+    # Gold (special formatting)
+    _add_gold_field(embed, rs_start, rs_end)
+
+    # Deaths
     gw2_session_chars_dal = Gw2SessionCharsDal(ctx.bot.db_session, ctx.bot.log)
     rs_chars_start = await gw2_session_chars_dal.get_all_start_characters(user_id)
     if rs_chars_start:
         rs_chars_end = await gw2_session_chars_dal.get_all_end_characters(user_id)
-        prof_names = ""
-        total_deaths = 0
+        _add_deaths_field(embed, rs_chars_start, rs_chars_end)
 
-        for char_start in rs_chars_start:
-            for char_end in rs_chars_end:
-                if char_start["name"] == char_end["name"]:
-                    if char_start["deaths"] != char_end["deaths"]:
-                        name = char_start["name"]
-                        profession = char_start["profession"]
-                        time_deaths = int(char_end["deaths"]) - int(char_start["deaths"])
-                        total_deaths += time_deaths
-                        prof_names += f"({profession}:{name}:{time_deaths})"
+    # WvW achievement-based stats
+    _add_wvw_stats(embed, rs_start, rs_end)
 
-        if len(prof_names) > 0:
-            deaths_msg = f"{prof_names} [Total:{total_deaths}]"
-            embed.add_field(name=gw2_messages.TIMES_YOU_DIED, value=chat_formatting.inline(deaths_msg), inline=False)
-
-    if rs_start["karma"] != rs_end["karma"]:
-        final_result = str(rs_end["karma"] - rs_start["karma"])
-        field_name = gw2_messages.GAINED_KARMA if int(final_result) > 0 else gw2_messages.LOST_KARMA
-        embed.add_field(name=field_name, value=chat_formatting.inline(f"+{final_result}"))
-
-    if rs_start["laurels"] != rs_end["laurels"]:
-        final_result = str(rs_end["laurels"] - rs_start["laurels"])
-        field_name = gw2_messages.GAINED_LAURElS if int(final_result) > 0 else gw2_messages.LOST_LAURElS
-        embed.add_field(name=field_name, value=chat_formatting.inline(f"+{final_result}"))
-
-    if rs_start["wvw_rank"] != rs_end["wvw_rank"]:
-        final_result = str(rs_end["wvw_rank"] - rs_start["wvw_rank"])
-        embed.add_field(name=gw2_messages.GAINED_WVW_RANKS, value=chat_formatting.inline(str(final_result)))
-
-    if rs_start["yaks"] != rs_end["yaks"]:
-        final_result = str(rs_end["yaks"] - rs_start["yaks"])
-        embed.add_field(name=gw2_messages.YAKS_KILLED, value=chat_formatting.inline(str(final_result)))
-
-    if rs_start["yaks_scorted"] != rs_end["yaks_scorted"]:
-        final_result = str(rs_end["yaks_scorted"] - rs_start["yaks_scorted"])
-        embed.add_field(name=gw2_messages.YAKS_SCORTED, value=chat_formatting.inline(str(final_result)))
-
-    if rs_start["players"] != rs_end["players"]:
-        final_result = str(rs_end["players"] - rs_start["players"])
-        embed.add_field(name=gw2_messages.PLAYERS_KILLED, value=chat_formatting.inline(str(final_result)))
-
-    if rs_start["keeps"] != rs_end["keeps"]:
-        final_result = str(rs_end["keeps"] - rs_start["keeps"])
-        embed.add_field(name=gw2_messages.KEEPS_CAPTURED, value=chat_formatting.inline(str(final_result)))
-
-    if rs_start["towers"] != rs_end["towers"]:
-        final_result = str(rs_end["towers"] - rs_start["towers"])
-        embed.add_field(name=gw2_messages.TOWERS_CAPTURED, value=chat_formatting.inline(str(final_result)))
-
-    if rs_start["camps"] != rs_end["camps"]:
-        final_result = str(rs_end["camps"] - rs_start["camps"])
-        embed.add_field(name=gw2_messages.CAMPS_CAPTURED, value=chat_formatting.inline(str(final_result)))
-
-    if rs_start["castles"] != rs_end["castles"]:
-        final_result = str(rs_end["castles"] - rs_start["castles"])
-        embed.add_field(name=gw2_messages.SMC_CAPTURED, value=chat_formatting.inline(str(final_result)))
-
-    if rs_start["wvw_tickets"] != rs_end["wvw_tickets"]:
-        final_result = str(rs_end["wvw_tickets"] - rs_start["wvw_tickets"])
-        field_name = gw2_messages.GAINED_WVW_TICKETS if int(final_result) > 0 else gw2_messages.LOST_WVW_TICKETS
-        embed.add_field(name=field_name, value=chat_formatting.inline(f"+{final_result}"))
-
-    if rs_start["proof_heroics"] != rs_end["proof_heroics"]:
-        final_result = str(rs_end["proof_heroics"] - rs_start["proof_heroics"])
-        field_name = gw2_messages.GAINED_PROOF_HEROICS if int(final_result) > 0 else gw2_messages.LOST_PROOF_HEROICS
-        embed.add_field(name=field_name, value=chat_formatting.inline(f"+{final_result}"))
-
-    if rs_start["badges_honor"] != rs_end["badges_honor"]:
-        final_result = str(rs_end["badges_honor"] - rs_start["badges_honor"])
-        field_name = gw2_messages.GAINED_BADGES_HONOR if int(final_result) > 0 else gw2_messages.LOST_BADGES_HONOR
-        embed.add_field(name=field_name, value=chat_formatting.inline(f"+{final_result}"))
-
-    if rs_start["guild_commendations"] != rs_end["guild_commendations"]:
-        final_result = str(rs_end["guild_commendations"] - rs_start["guild_commendations"])
-        field_name = (
-            gw2_messages.GAINED_GUILD_COMMENDATIONS if int(final_result) > 0 else gw2_messages.LOST_GUILD_COMMENDATIONS
-        )
-        embed.add_field(name=field_name, value=chat_formatting.inline(f"+{final_result}"))
+    # All wallet currencies (except gold, handled above)
+    _add_wallet_currency_fields(embed, rs_start, rs_end)
 
     if (
         not (isinstance(ctx.channel, discord.DMChannel))
@@ -228,6 +154,87 @@ async def session(ctx):
 
     await bot_utils.send_embed(ctx, embed)
     return None
+
+
+def _add_gold_field(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
+    """Add gold gained/lost field to embed."""
+    start_gold = rs_start.get("gold", 0)
+    end_gold = rs_end.get("gold", 0)
+    if start_gold != end_gold:
+        diff = end_gold - start_gold
+        full_gold = str(diff)
+        formatted_gold = gw2_utils.format_gold(full_gold)
+        if diff > 0:
+            embed.add_field(
+                name="Gained Gold",
+                value=chat_formatting.inline(f"+{formatted_gold}"),
+                inline=False,
+            )
+        elif diff < 0:
+            final_result = f"{formatted_gold}"
+            if formatted_gold[0] != "-":
+                final_result = f"-{formatted_gold}"
+            embed.add_field(name="Lost Gold", value=chat_formatting.inline(str(final_result)), inline=False)
+
+
+def _add_deaths_field(embed: discord.Embed, rs_chars_start: list[dict], rs_chars_end: list[dict]) -> None:
+    """Add deaths field to embed."""
+    if not rs_chars_end:
+        return
+
+    prof_names = ""
+    total_deaths = 0
+
+    for char_start in rs_chars_start:
+        for char_end in rs_chars_end:
+            if char_start["name"] == char_end["name"]:
+                if char_start["deaths"] != char_end["deaths"]:
+                    name = char_start["name"]
+                    profession = char_start["profession"]
+                    time_deaths = int(char_end["deaths"]) - int(char_start["deaths"])
+                    total_deaths += time_deaths
+                    prof_names += f"({profession}:{name}:{time_deaths})"
+
+    if len(prof_names) > 0:
+        deaths_msg = f"{prof_names} [Total:{total_deaths}]"
+        embed.add_field(name=gw2_messages.TIMES_YOU_DIED, value=chat_formatting.inline(deaths_msg), inline=False)
+
+
+def _add_wvw_stats(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
+    """Add WvW achievement-based stats to embed."""
+    wvw_fields = [
+        ("wvw_rank", gw2_messages.GAINED_WVW_RANKS),
+        ("yaks", gw2_messages.YAKS_KILLED),
+        ("yaks_scorted", gw2_messages.YAKS_SCORTED),
+        ("players", gw2_messages.PLAYERS_KILLED),
+        ("keeps", gw2_messages.KEEPS_CAPTURED),
+        ("towers", gw2_messages.TOWERS_CAPTURED),
+        ("camps", gw2_messages.CAMPS_CAPTURED),
+        ("castles", gw2_messages.SMC_CAPTURED),
+    ]
+
+    for stat_key, field_name in wvw_fields:
+        start_val = rs_start.get(stat_key, 0)
+        end_val = rs_end.get(stat_key, 0)
+        if start_val != end_val:
+            diff = end_val - start_val
+            embed.add_field(name=field_name, value=chat_formatting.inline(str(diff)))
+
+
+def _add_wallet_currency_fields(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
+    """Add wallet currency fields to embed (all except gold, which has special formatting)."""
+    for stat_key, display_name in WALLET_DISPLAY_NAMES.items():
+        if stat_key == "gold":
+            continue
+
+        start_val = rs_start.get(stat_key, 0)
+        end_val = rs_end.get(stat_key, 0)
+        if start_val != end_val:
+            diff = end_val - start_val
+            if diff > 0:
+                embed.add_field(name=f"Gained {display_name}", value=chat_formatting.inline(f"+{diff}"))
+            else:
+                embed.add_field(name=f"Lost {display_name}", value=chat_formatting.inline(str(diff)))
 
 
 async def setup(bot):

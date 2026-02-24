@@ -41,7 +41,7 @@ class Gw2SessionChars(BotBase):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     session_id: Mapped[int] = mapped_column(BigInteger, ForeignKey(Gw2Sessions.id))
     user_id: Mapped[int] = mapped_column(BigInteger)
-    name: Mapped[str] = mapped_column(unique=True)
+    name: Mapped[str] = mapped_column()
     profession: Mapped[str] = mapped_column()
     deaths: Mapped[int] = mapped_column()
     start: Mapped[Boolean] = mapped_column(Boolean)

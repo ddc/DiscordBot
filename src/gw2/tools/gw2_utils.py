@@ -22,6 +22,7 @@ from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
 from src.gw2.constants import gw2_messages
+from src.gw2.constants.gw2_currencies import ACHIEVEMENT_MAPPING, WALLET_MAPPING
 from src.gw2.constants.gw2_teams import get_team_name, is_wr_team_id
 from src.gw2.tools.gw2_client import Gw2Client
 
@@ -372,17 +373,10 @@ async def get_user_stats(bot: Bot, api_key: str) -> dict | None:
 def _create_initial_user_stats(account_data: dict) -> dict:
     """Create initial user stats structure."""
     wvw_rank = account_data.get("wvw", {}).get("rank") or account_data.get("wvw_rank", 0)
-    return {
+    stats = {
         "acc_name": account_data["name"],
+        "age": account_data.get("age", 0),
         "wvw_rank": wvw_rank,
-        "gold": 0,
-        "karma": 0,
-        "laurels": 0,
-        "badges_honor": 0,
-        "guild_commendations": 0,
-        "wvw_tickets": 0,
-        "proof_heroics": 0,
-        "test_heroics": 0,
         "players": 0,
         "yaks_scorted": 0,
         "yaks": 0,
@@ -391,46 +385,26 @@ def _create_initial_user_stats(account_data: dict) -> dict:
         "towers": 0,
         "keeps": 0,
     }
+    for key in WALLET_MAPPING.values():
+        stats[key] = 0
+    return stats
 
 
 def _update_wallet_stats(user_stats: dict, wallet_data: list[dict]) -> None:
     """Update user stats with wallet information."""
-    # Mapping of wallet IDs to stat names
-    wallet_mapping = {
-        1: "gold",
-        2: "karma",
-        3: "laurels",
-        15: "badges_honor",
-        16: "guild_commendations",
-        26: "wvw_tickets",
-        31: "proof_heroics",
-        36: "test_heroics",
-    }
-
     for wallet_item in wallet_data:
         wallet_id = wallet_item["id"]
-        if wallet_id in wallet_mapping:
-            stat_name = wallet_mapping[wallet_id]
+        if wallet_id in WALLET_MAPPING:
+            stat_name = WALLET_MAPPING[wallet_id]
             user_stats[stat_name] = wallet_item["value"]
 
 
 def _update_achievement_stats(user_stats: dict, achievements_data: list[dict]) -> None:
     """Update user stats with achievement information."""
-    # Mapping of achievement IDs to stat names
-    achievement_mapping = {
-        283: "players",
-        285: "yaks_scorted",
-        288: "yaks",
-        291: "camps",
-        294: "castles",
-        297: "towers",
-        300: "keeps",
-    }
-
     for achievement in achievements_data:
         achievement_id = achievement["id"]
-        if achievement_id in achievement_mapping:
-            stat_name = achievement_mapping[achievement_id]
+        if achievement_id in ACHIEVEMENT_MAPPING:
+            stat_name = ACHIEVEMENT_MAPPING[achievement_id]
             user_stats[stat_name] = achievement.get("current", 0)
 
 
@@ -585,6 +559,28 @@ def get_time_passed(start_time: datetime, end_time: datetime) -> TimeObject:
     """Calculate time passed between two datetime objects."""
     time_passed_delta = end_time - start_time
     return convert_timedelta_to_obj(time_passed_delta)
+
+
+def format_seconds_to_time(total_seconds: int) -> str:
+    """Format seconds into a human-readable time string (e.g. '2h 30m 15s')."""
+    if total_seconds <= 0:
+        return "0s"
+
+    days = total_seconds // 86400
+    hours = (total_seconds % 86400) // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+
+    parts = []
+    if days > 0:
+        parts.append(f"{days}d")
+    if hours > 0:
+        parts.append(f"{hours}h")
+    if minutes > 0:
+        parts.append(f"{minutes}m")
+    if seconds > 0 or not parts:
+        parts.append(f"{seconds}s")
+    return " ".join(parts)
 
 
 def convert_timedelta_to_obj(time_delta: timedelta) -> TimeObject:
