@@ -434,7 +434,8 @@ class TestBuildCommandInvokeErrorElse:
         context.error_msg = "Some completely unrelated error that matches nothing"
 
         result = ErrorMessageBuilder.build_command_invoke_error(context)
-        assert f"{messages.COMMAND_INTERNAL_ERROR}: `!testcommand`" in result
+        assert f"{messages.COMMAND_ERROR}: `!testcommand`" in result
+        assert "Some completely unrelated error that matches nothing" in result
         assert f"{messages.HELP_COMMAND_MORE_INFO}: `!help testcommand`" in result
 
     def test_build_command_invoke_error_attribute_error(self, mock_ctx, mock_error):
@@ -444,6 +445,7 @@ class TestBuildCommandInvokeErrorElse:
 
         result = ErrorMessageBuilder.build_command_invoke_error(context)
         assert f"{messages.COMMAND_ERROR}: `!testcommand`" in result
+        assert "AttributeError" in result
 
     def test_build_command_invoke_error_missing_permissions(self, mock_ctx, mock_error):
         """Test build_command_invoke_error with Missing Permissions."""
@@ -581,7 +583,7 @@ class TestOnCommandErrorEventHandler:
 
         mock_send_error.assert_called_once()
         call_msg = mock_send_error.call_args[0][1]
-        assert messages.COMMAND_INTERNAL_ERROR in call_msg
+        assert messages.COMMAND_ERROR in call_msg
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
@@ -770,7 +772,7 @@ class TestHandleCommandInvokeError:
         mock_send_error.assert_called_once()
         call_args = mock_send_error.call_args[0]
         assert call_args[0] == mock_ctx
-        assert messages.COMMAND_INTERNAL_ERROR in call_args[1]
+        assert messages.COMMAND_ERROR in call_args[1]
         assert call_args[2] is True
 
 

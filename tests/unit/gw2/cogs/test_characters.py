@@ -49,12 +49,16 @@ class TestCharactersCommand:
         ctx.bot.user = MagicMock()
         ctx.bot.user.avatar = MagicMock()
         ctx.bot.user.avatar.url = "https://example.com/bot_avatar.png"
+        ctx.bot.user.display_avatar = MagicMock()
+        ctx.bot.user.display_avatar.url = "https://example.com/bot_avatar.png"
         ctx.message = MagicMock()
         ctx.message.author = MagicMock()
         ctx.message.author.id = 12345
         ctx.message.author.display_name = "TestUser"
         ctx.message.author.avatar = MagicMock()
         ctx.message.author.avatar.url = "https://example.com/avatar.png"
+        ctx.message.author.display_avatar = MagicMock()
+        ctx.message.author.display_avatar.url = "https://example.com/avatar.png"
         ctx.message.channel = MagicMock()
         ctx.message.channel.typing = AsyncMock()
         ctx.prefix = "!"
@@ -352,6 +356,48 @@ class TestCharactersCommand:
                         assert embed.thumbnail.url == "https://example.com/avatar.png"
                         assert embed.author.name == "TestUser"
                         assert embed.author.icon_url == "https://example.com/avatar.png"
+
+    @pytest.mark.asyncio
+    async def test_characters_author_no_avatar(self, mock_ctx, sample_api_key_data, sample_account_data):
+        """Test characters command does not crash when author has no custom avatar."""
+        mock_ctx.message.author.avatar = None
+        mock_ctx.message.author.display_avatar = MagicMock()
+        mock_ctx.message.author.display_avatar.url = "https://example.com/default.png"
+        mock_ctx.bot.user.avatar = None
+        mock_ctx.bot.user.display_avatar = MagicMock()
+        mock_ctx.bot.user.display_avatar.url = "https://example.com/default_bot.png"
+
+        with patch("src.gw2.cogs.characters.Gw2KeyDal") as mock_dal:
+            mock_instance = mock_dal.return_value
+            mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
+            with patch("src.gw2.cogs.characters.Gw2Client") as mock_client:
+                mock_client_instance = mock_client.return_value
+                mock_client_instance.check_api_key = AsyncMock(
+                    return_value={"name": "TestKey", "permissions": ["account", "characters"]}
+                )
+                mock_client_instance.call_api = AsyncMock(
+                    side_effect=[
+                        sample_account_data,
+                        ["SingleChar"],
+                        {
+                            "race": "Charr",
+                            "gender": "Male",
+                            "profession": "Engineer",
+                            "level": 80,
+                            "deaths": 0,
+                            "age": 1440,
+                            "created": "2024-01-01T00:00:00Z",
+                        },
+                    ]
+                )
+                with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
+                        mock_time.return_value = "2025-01-01 12:00:00"
+                        await characters(mock_ctx)
+                        mock_send.assert_called_once()
+                        embed = mock_send.call_args[0][1]
+                        assert embed.thumbnail.url == "https://example.com/default.png"
+                        assert embed.author.icon_url == "https://example.com/default.png"
 
 
 class TestCharactersSetup:

@@ -94,7 +94,7 @@ async def account(ctx):
             description="🔄 **Please wait, I'm fetching your account data from GW2 API...** (this may take a moment)",
             color=color,
         )
-        progress_embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
+        progress_embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.display_avatar.url)
         progress_msg = await ctx.send(embed=progress_embed)
 
         # Start background typing keeper
@@ -130,8 +130,8 @@ async def account(ctx):
         # Create base embed
         color = ctx.bot.settings["gw2"]["EmbedColor"]
         embed = discord.Embed(title="Account Name", description=chat_formatting.inline(acc_name), color=color)
-        embed.set_thumbnail(url=ctx.message.author.avatar.url)
-        embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
+        embed.set_thumbnail(url=ctx.message.author.display_avatar.url)
+        embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.display_avatar.url)
         embed.add_field(name="Access", value=chat_formatting.inline(access), inline=False)
         embed.add_field(name="Commander Tag", value=chat_formatting.inline(is_commander))
         embed.add_field(name="Server", value=chat_formatting.inline(f"{server_name} ({population})"))
@@ -247,7 +247,9 @@ async def account(ctx):
             inline=False,
         )
 
-        embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
+        embed.set_footer(
+            icon_url=ctx.bot.user.display_avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC"
+        )
 
         # Stop the background typing task
         stop_typing.set()

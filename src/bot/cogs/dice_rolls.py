@@ -208,7 +208,7 @@ class DiceRolls(commands.Cog):
         """Create embed for roll result."""
         description = "\n".join(message_parts)
         embed = discord.Embed(description=description, color=discord.Color.red())
-        embed.set_author(name=author.display_name, icon_url=author.avatar.url)
+        embed.set_author(name=author.display_name, icon_url=author.display_avatar.url)
         return embed
 
     @staticmethod

@@ -97,7 +97,7 @@ async def test_alembic_version_at_head(db_session):
         text("SELECT version_num FROM alembic_version"),
     )
     assert len(rows) == 1
-    assert rows[0]["version_num"] == "0010"
+    assert rows[0]["version_num"] == "0011"
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -490,7 +490,7 @@ async def test_gw2_sessions_insert_and_read_jsonb(db_session):
 
 
 # ──────────────────────────────────────────────────────────────────────
-# 0010 — gw2_session_chars FK + unique name
+# 0010/0011 — gw2_session_chars FK (unique name dropped in 0011)
 # ──────────────────────────────────────────────────────────────────────
 
 
@@ -508,17 +508,17 @@ async def test_gw2_session_chars_fk_to_sessions(db_session):
     assert any(r["foreign_table"] == "gw2_sessions" for r in rows)
 
 
-async def test_gw2_session_chars_unique_name(db_session):
+async def test_gw2_session_chars_no_unique_name(db_session):
+    """Migration 0011 dropped the unique constraint on name to allow start+end records."""
     rows = await _fetch_rows(
         db_session,
         text(
             "SELECT constraint_name FROM information_schema.table_constraints "
             "WHERE table_name = 'gw2_session_chars' AND constraint_type = 'UNIQUE' "
-            "AND constraint_name != 'gw2_session_chars_pkey'"
+            "AND constraint_name = 'gw2_session_chars_name_key'"
         ),
     )
-    # At least the unique(name) and unique(id) constraints
-    assert len(rows) >= 1
+    assert len(rows) == 0
 
 
 async def test_gw2_session_chars_insert_and_read(db_session):

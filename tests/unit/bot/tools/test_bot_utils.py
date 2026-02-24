@@ -357,6 +357,38 @@ class TestMessageUtilities:
         assert embed_arg.color == discord.Color.red()
 
 
+class TestSendEmbedNoAvatar:
+    """Test send_embed when author has no custom avatar."""
+
+    @pytest.fixture
+    def mock_ctx(self):
+        """Create a mock context with avatar=None."""
+        ctx = MagicMock()
+        ctx.bot = MagicMock()
+        ctx.bot.settings = {"bot": {"EmbedColor": discord.Color.blue()}}
+        ctx.bot.logger = MagicMock()
+        ctx.message = MagicMock()
+        ctx.message.author = MagicMock()
+        ctx.message.author.display_name = "TestUser"
+        ctx.message.author.avatar = None
+        ctx.message.author.display_avatar = MagicMock()
+        ctx.message.author.display_avatar.url = "https://example.com/default.png"
+        ctx.channel = MagicMock(spec=discord.TextChannel)
+        ctx.send = AsyncMock()
+        ctx.author = MagicMock()
+        ctx.author.send = AsyncMock()
+        return ctx
+
+    @pytest.mark.asyncio
+    async def test_send_embed_author_no_avatar(self, mock_ctx):
+        """Test send_embed does not crash when author has no custom avatar."""
+        embed = discord.Embed(description="Test")
+        await bot_utils.send_embed(mock_ctx, embed)
+        mock_ctx.send.assert_called_once()
+        sent_embed = mock_ctx.send.call_args[1]["embed"]
+        assert sent_embed.author.icon_url == "https://example.com/default.png"
+
+
 class TestPermissionChecks:
     """Test permission checking functions."""
 

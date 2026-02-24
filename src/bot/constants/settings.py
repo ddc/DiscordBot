@@ -23,7 +23,7 @@ class BotSettings(BaseSettings):
     exclusive_users: str | None = Field(default="")
 
     # OpenAi
-    openai_model: str | None = Field(default="gpt-4o-mini")
+    openai_model: str | None = Field(default="gpt-5.2")
     openai_api_key: str | None = Field(default=None)
 
     # Cooldowns

@@ -77,6 +77,8 @@ class TestSendEmbed:
         ctx.message.author.display_name = "TestUser"
         ctx.message.author.avatar = MagicMock()
         ctx.message.author.avatar.url = "https://example.com/avatar.png"
+        ctx.message.author.display_avatar = MagicMock()
+        ctx.message.author.display_avatar.url = "https://example.com/avatar.png"
         ctx.author = MagicMock()
         ctx.author.send = AsyncMock()
         ctx.author.display_name = "TestUser"

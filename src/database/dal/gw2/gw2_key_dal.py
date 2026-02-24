@@ -50,7 +50,7 @@ class Gw2KeyDal:
 
     async def get_api_key_by_name(self, key_name: str):
         stmt = select(*self.columns).where(Gw2Keys.name == key_name)
-        results = await self.db_utils.fetchall(stmt)
+        results = await self.db_utils.fetchall(stmt, True)
         return results
 
     async def get_api_key_by_user(self, user_id: int):

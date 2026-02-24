@@ -59,8 +59,8 @@ async def characters(ctx):
             description=chat_formatting.inline(api_req_acc["name"]),
             color=color,
         )
-        embed.set_thumbnail(url=ctx.message.author.avatar.url)
-        embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
+        embed.set_thumbnail(url=ctx.message.author.display_avatar.url)
+        embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.display_avatar.url)
 
         api_req_characters = await gw2_api.call_api("characters", api_key)
         for char_name in api_req_characters:
@@ -81,7 +81,9 @@ async def characters(ctx):
                 ),
             )
 
-        embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
+        embed.set_footer(
+            icon_url=ctx.bot.user.display_avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC"
+        )
         await bot_utils.send_embed(ctx, embed)
 
     except Exception as e:

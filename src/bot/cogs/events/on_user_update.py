@@ -26,16 +26,17 @@ class OnUserUpdate(commands.Cog):
 
         msg = f"{messages.PROFILE_CHANGES}:\n\n"
         embed = bot_utils.get_embed(self)
-        embed.set_author(name=after.display_name, icon_url=after.avatar.url)
+        embed.set_author(name=after.display_name, icon_url=after.display_avatar.url)
         embed.set_footer(
-            icon_url=self.bot.user.avatar.url,
+            icon_url=self.bot.user.display_avatar.url,
             text=f"{bot_utils.get_current_date_time_str_long()} UTC",
         )
 
-        if str(before.avatar.url) != str(after.avatar.url):
-            embed.set_thumbnail(url=after.avatar.url)
+        if before.avatar != after.avatar:
+            if after.avatar:
+                embed.set_thumbnail(url=after.avatar.url)
             embed.add_field(name=messages.NEW_AVATAR, value="-->")
-            msg += f"{messages.NEW_AVATAR}: \n{after.avatar.url}\n"
+            msg += f"{messages.NEW_AVATAR}: \n{after.display_avatar.url}\n"
 
         if str(before.name) != str(after.name):
             if before.name is not None:

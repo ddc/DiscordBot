@@ -9,7 +9,7 @@ class TestDockerLint:
     def test_hadolint_dockerfile(self, project_root):
         """Dockerfile passes hadolint linting."""
         dockerfile = project_root / "Dockerfile"
-        hadolint_config = project_root / ".hadolint.yaml"
+        hadolint_config = project_root / ".hadolint.yml"
         cmd = ["docker", "run", "--rm", "-i"]
         if hadolint_config.exists():
             cmd += ["-v", f"{hadolint_config}:/.config/hadolint.yaml:ro"]

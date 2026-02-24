@@ -603,11 +603,15 @@ class TestInfoCommand:
         ctx.bot.user = MagicMock()
         ctx.bot.user.avatar = MagicMock()
         ctx.bot.user.avatar.url = "https://example.com/bot_avatar.png"
+        ctx.bot.user.display_avatar = MagicMock()
+        ctx.bot.user.display_avatar.url = "https://example.com/bot_avatar.png"
         ctx.message = MagicMock()
         ctx.message.author = MagicMock()
         ctx.message.author.id = 12345
         ctx.message.author.avatar = MagicMock()
         ctx.message.author.avatar.url = "https://example.com/avatar.png"
+        ctx.message.author.display_avatar = MagicMock()
+        ctx.message.author.display_avatar.url = "https://example.com/avatar.png"
         ctx.message.author.__str__ = MagicMock(return_value="TestUser#1234")
         ctx.prefix = "!"
         ctx.send = AsyncMock()
@@ -717,6 +721,62 @@ class TestInfoCommand:
                     await info(mock_ctx)
                     mock_error.assert_called_once()
                     mock_ctx.bot.log.error.assert_called_once()
+
+
+class TestKeyInfoNoAvatar:
+    """Test that key info command works when user has no custom avatar."""
+
+    @pytest.fixture
+    def mock_ctx(self):
+        """Create a mock command context with avatar=None."""
+        ctx = MagicMock()
+        ctx.bot = MagicMock()
+        ctx.bot.db_session = MagicMock()
+        ctx.bot.log = MagicMock()
+        ctx.bot.settings = {"gw2": {"EmbedColor": 0x00FF00}}
+        ctx.bot.user = MagicMock()
+        ctx.bot.user.avatar = None
+        ctx.bot.user.display_avatar = MagicMock()
+        ctx.bot.user.display_avatar.url = "https://example.com/default_bot.png"
+        ctx.message = MagicMock()
+        ctx.message.author = MagicMock()
+        ctx.message.author.id = 12345
+        ctx.message.author.avatar = None
+        ctx.message.author.display_avatar = MagicMock()
+        ctx.message.author.display_avatar.url = "https://example.com/default.png"
+        ctx.message.author.__str__ = MagicMock(return_value="TestUser#1234")
+        ctx.prefix = "!"
+        ctx.send = AsyncMock()
+        return ctx
+
+    @pytest.mark.asyncio
+    async def test_key_info_author_no_avatar(self, mock_ctx):
+        """Test info command does not crash when author has no custom avatar."""
+        with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
+            mock_instance = mock_dal.return_value
+            mock_instance.get_api_key_by_user = AsyncMock(
+                return_value=[
+                    {
+                        "key": "test-api-key-12345",
+                        "name": "TestKey",
+                        "gw2_acc_name": "TestUser.1234",
+                        "server": "Anvil Rock",
+                        "permissions": "account,characters,progression",
+                    }
+                ]
+            )
+            with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
+                mock_client_instance = mock_client.return_value
+                mock_client_instance.check_api_key = AsyncMock(
+                    return_value={"name": "TestKey", "permissions": ["account", "characters", "progression"]}
+                )
+                with patch("src.gw2.cogs.key.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.key.bot_utils.get_current_date_time_str_long") as mock_time:
+                        mock_time.return_value = "2025-01-01 12:00:00"
+                        await info(mock_ctx)
+                        mock_send.assert_called_once()
+                        embed = mock_send.call_args[0][1]
+                        assert embed.author.icon_url == "https://example.com/default.png"
 
 
 class TestKeySetup:

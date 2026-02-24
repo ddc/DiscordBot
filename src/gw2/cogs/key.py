@@ -338,7 +338,7 @@ async def info(ctx):
     """
 
     user_id = ctx.message.author.id
-    author_icon_url = ctx.message.author.avatar.url
+    author_icon_url = ctx.message.author.display_avatar.url
     color = ctx.bot.settings["gw2"]["EmbedColor"]
     gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
     gw2_api = Gw2Client(ctx.bot)
@@ -386,7 +386,7 @@ async def info(ctx):
         inline=False,
     )
     embed.add_field(name="Key", value=chat_formatting.inline(rs[0]["key"]), inline=False)
-    embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
+    embed.set_footer(icon_url=ctx.bot.user.display_avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
     await bot_utils.send_embed(ctx, embed, dm=True)
 
 

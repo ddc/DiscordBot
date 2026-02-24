@@ -3,6 +3,7 @@
 import discord
 import pytest
 from datetime import datetime, timedelta
+from src.gw2.constants.gw2_currencies import WALLET_DISPLAY_NAMES, WALLET_MAPPING
 from src.gw2.tools.gw2_exceptions import APIConnectionError
 from src.gw2.tools.gw2_utils import (
     TimeObject,
@@ -22,6 +23,7 @@ from src.gw2.tools.gw2_utils import (
     earned_ap,
     end_session,
     format_gold,
+    format_seconds_to_time,
     get_pvp_rank_title,
     get_time_passed,
     get_user_stats,
@@ -882,6 +884,31 @@ class TestEndSession:
 
                             mock_insert_char.assert_called_once_with(mock_bot, mock_member, "api-key", 42, "end")
 
+    @pytest.mark.asyncio
+    async def test_end_session_no_active_session(self, mock_bot, mock_member):
+        """Test end_session skips insert_session_char when no active session exists."""
+        session_data = {"acc_name": "TestUser.1234", "wvw_rank": 50, "gold": 1000}
+
+        with patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats:
+            mock_stats.return_value = session_data.copy()
+
+            with patch("src.gw2.tools.gw2_utils.bot_utils.convert_datetime_to_str_short") as mock_convert:
+                mock_convert.return_value = "2023-01-01"
+
+                with patch("src.gw2.tools.gw2_utils.bot_utils.get_current_date_time") as mock_time:
+                    mock_time.return_value = datetime(2023, 1, 1, 12, 0, 0)
+
+                    with patch("src.gw2.tools.gw2_utils.Gw2SessionsDal") as mock_session_dal:
+                        mock_instance = mock_session_dal.return_value
+                        mock_instance.update_end_session = AsyncMock(return_value=None)
+
+                        with patch("src.gw2.tools.gw2_utils.insert_session_char") as mock_insert_char:
+                            await end_session(mock_bot, mock_member, "api-key")
+
+                            mock_instance.update_end_session.assert_called_once()
+                            mock_insert_char.assert_not_called()
+                            mock_bot.log.warning.assert_called_once()
+
 
 class TestGetUserStats:
     """Test cases for get_user_stats function."""
@@ -909,7 +936,7 @@ class TestGetUserStats:
     @pytest.mark.asyncio
     async def test_successful_stats_retrieval(self, mock_bot):
         """Test successful user stats retrieval with legacy wvw_rank."""
-        account_data = {"name": "TestUser.1234", "wvw_rank": 50}
+        account_data = {"name": "TestUser.1234", "wvw_rank": 50, "age": 5000000}
         wallet_data = [
             {"id": 1, "value": 50000},  # gold
             {"id": 2, "value": 100000},  # karma
@@ -928,6 +955,7 @@ class TestGetUserStats:
 
             assert result is not None
             assert result["acc_name"] == "TestUser.1234"
+            assert result["age"] == 5000000
             assert result["wvw_rank"] == 50
             assert result["gold"] == 50000
             assert result["karma"] == 100000
@@ -964,6 +992,8 @@ class TestGetUserStats:
             {"id": 26, "value": 60},
             {"id": 31, "value": 70},
             {"id": 36, "value": 80},
+            {"id": 23, "value": 150},  # spirit_shards
+            {"id": 45, "value": 2000},  # volatile_magic
         ]
         achievements_data = []
 
@@ -981,23 +1011,23 @@ class TestGetUserStats:
             assert result["wvw_tickets"] == 60
             assert result["proof_heroics"] == 70
             assert result["test_heroics"] == 80
+            assert result["spirit_shards"] == 150
+            assert result["volatile_magic"] == 2000
 
 
 class TestUpdateWalletStats:
     """Test cases for _update_wallet_stats function."""
 
+    def _make_user_stats(self):
+        """Create a user stats dict with all wallet keys initialized to 0."""
+        stats = {}
+        for key in WALLET_MAPPING.values():
+            stats[key] = 0
+        return stats
+
     def test_updates_known_wallet_ids(self):
-        """Test that known wallet IDs update stats (lines 373-388)."""
-        user_stats = {
-            "gold": 0,
-            "karma": 0,
-            "laurels": 0,
-            "badges_honor": 0,
-            "guild_commendations": 0,
-            "wvw_tickets": 0,
-            "proof_heroics": 0,
-            "test_heroics": 0,
-        }
+        """Test that known wallet IDs update stats."""
+        user_stats = self._make_user_stats()
         wallet_data = [
             {"id": 1, "value": 50000},
             {"id": 2, "value": 100000},
@@ -1020,18 +1050,28 @@ class TestUpdateWalletStats:
         assert user_stats["proof_heroics"] == 15
         assert user_stats["test_heroics"] == 5
 
+    def test_updates_new_wallet_ids(self):
+        """Test that new wallet IDs (spirit shards, volatile magic, etc.) update stats."""
+        user_stats = self._make_user_stats()
+        wallet_data = [
+            {"id": 23, "value": 150},  # spirit_shards
+            {"id": 18, "value": 42},  # transmutation_charges
+            {"id": 45, "value": 2000},  # volatile_magic
+            {"id": 32, "value": 800},  # unbound_magic
+            {"id": 4, "value": 400},  # gems
+        ]
+
+        _update_wallet_stats(user_stats, wallet_data)
+
+        assert user_stats["spirit_shards"] == 150
+        assert user_stats["transmutation_charges"] == 42
+        assert user_stats["volatile_magic"] == 2000
+        assert user_stats["unbound_magic"] == 800
+        assert user_stats["gems"] == 400
+
     def test_ignores_unknown_wallet_ids(self):
         """Test that unknown wallet IDs are ignored."""
-        user_stats = {
-            "gold": 0,
-            "karma": 0,
-            "laurels": 0,
-            "badges_honor": 0,
-            "guild_commendations": 0,
-            "wvw_tickets": 0,
-            "proof_heroics": 0,
-            "test_heroics": 0,
-        }
+        user_stats = self._make_user_stats()
         wallet_data = [
             {"id": 999, "value": 50000},  # Unknown ID
             {"id": 888, "value": 30000},  # Unknown ID
@@ -1045,16 +1085,7 @@ class TestUpdateWalletStats:
 
     def test_empty_wallet_data(self):
         """Test with empty wallet data."""
-        user_stats = {
-            "gold": 0,
-            "karma": 0,
-            "laurels": 0,
-            "badges_honor": 0,
-            "guild_commendations": 0,
-            "wvw_tickets": 0,
-            "proof_heroics": 0,
-            "test_heroics": 0,
-        }
+        user_stats = self._make_user_stats()
 
         _update_wallet_stats(user_stats, [])
 
@@ -1062,16 +1093,7 @@ class TestUpdateWalletStats:
 
     def test_mixed_known_and_unknown_ids(self):
         """Test with a mix of known and unknown wallet IDs."""
-        user_stats = {
-            "gold": 0,
-            "karma": 0,
-            "laurels": 0,
-            "badges_honor": 0,
-            "guild_commendations": 0,
-            "wvw_tickets": 0,
-            "proof_heroics": 0,
-            "test_heroics": 0,
-        }
+        user_stats = self._make_user_stats()
         wallet_data = [
             {"id": 1, "value": 10000},  # Known - gold
             {"id": 999, "value": 5000},  # Unknown
@@ -1697,11 +1719,12 @@ class TestCreateInitialUserStats:
 
     def test_creates_correct_structure(self):
         """Test that initial stats structure is correct with legacy wvw_rank."""
-        account_data = {"name": "TestUser.1234", "wvw_rank": 75}
+        account_data = {"name": "TestUser.1234", "wvw_rank": 75, "age": 5000000}
 
         result = _create_initial_user_stats(account_data)
 
         assert result["acc_name"] == "TestUser.1234"
+        assert result["age"] == 5000000
         assert result["wvw_rank"] == 75
         assert result["gold"] == 0
         assert result["karma"] == 0
@@ -1718,6 +1741,25 @@ class TestCreateInitialUserStats:
         assert result["castles"] == 0
         assert result["towers"] == 0
         assert result["keeps"] == 0
+        # New currencies
+        assert result["spirit_shards"] == 0
+        assert result["transmutation_charges"] == 0
+        assert result["volatile_magic"] == 0
+        assert result["unbound_magic"] == 0
+        assert result["gems"] == 0
+
+    def test_all_wallet_currencies_initialized(self):
+        """Test that all currencies from WALLET_MAPPING are initialized to 0."""
+        account_data = {"name": "TestUser.1234", "wvw_rank": 0}
+        result = _create_initial_user_stats(account_data)
+        for stat_name in WALLET_MAPPING.values():
+            assert result[stat_name] == 0, f"{stat_name} should be initialized to 0"
+
+    def test_age_defaults_to_zero(self):
+        """Test that age defaults to 0 when not in account data."""
+        account_data = {"name": "TestUser.1234", "wvw_rank": 0}
+        result = _create_initial_user_stats(account_data)
+        assert result["age"] == 0
 
     def test_new_wvw_rank_format(self):
         """Test that wvw.rank (new API format) is preferred over wvw_rank."""
@@ -1795,3 +1837,74 @@ class TestGetWorldNamePopulationWithWR:
 
         assert result is not None
         assert result[0] == "Team 11999"
+
+
+class TestFormatSecondsToTime:
+    """Test cases for format_seconds_to_time function."""
+
+    def test_zero_seconds(self):
+        assert format_seconds_to_time(0) == "0s"
+
+    def test_negative_seconds(self):
+        assert format_seconds_to_time(-5) == "0s"
+
+    def test_seconds_only(self):
+        assert format_seconds_to_time(45) == "45s"
+
+    def test_minutes_and_seconds(self):
+        assert format_seconds_to_time(125) == "2m 5s"
+
+    def test_hours_minutes_seconds(self):
+        assert format_seconds_to_time(9015) == "2h 30m 15s"
+
+    def test_hours_only(self):
+        assert format_seconds_to_time(7200) == "2h"
+
+    def test_days_hours_minutes_seconds(self):
+        assert format_seconds_to_time(90015) == "1d 1h 15s"
+
+    def test_exact_day(self):
+        assert format_seconds_to_time(86400) == "1d"
+
+    def test_large_value(self):
+        result = format_seconds_to_time(180000)
+        assert "2d" in result
+
+    def test_one_second(self):
+        assert format_seconds_to_time(1) == "1s"
+
+    def test_one_minute(self):
+        assert format_seconds_to_time(60) == "1m"
+
+    def test_one_hour(self):
+        assert format_seconds_to_time(3600) == "1h"
+
+
+class TestWalletMappingAndDisplayNames:
+    """Test cases for WALLET_MAPPING and WALLET_DISPLAY_NAMES consistency."""
+
+    def test_all_wallet_keys_have_display_names(self):
+        """Every stat_name in WALLET_MAPPING should have a WALLET_DISPLAY_NAMES entry."""
+        for wallet_id, stat_name in WALLET_MAPPING.items():
+            assert stat_name in WALLET_DISPLAY_NAMES, (
+                f"Wallet ID {wallet_id} maps to '{stat_name}' but has no display name"
+            )
+
+    def test_display_names_not_empty(self):
+        """All display names should be non-empty strings."""
+        for stat_name, display_name in WALLET_DISPLAY_NAMES.items():
+            assert display_name, f"Display name for '{stat_name}' is empty"
+
+    def test_gold_in_mapping(self):
+        """Gold (ID 1) must be in the wallet mapping."""
+        assert 1 in WALLET_MAPPING
+        assert WALLET_MAPPING[1] == "gold"
+
+    def test_known_currency_ids(self):
+        """Verify well-known currency IDs are mapped correctly."""
+        assert WALLET_MAPPING[2] == "karma"
+        assert WALLET_MAPPING[3] == "laurels"
+        assert WALLET_MAPPING[23] == "spirit_shards"
+        assert WALLET_MAPPING[45] == "volatile_magic"
+        assert WALLET_MAPPING[32] == "unbound_magic"
+        assert WALLET_MAPPING[18] == "transmutation_charges"

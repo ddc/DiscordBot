@@ -39,6 +39,8 @@ def mock_ctx():
     author.display_name = "TestUser"
     author.avatar = MagicMock()
     author.avatar.url = "https://example.com/avatar.png"
+    author.display_avatar = MagicMock()
+    author.display_avatar.url = "https://example.com/avatar.png"
 
     ctx.author = author  # Direct assignment
     ctx.message = MagicMock()
@@ -497,3 +499,29 @@ class TestDiceRolls:
         assert embed.author.name == "TestUser"
         assert embed.author.icon_url == "https://example.com/avatar.png"
         assert ":game_die: 42 :game_die:" in embed.description
+
+    @pytest.mark.asyncio
+    @patch("src.bot.cogs.dice_rolls.random.SystemRandom")
+    @patch("src.bot.cogs.dice_rolls.DiceRollsDal")
+    @patch("src.bot.cogs.dice_rolls.bot_utils.send_embed")
+    async def test_roll_author_no_avatar(self, mock_send_embed, mock_dal_class, mock_random, dice_cog, mock_ctx):
+        """Test roll command does not crash when author has no custom avatar."""
+        mock_ctx.author.avatar = None
+        mock_ctx.author.display_avatar = MagicMock()
+        mock_ctx.author.display_avatar.url = "https://example.com/default.png"
+        mock_ctx.message.author = mock_ctx.author
+
+        mock_random_instance = MagicMock()
+        mock_random.return_value = mock_random_instance
+        mock_random_instance.randint.return_value = 42
+
+        mock_dal = AsyncMock()
+        mock_dal_class.return_value = mock_dal
+        mock_dal.get_user_roll_by_dice_size.return_value = None
+        mock_dal.insert_user_roll.return_value = None
+        mock_dal.get_server_max_roll.return_value = []
+
+        await dice_cog.roll.callback(dice_cog, mock_ctx)
+
+        embed = mock_send_embed.call_args[0][1]
+        assert embed.author.icon_url == "https://example.com/default.png"

@@ -166,7 +166,7 @@ async def info(ctx, *, skill):
 
         embed = discord.Embed(title=skill_name, description=skill_description, color=color, url=skill_url)
         embed.set_thumbnail(url=skill_icon_url)
-        embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
+        embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.display_avatar.url)
         await bot_utils.send_embed(ctx, embed)
         return None
 

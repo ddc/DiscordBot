@@ -36,12 +36,20 @@ async def test_insert_start_session_stores_jsonb(db_session, log):
 
 async def test_update_end_session(db_session, log):
     dal = Gw2SessionsDal(db_session, log)
-    await dal.insert_start_session(_make_session())
+    start_id = await dal.insert_start_session(_make_session())
     end_data = {"user_id": USER_ID, "gold": 200, "karma": 6000}
-    await dal.update_end_session(end_data)
+    end_id = await dal.update_end_session(end_data)
+    assert end_id == start_id
     results = await dal.get_user_last_session(USER_ID)
     assert results[0]["end"]["gold"] == 200
     assert results[0]["end"]["karma"] == 6000
+
+
+async def test_update_end_session_no_session(db_session, log):
+    dal = Gw2SessionsDal(db_session, log)
+    end_data = {"user_id": 999999, "gold": 200}
+    result = await dal.update_end_session(end_data)
+    assert result is None
 
 
 async def test_insert_start_session_cleans_old_data(db_session, log):

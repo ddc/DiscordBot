@@ -588,3 +588,69 @@ class TestOnMessage:
         # both calls go to the same send method, so call_count should be 2
         assert mock_ctx.message.author.send.call_count == 2
         assert mock_ctx.author.send.call_count == 2
+
+
+class TestNoAvatarHandling:
+    """Test that message handlers work when users have no custom avatar."""
+
+    @pytest.mark.asyncio
+    @patch("src.bot.cogs.events.on_message.bot_utils.delete_message")
+    async def test_profanity_censor_author_no_avatar(self, mock_delete, mock_bot, mock_ctx):
+        """Test profanity censor embed does not crash when author has no avatar."""
+        mock_ctx.message.author.avatar = None
+        mock_ctx.message.author.display_avatar = MagicMock()
+        mock_ctx.message.author.display_avatar.url = "https://example.com/default.png"
+        mock_ctx.author = mock_ctx.message.author
+
+        mock_bot.profanity.contains_profanity.return_value = True
+        mock_bot.profanity.censor.return_value = "#### world"
+        filter_obj = ProfanityFilter(mock_bot)
+
+        result = await filter_obj.check_and_censor(mock_ctx)
+
+        assert result is True
+        mock_ctx.message.channel.send.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_reaction_handler_author_no_avatar(self, mock_bot):
+        """Test custom reaction handler does not crash when author has no avatar."""
+        mock_bot.settings["bot"]["BotReactionWords"] = ["bad"]
+        handler = CustomReactionHandler(mock_bot)
+
+        message = MagicMock()
+        message.system_content = "bad bot"
+        message.author = MagicMock()
+        message.author.display_name = "TestUser"
+        message.author.avatar = None
+        message.author.display_avatar = MagicMock()
+        message.author.display_avatar.url = "https://example.com/default.png"
+        message.channel = AsyncMock()
+
+        result = await handler.check_and_react(message)
+
+        assert result is True
+        message.channel.send.assert_called_once()
+
+    @pytest.mark.asyncio
+    @patch("src.bot.cogs.events.on_message.ServersDal")
+    @patch("src.bot.cogs.events.on_message.bot_utils.delete_message")
+    async def test_invisible_member_no_avatar(self, mock_delete, mock_dal_class, mock_bot, mock_ctx):
+        """Test invisible member handling does not crash when author has no avatar."""
+        mock_ctx.author.avatar = None
+        mock_ctx.author.display_avatar = MagicMock()
+        mock_ctx.author.display_avatar.url = "https://example.com/default.png"
+        mock_ctx.message.author = mock_ctx.author
+        mock_ctx.author.status = discord.Status.offline
+
+        mock_dal = AsyncMock()
+        mock_dal_class.return_value = mock_dal
+        mock_dal.get_server.return_value = {
+            "block_invis_members": True,
+            "profanity_filter": False,
+            "bot_word_reactions": False,
+        }
+
+        handler = ServerMessageHandler(mock_bot)
+        await handler.process(mock_ctx, False)
+
+        mock_delete.assert_called_once_with(mock_ctx)

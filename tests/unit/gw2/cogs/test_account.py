@@ -52,6 +52,8 @@ class TestAccountCommand:
         ctx.bot.user = MagicMock()
         ctx.bot.user.avatar = MagicMock()
         ctx.bot.user.avatar.url = "https://example.com/bot_avatar.png"
+        ctx.bot.user.display_avatar = MagicMock()
+        ctx.bot.user.display_avatar.url = "https://example.com/bot_avatar.png"
 
         ctx.message = MagicMock()
         ctx.message.author = MagicMock()
@@ -59,6 +61,8 @@ class TestAccountCommand:
         ctx.message.author.display_name = "TestUser"
         ctx.message.author.avatar = MagicMock()
         ctx.message.author.avatar.url = "https://example.com/user_avatar.png"
+        ctx.message.author.display_avatar = MagicMock()
+        ctx.message.author.display_avatar.url = "https://example.com/user_avatar.png"
         ctx.message.channel = MagicMock()
         ctx.message.channel.typing = AsyncMock()
 
@@ -1074,3 +1078,63 @@ class TestAccountCommandFullPaths:
             assert "Heart Of Thorns" in access_field.value
             assert "Path Of Fire" in access_field.value
             assert "End Of Dragons" in access_field.value
+
+    @pytest.mark.asyncio
+    async def test_account_author_no_avatar(self, mock_ctx, sample_world_data):
+        """Test account command does not crash when author has no custom avatar."""
+        mock_ctx.message.author.avatar = None
+        mock_ctx.message.author.display_avatar = MagicMock()
+        mock_ctx.message.author.display_avatar.url = "https://example.com/default.png"
+        mock_ctx.bot.user.avatar = None
+        mock_ctx.bot.user.display_avatar = MagicMock()
+        mock_ctx.bot.user.display_avatar.url = "https://example.com/default_bot.png"
+
+        api_key_data = [{"key": "test-api-key-12345", "permissions": "account"}]
+        account_data = {
+            "id": "account-id-123",
+            "name": "TestUser.1234",
+            "world": 1001,
+            "access": ["GuildWars2"],
+            "commander": False,
+            "fractal_level": 50,
+            "daily_ap": 3000,
+            "monthly_ap": 200,
+            "wvw_rank": 100,
+            "age": 525600,
+            "created": "2021-06-15T00:00:00.000Z",
+        }
+
+        progress_msg = AsyncMock()
+        mock_ctx.send.return_value = progress_msg
+
+        with (
+            patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal,
+            patch("src.gw2.cogs.account.Gw2Client") as mock_client,
+            patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
+            patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
+            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
+            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
+            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
+        ):
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
+
+            mock_client_instance = mock_client.return_value
+            mock_client_instance.check_api_key = AsyncMock(return_value={"valid": True})
+            mock_client_instance.call_api = AsyncMock(
+                side_effect=[
+                    account_data,
+                    sample_world_data,
+                ]
+            )
+
+            mock_stop_event = MagicMock()
+            mock_event_cls.return_value = mock_stop_event
+            mock_task = MagicMock()
+            mock_create_task.return_value = mock_task
+
+            await account(mock_ctx)
+
+            mock_send_embed.assert_called_once()
+            embed = mock_send_embed.call_args[0][1]
+            assert embed.thumbnail.url == "https://example.com/default.png"
+            assert embed.author.icon_url == "https://example.com/default.png"

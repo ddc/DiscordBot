@@ -16,6 +16,7 @@ class GW2Config(GuildWars2):
 
 
 @GuildWars2.gw2.group()
+@commands.guild_only()
 @Checks.check_is_admin()
 async def config(ctx):
     """Guild Wars 2 server configuration commands.

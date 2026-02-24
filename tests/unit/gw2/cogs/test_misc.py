@@ -361,6 +361,8 @@ class TestInfoCommand:
         ctx.message.author.display_name = "TestUser"
         ctx.message.author.avatar = MagicMock()
         ctx.message.author.avatar.url = "https://example.com/avatar.png"
+        ctx.message.author.display_avatar = MagicMock()
+        ctx.message.author.display_avatar.url = "https://example.com/avatar.png"
         ctx.message.channel = MagicMock()
         ctx.message.channel.typing = AsyncMock()
         ctx.prefix = "!"
@@ -816,6 +818,29 @@ class TestInfoCommand:
                 assert "bolt-of-damask" in embed.description
                 assert "gw2tp.com" in embed.description
                 assert "gw2bltc.com" in embed.description
+
+    @pytest.mark.asyncio
+    async def test_gw2_info_author_no_avatar(self, mock_ctx):
+        """Test info command does not crash when author has no custom avatar."""
+        mock_ctx.message.author.avatar = None
+        mock_ctx.message.author.display_avatar = MagicMock()
+        mock_ctx.message.author.display_avatar.url = "https://example.com/default.png"
+
+        html = self._make_info_html(
+            skill_name="Eternity",
+            description="A legendary greatsword.",
+        )
+        mock_response = AsyncMock()
+        mock_response.status = 200
+        mock_response.url = "https://wiki.guildwars2.com/wiki/Eternity"
+        mock_response.text = AsyncMock(return_value=html)
+        mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
+
+        with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
+            await info(mock_ctx, skill="Eternity")
+            mock_send.assert_called_once()
+            embed = mock_send.call_args[0][1]
+            assert embed.author.icon_url == "https://example.com/default.png"
 
 
 class TestMiscSetup:
