@@ -6,6 +6,9 @@ PROJECT_DIR=/opt/DiscordBot
 
 pushd "$PROJECT_DIR" > /dev/null
 
+# stop containers
+./utilities/stop.sh
+
 # update project
 sudo git fetch --all
 sudo git reset --hard origin/master
@@ -17,7 +20,7 @@ sudo find "$PROJECT_DIR" -type f -exec chmod 644 {} +
 sudo chmod 600 "$PROJECT_DIR/.env"
 sudo chmod 755 "$PROJECT_DIR/utilities"/*.sh
 
-# ensure logs dir is writable by container's botuser (uid 1000)
-sudo chown -R 1000:1000 "$PROJECT_DIR/logs"
+# start containers
+./utilities/start.sh
 
 popd > /dev/null
