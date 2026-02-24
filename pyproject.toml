@@ -57,13 +57,13 @@ profile-integration = "uv run python -m cProfile -o cprofile_integration.prof -m
 test.sequence = [{ shell = "uv run coverage run -m pytest tests/unit" }, { shell = "uv run coverage report" }, { shell = "uv run coverage xml" }]
 test-integration = "uv run pytest tests/integration"
 hadolint.shell = "docker run --rm -i -v $(pwd)/.hadolint.yml:/.config/hadolint.yml:ro hadolint/hadolint < Dockerfile"
-test-docker = "uv run coverage run -m pytest tests/docker"
+test-docker = "uv run pytest tests/docker"
 tests.sequence = ["linter", "hadolint", "test-docker", "test", "test-integration"]
 updatedev.sequence = ["linter", {shell = "uv lock --upgrade && uv sync --all-extras --group dev"}]
 migration = "uv run --frozen alembic upgrade head"
 
 [tool.pytest.ini_options]
-addopts = "-v --junitxml=junit.xml --import-mode=importlib"
+addopts = "-v --import-mode=importlib --junitxml=junit.xml"
 junit_family = "legacy"
 asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
