@@ -1,4 +1,6 @@
+import asyncio
 from src.gw2.constants import gw2_messages, gw2_variables
+from src.gw2.constants.gw2_settings import get_gw2_settings
 from src.gw2.tools.gw2_exceptions import (
     APIBadRequest,
     APIConnectionError,
@@ -8,6 +10,9 @@ from src.gw2.tools.gw2_exceptions import (
     APIInvalidKey,
     APINotFound,
 )
+
+_gw2_settings = get_gw2_settings()
+_RETRYABLE_STATUSES = (502, 503, 504)
 
 
 class Gw2Client:
@@ -31,13 +36,35 @@ class Gw2Client:
 
         endpoint = f"{gw2_variables.API_URI}/{uri}"
         headers = self._build_headers(key)
+        max_attempts = _gw2_settings.api_retry_max_attempts
+        retry_delay = _gw2_settings.api_retry_delay
 
-        async with self.bot.aiosession.get(endpoint, headers=headers) as response:
-            if response.status in (200, 206):
-                return await response.json()
+        for attempt in range(1, max_attempts + 1):
+            try:
+                async with self.bot.aiosession.get(endpoint, headers=headers) as response:
+                    if response.status in (200, 206):
+                        return await response.json()
 
-            await self._handle_api_error(response, endpoint)
-            return None
+                    if response.status not in _RETRYABLE_STATUSES or attempt == max_attempts:
+                        await self._handle_api_error(response, endpoint)
+                        return None
+
+                    self.bot.log.warning(
+                        f"GW2 API returned {response.status} for {endpoint.split('?')[0]}, "
+                        f"retrying ({attempt}/{max_attempts})..."
+                    )
+            except APIError:
+                raise
+            except Exception:
+                if attempt == max_attempts:
+                    raise
+                self.bot.log.warning(
+                    f"GW2 API connection error for {endpoint.split('?')[0]}, retrying ({attempt}/{max_attempts})..."
+                )
+
+            await asyncio.sleep(retry_delay)
+
+        return None
 
     def _build_headers(self, key=None):
         """Build HTTP headers for API request."""
