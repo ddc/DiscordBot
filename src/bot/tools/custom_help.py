@@ -7,7 +7,7 @@ class HelpPaginatorView(discord.ui.View):
     """Interactive pagination view for help pages with Previous/Next buttons."""
 
     def __init__(self, pages: list[str], author_id: int):
-        super().__init__(timeout=300)
+        super().__init__(timeout=None)
         self.pages = pages
         self.current_page = 0
         self.author_id = author_id
@@ -46,15 +46,6 @@ class HelpPaginatorView(discord.ui.View):
         self.current_page += 1
         self._update_buttons()
         await interaction.response.edit_message(content=self._format_page(), view=self)
-
-    async def on_timeout(self):
-        for item in self.children:
-            item.disabled = True
-        try:
-            if self.message:
-                await self.message.edit(view=self)
-        except discord.NotFound, discord.HTTPException:
-            pass
 
 
 class CustomHelpCommand(commands.DefaultHelpCommand):

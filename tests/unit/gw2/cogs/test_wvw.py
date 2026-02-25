@@ -10,6 +10,7 @@ from src.gw2.cogs.wvw import (
     _resolve_tier,
     setup,
 )
+from src.gw2.constants import gw2_messages
 from src.gw2.tools.gw2_exceptions import APIKeyError
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -275,7 +276,7 @@ class TestInfoCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert "Invalid world name" in error_msg
+                    assert gw2_messages.INVALID_WORLD_NAME in error_msg
                     assert "InvalidWorld" in error_msg
 
     @pytest.mark.asyncio
@@ -330,7 +331,7 @@ class TestInfoCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert "Could not resolve world's color" in error_msg
+                    assert gw2_messages.WORLD_COLOR_ERROR in error_msg
 
     @pytest.mark.asyncio
     async def test_info_na_tier(self, mock_bot, mock_ctx, sample_matches_data, sample_worldinfo_data):
@@ -354,7 +355,7 @@ class TestInfoCommand:
                     await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
 
                     embed = mock_send.call_args[0][1]
-                    assert "North America Tier" in embed.description
+                    assert gw2_messages.NA_TIER_TITLE in embed.description
 
     @pytest.mark.asyncio
     async def test_info_eu_tier(self, mock_bot, mock_ctx, sample_worldinfo_data):
@@ -404,7 +405,7 @@ class TestInfoCommand:
                     await cog.info.callback(cog, mock_ctx, world="Desolation")
 
                     embed = mock_send.call_args[0][1]
-                    assert "Europe Tier" in embed.description
+                    assert gw2_messages.EU_TIER_TITLE in embed.description
 
     @pytest.mark.asyncio
     async def test_info_red_world_color(self, mock_bot, mock_ctx, sample_matches_data, sample_worldinfo_data):
@@ -768,7 +769,7 @@ class TestMatchCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert "Missing World Name" in error_msg
+                    assert gw2_messages.MISSING_WORLD_NAME in error_msg
 
     @pytest.mark.asyncio
     async def test_match_no_world_api_key_error(self, mock_bot, mock_ctx):
@@ -791,7 +792,7 @@ class TestMatchCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert "Missing World Name" in error_msg
+                    assert gw2_messages.MISSING_WORLD_NAME in error_msg
 
     @pytest.mark.asyncio
     async def test_match_no_world_generic_exception(self, mock_bot, mock_ctx):
@@ -852,7 +853,7 @@ class TestMatchCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert "Invalid world name" in error_msg
+                    assert gw2_messages.INVALID_WORLD_NAME in error_msg
                     assert "InvalidWorld" in error_msg
 
     @pytest.mark.asyncio
@@ -875,7 +876,7 @@ class TestMatchCommand:
                         await cog.match.callback(cog, mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
-                        assert "North America Tier" in embed.description
+                        assert gw2_messages.NA_TIER_TITLE in embed.description
 
     @pytest.mark.asyncio
     async def test_match_eu_tier(self, mock_bot, mock_ctx):
@@ -936,7 +937,7 @@ class TestMatchCommand:
                         await cog.match.callback(cog, mock_ctx, world="Desolation")
 
                         embed = mock_send.call_args[0][1]
-                        assert "Europe Tier" in embed.description
+                        assert gw2_messages.EU_TIER_TITLE in embed.description
 
     @pytest.mark.asyncio
     async def test_match_exception_during_fetch(self, mock_bot, mock_ctx):
@@ -1080,7 +1081,7 @@ class TestKdrCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert "Invalid world name" in error_msg
+                    assert gw2_messages.INVALID_WORLD_NAME in error_msg
 
     @pytest.mark.asyncio
     async def test_kdr_no_world_api_key_error(self, mock_bot, mock_ctx):
@@ -1103,7 +1104,7 @@ class TestKdrCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert "Invalid world name" in error_msg
+                    assert gw2_messages.INVALID_WORLD_NAME in error_msg
 
     @pytest.mark.asyncio
     async def test_kdr_no_world_generic_exception(self, mock_bot, mock_ctx):
@@ -1164,7 +1165,7 @@ class TestKdrCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert "Invalid world name" in error_msg
+                    assert gw2_messages.INVALID_WORLD_NAME in error_msg
                     assert "InvalidWorld" in error_msg
 
     @pytest.mark.asyncio
@@ -1187,7 +1188,7 @@ class TestKdrCommand:
                         await cog.kdr.callback(cog, mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
-                        assert "North America Tier" in embed.description
+                        assert gw2_messages.NA_TIER_TITLE in embed.description
 
     @pytest.mark.asyncio
     async def test_kdr_eu_tier_title(self, mock_bot, mock_ctx):
@@ -1292,7 +1293,7 @@ class TestKdrCommand:
 
                         mock_send.assert_called_once()
                         embed = mock_send.call_args[0][1]
-                        assert embed.title == "WvW Kills/Death Ratings"
+                        assert embed.title == gw2_messages.WVW_KDR_TITLE
                         field_names = [f.name for f in embed.fields]
                         assert "Green" in field_names
                         assert "Blue" in field_names
@@ -1916,7 +1917,7 @@ class TestMatchAPIKeyError:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert "Missing World Name" in error_msg
+                    assert gw2_messages.MISSING_WORLD_NAME in error_msg
 
 
 class TestKdrAPIKeyError:
@@ -1972,7 +1973,7 @@ class TestKdrAPIKeyError:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert "Invalid world name" in error_msg
+                    assert gw2_messages.INVALID_WORLD_NAME in error_msg
 
 
 class TestResolveTier:
@@ -1982,27 +1983,27 @@ class TestResolveTier:
         """Test NA tier resolution from match ID."""
         matches = {"id": "1-3"}
         result = _resolve_tier(matches)
-        assert "North America Tier" in result
+        assert gw2_messages.NA_TIER_TITLE in result
         assert "3" in result
 
     def test_eu_tier(self):
         """Test EU tier resolution from match ID."""
         matches = {"id": "2-5"}
         result = _resolve_tier(matches)
-        assert "Europe Tier" in result
+        assert gw2_messages.EU_TIER_TITLE in result
         assert "5" in result
 
     def test_na_tier_1(self):
         """Test NA tier 1."""
         matches = {"id": "1-1"}
         result = _resolve_tier(matches)
-        assert result == "North America Tier 1"
+        assert result == f"{gw2_messages.NA_TIER_TITLE} 1"
 
     def test_eu_tier_1(self):
         """Test EU tier 1."""
         matches = {"id": "2-1"}
         result = _resolve_tier(matches)
-        assert result == "Europe Tier 1"
+        assert result == f"{gw2_messages.EU_TIER_TITLE} 1"
 
 
 class TestResolveWvwWorldId:

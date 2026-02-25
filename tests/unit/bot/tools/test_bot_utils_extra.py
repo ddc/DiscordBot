@@ -619,7 +619,7 @@ class TestEmbedPaginatorView:
     """Test EmbedPaginatorView class (lines 174-208)."""
 
     def _make_pages(self, count=3):
-        return [discord.Embed(title=f"Page {i+1}") for i in range(count)]
+        return [discord.Embed(title=f"Page {i + 1}") for i in range(count)]
 
     @pytest.mark.asyncio
     async def test_init(self):

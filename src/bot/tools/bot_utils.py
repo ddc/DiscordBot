@@ -137,7 +137,7 @@ async def send_embed(ctx, embed, dm=False):
                     icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url,
                 )
                 await ctx.send(embed=notification_embed)
-            except (discord.Forbidden, discord.HTTPException):
+            except discord.Forbidden, discord.HTTPException:
                 # DM failed, fall back to sending in the channel
                 await ctx.send(embed=embed)
         else:
@@ -148,20 +148,24 @@ async def send_embed(ctx, embed, dm=False):
         if dm or is_private_message(ctx):
             # Only show DM disabled message when we were actually trying to DM
             try:
-                await ctx.send(embed=discord.Embed(
-                    description=chat_formatting.error(messages.DISABLED_DM),
-                    color=discord.Color.red(),
-                ))
-            except (discord.Forbidden, discord.HTTPException):
+                await ctx.send(
+                    embed=discord.Embed(
+                        description=chat_formatting.error(messages.DISABLED_DM),
+                        color=discord.Color.red(),
+                    )
+                )
+            except discord.Forbidden, discord.HTTPException:
                 pass  # Can't send to channel either, nothing we can do
         else:
             # Channel send failed — notify the user with a simple embed
             try:
-                await ctx.send(embed=discord.Embed(
-                    description=chat_formatting.error(messages.SEND_MESSAGE_FAILED),
-                    color=discord.Color.red(),
-                ))
-            except (discord.Forbidden, discord.HTTPException):
+                await ctx.send(
+                    embed=discord.Embed(
+                        description=chat_formatting.error(messages.SEND_MESSAGE_FAILED),
+                        color=discord.Color.red(),
+                    )
+                )
+            except discord.Forbidden, discord.HTTPException:
                 pass  # Can't send anything, nothing we can do
     except Exception as e:
         ctx.bot.log.error(f"Unexpected error sending message: {e}")

@@ -429,23 +429,23 @@ class TestBuildCommandInvokeErrorElse:
     """Test cases for build_command_invoke_error else branch (line 111)."""
 
     def test_build_command_invoke_error_no_matching_condition(self, mock_ctx, mock_error):
-        """Test build_command_invoke_error when no error conditions match (line 111)."""
+        """Test build_command_invoke_error when no error conditions match shows internal error."""
         context = ErrorContext(mock_ctx, mock_error)
         context.error_msg = "Some completely unrelated error that matches nothing"
 
         result = ErrorMessageBuilder.build_command_invoke_error(context)
-        assert f"{messages.COMMAND_ERROR}: `!testcommand`" in result
-        assert "Some completely unrelated error that matches nothing" in result
-        assert f"{messages.HELP_COMMAND_MORE_INFO}: `!help testcommand`" in result
+        assert f"{messages.COMMAND_INTERNAL_ERROR}: `!testcommand`" in result
+        assert messages.CONTACT_ADMIN in result
+        assert messages.HELP_COMMAND_MORE_INFO not in result
 
     def test_build_command_invoke_error_attribute_error(self, mock_ctx, mock_error):
-        """Test build_command_invoke_error with AttributeError in message."""
+        """Test build_command_invoke_error with AttributeError shows internal error."""
         context = ErrorContext(mock_ctx, mock_error)
         context.error_msg = "AttributeError: 'NoneType' object has no attribute 'foo'"
 
         result = ErrorMessageBuilder.build_command_invoke_error(context)
-        assert f"{messages.COMMAND_ERROR}: `!testcommand`" in result
-        assert "AttributeError" in result
+        assert f"{messages.COMMAND_INTERNAL_ERROR}: `!testcommand`" in result
+        assert messages.CONTACT_ADMIN in result
 
     def test_build_command_invoke_error_missing_permissions(self, mock_ctx, mock_error):
         """Test build_command_invoke_error with Missing Permissions."""
@@ -583,7 +583,8 @@ class TestOnCommandErrorEventHandler:
 
         mock_send_error.assert_called_once()
         call_msg = mock_send_error.call_args[0][1]
-        assert messages.COMMAND_ERROR in call_msg
+        assert messages.COMMAND_INTERNAL_ERROR in call_msg
+        assert messages.CONTACT_ADMIN in call_msg
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
@@ -772,7 +773,8 @@ class TestHandleCommandInvokeError:
         mock_send_error.assert_called_once()
         call_args = mock_send_error.call_args[0]
         assert call_args[0] == mock_ctx
-        assert messages.COMMAND_ERROR in call_args[1]
+        assert messages.COMMAND_INTERNAL_ERROR in call_args[1]
+        assert messages.CONTACT_ADMIN in call_args[1]
         assert call_args[2] is True
 
 

@@ -108,11 +108,9 @@ class ErrorMessageBuilder:
         for conditions, message in error_conditions.items():
             if any(condition in context.error_msg for condition in conditions):
                 base_msg = message
-                break
-        else:
-            base_msg = f"{messages.COMMAND_ERROR}: `{context.command}`\n{context.error_msg}"
+                return f"{base_msg}\n{messages.HELP_COMMAND_MORE_INFO}: `{context.help_command}`"
 
-        return f"{base_msg}\n{messages.HELP_COMMAND_MORE_INFO}: `{context.help_command}`"
+        return f"{messages.COMMAND_INTERNAL_ERROR}: `{context.command}`\n{messages.CONTACT_ADMIN}"
 
     @staticmethod
     def build_forbidden_error(context: ErrorContext) -> str:
