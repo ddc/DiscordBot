@@ -251,10 +251,7 @@ def _add_wvw_stats(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
         end_val = rs_end[stat_key]
         if start_val != end_val:
             diff = end_val - start_val
-            if stat_key == "wvw_rank":
-                embed.add_field(name=field_name, value=chat_formatting.inline(str(diff)))
-            else:
-                embed.add_field(name=field_name, value=chat_formatting.inline(f"+{diff}" if diff > 0 else str(diff)))
+            embed.add_field(name=field_name, value=chat_formatting.inline(str(diff)))
 
 
 def _add_wallet_currency_fields(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
