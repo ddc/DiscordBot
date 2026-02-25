@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.tools import bot_utils
+from src.bot.tools.bot_utils import EmbedPaginatorView
 
 
 class TestSendHelpMsg:
@@ -565,3 +566,282 @@ class TestGetServerSystemChannel:
         result = bot_utils.get_server_system_channel(server)
 
         assert result is channel2
+
+
+class TestSendEmbedDmFallback:
+    """Test send_embed DM fallback paths (lines 140-142, 155-156)."""
+
+    @pytest.fixture
+    def mock_ctx(self):
+        ctx = MagicMock()
+        ctx.bot = MagicMock()
+        ctx.bot.settings = {"bot": {"EmbedColor": discord.Color.blue()}}
+        ctx.message = MagicMock()
+        ctx.message.author.display_name = "TestUser"
+        ctx.message.author.display_avatar.url = "https://example.com/avatar.png"
+        ctx.author = MagicMock()
+        ctx.author.send = AsyncMock()
+        ctx.author.display_name = "TestUser"
+        ctx.author.avatar = MagicMock()
+        ctx.author.avatar.url = "https://example.com/avatar.png"
+        ctx.send = AsyncMock()
+        ctx.channel = MagicMock()  # Not a DMChannel
+        return ctx
+
+    @pytest.mark.asyncio
+    async def test_dm_send_fails_falls_back_to_channel(self, mock_ctx):
+        """Test that when DM send fails, embed is sent to channel instead (lines 140-142)."""
+        embed = discord.Embed(description="Test", color=discord.Color.green())
+        mock_ctx.author.send.side_effect = discord.Forbidden(MagicMock(), "Cannot send DM")
+
+        await bot_utils.send_embed(mock_ctx, embed, dm=True)
+
+        # DM failed, should fall back to channel send
+        mock_ctx.send.assert_called_once_with(embed=embed)
+
+    @pytest.mark.asyncio
+    async def test_dm_disabled_fallback_also_fails(self, mock_ctx):
+        """Test that when DM disabled message itself fails to send (lines 155-156)."""
+        embed = discord.Embed(description="Test", color=discord.Color.green())
+        mock_ctx.channel = MagicMock(spec=discord.DMChannel)
+        # First call (author.send) raises Forbidden
+        mock_ctx.author.send.side_effect = discord.Forbidden(MagicMock(), "Cannot send DM")
+        # Fallback channel send also raises
+        mock_ctx.send.side_effect = discord.Forbidden(MagicMock(), "Cannot send to channel either")
+
+        # Should not raise — the inner except catches it
+        await bot_utils.send_embed(mock_ctx, embed)
+
+        mock_ctx.bot.log.error.assert_called_once()
+
+
+class TestEmbedPaginatorView:
+    """Test EmbedPaginatorView class (lines 174-208)."""
+
+    def _make_pages(self, count=3):
+        return [discord.Embed(title=f"Page {i+1}") for i in range(count)]
+
+    @pytest.mark.asyncio
+    async def test_init(self):
+        """Test EmbedPaginatorView initialization (lines 174-179)."""
+        pages = self._make_pages()
+        view = EmbedPaginatorView(pages, author_id=123)
+
+        assert view.pages is pages
+        assert view.current_page == 0
+        assert view.author_id == 123
+        assert view.message is None
+        assert view.timeout is None
+
+    @pytest.mark.asyncio
+    async def test_update_buttons_first_page(self):
+        """Test _update_buttons on first page (lines 182-184)."""
+        pages = self._make_pages()
+        view = EmbedPaginatorView(pages, author_id=1)
+
+        assert view.previous_button.disabled is True
+        assert view.next_button.disabled is False
+        assert view.page_indicator.label == "1/3"
+
+    @pytest.mark.asyncio
+    async def test_update_buttons_middle_page(self):
+        """Test _update_buttons on middle page."""
+        pages = self._make_pages()
+        view = EmbedPaginatorView(pages, author_id=1)
+        view.current_page = 1
+        view._update_buttons()
+
+        assert view.previous_button.disabled is False
+        assert view.next_button.disabled is False
+        assert view.page_indicator.label == "2/3"
+
+    @pytest.mark.asyncio
+    async def test_update_buttons_last_page(self):
+        """Test _update_buttons on last page."""
+        pages = self._make_pages()
+        view = EmbedPaginatorView(pages, author_id=1)
+        view.current_page = 2
+        view._update_buttons()
+
+        assert view.previous_button.disabled is False
+        assert view.next_button.disabled is True
+        assert view.page_indicator.label == "3/3"
+
+    @pytest.mark.asyncio
+    async def test_next_button_callback(self):
+        """Test next_button advances page (lines 202-208)."""
+        pages = self._make_pages()
+        view = EmbedPaginatorView(pages, author_id=42)
+        interaction = MagicMock()
+        interaction.user.id = 42
+        interaction.response = AsyncMock()
+
+        await view.next_button.callback(interaction)
+
+        assert view.current_page == 1
+        interaction.response.edit_message.assert_called_once_with(embed=pages[1], view=view)
+
+    @pytest.mark.asyncio
+    async def test_previous_button_callback(self):
+        """Test previous_button goes back (lines 188-194)."""
+        pages = self._make_pages()
+        view = EmbedPaginatorView(pages, author_id=42)
+        view.current_page = 2
+        view._update_buttons()
+        interaction = MagicMock()
+        interaction.user.id = 42
+        interaction.response = AsyncMock()
+
+        await view.previous_button.callback(interaction)
+
+        assert view.current_page == 1
+        interaction.response.edit_message.assert_called_once_with(embed=pages[1], view=view)
+
+    @pytest.mark.asyncio
+    async def test_next_button_wrong_user(self):
+        """Test next_button rejects non-invoker."""
+        pages = self._make_pages()
+        view = EmbedPaginatorView(pages, author_id=42)
+        interaction = MagicMock()
+        interaction.user.id = 999
+        interaction.response = AsyncMock()
+
+        await view.next_button.callback(interaction)
+
+        assert view.current_page == 0  # Unchanged
+        interaction.response.send_message.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_previous_button_wrong_user(self):
+        """Test previous_button rejects non-invoker."""
+        pages = self._make_pages()
+        view = EmbedPaginatorView(pages, author_id=42)
+        view.current_page = 1
+        interaction = MagicMock()
+        interaction.user.id = 999
+        interaction.response = AsyncMock()
+
+        await view.previous_button.callback(interaction)
+
+        assert view.current_page == 1  # Unchanged
+        interaction.response.send_message.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_page_indicator_defers(self):
+        """Test page_indicator just defers (line 198)."""
+        pages = self._make_pages()
+        view = EmbedPaginatorView(pages, author_id=1)
+        interaction = MagicMock()
+        interaction.response = AsyncMock()
+
+        await view.page_indicator.callback(interaction)
+
+        interaction.response.defer.assert_called_once()
+
+
+class TestSendPaginatedEmbed:
+    """Test send_paginated_embed function (lines 217-246)."""
+
+    @pytest.fixture
+    def mock_ctx(self):
+        ctx = MagicMock()
+        ctx.bot = MagicMock()
+        ctx.bot.settings = {"bot": {"EmbedColor": discord.Color.blue()}}
+        ctx.message = MagicMock()
+        ctx.message.author.id = 12345
+        ctx.message.author.display_name = "TestUser"
+        ctx.message.author.display_avatar.url = "https://example.com/avatar.png"
+        ctx.send = AsyncMock()
+        ctx.channel = MagicMock()
+        return ctx
+
+    @pytest.mark.asyncio
+    async def test_no_pagination_under_limit(self, mock_ctx):
+        """Test embed with <=25 fields is sent directly via send_embed (line 217-219)."""
+        embed = discord.Embed(color=discord.Color.green())
+        embed.set_author(name="Author", icon_url="https://example.com/pic.png")
+        for i in range(5):
+            embed.add_field(name=f"Field {i}", value=f"Value {i}")
+
+        with patch("src.bot.tools.bot_utils.send_embed") as mock_send:
+            await bot_utils.send_paginated_embed(mock_ctx, embed)
+            mock_send.assert_called_once_with(mock_ctx, embed)
+
+    @pytest.mark.asyncio
+    async def test_pagination_splits_fields(self, mock_ctx):
+        """Test embed with >25 fields is split into pages (lines 221-246)."""
+        embed = discord.Embed(color=discord.Color.green(), description="Test desc")
+        embed.set_author(name="Author", icon_url="https://example.com/pic.png")
+        embed.set_thumbnail(url="https://example.com/thumb.png")
+        for i in range(30):
+            embed.add_field(name=f"Field {i}", value=f"Value {i}")
+
+        await bot_utils.send_paginated_embed(mock_ctx, embed)
+
+        mock_ctx.send.assert_called_once()
+        call_kwargs = mock_ctx.send.call_args[1]
+        sent_embed = call_kwargs["embed"]
+        assert len(sent_embed.fields) == 25  # First page
+        assert isinstance(call_kwargs["view"], EmbedPaginatorView)
+
+        view = call_kwargs["view"]
+        assert len(view.pages) == 2
+        assert len(view.pages[0].fields) == 25
+        assert len(view.pages[1].fields) == 5
+        # Check properties preserved
+        assert view.pages[0].description == "Test desc"
+        assert view.pages[0].author.name == "Author"
+        assert view.pages[0].thumbnail.url == "https://example.com/thumb.png"
+        assert "Page 1/2" in view.pages[0].footer.text
+
+    @pytest.mark.asyncio
+    async def test_pagination_exactly_25_no_split(self, mock_ctx):
+        """Test embed with exactly 25 fields is sent directly."""
+        embed = discord.Embed(color=discord.Color.green())
+        for i in range(25):
+            embed.add_field(name=f"Field {i}", value=f"Value {i}")
+
+        with patch("src.bot.tools.bot_utils.send_embed") as mock_send:
+            await bot_utils.send_paginated_embed(mock_ctx, embed)
+            mock_send.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_pagination_single_page_after_split(self, mock_ctx):
+        """Test that if split results in 1 page, send_embed is used (line 240-242)."""
+        embed = discord.Embed(color=discord.Color.green())
+        for i in range(26):
+            embed.add_field(name=f"Field {i}", value=f"Value {i}")
+
+        # max_fields=30 means 26 fields fit in one page
+        with patch("src.bot.tools.bot_utils.send_embed") as mock_send:
+            await bot_utils.send_paginated_embed(mock_ctx, embed, max_fields=30)
+            mock_send.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_pagination_no_color_uses_settings(self, mock_ctx):
+        """Test that embed without color gets it from settings."""
+        embed = discord.Embed()
+        for i in range(30):
+            embed.add_field(name=f"Field {i}", value=f"Value {i}")
+
+        await bot_utils.send_paginated_embed(mock_ctx, embed)
+
+        call_kwargs = mock_ctx.send.call_args[1]
+        view = call_kwargs["view"]
+        assert view.pages[0].color == discord.Color.blue()
+
+    @pytest.mark.asyncio
+    async def test_pagination_stores_message(self, mock_ctx):
+        """Test that view.message is set after sending."""
+        embed = discord.Embed(color=discord.Color.green())
+        for i in range(30):
+            embed.add_field(name=f"Field {i}", value=f"Value {i}")
+
+        sent_msg = MagicMock()
+        mock_ctx.send.return_value = sent_msg
+
+        await bot_utils.send_paginated_embed(mock_ctx, embed)
+
+        call_kwargs = mock_ctx.send.call_args[1]
+        view = call_kwargs["view"]
+        assert view.message is sent_msg

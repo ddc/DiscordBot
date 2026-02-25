@@ -4,6 +4,7 @@ import discord
 import pytest
 from src.gw2.cogs.sessions import (
     GW2Session,
+    _add_currency_fields,
     _add_deaths_field,
     _add_gold_field,
     _add_wallet_currency_fields,
@@ -935,6 +936,40 @@ class TestAddWalletCurrencyFields:
             field_names = [f.name for f in embed.fields]
             assert "Gained Currencies" in field_names
             assert "Lost Currencies" in field_names
+
+
+class TestAddCurrencyFields:
+    """Test the _add_currency_fields helper for splitting long values."""
+
+    def test_splits_when_exceeding_limit(self):
+        """Test that lines are split across fields when they exceed 1024 chars."""
+        embed = discord.Embed()
+        # 40 lines * ~45 chars each ≈ 1800+ chars → must split
+        lines = [f"+{i * 100000} Testimony of Some Currency Name {i}" for i in range(1, 41)]
+        with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
+            _add_currency_fields(embed, "Gained Currencies", lines)
+            assert len(embed.fields) >= 2
+            assert embed.fields[0].name == "Gained Currencies"
+            assert embed.fields[1].name == "Gained Currencies (2)"
+
+    def test_single_field_when_short(self):
+        """Test that a small list produces exactly one field."""
+        embed = discord.Embed()
+        lines = ["+100 Karma", "+50 Laurels"]
+        with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
+            _add_currency_fields(embed, "Gained Currencies", lines)
+            assert len(embed.fields) == 1
+            assert embed.fields[0].name == "Gained Currencies"
+
+    def test_no_field_value_exceeds_1024(self):
+        """Test that no individual field value exceeds Discord's 1024-char limit."""
+        embed = discord.Embed()
+        # Simulate worst case: all 77 non-gold currencies changed
+        lines = [f"+{i * 99999} Testimony of Some Long Currency Name {i}" for i in range(1, 78)]
+        with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
+            _add_currency_fields(embed, "Test", lines)
+            for field in embed.fields:
+                assert len(field.value) <= 1024
 
 
 class TestSessionSetup:
