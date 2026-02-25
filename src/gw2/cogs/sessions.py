@@ -206,6 +206,10 @@ def _add_deaths_field(embed: discord.Embed, rs_chars_start: list[dict], rs_chars
 
     if len(prof_names) > 0:
         deaths_msg = f"{prof_names} [Total:{total_deaths}]"
+        # Truncate if it would exceed Discord's 1024-char field value limit (2 chars for inline backticks)
+        if len(deaths_msg) > 1020:
+            total_suffix = f"... [Total:{total_deaths}]"
+            deaths_msg = prof_names[: 1020 - len(total_suffix)] + total_suffix
         embed.add_field(name=gw2_messages.TIMES_YOU_DIED, value=chat_formatting.inline(deaths_msg), inline=False)
 
 
@@ -230,11 +234,48 @@ def _add_wvw_stats(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
             embed.add_field(name=field_name, value=chat_formatting.inline(str(diff)))
 
 
+def _add_currency_fields(embed: discord.Embed, name: str, lines: list[str]) -> None:
+    """Add one or more embed fields for a list of currency lines.
+
+    Splits into multiple fields when the value would exceed Discord's
+    1024-character field value limit.
+    """
+    max_value_len = 1020  # leave room for backtick wrapping from inline()
+    chunk: list[str] = []
+    chunk_len = 0
+    part = 0
+
+    for line in lines:
+        # +1 for the newline separator between lines
+        added_len = len(line) + (1 if chunk else 0)
+        if chunk and chunk_len + added_len > max_value_len:
+            part += 1
+            field_name = name if part == 1 else f"{name} ({part})"
+            embed.add_field(
+                name=field_name,
+                value=chat_formatting.inline("\n".join(chunk)),
+                inline=False,
+            )
+            chunk = []
+            chunk_len = 0
+        chunk.append(line)
+        chunk_len += added_len
+
+    if chunk:
+        part += 1
+        field_name = name if part == 1 else f"{name} ({part})"
+        embed.add_field(
+            name=field_name,
+            value=chat_formatting.inline("\n".join(chunk)),
+            inline=False,
+        )
+
+
 def _add_wallet_currency_fields(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
     """Add wallet currency fields to embed (all except gold, which has special formatting).
 
     Currencies are grouped into "Gained Currencies" and "Lost Currencies" fields
-    to avoid exceeding Discord's 25-field embed limit.
+    to avoid exceeding Discord's 25-field and 1024-char field value limits.
     """
     gained_lines = []
     lost_lines = []
@@ -253,17 +294,9 @@ def _add_wallet_currency_fields(embed: discord.Embed, rs_start: dict, rs_end: di
                 lost_lines.append(f"{diff} {display_name}")
 
     if gained_lines:
-        embed.add_field(
-            name="Gained Currencies",
-            value=chat_formatting.inline("\n".join(gained_lines)),
-            inline=False,
-        )
+        _add_currency_fields(embed, "Gained Currencies", gained_lines)
     if lost_lines:
-        embed.add_field(
-            name="Lost Currencies",
-            value=chat_formatting.inline("\n".join(lost_lines)),
-            inline=False,
-        )
+        _add_currency_fields(embed, "Lost Currencies", lost_lines)
 
 
 async def setup(bot):
