@@ -85,6 +85,16 @@ class Gw2Servers(Enum):
     Millers_Sound = "Miller's Sound [DE]"
 
 
+async def send_progress_embed(
+    ctx: commands.Context, message: str = "Please wait, I'm fetching data from GW2 API... (this may take a moment)"
+) -> discord.Message:
+    """Send a progress embed that can be deleted when the operation completes."""
+    color = ctx.bot.settings["gw2"]["EmbedColor"]
+    embed = discord.Embed(description=f"\U0001f504 **{message}**", color=color)
+    embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.display_avatar.url)
+    return await ctx.send(embed=embed)
+
+
 async def send_msg(ctx: commands.Context, description: str, dm: bool = False) -> None:
     """Send a GW2-themed embed message."""
     color = ctx.bot.settings["gw2"]["EmbedColor"]
@@ -115,17 +125,28 @@ async def calculate_user_achiev_points(ctx: commands.Context, api_req_acc_achiev
 
 
 async def _fetch_achievement_data_in_batches(gw2_api: Gw2Client, user_achievements: list[dict]) -> list[dict]:
-    """Fetch achievement data from API in batches of 200."""
+    """Fetch achievement data from API in parallel batches of 200."""
     batch_size = 200
-    all_achievement_data = []
+    sem = asyncio.Semaphore(5)
 
+    async def _fetch_batch(batch):
+        async with sem:
+            achievement_ids = [str(ach["id"]) for ach in batch]
+            ids_string = ",".join(achievement_ids)
+            return await gw2_api.call_api(f"achievements?ids={ids_string}")
+
+    batch_tasks = []
     for i in range(0, len(user_achievements), batch_size):
         batch = user_achievements[i : i + batch_size]
-        achievement_ids = [str(ach["id"]) for ach in batch]
-        ids_string = ",".join(achievement_ids)
+        batch_tasks.append(_fetch_batch(batch))
 
-        api_response = await gw2_api.call_api(f"achievements?ids={ids_string}")
-        all_achievement_data.extend(api_response)
+    results = await asyncio.gather(*batch_tasks, return_exceptions=True)
+
+    all_achievement_data = []
+    for result in results:
+        if isinstance(result, Exception):
+            continue
+        all_achievement_data.extend(result)
 
     return all_achievement_data
 
@@ -451,11 +472,12 @@ async def get_user_stats(bot: Bot, api_key: str) -> dict | None:
     gw2_api = Gw2Client(bot)
 
     try:
-        # Fetch data from multiple endpoints
-        account_data = await gw2_api.call_api("account", api_key)
-        wallet_data = await gw2_api.call_api("account/wallet", api_key)
         achievement_ids = ",".join(str(k) for k in ACHIEVEMENT_MAPPING)
-        achievements_data = await gw2_api.call_api(f"account/achievements?ids={achievement_ids}", api_key)
+        account_data, wallet_data, achievements_data = await asyncio.gather(
+            gw2_api.call_api("account", api_key),
+            gw2_api.call_api("account/wallet", api_key),
+            gw2_api.call_api(f"account/achievements?ids={achievement_ids}", api_key),
+        )
 
     except Exception as e:
         bot.log.error(f"Error fetching user stats: {e}")
@@ -512,10 +534,9 @@ async def insert_session_char(
     bot.log.debug(f"Attempting to insert {session_type} session chars for session {session_id}, user {member.id}")
     try:
         gw2_api = Gw2Client(bot)
-        characters_data = await gw2_api.call_api("characters", api_key)
+        characters_data = await gw2_api.call_api("characters?ids=all", api_key)
 
         insert_args = {
-            "api_key": api_key,
             "session_id": session_id,
             "user_id": member.id,
             "start": session_type == "start",
@@ -523,7 +544,7 @@ async def insert_session_char(
         }
 
         gw2_session_chars_dal = Gw2SessionCharsDal(bot.db_session, bot.log)
-        await gw2_session_chars_dal.insert_session_char(gw2_api, characters_data, insert_args)
+        await gw2_session_chars_dal.insert_session_char(characters_data, insert_args)
         bot.log.debug(f"Successfully inserted {session_type} session chars for session {session_id}, user {member.id}")
 
     except Exception as e:

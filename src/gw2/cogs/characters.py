@@ -1,9 +1,11 @@
+import asyncio
 import discord
 from discord.ext import commands
 from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.gw2.cogs.gw2 import GuildWars2
 from src.gw2.constants import gw2_messages
+from src.gw2.tools import gw2_utils
 from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 
@@ -49,9 +51,16 @@ async def characters(ctx):
     if "characters" not in permissions or "account" not in permissions:
         return await bot_utils.send_error_msg(ctx, gw2_messages.API_KEY_NO_PERMISSION, True)
 
+    progress_msg = await gw2_utils.send_progress_embed(
+        ctx, "Please wait, I'm fetching your character data... (this may take a moment)"
+    )
+
     try:
-        await ctx.message.channel.typing()
-        api_req_acc = await gw2_api.call_api("account", api_key)
+        # Fetch account info and all characters in parallel
+        api_req_acc, characters_data = await asyncio.gather(
+            gw2_api.call_api("account", api_key),
+            gw2_api.call_api("characters?ids=all", api_key),
+        )
 
         color = ctx.bot.settings["gw2"]["EmbedColor"]
         embed = discord.Embed(
@@ -62,20 +71,17 @@ async def characters(ctx):
         embed.set_thumbnail(url=ctx.message.author.display_avatar.url)
         embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.display_avatar.url)
 
-        api_req_characters = await gw2_api.call_api("characters", api_key)
-        for char_name in api_req_characters:
-            await ctx.message.channel.typing()
-            current_char = await gw2_api.call_api(f"characters/{char_name}/core", api_key)
-            days = (current_char["age"] / 60) / 24
-            created = current_char["created"].split("T", 1)[0]
+        for char in characters_data:
+            days = (char["age"] / 60) / 24
+            created = char["created"].split("T", 1)[0]
             embed.add_field(
-                name=char_name,
+                name=char["name"],
                 value=chat_formatting.inline(
-                    f"Race: {current_char['race']}\n"
-                    f"Gender: {current_char['gender']}\n"
-                    f"Profession: {current_char['profession']}\n"
-                    f"Level: {current_char['level']}\n"
-                    f"Deaths: {current_char['deaths']}\n"
+                    f"Race: {char['race']}\n"
+                    f"Gender: {char['gender']}\n"
+                    f"Profession: {char['profession']}\n"
+                    f"Level: {char['level']}\n"
+                    f"Deaths: {char['deaths']}\n"
                     f"Age: {round(days)} days\n"
                     f"Date: {created}\n"
                 ),
@@ -84,9 +90,11 @@ async def characters(ctx):
         embed.set_footer(
             icon_url=ctx.bot.user.display_avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC"
         )
+        await progress_msg.delete()
         await bot_utils.send_embed(ctx, embed)
 
     except Exception as e:
+        await progress_msg.delete()
         await bot_utils.send_error_msg(ctx, e)
         return ctx.bot.log.error(ctx, e)
 

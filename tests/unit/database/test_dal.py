@@ -935,73 +935,49 @@ class TestGw2SessionCharsDal:
     @pytest.mark.asyncio
     async def test_insert_session_char(self, mock_dal):
         """Test insert_session_char calls insert for each character."""
-        gw2_api = AsyncMock()
-        gw2_api.call_api.side_effect = [
+        characters_data = [
             {"name": "CharOne", "profession": "Warrior", "deaths": 5},
             {"name": "CharTwo", "profession": "Elementalist", "deaths": 10},
         ]
-        api_characters = ["CharOne", "CharTwo"]
         insert_args = {
             "session_id": 1,
             "user_id": 67890,
-            "api_key": "AAAABBBB-1111-2222-3333-444455556666",
             "start": True,
             "end": False,
         }
 
-        await mock_dal.insert_session_char(gw2_api, api_characters, insert_args)
+        await mock_dal.insert_session_char(characters_data, insert_args)
 
-        assert gw2_api.call_api.call_count == 2
-        gw2_api.call_api.assert_any_call(
-            "characters/CharOne/core",
-            "AAAABBBB-1111-2222-3333-444455556666",
-        )
-        gw2_api.call_api.assert_any_call(
-            "characters/CharTwo/core",
-            "AAAABBBB-1111-2222-3333-444455556666",
-        )
         assert mock_dal.db_utils.insert.call_count == 2
 
     @pytest.mark.asyncio
     async def test_insert_session_char_single_character(self, mock_dal):
         """Test insert_session_char with a single character."""
-        gw2_api = AsyncMock()
-        gw2_api.call_api.return_value = {
-            "name": "Solo",
-            "profession": "Necromancer",
-            "deaths": 0,
-        }
-        api_characters = ["Solo"]
+        characters_data = [
+            {"name": "Solo", "profession": "Necromancer", "deaths": 0},
+        ]
         insert_args = {
             "session_id": 2,
             "user_id": 11111,
-            "api_key": "CCCCDDDD-5555-6666-7777-888899990000",
             "start": False,
             "end": True,
         }
 
-        await mock_dal.insert_session_char(gw2_api, api_characters, insert_args)
+        await mock_dal.insert_session_char(characters_data, insert_args)
 
-        gw2_api.call_api.assert_called_once_with(
-            "characters/Solo/core",
-            "CCCCDDDD-5555-6666-7777-888899990000",
-        )
         mock_dal.db_utils.insert.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_insert_session_char_empty_characters(self, mock_dal):
         """Test insert_session_char with an empty characters list."""
-        gw2_api = AsyncMock()
-        api_characters = []
+        characters_data = []
         insert_args = {
             "session_id": 3,
             "user_id": 22222,
-            "api_key": "EEEEEEEE-0000-0000-0000-000000000000",
         }
 
-        await mock_dal.insert_session_char(gw2_api, api_characters, insert_args)
+        await mock_dal.insert_session_char(characters_data, insert_args)
 
-        gw2_api.call_api.assert_not_called()
         mock_dal.db_utils.insert.assert_not_called()
 
     @pytest.mark.asyncio

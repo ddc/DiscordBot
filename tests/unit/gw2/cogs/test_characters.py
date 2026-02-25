@@ -180,47 +180,55 @@ class TestCharactersCommand:
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
                         sample_account_data,  # account call
-                        ["CharOne", "CharTwo"],  # characters list call
-                        {  # CharOne core data
-                            "race": "Human",
-                            "gender": "Male",
-                            "profession": "Warrior",
-                            "level": 80,
-                            "deaths": 42,
-                            "age": 432000,
-                            "created": "2020-01-15T10:30:00Z",
-                        },
-                        {  # CharTwo core data
-                            "race": "Asura",
-                            "gender": "Female",
-                            "profession": "Elementalist",
-                            "level": 80,
-                            "deaths": 15,
-                            "age": 216000,
-                            "created": "2021-06-20T08:00:00Z",
-                        },
+                        [  # characters?ids=all call
+                            {
+                                "name": "CharOne",
+                                "race": "Human",
+                                "gender": "Male",
+                                "profession": "Warrior",
+                                "level": 80,
+                                "deaths": 42,
+                                "age": 432000,
+                                "created": "2020-01-15T10:30:00Z",
+                            },
+                            {
+                                "name": "CharTwo",
+                                "race": "Asura",
+                                "gender": "Female",
+                                "profession": "Elementalist",
+                                "level": 80,
+                                "deaths": 15,
+                                "age": 216000,
+                                "created": "2021-06-20T08:00:00Z",
+                            },
+                        ],
                     ]
                 )
-                with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
-                    with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
-                        mock_time.return_value = "2025-01-01 12:00:00"
-                        await characters(mock_ctx)
-                        mock_send.assert_called_once()
-                        embed = mock_send.call_args[0][1]
-                        assert embed.title == "Account Name"
-                        assert "TestUser.1234" in embed.description
-                        # Verify embed has fields for characters
-                        assert len(embed.fields) == 2
-                        # Verify character fields contain expected data
-                        char_one_field = embed.fields[0]
-                        assert char_one_field.name == "CharOne"
-                        assert "Human" in char_one_field.value
-                        assert "Warrior" in char_one_field.value
-                        assert "80" in char_one_field.value
-                        char_two_field = embed.fields[1]
-                        assert char_two_field.name == "CharTwo"
-                        assert "Asura" in char_two_field.value
-                        assert "Elementalist" in char_two_field.value
+                with patch(
+                    "src.gw2.cogs.characters.gw2_utils.send_progress_embed",
+                    new_callable=AsyncMock,
+                    return_value=AsyncMock(),
+                ) as mock_progress:
+                    with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
+                        with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
+                            mock_time.return_value = "2025-01-01 12:00:00"
+                            await characters(mock_ctx)
+                            mock_send.assert_called_once()
+                            embed = mock_send.call_args[0][1]
+                            assert embed.title == "Account Name"
+                            assert "TestUser.1234" in embed.description
+                            # Verify embed has fields for characters
+                            assert len(embed.fields) == 2
+                            # Verify character fields contain expected data
+                            char_one_field = embed.fields[0]
+                            assert char_one_field.name == "CharOne"
+                            assert "Human" in char_one_field.value
+                            assert "Warrior" in char_one_field.value
+                            assert "80" in char_one_field.value
+                            char_two_field = embed.fields[1]
+                            assert char_two_field.name == "CharTwo"
+                            assert "Asura" in char_two_field.value
+                            assert "Elementalist" in char_two_field.value
 
     @pytest.mark.asyncio
     async def test_characters_successful_character_age_calculation(
@@ -239,26 +247,33 @@ class TestCharactersCommand:
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
                         sample_account_data,
-                        ["TestChar"],
-                        {
-                            "race": "Norn",
-                            "gender": "Male",
-                            "profession": "Guardian",
-                            "level": 80,
-                            "deaths": 10,
-                            "age": 144000,  # 100 days in seconds/minutes -> (144000/60)/24 = 100
-                            "created": "2022-03-01T00:00:00Z",
-                        },
+                        [
+                            {
+                                "name": "TestChar",
+                                "race": "Norn",
+                                "gender": "Male",
+                                "profession": "Guardian",
+                                "level": 80,
+                                "deaths": 10,
+                                "age": 144000,  # 100 days in seconds/minutes -> (144000/60)/24 = 100
+                                "created": "2022-03-01T00:00:00Z",
+                            },
+                        ],
                     ]
                 )
-                with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
-                    with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
-                        mock_time.return_value = "2025-01-01 12:00:00"
-                        await characters(mock_ctx)
-                        mock_send.assert_called_once()
-                        embed = mock_send.call_args[0][1]
-                        char_field = embed.fields[0]
-                        assert "100" in char_field.value
+                with patch(
+                    "src.gw2.cogs.characters.gw2_utils.send_progress_embed",
+                    new_callable=AsyncMock,
+                    return_value=AsyncMock(),
+                ) as mock_progress:
+                    with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
+                        with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
+                            mock_time.return_value = "2025-01-01 12:00:00"
+                            await characters(mock_ctx)
+                            mock_send.assert_called_once()
+                            embed = mock_send.call_args[0][1]
+                            char_field = embed.fields[0]
+                            assert "100" in char_field.value
 
     @pytest.mark.asyncio
     async def test_characters_successful_created_date_parsed(self, mock_ctx, sample_api_key_data, sample_account_data):
@@ -274,26 +289,33 @@ class TestCharactersCommand:
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
                         sample_account_data,
-                        ["DateChar"],
-                        {
-                            "race": "Sylvari",
-                            "gender": "Female",
-                            "profession": "Ranger",
-                            "level": 50,
-                            "deaths": 5,
-                            "age": 7200,
-                            "created": "2023-07-15T14:30:00Z",
-                        },
+                        [
+                            {
+                                "name": "DateChar",
+                                "race": "Sylvari",
+                                "gender": "Female",
+                                "profession": "Ranger",
+                                "level": 50,
+                                "deaths": 5,
+                                "age": 7200,
+                                "created": "2023-07-15T14:30:00Z",
+                            },
+                        ],
                     ]
                 )
-                with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
-                    with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
-                        mock_time.return_value = "2025-01-01 12:00:00"
-                        await characters(mock_ctx)
-                        mock_send.assert_called_once()
-                        embed = mock_send.call_args[0][1]
-                        char_field = embed.fields[0]
-                        assert "2023-07-15" in char_field.value
+                with patch(
+                    "src.gw2.cogs.characters.gw2_utils.send_progress_embed",
+                    new_callable=AsyncMock,
+                    return_value=AsyncMock(),
+                ) as mock_progress:
+                    with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
+                        with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
+                            mock_time.return_value = "2025-01-01 12:00:00"
+                            await characters(mock_ctx)
+                            mock_send.assert_called_once()
+                            embed = mock_send.call_args[0][1]
+                            char_field = embed.fields[0]
+                            assert "2023-07-15" in char_field.value
 
     @pytest.mark.asyncio
     async def test_characters_api_exception_during_execution(self, mock_ctx, sample_api_key_data):
@@ -307,10 +329,15 @@ class TestCharactersCommand:
                     return_value={"name": "TestKey", "permissions": ["account", "characters"]}
                 )
                 mock_client_instance.call_api = AsyncMock(side_effect=Exception("API connection error"))
-                with patch("src.gw2.cogs.characters.bot_utils.send_error_msg") as mock_error:
-                    await characters(mock_ctx)
-                    mock_error.assert_called_once()
-                    mock_ctx.bot.log.error.assert_called_once()
+                with patch(
+                    "src.gw2.cogs.characters.gw2_utils.send_progress_embed",
+                    new_callable=AsyncMock,
+                    return_value=AsyncMock(),
+                ) as mock_progress:
+                    with patch("src.gw2.cogs.characters.bot_utils.send_error_msg") as mock_error:
+                        await characters(mock_ctx)
+                        mock_error.assert_called_once()
+                        mock_ctx.bot.log.error.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_characters_triggers_typing_indicator(self, mock_ctx, sample_api_key_data):
@@ -336,27 +363,34 @@ class TestCharactersCommand:
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
                         sample_account_data,
-                        ["SingleChar"],
-                        {
-                            "race": "Charr",
-                            "gender": "Male",
-                            "profession": "Engineer",
-                            "level": 80,
-                            "deaths": 0,
-                            "age": 1440,
-                            "created": "2024-01-01T00:00:00Z",
-                        },
+                        [
+                            {
+                                "name": "SingleChar",
+                                "race": "Charr",
+                                "gender": "Male",
+                                "profession": "Engineer",
+                                "level": 80,
+                                "deaths": 0,
+                                "age": 1440,
+                                "created": "2024-01-01T00:00:00Z",
+                            },
+                        ],
                     ]
                 )
-                with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
-                    with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
-                        mock_time.return_value = "2025-01-01 12:00:00"
-                        await characters(mock_ctx)
-                        mock_send.assert_called_once()
-                        embed = mock_send.call_args[0][1]
-                        assert embed.thumbnail.url == "https://example.com/avatar.png"
-                        assert embed.author.name == "TestUser"
-                        assert embed.author.icon_url == "https://example.com/avatar.png"
+                with patch(
+                    "src.gw2.cogs.characters.gw2_utils.send_progress_embed",
+                    new_callable=AsyncMock,
+                    return_value=AsyncMock(),
+                ) as mock_progress:
+                    with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
+                        with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
+                            mock_time.return_value = "2025-01-01 12:00:00"
+                            await characters(mock_ctx)
+                            mock_send.assert_called_once()
+                            embed = mock_send.call_args[0][1]
+                            assert embed.thumbnail.url == "https://example.com/avatar.png"
+                            assert embed.author.name == "TestUser"
+                            assert embed.author.icon_url == "https://example.com/avatar.png"
 
     @pytest.mark.asyncio
     async def test_characters_author_no_avatar(self, mock_ctx, sample_api_key_data, sample_account_data):
@@ -379,26 +413,33 @@ class TestCharactersCommand:
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
                         sample_account_data,
-                        ["SingleChar"],
-                        {
-                            "race": "Charr",
-                            "gender": "Male",
-                            "profession": "Engineer",
-                            "level": 80,
-                            "deaths": 0,
-                            "age": 1440,
-                            "created": "2024-01-01T00:00:00Z",
-                        },
+                        [
+                            {
+                                "name": "SingleChar",
+                                "race": "Charr",
+                                "gender": "Male",
+                                "profession": "Engineer",
+                                "level": 80,
+                                "deaths": 0,
+                                "age": 1440,
+                                "created": "2024-01-01T00:00:00Z",
+                            },
+                        ],
                     ]
                 )
-                with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
-                    with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
-                        mock_time.return_value = "2025-01-01 12:00:00"
-                        await characters(mock_ctx)
-                        mock_send.assert_called_once()
-                        embed = mock_send.call_args[0][1]
-                        assert embed.thumbnail.url == "https://example.com/default.png"
-                        assert embed.author.icon_url == "https://example.com/default.png"
+                with patch(
+                    "src.gw2.cogs.characters.gw2_utils.send_progress_embed",
+                    new_callable=AsyncMock,
+                    return_value=AsyncMock(),
+                ) as mock_progress:
+                    with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
+                        with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
+                            mock_time.return_value = "2025-01-01 12:00:00"
+                            await characters(mock_ctx)
+                            mock_send.assert_called_once()
+                            embed = mock_send.call_args[0][1]
+                            assert embed.thumbnail.url == "https://example.com/default.png"
+                            assert embed.author.icon_url == "https://example.com/default.png"
 
 
 class TestCharactersSetup:

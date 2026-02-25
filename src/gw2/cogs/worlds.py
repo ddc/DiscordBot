@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from discord.ext import commands
 from src.bot.tools import bot_utils, chat_formatting
@@ -41,34 +42,14 @@ async def worlds_na(ctx):
     if not result:
         return None
 
-    gw2_api = Gw2Client(ctx.bot)
-    embed_na = discord.Embed(description=chat_formatting.inline(gw2_messages.NA_SERVERS_TITLE))
+    progress_msg = await gw2_utils.send_progress_embed(
+        ctx, "Please wait, I'm fetching NA world data... (this may take a moment)"
+    )
 
-    failed_worlds = []
+    na_worlds = [w for w in worlds_ids if w["id"] < 2001]
+    embed_na, failed_worlds = await _fetch_worlds_matches(ctx, na_worlds, gw2_messages.NA_SERVERS_TITLE, "1-")
 
-    for world in worlds_ids:
-        wid = world["id"]
-        try:
-            await ctx.message.channel.typing()
-            matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
-            if wid < 2001:
-                tier_number = matches["id"].replace("1-", "")
-                embed_na.add_field(
-                    name=world["name"],
-                    value=chat_formatting.inline(f"T{tier_number} {world['population']}"),
-                )
-        except Exception as e:
-            # Log the error but continue with other worlds
-            failed_worlds.append(f"{world['name']} (ID: {wid})")
-            ctx.bot.log.warning(f"Failed to fetch WvW data for world {world['name']} (ID: {wid}): {e}")
-            continue
-
-    # Add footer if some worlds failed
-    if failed_worlds:
-        embed_na.set_footer(
-            text=f"⚠️ Failed to load: {', '.join(failed_worlds[:3])}" + ("..." if len(failed_worlds) > 3 else "")
-        )
-
+    await progress_msg.delete()
     await _send_paginated_worlds_embed(ctx, embed_na)
     return None
 
@@ -86,36 +67,50 @@ async def worlds_eu(ctx):
     if not result:
         return None
 
-    gw2_api = Gw2Client(ctx.bot)
-    embed_eu = discord.Embed(description=chat_formatting.inline(gw2_messages.EU_SERVERS_TITLE))
+    progress_msg = await gw2_utils.send_progress_embed(
+        ctx, "Please wait, I'm fetching EU world data... (this may take a moment)"
+    )
 
-    failed_worlds = []
+    eu_worlds = [w for w in worlds_ids if w["id"] > 2001]
+    embed_eu, failed_worlds = await _fetch_worlds_matches(ctx, eu_worlds, gw2_messages.EU_SERVERS_TITLE, "2-")
 
-    for world in worlds_ids:
-        wid = world["id"]
-        try:
-            await ctx.message.channel.typing()
-            matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
-            if wid > 2001:
-                tier_number = matches["id"].replace("2-", "")
-                embed_eu.add_field(
-                    name=world["name"],
-                    value=chat_formatting.inline(f"T{tier_number} {world['population']}"),
-                )
-        except Exception as e:
-            # Log the error but continue with other worlds
-            failed_worlds.append(f"{world['name']} (ID: {wid})")
-            ctx.bot.log.warning(f"Failed to fetch WvW data for world {world['name']} (ID: {wid}): {e}")
-            continue
-
-    # Add footer if some worlds failed
-    if failed_worlds:
-        embed_eu.set_footer(
-            text=f"⚠️ Failed to load: {', '.join(failed_worlds[:3])}" + ("..." if len(failed_worlds) > 3 else "")
-        )
-
+    await progress_msg.delete()
     await _send_paginated_worlds_embed(ctx, embed_eu)
     return None
+
+
+async def _fetch_worlds_matches(ctx, worlds, title, region_prefix):
+    """Fetch WvW match data for a list of worlds in parallel."""
+    gw2_api = Gw2Client(ctx.bot)
+    embed = discord.Embed(description=chat_formatting.inline(title))
+    failed_worlds = []
+    sem = asyncio.Semaphore(5)
+
+    async def _fetch_match(world):
+        async with sem:
+            return await gw2_api.call_api(f"wvw/matches?world={world['id']}")
+
+    tasks = [_fetch_match(w) for w in worlds]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    for world, result in zip(worlds, results, strict=True):
+        if isinstance(result, Exception):
+            failed_worlds.append(f"{world['name']} (ID: {world['id']})")
+            ctx.bot.log.warning(f"Failed to fetch WvW data for world {world['name']} (ID: {world['id']}): {result}")
+            continue
+        tier_number = result["id"].replace(region_prefix, "")
+        embed.add_field(
+            name=world["name"],
+            value=chat_formatting.inline(f"T{tier_number} {world['population']}"),
+        )
+
+    if failed_worlds:
+        embed.set_footer(
+            text=f"\u26a0\ufe0f Failed to load: {', '.join(failed_worlds[:3])}"
+            + ("..." if len(failed_worlds) > 3 else "")
+        )
+
+    return embed, failed_worlds
 
 
 async def _send_paginated_worlds_embed(ctx, embed):
