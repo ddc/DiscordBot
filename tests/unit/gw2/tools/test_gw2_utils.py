@@ -9,8 +9,6 @@ from src.gw2.tools.gw2_utils import (
     TimeObject,
     _calculate_earned_points,
     _create_initial_user_stats,
-    _do_end_session,
-    _do_start_session,
     _fetch_achievement_data_in_batches,
     _get_non_custom_activity,
     _get_wvw_rank_prefix,
@@ -795,9 +793,13 @@ class TestStartSession:
             mock_stats.return_value = None
 
             with patch("src.gw2.tools.gw2_utils.asyncio.create_task") as mock_create_task:
+                mock_task = MagicMock()
+                mock_create_task.return_value = mock_task
+
                 await start_session(mock_bot, mock_member, "api-key")
 
                 mock_create_task.assert_called_once()
+                mock_task.add_done_callback.assert_called_once()
                 mock_bot.log.warning.assert_called_once()
 
     @pytest.mark.asyncio
@@ -856,9 +858,13 @@ class TestEndSession:
             mock_stats.return_value = None
 
             with patch("src.gw2.tools.gw2_utils.asyncio.create_task") as mock_create_task:
+                mock_task = MagicMock()
+                mock_create_task.return_value = mock_task
+
                 await end_session(mock_bot, mock_member, "api-key")
 
                 mock_create_task.assert_called_once()
+                mock_task.add_done_callback.assert_called_once()
                 mock_bot.log.warning.assert_called_once()
 
     @pytest.mark.asyncio
@@ -1258,7 +1264,7 @@ class TestInsertSessionChar:
             await insert_session_char(mock_bot, mock_member, "api-key", 42, "start")
 
             mock_bot.log.error.assert_called_once()
-            assert "Error inserting session character data" in mock_bot.log.error.call_args[0][0]
+            assert "Error inserting start session character data" in mock_bot.log.error.call_args[0][0]
 
 
 class TestGetPvpRankTitle:
