@@ -2,7 +2,7 @@
 
 import discord
 import pytest
-from datetime import datetime
+from datetime import datetime, timedelta
 from src.gw2.cogs.sessions import (
     GW2Session,
     _add_deaths_field,
@@ -48,6 +48,7 @@ class TestGW2Session:
 def _make_session_data(start_overrides=None, end_overrides=None):
     """Helper to create session data with defaults."""
     base_stats = {
+        "date": "2024-01-15 10:00:00",
         "age": 5000000,
         "gold": 100000,
         "karma": 50000,
@@ -71,8 +72,9 @@ def _make_session_data(start_overrides=None, end_overrides=None):
         "gems": 0,
     }
     end_stats = {
+        "date": "2024-01-15 12:30:00",
         "age": 5009000,
-        **{k: v for k, v in base_stats.items() if k != "age"},
+        **{k: v for k, v in base_stats.items() if k not in ("date", "age")},
     }
     if start_overrides:
         base_stats.update(start_overrides)
@@ -163,7 +165,7 @@ class TestSessionCommand:
         time_obj.minutes = 30
         time_obj.seconds = 0
         time_obj.days = 0
-        time_obj.timedelta = "2:30:00"
+        time_obj.timedelta = timedelta(hours=2, minutes=30)
         return time_obj
 
     def _run_session(self, mock_ctx, sample_api_key_data, session_data, sample_time_passed, extra_patches=None):
@@ -183,6 +185,7 @@ class TestSessionCommand:
                     patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal,
                     patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs,
                     patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal,
+                    patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short", side_effect=lambda x: x),
                     patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed", return_value=sample_time_passed),
                     patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal_class,
                     patch("src.gw2.cogs.sessions.bot_utils.send_paginated_embed") as mock_send,
@@ -326,22 +329,20 @@ class TestSessionCommand:
                 mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
                 with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=session_data)
-                    with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed", return_value=time_obj):
-                        with patch("src.gw2.cogs.sessions.gw2_utils.send_msg") as mock_send_msg:
-                            await session(mock_ctx)
-                            mock_send_msg.assert_called_once()
-                            msg = mock_send_msg.call_args[0][1]
-                            assert "still updating" in msg.lower() or "Bot still updating" in msg
+                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short", side_effect=lambda x: x):
+                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed", return_value=time_obj):
+                            with patch("src.gw2.cogs.sessions.gw2_utils.send_msg") as mock_send_msg:
+                                await session(mock_ctx)
+                                mock_send_msg.assert_called_once()
+                                msg = mock_send_msg.call_args[0][1]
+                                assert "still updating" in msg.lower() or "Bot still updating" in msg
 
     # === Playtime tests ===
 
     @pytest.mark.asyncio
-    async def test_session_play_time_from_api_age(self, mock_ctx, sample_api_key_data, sample_time_passed):
-        """Test that play time uses API age difference when available."""
-        session_data = _make_session_data(
-            start_overrides={"age": 5000000},
-            end_overrides={"age": 5009000},
-        )
+    async def test_session_play_time_from_jsonb_dates(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test that play time uses JSONB date fields for session duration."""
+        session_data = _make_session_data()
         runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
         async with runner.run() as r:
             await session(mock_ctx)
@@ -349,21 +350,6 @@ class TestSessionCommand:
             play_time_field = next((f for f in embed.fields if f.name == "Play time"), None)
             assert play_time_field is not None
             assert "2h 30m" in play_time_field.value
-
-    @pytest.mark.asyncio
-    async def test_session_play_time_fallback_when_zero_age(self, mock_ctx, sample_api_key_data, sample_time_passed):
-        """Test that play time falls back to timedelta when age diff is 0."""
-        session_data = _make_session_data(
-            start_overrides={"age": 5000000},
-            end_overrides={"age": 5000000},
-        )
-        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
-        async with runner.run() as r:
-            await session(mock_ctx)
-            embed = r.mock_send.call_args[0][1]
-            play_time_field = next((f for f in embed.fields if f.name == "Play time"), None)
-            assert play_time_field is not None
-            assert "2:30:00" in play_time_field.value
 
     # === Gold tests ===
 
@@ -807,7 +793,7 @@ class TestSessionCommand:
         time_obj.hours = 0
         time_obj.minutes = 1
         time_obj.seconds = 0
-        time_obj.timedelta = "0:01:00"
+        time_obj.timedelta = timedelta(minutes=1)
 
         runner = self._run_session(mock_ctx, sample_api_key_data, session_data, time_obj)
         async with runner.run() as r:
