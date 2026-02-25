@@ -944,12 +944,11 @@ class TestAddWvwStats:
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_wvw_stats(embed, start, end)
             assert len(embed.fields) == 8
-            # wvw_rank should not have + sign (rank can only increase)
+            # WvW stats should not have + sign (they can only increase)
             rank_field = next(f for f in embed.fields if f.name == gw2_messages.WVW_RANKS)
             assert rank_field.value == "`2`"
-            # other stats should have + sign
             yaks_field = next(f for f in embed.fields if f.name == gw2_messages.YAKS_KILLED)
-            assert yaks_field.value == "`+3`"
+            assert yaks_field.value == "`3`"
 
     def test_no_stats_changed(self):
         embed = discord.Embed()
