@@ -227,8 +227,8 @@ class TestSendEmbed:
 
         await bot_utils.send_embed(mock_ctx, embed, dm=False)
 
-        mock_ctx.bot.logger.error.assert_called_once()
-        error_arg = mock_ctx.bot.logger.error.call_args[0][0]
+        mock_ctx.bot.log.error.assert_called_once()
+        error_arg = mock_ctx.bot.log.error.call_args[0][0]
         assert isinstance(error_arg, ValueError)
         assert str(error_arg) == "Some unexpected error"
 

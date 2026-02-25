@@ -20,7 +20,7 @@ async def _keep_typing_alive(ctx, stop_event):
                 await asyncio.sleep(4)  # Renew every 4 seconds (Discord typing lasts ~5s)
             except asyncio.CancelledError:
                 raise  # Re-raise CancelledError
-            except discord.HTTPException, discord.Forbidden:
+            except (discord.HTTPException, discord.Forbidden):
                 # Handle Discord API errors gracefully and stop the loop
                 break
     except asyncio.CancelledError:
@@ -265,7 +265,7 @@ async def account(ctx):
             try:
                 stop_typing.set()
                 typing_task.cancel()
-            except AttributeError, RuntimeError:
+            except (AttributeError, RuntimeError):
                 # Handle cases where task is already done or event is invalid
                 pass
         await bot_utils.send_error_msg(ctx, e)
