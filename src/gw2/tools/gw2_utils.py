@@ -454,7 +454,8 @@ async def get_user_stats(bot: Bot, api_key: str) -> dict | None:
         # Fetch data from multiple endpoints
         account_data = await gw2_api.call_api("account", api_key)
         wallet_data = await gw2_api.call_api("account/wallet", api_key)
-        achievements_data = await gw2_api.call_api("account/achievements", api_key)
+        achievement_ids = ",".join(str(k) for k in ACHIEVEMENT_MAPPING)
+        achievements_data = await gw2_api.call_api(f"account/achievements?ids={achievement_ids}", api_key)
 
     except Exception as e:
         bot.log.error(f"Error fetching user stats: {e}")
@@ -472,7 +473,6 @@ def _create_initial_user_stats(account_data: dict) -> dict:
     wvw_rank = account_data.get("wvw", {}).get("rank") or account_data.get("wvw_rank", 0)
     stats = {
         "acc_name": account_data["name"],
-        "age": account_data.get("age", 0),
         "wvw_rank": wvw_rank,
         "players": 0,
         "yaks_scorted": 0,

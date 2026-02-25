@@ -954,7 +954,7 @@ class TestGetUserStats:
     @pytest.mark.asyncio
     async def test_successful_stats_retrieval(self, mock_bot):
         """Test successful user stats retrieval with legacy wvw_rank."""
-        account_data = {"name": "TestUser.1234", "wvw_rank": 50, "age": 5000000}
+        account_data = {"name": "TestUser.1234", "wvw_rank": 50}
         wallet_data = [
             {"id": 1, "value": 50000},  # gold
             {"id": 2, "value": 100000},  # karma
@@ -973,7 +973,7 @@ class TestGetUserStats:
 
             assert result is not None
             assert result["acc_name"] == "TestUser.1234"
-            assert result["age"] == 5000000
+            assert "age" not in result
             assert result["wvw_rank"] == 50
             assert result["gold"] == 50000
             assert result["karma"] == 100000
@@ -1737,12 +1737,12 @@ class TestCreateInitialUserStats:
 
     def test_creates_correct_structure(self):
         """Test that initial stats structure is correct with legacy wvw_rank."""
-        account_data = {"name": "TestUser.1234", "wvw_rank": 75, "age": 5000000}
+        account_data = {"name": "TestUser.1234", "wvw_rank": 75}
 
         result = _create_initial_user_stats(account_data)
 
         assert result["acc_name"] == "TestUser.1234"
-        assert result["age"] == 5000000
+        assert "age" not in result
         assert result["wvw_rank"] == 75
         assert result["gold"] == 0
         assert result["karma"] == 0
@@ -1773,11 +1773,11 @@ class TestCreateInitialUserStats:
         for stat_name in WALLET_MAPPING.values():
             assert result[stat_name] == 0, f"{stat_name} should be initialized to 0"
 
-    def test_age_defaults_to_zero(self):
-        """Test that age defaults to 0 when not in account data."""
-        account_data = {"name": "TestUser.1234", "wvw_rank": 0}
+    def test_age_not_included_in_session_stats(self):
+        """Test that age is not included in session stats."""
+        account_data = {"name": "TestUser.1234", "wvw_rank": 0, "age": 5000000}
         result = _create_initial_user_stats(account_data)
-        assert result["age"] == 0
+        assert "age" not in result
 
     def test_new_wvw_rank_format(self):
         """Test that wvw.rank (new API format) is preferred over wvw_rank."""
