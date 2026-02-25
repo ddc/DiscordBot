@@ -10,6 +10,8 @@ _dotenv_loaded = False
 class Gw2Settings(BaseSettings):
     """GW2 settings defined here with fallback to reading ENV variables"""
 
+    model_config = SettingsConfigDict(env_prefix="GW2_", env_file=".env", extra="allow")
+
     # GW2 configuration
     api_version: int | None = Field(default=2)
     embed_color: str | None = Field(default="green")
@@ -25,7 +27,9 @@ class Gw2Settings(BaseSettings):
     worlds_cooldown: int | None = Field(default=20)
     wvw_cooldown: int | None = Field(default=20)
 
-    model_config = SettingsConfigDict(env_prefix="GW2_", env_file=".env", extra="allow")
+    # GW2 API retry
+    api_retry_max_attempts: int | None = Field(default=5)
+    api_retry_delay: float | None = Field(default=3.0)
 
 
 @lru_cache(maxsize=1)

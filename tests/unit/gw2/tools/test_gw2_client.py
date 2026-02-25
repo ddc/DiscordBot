@@ -11,7 +11,7 @@ from src.gw2.tools.gw2_exceptions import (
     APIInvalidKey,
     APINotFound,
 )
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 
 class AsyncContextManager:
@@ -22,6 +22,19 @@ class AsyncContextManager:
 
     async def __aenter__(self):
         return self.return_value
+
+    async def __aexit__(self, *args):
+        pass
+
+
+class AsyncContextManagerError:
+    """Helper to simulate async context manager that raises on enter."""
+
+    def __init__(self, error):
+        self.error = error
+
+    async def __aenter__(self):
+        raise self.error
 
     async def __aexit__(self, *args):
         pass
@@ -877,3 +890,190 @@ class TestCallApiIntegration:
 
             mock_handler.assert_called_once()
             assert result is None
+
+
+class TestCallApiRetry:
+    """Test cases for call_api retry logic on transient 5xx errors."""
+
+    @pytest.fixture
+    def mock_bot(self):
+        """Create a mock bot."""
+        bot = MagicMock()
+        bot.log = MagicMock()
+        bot.description = "Test Bot"
+        return bot
+
+    @pytest.fixture
+    def gw2_client(self, mock_bot):
+        """Create a Gw2Client instance."""
+        return Gw2Client(mock_bot)
+
+    @pytest.mark.asyncio
+    @patch("src.gw2.tools.gw2_client._gw2_settings")
+    @patch("src.gw2.tools.gw2_client.asyncio.sleep", new_callable=AsyncMock)
+    async def test_retry_succeeds_after_transient_504(self, mock_sleep, mock_settings, gw2_client):
+        """Test successful retry after a transient 504 then 200."""
+        mock_settings.api_retry_max_attempts = 5
+        mock_settings.api_retry_delay = 3.0
+
+        mock_504 = AsyncMock()
+        mock_504.status = 504
+        mock_504.json = AsyncMock(return_value={"text": "gateway timeout"})
+
+        mock_200 = AsyncMock()
+        mock_200.status = 200
+        mock_200.json = AsyncMock(return_value={"name": "TestAccount"})
+
+        gw2_client.bot.aiosession = MagicMock()
+        gw2_client.bot.aiosession.get = MagicMock(
+            side_effect=[AsyncContextManager(mock_504), AsyncContextManager(mock_200)]
+        )
+
+        result = await gw2_client.call_api("account")
+
+        assert result == {"name": "TestAccount"}
+        assert gw2_client.bot.aiosession.get.call_count == 2
+        mock_sleep.assert_called_once_with(3.0)
+
+    @pytest.mark.asyncio
+    @patch("src.gw2.tools.gw2_client._gw2_settings")
+    @patch("src.gw2.tools.gw2_client.asyncio.sleep", new_callable=AsyncMock)
+    async def test_exhausts_retries_on_persistent_504(self, mock_sleep, mock_settings, gw2_client):
+        """Test that persistent 504 exhausts all retries then raises APIInactiveError."""
+        mock_settings.api_retry_max_attempts = 3
+        mock_settings.api_retry_delay = 1.0
+
+        mock_504 = AsyncMock()
+        mock_504.status = 504
+        mock_504.json = AsyncMock(return_value={"text": "gateway timeout"})
+
+        gw2_client.bot.aiosession = MagicMock()
+        gw2_client.bot.aiosession.get = MagicMock(side_effect=[AsyncContextManager(mock_504) for _ in range(3)])
+
+        with pytest.raises(APIInactiveError):
+            await gw2_client.call_api("account")
+
+        assert gw2_client.bot.aiosession.get.call_count == 3
+        # Sleep is called between retries, not after the last attempt
+        assert mock_sleep.call_count == 2
+
+    @pytest.mark.asyncio
+    @patch("src.gw2.tools.gw2_client._gw2_settings")
+    @patch("src.gw2.tools.gw2_client.asyncio.sleep", new_callable=AsyncMock)
+    async def test_no_retry_on_4xx_errors(self, mock_sleep, mock_settings, gw2_client):
+        """Test that 4xx errors are not retried."""
+        mock_settings.api_retry_max_attempts = 5
+        mock_settings.api_retry_delay = 3.0
+
+        for status, exception_class in [(400, APIBadRequest), (403, APIForbidden), (404, APINotFound)]:
+            mock_response = AsyncMock()
+            mock_response.status = status
+            mock_response.json = AsyncMock(return_value={"text": "error"})
+
+            gw2_client.bot.aiosession = MagicMock()
+            gw2_client.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
+
+            with pytest.raises(exception_class):
+                await gw2_client.call_api("account")
+
+            assert gw2_client.bot.aiosession.get.call_count == 1
+
+        mock_sleep.assert_not_called()
+
+    @pytest.mark.asyncio
+    @patch("src.gw2.tools.gw2_client._gw2_settings")
+    @patch("src.gw2.tools.gw2_client.asyncio.sleep", new_callable=AsyncMock)
+    async def test_retry_delay_uses_configured_value(self, mock_sleep, mock_settings, gw2_client):
+        """Test that retry delay is called with the configured value."""
+        mock_settings.api_retry_max_attempts = 3
+        mock_settings.api_retry_delay = 7.0
+
+        mock_503 = AsyncMock()
+        mock_503.status = 503
+        mock_503.json = AsyncMock(return_value={"text": "service unavailable"})
+
+        mock_200 = AsyncMock()
+        mock_200.status = 200
+        mock_200.json = AsyncMock(return_value={"ok": True})
+
+        gw2_client.bot.aiosession = MagicMock()
+        gw2_client.bot.aiosession.get = MagicMock(
+            side_effect=[
+                AsyncContextManager(mock_503),
+                AsyncContextManager(mock_503),
+                AsyncContextManager(mock_200),
+            ]
+        )
+
+        result = await gw2_client.call_api("account")
+
+        assert result == {"ok": True}
+        assert mock_sleep.call_args_list == [call(7), call(7)]
+
+    @pytest.mark.asyncio
+    @patch("src.gw2.tools.gw2_client._gw2_settings")
+    @patch("src.gw2.tools.gw2_client.asyncio.sleep", new_callable=AsyncMock)
+    async def test_retry_on_connection_error_then_success(self, mock_sleep, mock_settings, gw2_client):
+        """Test retry on aiohttp connection error then success."""
+        mock_settings.api_retry_max_attempts = 5
+        mock_settings.api_retry_delay = 3.0
+
+        mock_200 = AsyncMock()
+        mock_200.status = 200
+        mock_200.json = AsyncMock(return_value={"name": "TestAccount"})
+
+        gw2_client.bot.aiosession = MagicMock()
+        gw2_client.bot.aiosession.get = MagicMock(
+            side_effect=[
+                AsyncContextManagerError(OSError("Connection refused")),
+                AsyncContextManager(mock_200),
+            ]
+        )
+
+        result = await gw2_client.call_api("account")
+
+        assert result == {"name": "TestAccount"}
+        assert gw2_client.bot.aiosession.get.call_count == 2
+        mock_sleep.assert_called_once_with(3.0)
+
+    @pytest.mark.asyncio
+    @patch("src.gw2.tools.gw2_client._gw2_settings")
+    @patch("src.gw2.tools.gw2_client.asyncio.sleep", new_callable=AsyncMock)
+    async def test_connection_error_exhausts_retries(self, mock_sleep, mock_settings, gw2_client):
+        """Test that persistent connection errors exhaust retries and re-raise."""
+        mock_settings.api_retry_max_attempts = 2
+        mock_settings.api_retry_delay = 1.0
+
+        gw2_client.bot.aiosession = MagicMock()
+        gw2_client.bot.aiosession.get = MagicMock(
+            side_effect=[
+                AsyncContextManagerError(OSError("Connection refused")),
+                AsyncContextManagerError(OSError("Connection refused")),
+            ]
+        )
+
+        with pytest.raises(OSError, match="Connection refused"):
+            await gw2_client.call_api("account")
+
+        assert gw2_client.bot.aiosession.get.call_count == 2
+
+    @pytest.mark.asyncio
+    @patch("src.gw2.tools.gw2_client._gw2_settings")
+    @patch("src.gw2.tools.gw2_client.asyncio.sleep", new_callable=AsyncMock)
+    async def test_api_error_not_retried(self, mock_sleep, mock_settings, gw2_client):
+        """Test that APIError exceptions from _handle_api_error are not caught by retry."""
+        mock_settings.api_retry_max_attempts = 5
+        mock_settings.api_retry_delay = 3.0
+
+        mock_response = AsyncMock()
+        mock_response.status = 429
+        mock_response.json = AsyncMock(return_value={"text": "rate limited"})
+
+        gw2_client.bot.aiosession = MagicMock()
+        gw2_client.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
+
+        with pytest.raises(APIConnectionError):
+            await gw2_client.call_api("account")
+
+        assert gw2_client.bot.aiosession.get.call_count == 1
+        mock_sleep.assert_not_called()
