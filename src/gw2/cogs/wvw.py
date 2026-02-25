@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from discord.ext import commands
 from src.bot.tools import bot_utils, chat_formatting
@@ -78,19 +79,25 @@ class GW2WvW(GuildWars2):
                 return await bot_utils.send_error_msg(ctx, f"{gw2_messages.INVALID_WORLD_NAME}\n{world}")
             return None
 
-        try:
-            await ctx.message.channel.typing()
-            matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
+        progress_msg = await gw2_utils.send_progress_embed(
+            ctx, "Please wait, I'm fetching WvW info... (this may take a moment)"
+        )
 
-            # Resolve world info: WR team IDs vs legacy worlds
+        try:
+            # Fetch match data and world info in parallel when possible
             if is_wr_team_id(wid):
+                matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
                 world_name = get_team_name(wid) or f"Team {wid}"
                 population = "N/A"
             else:
-                worldinfo = await gw2_api.call_api(f"worlds?id={wid}")
+                matches, worldinfo = await asyncio.gather(
+                    gw2_api.call_api(f"wvw/matches?world={wid}"),
+                    gw2_api.call_api(f"worlds?id={wid}"),
+                )
                 world_name = worldinfo["name"]
                 population = worldinfo["population"]
         except Exception as e:
+            await progress_msg.delete()
             await bot_utils.send_error_msg(ctx, e)
             return ctx.bot.log.error(ctx, e)
 
@@ -149,6 +156,7 @@ class GW2WvW(GuildWars2):
         embed.add_field(name="Deaths", value=chat_formatting.inline(deaths))
         embed.add_field(name="K/D ratio", value=chat_formatting.inline(str(kd)))
         embed.add_field(name="Population", value=chat_formatting.inline(population), inline=False)
+        await progress_msg.delete()
         await bot_utils.send_embed(ctx, embed)
         return None
 
@@ -176,20 +184,32 @@ class GW2WvW(GuildWars2):
                 return await bot_utils.send_error_msg(ctx, f"{gw2_messages.INVALID_WORLD_NAME}: {world}")
             return None
 
+        progress_msg = await gw2_utils.send_progress_embed(
+            ctx, "Please wait, I'm fetching WvW match data... (this may take a moment)"
+        )
+
         try:
-            await ctx.message.channel.typing()
             matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
 
             tier = _resolve_tier(matches)
 
-            green_worlds_names = await _get_map_names_embed_values(ctx, "green", matches)
-            blue_worlds_names = await _get_map_names_embed_values(ctx, "blue", matches)
-            red_worlds_names = await _get_map_names_embed_values(ctx, "red", matches)
-
-            green_values = await _get_match_embed_values("green", matches)
-            blue_values = await _get_match_embed_values("blue", matches)
-            red_values = await _get_match_embed_values("red", matches)
+            (
+                green_worlds_names,
+                blue_worlds_names,
+                red_worlds_names,
+                green_values,
+                blue_values,
+                red_values,
+            ) = await asyncio.gather(
+                _get_map_names_embed_values(ctx, "green", matches),
+                _get_map_names_embed_values(ctx, "blue", matches),
+                _get_map_names_embed_values(ctx, "red", matches),
+                _get_match_embed_values("green", matches),
+                _get_match_embed_values("blue", matches),
+                _get_match_embed_values("red", matches),
+            )
         except Exception as e:
+            await progress_msg.delete()
             await bot_utils.send_error_msg(ctx, e)
             return ctx.bot.log.error(ctx, e)
 
@@ -201,6 +221,7 @@ class GW2WvW(GuildWars2):
         embed.add_field(name="--------------------", value=green_values)
         embed.add_field(name="--------------------", value=blue_values)
         embed.add_field(name="--------------------", value=red_values)
+        await progress_msg.delete()
         await bot_utils.send_embed(ctx, embed)
         return None
 
@@ -228,20 +249,32 @@ class GW2WvW(GuildWars2):
                 return await bot_utils.send_error_msg(ctx, f"{gw2_messages.INVALID_WORLD_NAME}: {world}")
             return None
 
+        progress_msg = await gw2_utils.send_progress_embed(
+            ctx, "Please wait, I'm fetching WvW K/D data... (this may take a moment)"
+        )
+
         try:
-            await ctx.message.channel.typing()
             matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
 
             tier = _resolve_tier(matches)
 
-            green_worlds_names = await _get_map_names_embed_values(ctx, "green", matches)
-            blue_worlds_names = await _get_map_names_embed_values(ctx, "blue", matches)
-            red_worlds_names = await _get_map_names_embed_values(ctx, "red", matches)
-
-            green_values = await _get_kdr_embed_values("green", matches)
-            blue_values = await _get_kdr_embed_values("blue", matches)
-            red_values = await _get_kdr_embed_values("red", matches)
+            (
+                green_worlds_names,
+                blue_worlds_names,
+                red_worlds_names,
+                green_values,
+                blue_values,
+                red_values,
+            ) = await asyncio.gather(
+                _get_map_names_embed_values(ctx, "green", matches),
+                _get_map_names_embed_values(ctx, "blue", matches),
+                _get_map_names_embed_values(ctx, "red", matches),
+                _get_kdr_embed_values("green", matches),
+                _get_kdr_embed_values("blue", matches),
+                _get_kdr_embed_values("red", matches),
+            )
         except Exception as e:
+            await progress_msg.delete()
             await bot_utils.send_error_msg(ctx, e)
             return ctx.bot.log.error(ctx, e)
 
@@ -253,6 +286,7 @@ class GW2WvW(GuildWars2):
         embed.add_field(name="--------------------", value=green_values)
         embed.add_field(name="--------------------", value=blue_values)
         embed.add_field(name="--------------------", value=red_values)
+        await progress_msg.delete()
         await bot_utils.send_embed(ctx, embed)
         return None
 

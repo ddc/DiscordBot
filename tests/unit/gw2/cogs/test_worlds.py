@@ -106,6 +106,7 @@ class TestWorldsNACommand:
     async def test_worlds_na_get_worlds_ids_returns_false(self, mock_ctx):
         """Test worlds_na returns None when get_worlds_ids returns False."""
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(False, None))
             result = await worlds_na(mock_ctx)
             assert result is None
@@ -121,6 +122,7 @@ class TestWorldsNACommand:
         matches_data = {"id": "1-3"}
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
             with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -145,6 +147,7 @@ class TestWorldsNACommand:
         matches_data_eu = {"id": "2-1"}
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
             with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -166,6 +169,7 @@ class TestWorldsNACommand:
         matches_data = {"id": "1-3"}
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
             with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -190,6 +194,7 @@ class TestWorldsNACommand:
         ]
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
             with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -212,6 +217,7 @@ class TestWorldsNACommand:
         ]
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
             with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -228,6 +234,7 @@ class TestWorldsNACommand:
         matches_data = {"id": "1-1"}
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
             with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -243,6 +250,7 @@ class TestWorldsNACommand:
         matches_data = {"id": "1-2"}
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
             with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -286,6 +294,7 @@ class TestWorldsEUCommand:
     async def test_worlds_eu_get_worlds_ids_returns_false(self, mock_ctx):
         """Test worlds_eu returns None when get_worlds_ids returns False."""
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(False, None))
             result = await worlds_eu(mock_ctx)
             assert result is None
@@ -301,6 +310,7 @@ class TestWorldsEUCommand:
         matches_data = {"id": "2-1"}
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
             with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -325,6 +335,7 @@ class TestWorldsEUCommand:
         matches_data_eu = {"id": "2-1"}
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
             with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -346,6 +357,7 @@ class TestWorldsEUCommand:
         matches_data = {"id": "2-2"}
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
             with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -369,6 +381,7 @@ class TestWorldsEUCommand:
         ]
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
             with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -391,6 +404,7 @@ class TestWorldsEUCommand:
         ]
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
             with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -407,6 +421,7 @@ class TestWorldsEUCommand:
         matches_data = {"id": "2-4"}
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
             with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -778,6 +793,7 @@ class TestSendPaginatedWorldsEmbedEdgeCases:
         matches_data = {"id": "2-1"}
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
             with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -798,6 +814,7 @@ class TestSendPaginatedWorldsEmbedEdgeCases:
         matches_data = {"id": "2-1"}
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
             mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
             with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value

@@ -49,12 +49,10 @@ MOCK_ACHIEVEMENTS_DATA = [
     {"id": 300, "current": 10},  # keeps
 ]
 
-MOCK_CHARACTERS = ["Warrior Prime", "Thief Shadow"]
-
-MOCK_CHAR_CORES = {
-    "Warrior Prime": {"name": "Warrior Prime", "profession": "Warrior", "deaths": 42},
-    "Thief Shadow": {"name": "Thief Shadow", "profession": "Thief", "deaths": 10},
-}
+MOCK_CHARACTERS_ALL = [
+    {"name": "Warrior Prime", "profession": "Warrior", "deaths": 42},
+    {"name": "Thief Shadow", "profession": "Thief", "deaths": 10},
+]
 
 # End-of-session data: wallet gold increased, character deaths increased
 MOCK_WALLET_DATA_END = [
@@ -78,10 +76,10 @@ MOCK_ACHIEVEMENTS_DATA_END = [
     {"id": 300, "current": 10},
 ]
 
-MOCK_CHAR_CORES_END = {
-    "Warrior Prime": {"name": "Warrior Prime", "profession": "Warrior", "deaths": 45},  # 3 more deaths
-    "Thief Shadow": {"name": "Thief Shadow", "profession": "Thief", "deaths": 12},  # 2 more deaths
-}
+MOCK_CHARACTERS_ALL_END = [
+    {"name": "Warrior Prime", "profession": "Warrior", "deaths": 45},  # 3 more deaths
+    {"name": "Thief Shadow", "profession": "Thief", "deaths": 12},  # 2 more deaths
+]
 
 
 def _mock_call_api_start(endpoint, api_key):
@@ -90,13 +88,10 @@ def _mock_call_api_start(endpoint, api_key):
         return MOCK_ACCOUNT_DATA
     if endpoint == "account/wallet":
         return MOCK_WALLET_DATA
-    if endpoint == "account/achievements":
+    if endpoint.startswith("account/achievements"):
         return MOCK_ACHIEVEMENTS_DATA
-    if endpoint == "characters":
-        return MOCK_CHARACTERS
-    if endpoint.startswith("characters/") and endpoint.endswith("/core"):
-        char_name = endpoint.split("/")[1]
-        return MOCK_CHAR_CORES[char_name]
+    if endpoint == "characters?ids=all":
+        return MOCK_CHARACTERS_ALL
     raise ValueError(f"Unexpected endpoint: {endpoint}")
 
 
@@ -106,13 +101,10 @@ def _mock_call_api_end(endpoint, api_key):
         return MOCK_ACCOUNT_DATA
     if endpoint == "account/wallet":
         return MOCK_WALLET_DATA_END
-    if endpoint == "account/achievements":
+    if endpoint.startswith("account/achievements"):
         return MOCK_ACHIEVEMENTS_DATA_END
-    if endpoint == "characters":
-        return MOCK_CHARACTERS
-    if endpoint.startswith("characters/") and endpoint.endswith("/core"):
-        char_name = endpoint.split("/")[1]
-        return MOCK_CHAR_CORES_END[char_name]
+    if endpoint == "characters?ids=all":
+        return MOCK_CHARACTERS_ALL_END
     raise ValueError(f"Unexpected endpoint: {endpoint}")
 
 

@@ -5,7 +5,6 @@ from sqlalchemy.future import select
 from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
 from src.database.models.gw2_models import Gw2SessionChars
-from unittest.mock import AsyncMock
 
 pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
 
@@ -40,21 +39,21 @@ async def test_insert_session_char_with_start_field(db_session, log):
         }
     )
 
-    gw2_api = AsyncMock()
-    gw2_api.call_api.return_value = {
-        "name": "TestChar",
-        "profession": "Warrior",
-        "deaths": 10,
-    }
+    characters_data = [
+        {
+            "name": "TestChar",
+            "profession": "Warrior",
+            "deaths": 10,
+        }
+    ]
     insert_args = {
         "session_id": session_id,
         "user_id": USER_ID,
-        "api_key": API_KEY,
         "start": True,
         "end": False,
     }
     # Should no longer raise IntegrityError now that start/end are passed
-    await chars_dal.insert_session_char(gw2_api, ["TestChar"], insert_args)
+    await chars_dal.insert_session_char(characters_data, insert_args)
 
     # Verify the data was inserted correctly
     results = await chars_dal.get_all_start_characters(USER_ID)

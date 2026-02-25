@@ -10,20 +10,14 @@ class Gw2SessionCharsDal:
         self.db_utils = DBUtilsAsync(db_session)
         self.log = log
 
-    async def insert_session_char(self, gw2_api, api_characters, insert_args: dict):
-        for char_name in api_characters:
-            uri = f"characters/{char_name}/core"
-            current_char = await gw2_api.call_api(uri, insert_args["api_key"])
-            name = current_char["name"]
-            profession = current_char["profession"]
-            deaths = current_char["deaths"]
-
+    async def insert_session_char(self, characters_data: list[dict], insert_args: dict):
+        for char in characters_data:
             stmt = Gw2SessionChars(
                 session_id=insert_args["session_id"],
                 user_id=insert_args["user_id"],
-                name=name,
-                profession=profession,
-                deaths=deaths,
+                name=char["name"],
+                profession=char["profession"],
+                deaths=char["deaths"],
                 start=insert_args["start"],
                 end=insert_args["end"],
             )

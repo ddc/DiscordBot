@@ -1211,10 +1211,10 @@ class TestInsertSessionChar:
 
     @pytest.mark.asyncio
     async def test_successful_insert(self, mock_bot, mock_member):
-        """Test successful session character insert (lines 415-428)."""
+        """Test successful session character insert."""
         with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
-            characters_data = [{"name": "CharName", "level": 80}]
+            characters_data = [{"name": "CharName", "profession": "Warrior", "deaths": 5}]
             mock_client.call_api = AsyncMock(return_value=characters_data)
 
             with patch("src.gw2.tools.gw2_utils.Gw2SessionCharsDal") as mock_dal:
@@ -1223,14 +1223,12 @@ class TestInsertSessionChar:
 
                 await insert_session_char(mock_bot, mock_member, "api-key", 42, "start")
 
-                mock_client.call_api.assert_called_once_with("characters", "api-key")
+                mock_client.call_api.assert_called_once_with("characters?ids=all", "api-key")
                 mock_instance.insert_session_char.assert_called_once()
 
                 call_args = mock_instance.insert_session_char.call_args[0]
-                assert call_args[0] == mock_client  # gw2_api
-                assert call_args[1] == characters_data
-                insert_args = call_args[2]
-                assert insert_args["api_key"] == "api-key"
+                assert call_args[0] == characters_data
+                insert_args = call_args[1]
                 assert insert_args["session_id"] == 42
                 assert insert_args["user_id"] == 12345
                 assert insert_args["start"] is True
@@ -1250,7 +1248,7 @@ class TestInsertSessionChar:
                 await insert_session_char(mock_bot, mock_member, "api-key", 42, "end")
 
                 call_args = mock_instance.insert_session_char.call_args[0]
-                insert_args = call_args[2]
+                insert_args = call_args[1]
                 assert insert_args["start"] is False
                 assert insert_args["end"] is True
 
