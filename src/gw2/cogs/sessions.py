@@ -128,13 +128,10 @@ async def session(ctx):
         embed.add_field(name=gw2_messages.ACCOUNT_NAME, value=chat_formatting.inline(acc_name))
         embed.add_field(name=gw2_messages.SERVER, value=chat_formatting.inline(gw2_server))
 
-        # Play time from API age (actual in-game time) — only when both snapshots have age
-        if "age" in rs_start and "age" in rs_end:
-            play_time_seconds = rs_end["age"] - rs_start["age"]
-            if play_time_seconds > 0:
-                play_time_str = gw2_utils.format_seconds_to_time(play_time_seconds)
-            else:
-                play_time_str = str(time_passed.timedelta)
+        # Play time from API age (actual in-game time)
+        play_time_seconds = rs_end["age"] - rs_start["age"]
+        if play_time_seconds > 0:
+            play_time_str = gw2_utils.format_seconds_to_time(play_time_seconds)
         else:
             play_time_str = str(time_passed.timedelta)
         embed.add_field(name=gw2_messages.PLAY_TIME, value=chat_formatting.inline(play_time_str))
@@ -218,15 +215,16 @@ def _add_deaths_field(embed: discord.Embed, rs_chars_start: list[dict], rs_chars
             profession = char_start["profession"]
             time_deaths = int(char_end["deaths"]) - int(char_start["deaths"])
             total_deaths += time_deaths
-            death_lines.append(f"{profession}: {name} - {time_deaths}")
+            death_lines.append(f"{name} ({profession}): {time_deaths}")
 
     if death_lines:
+        death_lines.append(f"Total: {total_deaths}")
         value = "\n".join(death_lines)
         # Truncate if it would exceed Discord's 1024-char field value limit
         if len(value) > 1020:
             value = value[:1017] + "..."
         embed.add_field(
-            name=f"{gw2_messages.TIMES_YOU_DIED}: {total_deaths}",
+            name=gw2_messages.TIMES_YOU_DIED,
             value=chat_formatting.inline(value),
             inline=False,
         )
