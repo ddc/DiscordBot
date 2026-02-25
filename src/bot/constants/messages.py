@@ -86,6 +86,7 @@ class CommandError:
     NO_PERMISSION = "Bot does not have permission to execute this command"
     INVALID_MESSAGE = "Invalid message."
     INTERNAL_ERROR = "There was an internal error with command"
+    CONTACT_ADMIN = "Please contact the server administrator"
     DM_CANNOT_EXECUTE = "Cannot execute action on a DM channel"
     PRIVILEGE_LOW = "Your Privilege is too low."
     DIRECT_MESSAGES_DISABLED = (
@@ -287,6 +288,7 @@ NO_OPTION_FOUND = CommandError.NO_OPTION_FOUND
 NO_PERMISSION_EXECUTE_COMMAND = CommandError.NO_PERMISSION
 INVALID_MESSAGE = CommandError.INVALID_MESSAGE
 COMMAND_INTERNAL_ERROR = CommandError.INTERNAL_ERROR
+CONTACT_ADMIN = CommandError.CONTACT_ADMIN
 DM_CANNOT_EXECUTE_COMMAND = CommandError.DM_CANNOT_EXECUTE
 PRIVILEGE_LOW = CommandError.PRIVILEGE_LOW
 DIRECT_MESSAGES_DISABLED = CommandError.DIRECT_MESSAGES_DISABLED

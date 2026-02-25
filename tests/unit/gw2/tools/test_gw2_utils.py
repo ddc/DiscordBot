@@ -872,17 +872,22 @@ class TestEndSession:
                         mock_instance = mock_session_dal.return_value
                         mock_instance.update_end_session = AsyncMock(return_value=42)
 
-                        with patch("src.gw2.tools.gw2_utils.insert_session_char") as mock_insert_char:
-                            mock_insert_char.return_value = None
+                        with patch("src.gw2.tools.gw2_utils.Gw2SessionCharsDal") as mock_chars_dal:
+                            mock_chars_instance = mock_chars_dal.return_value
+                            mock_chars_instance.delete_end_characters = AsyncMock()
 
-                            await end_session(mock_bot, mock_member, "api-key")
+                            with patch("src.gw2.tools.gw2_utils.insert_session_char") as mock_insert_char:
+                                mock_insert_char.return_value = None
 
-                            mock_instance.update_end_session.assert_called_once()
-                            call_arg = mock_instance.update_end_session.call_args[0][0]
-                            assert call_arg["user_id"] == 12345
-                            assert call_arg["date"] == "2023-01-01"
+                                await end_session(mock_bot, mock_member, "api-key")
 
-                            mock_insert_char.assert_called_once_with(mock_bot, mock_member, "api-key", 42, "end")
+                                mock_instance.update_end_session.assert_called_once()
+                                call_arg = mock_instance.update_end_session.call_args[0][0]
+                                assert call_arg["user_id"] == 12345
+                                assert call_arg["date"] == "2023-01-01"
+
+                                mock_chars_instance.delete_end_characters.assert_called_once_with(42)
+                                mock_insert_char.assert_called_once_with(mock_bot, mock_member, "api-key", 42, "end")
 
     @pytest.mark.asyncio
     async def test_end_session_no_active_session(self, mock_bot, mock_member):

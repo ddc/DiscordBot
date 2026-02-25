@@ -346,6 +346,8 @@ async def end_session(bot: Bot, member: discord.Member, api_key: str) -> None:
     if session_id is None:
         bot.log.warning(f"No active session found for user {member.id}, skipping end session chars")
         return
+    gw2_session_chars_dal = Gw2SessionCharsDal(bot.db_session, bot.log)
+    await gw2_session_chars_dal.delete_end_characters(session_id)
     await insert_session_char(bot, member, api_key, session_id, "end")
 
 

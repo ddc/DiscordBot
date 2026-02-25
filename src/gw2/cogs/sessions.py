@@ -179,7 +179,7 @@ def _add_gold_field(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
         formatted_gold = gw2_utils.format_gold(full_gold)
         if diff > 0:
             embed.add_field(
-                name="Gained Gold",
+                name="Gold",
                 value=chat_formatting.inline(f"+{formatted_gold}"),
                 inline=False,
             )
@@ -187,7 +187,7 @@ def _add_gold_field(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
             final_result = f"{formatted_gold}"
             if formatted_gold[0] != "-":
                 final_result = f"-{formatted_gold}"
-            embed.add_field(name="Lost Gold", value=chat_formatting.inline(str(final_result)), inline=False)
+            embed.add_field(name="Gold", value=chat_formatting.inline(str(final_result)), inline=False)
 
 
 def _add_deaths_field(embed: discord.Embed, rs_chars_start: list[dict], rs_chars_end: list[dict]) -> None:
@@ -234,7 +234,7 @@ def _add_deaths_field(embed: discord.Embed, rs_chars_start: list[dict], rs_chars
 def _add_wvw_stats(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
     """Add WvW achievement-based stats to embed."""
     wvw_fields = [
-        ("wvw_rank", gw2_messages.GAINED_WVW_RANKS),
+        ("wvw_rank", gw2_messages.WVW_RANKS),
         ("yaks", gw2_messages.YAKS_KILLED),
         ("yaks_scorted", gw2_messages.YAKS_SCORTED),
         ("players", gw2_messages.PLAYERS_KILLED),
@@ -251,7 +251,10 @@ def _add_wvw_stats(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
         end_val = rs_end[stat_key]
         if start_val != end_val:
             diff = end_val - start_val
-            embed.add_field(name=field_name, value=chat_formatting.inline(str(diff)))
+            if stat_key == "wvw_rank":
+                embed.add_field(name=field_name, value=chat_formatting.inline(str(diff)))
+            else:
+                embed.add_field(name=field_name, value=chat_formatting.inline(f"+{diff}" if diff > 0 else str(diff)))
 
 
 def _add_wallet_currency_fields(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
@@ -269,18 +272,11 @@ def _add_wallet_currency_fields(embed: discord.Embed, rs_start: dict, rs_end: di
         end_val = rs_end[stat_key]
         if start_val != end_val:
             diff = end_val - start_val
-            if diff > 0:
-                embed.add_field(
-                    name=f"Gained {display_name}",
-                    value=chat_formatting.inline(f"+{diff}"),
-                    inline=True,
-                )
-            else:
-                embed.add_field(
-                    name=f"Lost {display_name}",
-                    value=chat_formatting.inline(str(diff)),
-                    inline=True,
-                )
+            embed.add_field(
+                name=display_name,
+                value=chat_formatting.inline(f"+{diff}" if diff > 0 else str(diff)),
+                inline=True,
+            )
 
 
 async def setup(bot):

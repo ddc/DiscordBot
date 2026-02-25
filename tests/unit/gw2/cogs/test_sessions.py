@@ -13,6 +13,7 @@ from src.gw2.cogs.sessions import (
     setup,
 )
 from src.gw2.constants import gw2_messages
+from src.gw2.constants.gw2_currencies import WALLET_DISPLAY_NAMES
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
@@ -80,13 +81,15 @@ def _make_session_data(start_overrides=None, end_overrides=None):
         base_stats.update(start_overrides)
     if end_overrides:
         end_stats.update(end_overrides)
-    return [{
-        "acc_name": "TestUser.1234",
-        "start": base_stats,
-        "end": end_stats,
-        "created_at": datetime(2024, 1, 15, 10, 0, 0),
-        "updated_at": datetime(2024, 1, 15, 12, 30, 0),
-    }]
+    return [
+        {
+            "acc_name": "TestUser.1234",
+            "start": base_stats,
+            "end": end_stats,
+            "created_at": datetime(2024, 1, 15, 10, 0, 0),
+            "updated_at": datetime(2024, 1, 15, 12, 30, 0),
+        }
+    ]
 
 
 class TestSessionCommand:
@@ -214,7 +217,7 @@ class TestSessionCommand:
             with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                 await session(mock_ctx)
                 mock_error.assert_called_once()
-                assert "You dont have an API key registered" in mock_error.call_args[0][1]
+                assert gw2_messages.NO_API_KEY in mock_error.call_args[0][1]
 
     @pytest.mark.asyncio
     async def test_session_not_active_in_config(self, mock_ctx, sample_api_key_data):
@@ -329,7 +332,9 @@ class TestSessionCommand:
                 mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
                 with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=session_data)
-                    with patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short", side_effect=lambda x: x):
+                    with patch(
+                        "src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short", side_effect=lambda x: x
+                    ):
                         with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed", return_value=time_obj):
                             with patch("src.gw2.cogs.sessions.gw2_utils.send_msg") as mock_send_msg:
                                 await session(mock_ctx)
@@ -347,7 +352,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            play_time_field = next((f for f in embed.fields if f.name == "Play time"), None)
+            play_time_field = next((f for f in embed.fields if f.name == gw2_messages.PLAY_TIME), None)
             assert play_time_field is not None
             assert "2h 30m" in play_time_field.value
 
@@ -362,7 +367,7 @@ class TestSessionCommand:
             with patch("src.gw2.cogs.sessions.gw2_utils.format_gold", return_value="5 Gold 00 Silver 00 Copper"):
                 await session(mock_ctx)
                 embed = r.mock_send.call_args[0][1]
-                gold_field = next((f for f in embed.fields if f.name == "Gained Gold"), None)
+                gold_field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["gold"]), None)
                 assert gold_field is not None
                 assert "+" in gold_field.value
 
@@ -375,7 +380,7 @@ class TestSessionCommand:
             with patch("src.gw2.cogs.sessions.gw2_utils.format_gold", return_value="5 Gold 00 Silver 00 Copper"):
                 await session(mock_ctx)
                 embed = r.mock_send.call_args[0][1]
-                gold_field = next((f for f in embed.fields if f.name == "Lost Gold"), None)
+                gold_field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["gold"]), None)
                 assert gold_field is not None
 
     @pytest.mark.asyncio
@@ -387,7 +392,7 @@ class TestSessionCommand:
             with patch("src.gw2.cogs.sessions.gw2_utils.format_gold", return_value="-5 Gold 00 Silver 00 Copper"):
                 await session(mock_ctx)
                 embed = r.mock_send.call_args[0][1]
-                gold_field = next((f for f in embed.fields if f.name == "Lost Gold"), None)
+                gold_field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["gold"]), None)
                 assert gold_field is not None
                 assert "--" not in gold_field.value
 
@@ -411,7 +416,7 @@ class TestSessionCommand:
             r.mock_chars_dal.get_all_end_characters = AsyncMock(return_value=chars_end)
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            deaths_field = next((f for f in embed.fields if f.name == "Times you died"), None)
+            deaths_field = next((f for f in embed.fields if f.name == gw2_messages.TIMES_YOU_DIED), None)
             assert deaths_field is not None
             assert "Warrior" in deaths_field.value
             assert "TestChar" in deaths_field.value
@@ -429,7 +434,7 @@ class TestSessionCommand:
             r.mock_chars_dal.get_all_end_characters = AsyncMock(return_value=chars_end)
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            deaths_field = next((f for f in embed.fields if f.name == "Times you died"), None)
+            deaths_field = next((f for f in embed.fields if f.name == gw2_messages.TIMES_YOU_DIED), None)
             assert deaths_field is None
 
     @pytest.mark.asyncio
@@ -450,7 +455,7 @@ class TestSessionCommand:
             r.mock_chars_dal.get_all_end_characters = AsyncMock(return_value=chars_end)
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            deaths_field = next((f for f in embed.fields if f.name == "Times you died"), None)
+            deaths_field = next((f for f in embed.fields if f.name == gw2_messages.TIMES_YOU_DIED), None)
             assert deaths_field is not None
             assert "Total: 6" in deaths_field.value
             assert "Warrior" in deaths_field.value
@@ -466,7 +471,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            wvw_field = next((f for f in embed.fields if f.name == "Gained WvW ranks"), None)
+            wvw_field = next((f for f in embed.fields if f.name == gw2_messages.WVW_RANKS), None)
             assert wvw_field is not None
             assert "2" in wvw_field.value
 
@@ -479,13 +484,13 @@ class TestSessionCommand:
                 await session(mock_ctx)
                 embed = r.mock_send.call_args[0][1]
                 field_names = [f.name for f in embed.fields]
-                assert "Yaks killed" in field_names
-                assert "Yaks escorted" in field_names
-                assert "Players killed" in field_names
-                assert "Keeps captured" in field_names
-                assert "Towers captured" in field_names
-                assert "Camps captured" in field_names
-                assert "SMC captured" in field_names
+                assert gw2_messages.YAKS_KILLED in field_names
+                assert gw2_messages.YAKS_SCORTED in field_names
+                assert gw2_messages.PLAYERS_KILLED in field_names
+                assert gw2_messages.KEEPS_CAPTURED in field_names
+                assert gw2_messages.TOWERS_CAPTURED in field_names
+                assert gw2_messages.CAMPS_CAPTURED in field_names
+                assert gw2_messages.SMC_CAPTURED in field_names
 
     # === Wallet currency tests ===
 
@@ -497,7 +502,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Karma"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["karma"]), None)
             assert field is not None
             assert "+5000" in field.value
 
@@ -509,7 +514,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Lost Karma"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["karma"]), None)
             assert field is not None
             assert "-5000" in field.value
 
@@ -521,7 +526,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Laurels"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["laurels"]), None)
             assert field is not None
             assert "+5" in field.value
 
@@ -533,7 +538,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Lost Laurels"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["laurels"]), None)
             assert field is not None
             assert "-5" in field.value
 
@@ -545,7 +550,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained WvW Skirmish Tickets"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["wvw_tickets"]), None)
             assert field is not None
             assert "+20" in field.value
 
@@ -557,7 +562,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Lost WvW Skirmish Tickets"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["wvw_tickets"]), None)
             assert field is not None
             assert "-20" in field.value
 
@@ -569,7 +574,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Proof of Heroics"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["proof_heroics"]), None)
             assert field is not None
             assert "+10" in field.value
 
@@ -581,7 +586,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Badges of Honor"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["badges_honor"]), None)
             assert field is not None
             assert "+30" in field.value
 
@@ -593,7 +598,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Guild Commendations"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["guild_commendations"]), None)
             assert field is not None
             assert "+5" in field.value
 
@@ -607,7 +612,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Spirit Shards"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["spirit_shards"]), None)
             assert field is not None
             assert "+10" in field.value
 
@@ -619,7 +624,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Volatile Magic"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["volatile_magic"]), None)
             assert field is not None
             assert "+200" in field.value
 
@@ -631,7 +636,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Unbound Magic"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["unbound_magic"]), None)
             assert field is not None
             assert "+200" in field.value
 
@@ -643,7 +648,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Transmutation Charges"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["transmutation_charges"]), None)
             assert field is not None
             assert "+5" in field.value
 
@@ -655,7 +660,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Lost Spirit Shards"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["spirit_shards"]), None)
             assert field is not None
             assert "-10" in field.value
 
@@ -669,12 +674,11 @@ class TestSessionCommand:
             embed = r.mock_send.call_args[0][1]
             field_names = [f.name for f in embed.fields]
             # Only basic fields should be present
-            assert "Account Name" in field_names
-            assert "Server" in field_names
-            assert "Play time" in field_names
-            # No gained/lost fields
-            gained_lost = [n for n in field_names if "Gained" in n or "Lost" in n]
-            assert len(gained_lost) == 0
+            assert gw2_messages.ACCOUNT_NAME in field_names
+            assert gw2_messages.SERVER in field_names
+            assert gw2_messages.PLAY_TIME in field_names
+            # Only the 3 basic fields should be present (no currency/gold fields)
+            assert len(field_names) == 3
 
     # === Stale data tests (missing keys) ===
 
@@ -689,7 +693,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            gold_fields = [f for f in embed.fields if "Gold" in f.name]
+            gold_fields = [f for f in embed.fields if WALLET_DISPLAY_NAMES["gold"] in f.name]
             assert len(gold_fields) == 0
 
     @pytest.mark.asyncio
@@ -703,7 +707,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            karma_fields = [f for f in embed.fields if "Karma" in f.name]
+            karma_fields = [f for f in embed.fields if WALLET_DISPLAY_NAMES["karma"] in f.name]
             assert len(karma_fields) == 0
 
     @pytest.mark.asyncio
@@ -717,7 +721,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            yaks_fields = [f for f in embed.fields if "Yaks killed" in f.name]
+            yaks_fields = [f for f in embed.fields if gw2_messages.YAKS_KILLED in f.name]
             assert len(yaks_fields) == 0
 
     # === Still playing / DM tests ===
@@ -779,9 +783,9 @@ class TestSessionCommand:
             r.mock_send.assert_called_once()
             embed = r.mock_send.call_args[0][1]
             field_names = [f.name for f in embed.fields]
-            assert "Account Name" in field_names
-            assert "Server" in field_names
-            assert "Play time" in field_names
+            assert gw2_messages.ACCOUNT_NAME in field_names
+            assert gw2_messages.SERVER in field_names
+            assert gw2_messages.PLAY_TIME in field_names
 
     @pytest.mark.asyncio
     async def test_session_time_passed_exactly_one_minute(self, mock_ctx, sample_api_key_data):
@@ -810,7 +814,7 @@ class TestAddGoldField:
             with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
                 _add_gold_field(embed, {"gold": 100}, {"gold": 200})
                 assert len(embed.fields) == 1
-                assert embed.fields[0].name == "Gained Gold"
+                assert embed.fields[0].name == WALLET_DISPLAY_NAMES["gold"]
 
     def test_gold_lost(self):
         embed = discord.Embed()
@@ -818,7 +822,7 @@ class TestAddGoldField:
             with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
                 _add_gold_field(embed, {"gold": 200}, {"gold": 100})
                 assert len(embed.fields) == 1
-                assert embed.fields[0].name == "Lost Gold"
+                assert embed.fields[0].name == WALLET_DISPLAY_NAMES["gold"]
 
     def test_gold_unchanged(self):
         embed = discord.Embed()
@@ -853,7 +857,7 @@ class TestAddDeathsField:
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_deaths_field(embed, start, end)
             assert len(embed.fields) == 1
-            assert embed.fields[0].name == "Times you died"
+            assert embed.fields[0].name == gw2_messages.TIMES_YOU_DIED
             assert "Char1 (Warrior): 5" in embed.fields[0].value
             assert "Total: 5" in embed.fields[0].value
 
@@ -906,7 +910,7 @@ class TestAddDeathsField:
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_deaths_field(embed, start, end)
             assert len(embed.fields) == 1
-            assert embed.fields[0].name == "Times you died"
+            assert embed.fields[0].name == gw2_messages.TIMES_YOU_DIED
             assert "I Hadesz I (Necromancer): 1" in embed.fields[0].value
             assert "Hàdész (Mesmer): 2" in embed.fields[0].value
             assert "Total: 3" in embed.fields[0].value
@@ -940,6 +944,12 @@ class TestAddWvwStats:
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_wvw_stats(embed, start, end)
             assert len(embed.fields) == 8
+            # wvw_rank should not have + sign (rank can only increase)
+            rank_field = next(f for f in embed.fields if f.name == gw2_messages.WVW_RANKS)
+            assert rank_field.value == "`2`"
+            # other stats should have + sign
+            yaks_field = next(f for f in embed.fields if f.name == gw2_messages.YAKS_KILLED)
+            assert yaks_field.value == "`+3`"
 
     def test_no_stats_changed(self):
         embed = discord.Embed()
@@ -978,10 +988,10 @@ class TestAddWalletCurrencyFields:
         end = {"karma": 200, "laurels": 15}
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_wallet_currency_fields(embed, start, end)
-            field = next((f for f in embed.fields if f.name == "Gained Karma"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["karma"]), None)
             assert field is not None
             assert "+100" in field.value
-            field2 = next((f for f in embed.fields if f.name == "Gained Laurels"), None)
+            field2 = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["laurels"]), None)
             assert field2 is not None
             assert "+5" in field2.value
 
@@ -991,7 +1001,7 @@ class TestAddWalletCurrencyFields:
         end = {"karma": 100}
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_wallet_currency_fields(embed, start, end)
-            field = next((f for f in embed.fields if f.name == "Lost Karma"), None)
+            field = next((f for f in embed.fields if f.name == WALLET_DISPLAY_NAMES["karma"]), None)
             assert field is not None
             assert "-100" in field.value
 
@@ -1016,8 +1026,8 @@ class TestAddWalletCurrencyFields:
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_wallet_currency_fields(embed, start, end)
             field_names = [f.name for f in embed.fields]
-            assert "Gained Karma" in field_names
-            assert "Lost Laurels" in field_names
+            assert WALLET_DISPLAY_NAMES["karma"] in field_names
+            assert WALLET_DISPLAY_NAMES["laurels"] in field_names
 
     def test_currency_missing_from_start_skipped(self):
         """Currency key missing from start data — should not add any field."""

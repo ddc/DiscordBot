@@ -11,6 +11,7 @@ from src.gw2.cogs.worlds import (
     worlds_eu,
     worlds_na,
 )
+from src.gw2.constants import gw2_messages
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
@@ -545,36 +546,11 @@ class TestEmbedPaginatorView:
         interaction.response.defer.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_on_timeout_disables_all_buttons(self):
-        """Test on_timeout disables all children and edits message."""
+    async def test_timeout_is_none(self):
+        """Test view timeout is None (buttons never expire)."""
         pages = self._make_embed_pages(2)
         view = EmbedPaginatorView(pages, author_id=1)
-        view.message = AsyncMock()
-
-        await view.on_timeout()
-
-        for item in view.children:
-            assert item.disabled is True
-        view.message.edit.assert_called_once_with(view=view)
-
-    @pytest.mark.asyncio
-    async def test_on_timeout_no_message(self):
-        """Test on_timeout with no message reference does not raise."""
-        pages = self._make_embed_pages(2)
-        view = EmbedPaginatorView(pages, author_id=1)
-        view.message = None
-
-        await view.on_timeout()
-
-        for item in view.children:
-            assert item.disabled is True
-
-    @pytest.mark.asyncio
-    async def test_timeout_is_300(self):
-        """Test view timeout is 300 seconds."""
-        pages = self._make_embed_pages(2)
-        view = EmbedPaginatorView(pages, author_id=1)
-        assert view.timeout == 300
+        assert view.timeout is None
 
     @pytest.mark.asyncio
     async def test_pages_stored(self):
@@ -688,11 +664,11 @@ class TestSendPaginatedWorldsEmbed:
     @pytest.mark.asyncio
     async def test_embed_description_preserved_in_pages(self, mock_ctx):
         """Test that embed description is preserved in paginated pages."""
-        embed = self._make_embed_with_fields(30, description="~~~~~ NA Servers ~~~~~")
+        embed = self._make_embed_with_fields(30, description=gw2_messages.NA_SERVERS_TITLE)
         await _send_paginated_worlds_embed(mock_ctx, embed)
         call_kwargs = mock_ctx.send.call_args[1]
         sent_embed = call_kwargs["embed"]
-        assert sent_embed.description == "~~~~~ NA Servers ~~~~~"
+        assert sent_embed.description == gw2_messages.NA_SERVERS_TITLE
 
     @pytest.mark.asyncio
     async def test_color_applied_to_all_pages(self, mock_ctx):

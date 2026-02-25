@@ -1005,6 +1005,13 @@ class TestGw2SessionCharsDal:
         mock_dal.db_utils.insert.assert_not_called()
 
     @pytest.mark.asyncio
+    async def test_delete_end_characters(self, mock_dal):
+        """Test delete_end_characters executes a delete statement for end chars."""
+        mock_dal.db_utils.execute = AsyncMock()
+        await mock_dal.delete_end_characters(session_id=42)
+        mock_dal.db_utils.execute.assert_called_once()
+
+    @pytest.mark.asyncio
     async def test_get_all_start_characters(self, mock_dal):
         """Test get_all_start_characters calls fetchall and returns results."""
         expected = [

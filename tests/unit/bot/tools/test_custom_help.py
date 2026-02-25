@@ -153,33 +153,10 @@ class TestHelpPaginatorView:
         interaction.response.defer.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_on_timeout_disables_all_buttons(self):
-        """Test on_timeout disables all children and edits message."""
+    async def test_timeout_is_none(self):
+        """Test view timeout is None (buttons never expire)."""
         view = HelpPaginatorView(["A", "B"], author_id=1)
-        view.message = AsyncMock()
-
-        await view.on_timeout()
-
-        for item in view.children:
-            assert item.disabled is True
-        view.message.edit.assert_called_once_with(view=view)
-
-    @pytest.mark.asyncio
-    async def test_on_timeout_no_message(self):
-        """Test on_timeout with no message reference does not raise."""
-        view = HelpPaginatorView(["A", "B"], author_id=1)
-        view.message = None
-
-        await view.on_timeout()
-
-        for item in view.children:
-            assert item.disabled is True
-
-    @pytest.mark.asyncio
-    async def test_timeout_is_300(self):
-        """Test view timeout is 300 seconds."""
-        view = HelpPaginatorView(["A", "B"], author_id=1)
-        assert view.timeout == 300
+        assert view.timeout is None
 
     @pytest.mark.asyncio
     async def test_author_id_stored(self):

@@ -2,6 +2,7 @@
 
 import pytest
 from src.gw2.cogs.characters import GW2Characters, characters
+from src.gw2.constants import gw2_messages
 from src.gw2.tools.gw2_exceptions import APIInvalidKey
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -100,7 +101,7 @@ class TestCharactersCommand:
                 await characters(mock_ctx)
                 mock_error.assert_called_once()
                 error_msg = mock_error.call_args[0][1]
-                assert "You dont have an API key registered" in error_msg
+                assert gw2_messages.NO_API_KEY in error_msg
 
     @pytest.mark.asyncio
     async def test_characters_invalid_api_key_sends_error_with_help(self, mock_ctx, sample_api_key_data):
@@ -111,14 +112,14 @@ class TestCharactersCommand:
             with patch("src.gw2.cogs.characters.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
                 invalid_error = APIInvalidKey(mock_ctx.bot, "Invalid key")
-                invalid_error.args = ("error", "This API Key is INVALID")
+                invalid_error.args = ("error", gw2_messages.INVALID_API_KEY)
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
                 with patch("src.gw2.cogs.characters.bot_utils.send_error_msg") as mock_error:
                     mock_error.return_value = None
                     await characters(mock_ctx)
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert "This API Key is INVALID" in error_msg
+                    assert gw2_messages.INVALID_API_KEY in error_msg
                     assert "gw2 key add" in error_msg or "key add" in error_msg
 
     @pytest.mark.asyncio

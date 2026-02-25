@@ -1,61 +1,12 @@
 import discord
 from discord.ext import commands
 from src.bot.tools import bot_utils, chat_formatting
+from src.bot.tools.bot_utils import EmbedPaginatorView
 from src.gw2.cogs.gw2 import GuildWars2
 from src.gw2.constants import gw2_messages
 from src.gw2.tools import gw2_utils
 from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
-
-
-class EmbedPaginatorView(discord.ui.View):
-    """Interactive pagination view for embed pages with Previous/Next buttons."""
-
-    def __init__(self, pages: list[discord.Embed], author_id: int):
-        super().__init__(timeout=300)
-        self.pages = pages
-        self.current_page = 0
-        self.author_id = author_id
-        self.message: discord.Message | None = None
-        self._update_buttons()
-
-    def _update_buttons(self):
-        self.previous_button.disabled = self.current_page == 0
-        self.page_indicator.label = f"{self.current_page + 1}/{len(self.pages)}"
-        self.next_button.disabled = self.current_page == len(self.pages) - 1
-
-    @discord.ui.button(label="\u25c0", style=discord.ButtonStyle.secondary)
-    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id != self.author_id:
-            return await interaction.response.send_message(
-                "Only the command invoker can use these buttons.", ephemeral=True
-            )
-        self.current_page -= 1
-        self._update_buttons()
-        await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
-
-    @discord.ui.button(label="1/1", style=discord.ButtonStyle.secondary, disabled=True)
-    async def page_indicator(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer()
-
-    @discord.ui.button(label="\u25b6", style=discord.ButtonStyle.secondary)
-    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        if interaction.user.id != self.author_id:
-            return await interaction.response.send_message(
-                "Only the command invoker can use these buttons.", ephemeral=True
-            )
-        self.current_page += 1
-        self._update_buttons()
-        await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
-
-    async def on_timeout(self):
-        for item in self.children:
-            item.disabled = True
-        try:
-            if self.message:
-                await self.message.edit(view=self)
-        except discord.NotFound, discord.HTTPException:
-            pass
 
 
 class GW2Worlds(GuildWars2):

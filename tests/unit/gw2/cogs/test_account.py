@@ -4,6 +4,7 @@ import asyncio
 import discord
 import pytest
 from src.gw2.cogs.account import GW2Account, account
+from src.gw2.constants import gw2_messages
 from src.gw2.tools.gw2_exceptions import APIInvalidKey
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -110,7 +111,7 @@ class TestAccountCommand:
 
                 mock_error.assert_called_once()
                 error_msg = mock_error.call_args[0][1]
-                assert "You dont have an API key registered" in error_msg
+                assert gw2_messages.NO_API_KEY in error_msg
 
     @pytest.mark.asyncio
     async def test_account_command_invalid_api_key(self, mock_ctx, sample_api_key_data):
@@ -153,7 +154,7 @@ class TestAccountCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert "Your API key doesnt have permission" in error_msg
+                    assert gw2_messages.API_KEY_NO_PERMISSION in error_msg
 
     @pytest.mark.asyncio
     async def test_account_command_successful_basic(
