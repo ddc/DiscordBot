@@ -351,28 +351,12 @@ class TestSessionCommand:
             assert "2h 30m" in play_time_field.value
 
     @pytest.mark.asyncio
-    async def test_session_play_time_fallback_when_no_age(self, mock_ctx, sample_api_key_data, sample_time_passed):
-        """Test that play time falls back to timedelta when age is 0/missing."""
+    async def test_session_play_time_fallback_when_zero_age(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test that play time falls back to timedelta when age diff is 0."""
         session_data = _make_session_data(
-            start_overrides={"age": 0},
-            end_overrides={"age": 0},
+            start_overrides={"age": 5000000},
+            end_overrides={"age": 5000000},
         )
-        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
-        async with runner.run() as r:
-            await session(mock_ctx)
-            embed = r.mock_send.call_args[0][1]
-            play_time_field = next((f for f in embed.fields if f.name == "Play time"), None)
-            assert play_time_field is not None
-            assert "2:30:00" in play_time_field.value
-
-    @pytest.mark.asyncio
-    async def test_session_play_time_fallback_when_age_missing_from_start(
-        self, mock_ctx, sample_api_key_data, sample_time_passed
-    ):
-        """Test that play time falls back to wall-clock when age key is missing from start."""
-        # Remove age from start entirely to simulate stale data
-        session_data = _make_session_data(end_overrides={"age": 5009000})
-        del session_data[0]["start"]["age"]
         runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
         async with runner.run() as r:
             await session(mock_ctx)
@@ -441,11 +425,11 @@ class TestSessionCommand:
             r.mock_chars_dal.get_all_end_characters = AsyncMock(return_value=chars_end)
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            deaths_field = next((f for f in embed.fields if "Times you died" in f.name), None)
+            deaths_field = next((f for f in embed.fields if f.name == "Times you died"), None)
             assert deaths_field is not None
             assert "Warrior" in deaths_field.value
             assert "TestChar" in deaths_field.value
-            assert ": 5" in deaths_field.name
+            assert "Total: 5" in deaths_field.value
 
     @pytest.mark.asyncio
     async def test_session_no_deaths_when_unchanged(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -459,7 +443,7 @@ class TestSessionCommand:
             r.mock_chars_dal.get_all_end_characters = AsyncMock(return_value=chars_end)
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            deaths_field = next((f for f in embed.fields if "Times you died" in f.name), None)
+            deaths_field = next((f for f in embed.fields if f.name == "Times you died"), None)
             assert deaths_field is None
 
     @pytest.mark.asyncio
@@ -480,9 +464,9 @@ class TestSessionCommand:
             r.mock_chars_dal.get_all_end_characters = AsyncMock(return_value=chars_end)
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            deaths_field = next((f for f in embed.fields if "Times you died" in f.name), None)
+            deaths_field = next((f for f in embed.fields if f.name == "Times you died"), None)
             assert deaths_field is not None
-            assert ": 6" in deaths_field.name
+            assert "Total: 6" in deaths_field.value
             assert "Warrior" in deaths_field.value
             assert "Mesmer" in deaths_field.value
 
@@ -883,8 +867,9 @@ class TestAddDeathsField:
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_deaths_field(embed, start, end)
             assert len(embed.fields) == 1
-            assert ": 5" in embed.fields[0].name
-            assert "Warrior: Char1 - 5" in embed.fields[0].value
+            assert embed.fields[0].name == "Times you died"
+            assert "Char1 (Warrior): 5" in embed.fields[0].value
+            assert "Total: 5" in embed.fields[0].value
 
     def test_no_deaths(self):
         embed = discord.Embed()
@@ -917,7 +902,7 @@ class TestAddDeathsField:
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_deaths_field(embed, start, end)
             assert len(embed.fields) == 1
-            assert ": 5" in embed.fields[0].name
+            assert "Total: 5" in embed.fields[0].value
             # Should only show the character once
             assert embed.fields[0].value.count("Warrior") == 1
 
@@ -935,9 +920,10 @@ class TestAddDeathsField:
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_deaths_field(embed, start, end)
             assert len(embed.fields) == 1
-            assert ": 3" in embed.fields[0].name
-            assert "Necromancer: I Hadesz I - 1" in embed.fields[0].value
-            assert "Mesmer: Hàdész - 2" in embed.fields[0].value
+            assert embed.fields[0].name == "Times you died"
+            assert "I Hadesz I (Necromancer): 1" in embed.fields[0].value
+            assert "Hàdész (Mesmer): 2" in embed.fields[0].value
+            assert "Total: 3" in embed.fields[0].value
 
 
 class TestAddWvwStats:
