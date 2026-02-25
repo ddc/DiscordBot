@@ -11,11 +11,11 @@ class BotConfigsDal:
         self.log = log
 
     async def update_bot_prefix(self, prefix: str):
-        stmt = sa.update(BotConfigs).where(BotConfigs.id == 1).values(prefix=prefix)
+        stmt = sa.update(BotConfigs).values(prefix=prefix)
         await self.db_utils.execute(stmt)
 
     async def update_bot_description(self, description: str):
-        stmt = sa.update(BotConfigs).where(BotConfigs.id == 1).values(description=description)
+        stmt = sa.update(BotConfigs).values(description=description)
         await self.db_utils.execute(stmt)
 
     async def get_bot_configs(self):
@@ -24,6 +24,6 @@ class BotConfigsDal:
         return results
 
     async def get_bot_prefix(self):
-        stmt = select(BotConfigs.prefix).where(BotConfigs.id == 1)
+        stmt = select(BotConfigs.prefix)
         results = await self.db_utils.fetchvalue(stmt)
         return results

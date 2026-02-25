@@ -3,7 +3,7 @@ from discord.ext import commands
 from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.gw2.gw2_configs_dal import Gw2ConfigsDal
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
-from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
+from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharDeathsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
 from src.gw2.cogs.gw2 import GuildWars2
 from src.gw2.constants import gw2_messages
@@ -141,11 +141,10 @@ async def session(ctx):
         _add_gold_field(embed, rs_start, rs_end)
 
         # Deaths
-        gw2_session_chars_dal = Gw2SessionCharsDal(ctx.bot.db_session, ctx.bot.log)
-        rs_chars_start = await gw2_session_chars_dal.get_all_start_characters(user_id)
-        if rs_chars_start:
-            rs_chars_end = await gw2_session_chars_dal.get_all_end_characters(user_id)
-            _add_deaths_field(embed, rs_chars_start, rs_chars_end)
+        gw2_session_chars_dal = Gw2SessionCharDeathsDal(ctx.bot.db_session, ctx.bot.log)
+        char_deaths = await gw2_session_chars_dal.get_char_deaths(user_id)
+        if char_deaths:
+            _add_deaths_field(embed, char_deaths)
 
         # WvW achievement-based stats
         _add_wvw_stats(embed, rs_start, rs_end)
@@ -200,33 +199,21 @@ def _add_gold_field(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
             embed.add_field(name="Gold", value=chat_formatting.inline(str(final_result)), inline=False)
 
 
-def _add_deaths_field(embed: discord.Embed, rs_chars_start: list[dict], rs_chars_end: list[dict]) -> None:
+def _add_deaths_field(embed: discord.Embed, char_deaths: list[dict]) -> None:
     """Add deaths field to embed.
 
-    Uses a dict keyed on character name to deduplicate entries from
-    multiple guild event firings.
+    Each row has start and end deaths; skip chars where end is None.
     """
-    if not rs_chars_end:
-        return
-
-    # Build lookup from end chars, deduplicating by name (keep first occurrence)
-    end_lookup: dict[str, dict] = {}
-    for char_end in rs_chars_end:
-        name = char_end["name"]
-        if name not in end_lookup:
-            end_lookup[name] = char_end
-
     death_lines: list[str] = []
     total_deaths = 0
 
-    for char_start in rs_chars_start:
-        name = char_start["name"]
-        char_end = end_lookup.get(name)
-        if char_end and char_start["deaths"] != char_end["deaths"]:
-            profession = char_start["profession"]
-            time_deaths = int(char_end["deaths"]) - int(char_start["deaths"])
+    for char in char_deaths:
+        if char["end"] is None:
+            continue
+        if char["start"] != char["end"]:
+            time_deaths = int(char["end"]) - int(char["start"])
             total_deaths += time_deaths
-            death_lines.append(f"{name} ({profession}): {time_deaths}")
+            death_lines.append(f"{char['name']} ({char['profession']}): {time_deaths}")
 
     if death_lines:
         death_lines.append(f"Total: {total_deaths}")

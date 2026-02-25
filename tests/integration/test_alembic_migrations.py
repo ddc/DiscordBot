@@ -7,28 +7,34 @@ pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
 # Helpers
 # ──────────────────────────────────────────────────────────────────────
 
-EXPECTED_TABLES = [
+EXPECTED_PUBLIC_TABLES = [
     "bot_configs",
     "servers",
     "custom_commands",
     "profanity_filters",
     "dice_rolls",
+]
+
+EXPECTED_GW2_TABLES = [
     "gw2_keys",
     "gw2_configs",
     "gw2_sessions",
-    "gw2_session_chars",
+    "gw2_session_char_deaths",
 ]
 
-EXPECTED_TRIGGERS = [
+EXPECTED_PUBLIC_TRIGGERS = [
     "before_update_bot_configs_tr",
     "before_update_servers_tr",
     "before_update_custom_commands_tr",
     "before_update_profanity_filters_tr",
     "before_update_dice_rolls_tr",
+]
+
+EXPECTED_GW2_TRIGGERS = [
     "before_update_gw2_keys_tr",
     "before_update_gw2_configs_tr",
     "before_update_gw2_sessions_tr",
-    "before_update_gw2_session_chars_tr",
+    "before_update_gw2_session_char_deaths_tr",
 ]
 
 
@@ -60,12 +66,20 @@ async def test_updated_at_function_exists(db_session):
     assert rows[0]["routine_name"] == "updated_at_column_func"
 
 
+async def test_gw2_schema_exists(db_session):
+    rows = await _fetch_rows(
+        db_session,
+        text("SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'gw2'"),
+    )
+    assert len(rows) == 1
+
+
 # ──────────────────────────────────────────────────────────────────────
 # All tables created
 # ──────────────────────────────────────────────────────────────────────
 
 
-async def test_all_tables_exist(db_session):
+async def test_all_public_tables_exist(db_session):
     rows = await _fetch_rows(
         db_session,
         text(
@@ -75,11 +89,25 @@ async def test_all_tables_exist(db_session):
         ),
     )
     table_names = [r["table_name"] for r in rows]
-    for expected in EXPECTED_TABLES:
-        assert expected in table_names, f"Table '{expected}' not found"
+    for expected in EXPECTED_PUBLIC_TABLES:
+        assert expected in table_names, f"Table '{expected}' not found in public schema"
 
 
-async def test_all_triggers_exist(db_session):
+async def test_all_gw2_tables_exist(db_session):
+    rows = await _fetch_rows(
+        db_session,
+        text(
+            "SELECT table_name FROM information_schema.tables "
+            "WHERE table_schema = 'gw2' AND table_type = 'BASE TABLE' "
+            "ORDER BY table_name"
+        ),
+    )
+    table_names = [r["table_name"] for r in rows]
+    for expected in EXPECTED_GW2_TABLES:
+        assert expected in table_names, f"Table '{expected}' not found in gw2 schema"
+
+
+async def test_all_public_triggers_exist(db_session):
     rows = await _fetch_rows(
         db_session,
         text(
@@ -87,7 +115,17 @@ async def test_all_triggers_exist(db_session):
         ),
     )
     trigger_names = [r["trigger_name"] for r in rows]
-    for expected in EXPECTED_TRIGGERS:
+    for expected in EXPECTED_PUBLIC_TRIGGERS:
+        assert expected in trigger_names, f"Trigger '{expected}' not found"
+
+
+async def test_all_gw2_triggers_exist(db_session):
+    rows = await _fetch_rows(
+        db_session,
+        text("SELECT trigger_name FROM information_schema.triggers WHERE trigger_schema = 'gw2' ORDER BY trigger_name"),
+    )
+    trigger_names = [r["trigger_name"] for r in rows]
+    for expected in EXPECTED_GW2_TRIGGERS:
         assert expected in trigger_names, f"Trigger '{expected}' not found"
 
 
@@ -97,7 +135,7 @@ async def test_alembic_version_at_head(db_session):
         text("SELECT version_num FROM alembic_version"),
     )
     assert len(rows) == 1
-    assert rows[0]["version_num"] == "0011"
+    assert rows[0]["version_num"] == "0010"
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -123,29 +161,29 @@ async def test_bot_configs_columns(db_session):
     assert "updated_at" in cols
     assert "created_at" in cols
     assert cols["prefix"]["data_type"] == "character"
+    assert cols["id"]["data_type"] == "uuid"
     assert cols["id"]["is_nullable"] == "NO"
 
 
 async def test_bot_configs_seed_row(db_session):
     rows = await _fetch_rows(
         db_session,
-        text("SELECT id, prefix FROM bot_configs WHERE id = 1"),
+        text("SELECT id, prefix FROM bot_configs"),
     )
     assert len(rows) == 1
-    assert rows[0]["id"] == 1
+    assert rows[0]["id"] is not None
 
 
 async def test_bot_configs_insert_and_read(db_session):
     await _execute(
         db_session,
         text(
-            "INSERT INTO bot_configs (id, prefix, author_id, url, description) "
-            "VALUES (99, '?', 123, 'http://test', 'test bot')"
+            "INSERT INTO bot_configs (prefix, author_id, url, description) VALUES ('?', 123, 'http://test', 'test bot')"
         ),
     )
     rows = await _fetch_rows(
         db_session,
-        text("SELECT * FROM bot_configs WHERE id = 99"),
+        text("SELECT * FROM bot_configs WHERE prefix = '?'"),
     )
     assert len(rows) == 1
     assert rows[0]["prefix"] == "?"
@@ -372,7 +410,7 @@ async def test_dice_rolls_cascade_delete(db_session):
 
 
 # ──────────────────────────────────────────────────────────────────────
-# 0007 — gw2_keys unique constraint
+# 0007 — gw2_keys unique constraint (gw2 schema)
 # ──────────────────────────────────────────────────────────────────────
 
 
@@ -381,7 +419,7 @@ async def test_gw2_keys_user_id_unique(db_session):
         db_session,
         text(
             "SELECT constraint_name FROM information_schema.table_constraints "
-            "WHERE table_name = 'gw2_keys' AND constraint_type = 'UNIQUE' "
+            "WHERE table_schema = 'gw2' AND table_name = 'gw2_keys' AND constraint_type = 'UNIQUE' "
             "AND constraint_name != 'gw2_keys_pkey'"
         ),
     )
@@ -392,13 +430,13 @@ async def test_gw2_keys_insert_and_read(db_session):
     await _execute(
         db_session,
         text(
-            "INSERT INTO gw2_keys (user_id, name, gw2_acc_name, server, permissions, key) "
+            "INSERT INTO gw2.gw2_keys (user_id, name, gw2_acc_name, server, permissions, key) "
             "VALUES (7001, 'Main', 'Acc.1234', 'Anvil Rock', 'account', 'KEY-ABC')"
         ),
     )
     rows = await _fetch_rows(
         db_session,
-        text("SELECT * FROM gw2_keys WHERE user_id = 7001"),
+        text("SELECT * FROM gw2.gw2_keys WHERE user_id = 7001"),
     )
     assert len(rows) == 1
     assert rows[0]["gw2_acc_name"] == "Acc.1234"
@@ -406,7 +444,7 @@ async def test_gw2_keys_insert_and_read(db_session):
 
 
 # ──────────────────────────────────────────────────────────────────────
-# 0008 — gw2_configs FK + unique server_id
+# 0008 — gw2_configs FK + unique server_id (gw2 schema)
 # ──────────────────────────────────────────────────────────────────────
 
 
@@ -415,7 +453,7 @@ async def test_gw2_configs_fk_and_unique(db_session):
         db_session,
         text(
             "SELECT constraint_type FROM information_schema.table_constraints "
-            "WHERE table_name = 'gw2_configs' "
+            "WHERE table_schema = 'gw2' AND table_name = 'gw2_configs' "
             "AND constraint_type IN ('FOREIGN KEY', 'UNIQUE')"
         ),
     )
@@ -428,11 +466,11 @@ async def test_gw2_configs_insert_and_read(db_session):
     await _execute(db_session, text("INSERT INTO servers (id, name) VALUES (10008, 'GW2 Cfg Server')"))
     await _execute(
         db_session,
-        text("INSERT INTO gw2_configs (server_id) VALUES (10008)"),
+        text("INSERT INTO gw2.gw2_configs (server_id) VALUES (10008)"),
     )
     rows = await _fetch_rows(
         db_session,
-        text("SELECT * FROM gw2_configs WHERE server_id = 10008"),
+        text("SELECT * FROM gw2.gw2_configs WHERE server_id = 10008"),
     )
     assert len(rows) == 1
     assert rows[0]["session"] is False
@@ -441,17 +479,17 @@ async def test_gw2_configs_insert_and_read(db_session):
 
 async def test_gw2_configs_cascade_delete(db_session):
     await _execute(db_session, text("INSERT INTO servers (id, name) VALUES (10009, 'Cascade GW2')"))
-    await _execute(db_session, text("INSERT INTO gw2_configs (server_id) VALUES (10009)"))
+    await _execute(db_session, text("INSERT INTO gw2.gw2_configs (server_id) VALUES (10009)"))
     await _execute(db_session, text("DELETE FROM servers WHERE id = 10009"))
     rows = await _fetch_rows(
         db_session,
-        text("SELECT * FROM gw2_configs WHERE server_id = 10009"),
+        text("SELECT * FROM gw2.gw2_configs WHERE server_id = 10009"),
     )
     assert len(rows) == 0
 
 
 # ──────────────────────────────────────────────────────────────────────
-# 0009 — gw2_sessions JSONB columns
+# 0009 — gw2_sessions JSONB columns (gw2 schema)
 # ──────────────────────────────────────────────────────────────────────
 
 
@@ -461,7 +499,8 @@ async def test_gw2_sessions_jsonb_columns(db_session):
         text(
             "SELECT column_name, data_type, is_nullable "
             "FROM information_schema.columns "
-            "WHERE table_name = 'gw2_sessions' AND column_name IN ('start', 'end')"
+            "WHERE table_schema = 'gw2' AND table_name = 'gw2_sessions' "
+            "AND column_name IN ('start', 'end')"
         ),
     )
     cols = {r["column_name"]: r for r in rows}
@@ -475,26 +514,27 @@ async def test_gw2_sessions_insert_and_read_jsonb(db_session):
     await _execute(
         db_session,
         text(
-            "INSERT INTO gw2_sessions (user_id, acc_name, start) "
+            "INSERT INTO gw2.gw2_sessions (user_id, acc_name, start) "
             """VALUES (8001, 'TestAcc.9999', '{"gold": 100, "karma": 5000}'::jsonb)"""
         ),
     )
     rows = await _fetch_rows(
         db_session,
-        text("SELECT * FROM gw2_sessions WHERE user_id = 8001"),
+        text("SELECT * FROM gw2.gw2_sessions WHERE user_id = 8001"),
     )
     assert len(rows) == 1
     assert rows[0]["start"]["gold"] == 100
     assert rows[0]["start"]["karma"] == 5000
     assert rows[0]["end"] is None
+    assert rows[0]["id"] is not None
 
 
 # ──────────────────────────────────────────────────────────────────────
-# 0010/0011 — gw2_session_chars FK (unique name dropped in 0011)
+# 0010 — gw2_session_char_deaths FK & columns (gw2 schema)
 # ──────────────────────────────────────────────────────────────────────
 
 
-async def test_gw2_session_chars_fk_to_sessions(db_session):
+async def test_gw2_session_char_deaths_fk_to_sessions(db_session):
     rows = await _fetch_rows(
         db_session,
         text(
@@ -502,50 +542,65 @@ async def test_gw2_session_chars_fk_to_sessions(db_session):
             "FROM information_schema.table_constraints tc "
             "JOIN information_schema.constraint_column_usage ccu "
             "  ON tc.constraint_name = ccu.constraint_name "
-            "WHERE tc.table_name = 'gw2_session_chars' AND tc.constraint_type = 'FOREIGN KEY'"
+            "WHERE tc.table_schema = 'gw2' AND tc.table_name = 'gw2_session_char_deaths' "
+            "AND tc.constraint_type = 'FOREIGN KEY'"
         ),
     )
     assert any(r["foreign_table"] == "gw2_sessions" for r in rows)
 
 
-async def test_gw2_session_chars_no_unique_name(db_session):
-    """Migration 0011 dropped the unique constraint on name to allow start+end records."""
+async def test_gw2_session_char_deaths_columns(db_session):
     rows = await _fetch_rows(
         db_session,
         text(
-            "SELECT constraint_name FROM information_schema.table_constraints "
-            "WHERE table_name = 'gw2_session_chars' AND constraint_type = 'UNIQUE' "
-            "AND constraint_name = 'gw2_session_chars_name_key'"
+            "SELECT column_name, data_type, is_nullable "
+            "FROM information_schema.columns "
+            "WHERE table_schema = 'gw2' AND table_name = 'gw2_session_char_deaths' "
+            "ORDER BY ordinal_position"
         ),
     )
-    assert len(rows) == 0
+    cols = {r["column_name"]: r for r in rows}
+    assert cols["id"]["data_type"] == "uuid"
+    assert cols["session_id"]["data_type"] == "uuid"
+    assert "start" in cols
+    assert cols["start"]["data_type"] == "integer"
+    assert cols["start"]["is_nullable"] == "NO"
+    assert "end" in cols
+    assert cols["end"]["data_type"] == "integer"
+    assert cols["end"]["is_nullable"] == "YES"
+    # No deaths or boolean columns from old schema
+    assert "deaths" not in cols
 
 
-async def test_gw2_session_chars_insert_and_read(db_session):
+async def test_gw2_session_char_deaths_insert_and_read(db_session):
     await _execute(
         db_session,
         text(
-            "INSERT INTO gw2_sessions (id, user_id, acc_name, start) "
-            """VALUES (90001, 8002, 'Char.1111', '{}'::jsonb)"""
+            "INSERT INTO gw2.gw2_sessions (user_id, acc_name, start) "
+            """VALUES (8002, 'Char.1111', '{}'::jsonb)"""
         ),
     )
+    session_rows = await _fetch_rows(
+        db_session,
+        text("SELECT id FROM gw2.gw2_sessions WHERE user_id = 8002"),
+    )
+    session_id = session_rows[0]["id"]
     await _execute(
         db_session,
         text(
-            "INSERT INTO gw2_session_chars "
-            "(session_id, user_id, name, profession, deaths, start) "
-            "VALUES (90001, 8002, 'MyWarrior', 'Warrior', 5, true)"
+            "INSERT INTO gw2.gw2_session_char_deaths "
+            "(session_id, user_id, name, profession, start) "
+            f"VALUES ('{session_id}', 8002, 'MyWarrior', 'Warrior', 5)"
         ),
     )
     rows = await _fetch_rows(
         db_session,
-        text("SELECT * FROM gw2_session_chars WHERE user_id = 8002"),
+        text("SELECT * FROM gw2.gw2_session_char_deaths WHERE user_id = 8002"),
     )
     assert len(rows) == 1
     assert rows[0]["name"] == "MyWarrior"
     assert rows[0]["profession"] == "Warrior"
-    assert rows[0]["deaths"] == 5
-    assert rows[0]["start"] is True
+    assert rows[0]["start"] == 5
     assert rows[0]["end"] is None
 
 

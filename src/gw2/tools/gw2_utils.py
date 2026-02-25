@@ -20,7 +20,7 @@ class TimeObject:
 
 from src.database.dal.gw2.gw2_configs_dal import Gw2ConfigsDal
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
-from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
+from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharDeathsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
 from src.gw2.constants import gw2_messages
 from src.gw2.constants.gw2_currencies import ACHIEVEMENT_MAPPING, WALLET_MAPPING
@@ -395,7 +395,7 @@ async def _do_start_session(bot: Bot, member: discord.Member, api_key: str, sess
     except Exception as e:
         bot.log.error(f"Failed to insert start session into DB for user {member.id}: {e}")
         return
-    await insert_session_char(bot, member, api_key, session_id, "start")
+    await insert_start_char_deaths(bot, member, api_key, session_id)
 
 
 async def end_session(bot: Bot, member: discord.Member, api_key: str) -> None:
@@ -427,15 +427,7 @@ async def _do_end_session(bot: Bot, member: discord.Member, api_key: str, sessio
         bot.log.warning(f"No active session found for user {member.id}, skipping end session chars")
         return
     bot.log.debug(f"Successfully updated end session {session_id} for user {member.id}")
-    bot.log.debug(f"Deleting previous end characters for session {session_id}")
-    try:
-        gw2_session_chars_dal = Gw2SessionCharsDal(bot.db_session, bot.log)
-        await gw2_session_chars_dal.delete_end_characters(session_id)
-        bot.log.debug(f"Successfully deleted end characters for session {session_id}")
-    except Exception as e:
-        bot.log.error(f"Failed to delete end characters for session {session_id}: {e}")
-        return
-    await insert_session_char(bot, member, api_key, session_id, "end")
+    await update_end_char_deaths(bot, member, api_key, session_id)
 
 
 async def _retry_session_later(bot: Bot, member: discord.Member, api_key: str, session_type: str) -> None:
@@ -534,30 +526,34 @@ def _update_achievement_stats(user_stats: dict, achievements_data: list[dict]) -
             user_stats[stat_name] = achievement.get("current", 0)
 
 
-async def insert_session_char(
-    bot: Bot, member: discord.Member, api_key: str, session_id: int, session_type: str
-) -> None:
-    """Insert session character data."""
-    bot.log.debug(f"Attempting to insert {session_type} session chars for session {session_id}, user {member.id}")
+async def insert_start_char_deaths(bot: Bot, member: discord.Member, api_key: str, session_id) -> None:
+    """Insert start session character death data."""
+    bot.log.debug(f"Attempting to insert start char deaths for session {session_id}, user {member.id}")
     try:
         gw2_api = Gw2Client(bot)
         characters_data = await gw2_api.call_api("characters?ids=all", api_key)
 
-        insert_args = {
-            "session_id": session_id,
-            "user_id": member.id,
-            "start": session_type == "start",
-            "end": session_type == "end",
-        }
-
-        gw2_session_chars_dal = Gw2SessionCharsDal(bot.db_session, bot.log)
-        await gw2_session_chars_dal.insert_session_char(characters_data, insert_args)
-        bot.log.debug(f"Successfully inserted {session_type} session chars for session {session_id}, user {member.id}")
+        gw2_session_chars_dal = Gw2SessionCharDeathsDal(bot.db_session, bot.log)
+        await gw2_session_chars_dal.insert_start_char_deaths(session_id, member.id, characters_data)
+        bot.log.debug(f"Successfully inserted start char deaths for session {session_id}, user {member.id}")
 
     except Exception as e:
-        bot.log.error(
-            f"Error inserting {session_type} session character data for session {session_id}, user {member.id}: {e}"
-        )
+        bot.log.error(f"Error inserting start session character data for session {session_id}, user {member.id}: {e}")
+
+
+async def update_end_char_deaths(bot: Bot, member: discord.Member, api_key: str, session_id) -> None:
+    """Update end session character death data."""
+    bot.log.debug(f"Attempting to update end char deaths for session {session_id}, user {member.id}")
+    try:
+        gw2_api = Gw2Client(bot)
+        characters_data = await gw2_api.call_api("characters?ids=all", api_key)
+
+        gw2_session_chars_dal = Gw2SessionCharDeathsDal(bot.db_session, bot.log)
+        await gw2_session_chars_dal.update_end_char_deaths(session_id, member.id, characters_data)
+        bot.log.debug(f"Successfully updated end char deaths for session {session_id}, user {member.id}")
+
+    except Exception as e:
+        bot.log.error(f"Error updating end session character data for session {session_id}, user {member.id}: {e}")
 
 
 def get_wvw_rank_title(rank: int) -> str:

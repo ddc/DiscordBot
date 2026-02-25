@@ -1,12 +1,14 @@
-from sqlalchemy import CHAR, BigInteger, Boolean, ForeignKey
+from sqlalchemy import CHAR, BigInteger, Boolean, ForeignKey, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.bot.constants import variables
 from src.database.models import BotBase
+from uuid import UUID
+from uuid_utils import uuid7
 
 
 class BotConfigs(BotBase):
     __tablename__ = "bot_configs"
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid7)
     prefix: Mapped[CHAR] = mapped_column(CHAR(1), server_default=variables.PREFIX)
     author_id: Mapped[int] = mapped_column(BigInteger, server_default=variables.AUTHOR_ID)
     url: Mapped[str] = mapped_column(server_default=variables.BOT_WEBPAGE_URL)
@@ -29,12 +31,16 @@ class Servers(BotBase):
     custom_commands = relationship("CustomCommands", back_populates="servers")
     profanity_filters = relationship("ProfanityFilters", back_populates="servers")
     dice_rolls = relationship("DiceRolls", back_populates="servers")
-    gw2_configs = relationship("Gw2Configs", back_populates="servers")
+    gw2_configs = relationship(
+        "Gw2Configs",
+        back_populates="servers",
+        primaryjoin="foreign(Gw2Configs.server_id) == Servers.id",
+    )
 
 
 class CustomCommands(BotBase):
     __tablename__ = "custom_commands"
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid7)
     server_id: Mapped[int] = mapped_column(BigInteger, ForeignKey(Servers.id, ondelete="CASCADE"), index=True)
     name: Mapped[str] = mapped_column()
     description: Mapped[str] = mapped_column()
@@ -45,7 +51,7 @@ class CustomCommands(BotBase):
 
 class ProfanityFilters(BotBase):
     __tablename__ = "profanity_filters"
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid7)
     server_id: Mapped[int] = mapped_column(BigInteger, ForeignKey(Servers.id, ondelete="CASCADE"), index=True)
     channel_id: Mapped[int] = mapped_column(BigInteger)
     channel_name: Mapped[str] = mapped_column()
@@ -55,7 +61,7 @@ class ProfanityFilters(BotBase):
 
 class DiceRolls(BotBase):
     __tablename__ = "dice_rolls"
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid7)
     server_id: Mapped[int] = mapped_column(BigInteger, ForeignKey(Servers.id, ondelete="CASCADE"), index=True)
     user_id: Mapped[int] = mapped_column(BigInteger, index=True)
     roll: Mapped[int] = mapped_column()

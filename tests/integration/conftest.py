@@ -49,7 +49,7 @@ def setup_env_and_run_migrations(postgres_container):
     os.environ["POSTGRESQL_USER"] = user
     os.environ["POSTGRESQL_PASSWORD"] = password
     os.environ["POSTGRESQL_DATABASE"] = database
-    os.environ["POSTGRESQL_SCHEMA"] = "public"
+    os.environ["POSTGRESQL_SCHEMA"] = "gw2,public"
     os.environ["POSTGRESQL_SSL_MODE"] = "disable"
 
     from ddcDatabases import clear_postgresql_settings_cache
@@ -74,8 +74,7 @@ def db_url():
 
 
 _SEED_BOT_CONFIGS = sa.text(
-    "INSERT INTO bot_configs (id, prefix, author_id, url, description) "
-    "VALUES (1, :prefix, :author_id, :url, :description)"
+    "INSERT INTO bot_configs (prefix, author_id, url, description) VALUES (:prefix, :author_id, :url, :description)"
 )
 
 _SEED_PARAMS = {
@@ -86,7 +85,7 @@ _SEED_PARAMS = {
 }
 
 _TRUNCATE_ALL = sa.text(
-    "TRUNCATE gw2_session_chars, gw2_sessions, gw2_keys, gw2_configs, "
+    "TRUNCATE gw2.gw2_session_char_deaths, gw2.gw2_sessions, gw2.gw2_keys, gw2.gw2_configs, "
     "dice_rolls, profanity_filters, custom_commands, servers, bot_configs "
     "RESTART IDENTITY CASCADE"
 )

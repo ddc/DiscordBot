@@ -5,7 +5,7 @@ with mocked GW2 API responses to verify the full flow works end-to-end.
 """
 
 import pytest
-from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
+from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharDeathsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
 from src.gw2.tools import gw2_utils
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -135,15 +135,16 @@ async def test_session_start_end_lifecycle(db_session, log):
     assert session["start"]["wvw_rank"] == 250
     assert session["end"] is None  # Not ended yet
 
-    # Verify start characters were inserted
-    chars_dal = Gw2SessionCharsDal(db_session, log)
-    start_chars = await chars_dal.get_all_start_characters(USER_ID)
-    assert len(start_chars) == 2
-    char_names = {c["name"] for c in start_chars}
+    # Verify start character deaths were inserted
+    chars_dal = Gw2SessionCharDeathsDal(db_session, log)
+    char_deaths = await chars_dal.get_char_deaths(USER_ID)
+    assert len(char_deaths) == 2
+    char_names = {c["name"] for c in char_deaths}
     assert char_names == {"Warrior Prime", "Thief Shadow"}
-    warrior = next(c for c in start_chars if c["name"] == "Warrior Prime")
+    warrior = next(c for c in char_deaths if c["name"] == "Warrior Prime")
     assert warrior["profession"] == "Warrior"
-    assert warrior["deaths"] == 42
+    assert warrior["start"] == 42
+    assert warrior["end"] is None
 
     # ---- END SESSION ----
     mock_gw2_api_end = AsyncMock()
@@ -160,14 +161,15 @@ async def test_session_start_end_lifecycle(db_session, log):
     assert session["end"]["gold"] == 120000
     assert session["end"]["karma"] == 55000
 
-    # Migration 0011 dropped the unique constraint on name, so end chars
-    # can now be inserted alongside start chars for the same character name.
-    end_chars = await chars_dal.get_all_end_characters(USER_ID)
-    assert len(end_chars) == 2
-    end_char_names = {c["name"] for c in end_chars}
-    assert end_char_names == {"Warrior Prime", "Thief Shadow"}
-    end_warrior = next(c for c in end_chars if c["name"] == "Warrior Prime")
-    assert end_warrior["deaths"] == 45
+    # Verify end deaths were updated on the same rows
+    char_deaths = await chars_dal.get_char_deaths(USER_ID)
+    assert len(char_deaths) == 2
+    end_warrior = next(c for c in char_deaths if c["name"] == "Warrior Prime")
+    assert end_warrior["start"] == 42
+    assert end_warrior["end"] == 45
+    end_thief = next(c for c in char_deaths if c["name"] == "Thief Shadow")
+    assert end_thief["start"] == 10
+    assert end_thief["end"] == 12
 
 
 async def test_end_session_without_start_is_noop(db_session, log):

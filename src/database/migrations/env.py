@@ -29,6 +29,8 @@ _conn_url = (
 )
 config.set_main_option("sqlalchemy.url", _conn_url)
 
+_schemas = {s.strip() for s in (_postgres_settings.schema or "public").split(",")}
+
 
 def _include_object(
     obj: SchemaItem,
@@ -38,10 +40,13 @@ def _include_object(
     _compare_to: SchemaItem | None,
 ) -> bool | None:
     """
-    Filter to only include objects from our target schema.
+    Filter to only include objects from our target schemas.
     This prevents Alembic from trying to manage tables in other schemas.
     """
-    if type_ == "table" and hasattr(obj, "schema") and obj.schema != _postgres_settings.schema:  # type: ignore[attr-defined]
+    if type_ == "table" and hasattr(obj, "schema"):
+        obj_schema = obj.schema  # type: ignore[attr-defined]
+        if obj_schema is None or obj_schema in _schemas:
+            return True
         return False
     return True
 
@@ -55,6 +60,9 @@ def _process_revision_directives(ctx: Any, revision: Any, directives: Any) -> No
         last_rev_id = int(head_revision.lstrip("0"))
         new_rev_id = last_rev_id + 1
     migration_script.rev_id = f"{new_rev_id:04}"
+
+
+_version_table_schema = "public" if len(_schemas) > 1 else next(iter(_schemas))
 
 
 def run_migrations_offline() -> None:
@@ -77,15 +85,16 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         process_revision_directives=_process_revision_directives,
-        version_table_schema=_postgres_settings.schema,
+        version_table_schema=_version_table_schema,
         version_table=_project_settings.alembic_version_table_name,
         include_schemas=True,
         include_object=_include_object,
     )
 
     with context.begin_transaction():
-        # Ensure the schema exists before Alembic tries to create its version table
-        context.execute(f"CREATE SCHEMA IF NOT EXISTS {_postgres_settings.schema}")
+        for s in _schemas:
+            if s != "public":
+                context.execute(f"CREATE SCHEMA IF NOT EXISTS {s}")
         context.run_migrations()
 
 
@@ -103,15 +112,16 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        # Ensure the schema exists before Alembic tries to create its version table
-        connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {_postgres_settings.schema}"))
+        for s in _schemas:
+            if s != "public":
+                connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {s}"))
         connection.commit()
 
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
             process_revision_directives=_process_revision_directives,
-            version_table_schema=_postgres_settings.schema,
+            version_table_schema=_version_table_schema,
             version_table=_project_settings.alembic_version_table_name,
             include_schemas=True,
             include_object=_include_object,

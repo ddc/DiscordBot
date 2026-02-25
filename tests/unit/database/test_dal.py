@@ -13,7 +13,7 @@ from src.database.dal.bot.profanity_filters_dal import ProfanityFilterDal
 from src.database.dal.bot.servers_dal import ServersDal
 from src.database.dal.gw2.gw2_configs_dal import Gw2ConfigsDal
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
-from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
+from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharDeathsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
 
 # =============================================================================
@@ -902,12 +902,12 @@ class TestGw2KeyDal:
 
 
 # =============================================================================
-# Gw2SessionCharsDal Tests
+# Gw2SessionCharDeathsDal Tests
 # =============================================================================
 
 
-class TestGw2SessionCharsDal:
-    """Test cases for Gw2SessionCharsDal."""
+class TestGw2SessionCharDeathsDal:
+    """Test cases for Gw2SessionCharDeathsDal."""
 
     @pytest.fixture
     def mock_dal(self):
@@ -916,116 +916,82 @@ class TestGw2SessionCharsDal:
         with patch("src.database.dal.gw2.gw2_session_chars_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
-            dal = Gw2SessionCharsDal(db_session, log)
+            dal = Gw2SessionCharDeathsDal(db_session, log)
             dal.db_utils = mock_db_utils
             yield dal
 
     def test_init(self):
-        """Test Gw2SessionCharsDal initialization."""
+        """Test Gw2SessionCharDeathsDal initialization."""
         db_session = MagicMock()
         log = MagicMock()
         with patch("src.database.dal.gw2.gw2_session_chars_dal.DBUtilsAsync") as mock_db_utils_class:
             mock_db_utils = AsyncMock()
             mock_db_utils_class.return_value = mock_db_utils
-            dal = Gw2SessionCharsDal(db_session, log)
+            dal = Gw2SessionCharDeathsDal(db_session, log)
             mock_db_utils_class.assert_called_once_with(db_session)
             assert dal.log == log
             assert dal.db_utils == mock_db_utils
 
     @pytest.mark.asyncio
-    async def test_insert_session_char(self, mock_dal):
-        """Test insert_session_char calls insert for each character."""
+    async def test_insert_start_char_deaths(self, mock_dal):
+        """Test insert_start_char_deaths calls insert for each character."""
         characters_data = [
             {"name": "CharOne", "profession": "Warrior", "deaths": 5},
             {"name": "CharTwo", "profession": "Elementalist", "deaths": 10},
         ]
-        insert_args = {
-            "session_id": 1,
-            "user_id": 67890,
-            "start": True,
-            "end": False,
-        }
 
-        await mock_dal.insert_session_char(characters_data, insert_args)
+        await mock_dal.insert_start_char_deaths(session_id=1, user_id=67890, characters_data=characters_data)
 
         assert mock_dal.db_utils.insert.call_count == 2
 
     @pytest.mark.asyncio
-    async def test_insert_session_char_single_character(self, mock_dal):
-        """Test insert_session_char with a single character."""
+    async def test_insert_start_char_deaths_single_character(self, mock_dal):
+        """Test insert_start_char_deaths with a single character."""
         characters_data = [
             {"name": "Solo", "profession": "Necromancer", "deaths": 0},
         ]
-        insert_args = {
-            "session_id": 2,
-            "user_id": 11111,
-            "start": False,
-            "end": True,
-        }
 
-        await mock_dal.insert_session_char(characters_data, insert_args)
+        await mock_dal.insert_start_char_deaths(session_id=2, user_id=11111, characters_data=characters_data)
 
         mock_dal.db_utils.insert.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_insert_session_char_empty_characters(self, mock_dal):
-        """Test insert_session_char with an empty characters list."""
-        characters_data = []
-        insert_args = {
-            "session_id": 3,
-            "user_id": 22222,
-        }
-
-        await mock_dal.insert_session_char(characters_data, insert_args)
+    async def test_insert_start_char_deaths_empty_characters(self, mock_dal):
+        """Test insert_start_char_deaths with an empty characters list."""
+        await mock_dal.insert_start_char_deaths(session_id=3, user_id=22222, characters_data=[])
 
         mock_dal.db_utils.insert.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_delete_end_characters(self, mock_dal):
-        """Test delete_end_characters executes a delete statement for end chars."""
+    async def test_update_end_char_deaths(self, mock_dal):
+        """Test update_end_char_deaths executes an update for each character."""
         mock_dal.db_utils.execute = AsyncMock()
-        await mock_dal.delete_end_characters(session_id=42)
-        mock_dal.db_utils.execute.assert_called_once()
+        characters_data = [
+            {"name": "CharOne", "deaths": 8},
+            {"name": "CharTwo", "deaths": 12},
+        ]
+        await mock_dal.update_end_char_deaths(session_id=42, user_id=67890, characters_data=characters_data)
+        assert mock_dal.db_utils.execute.call_count == 2
 
     @pytest.mark.asyncio
-    async def test_get_all_start_characters(self, mock_dal):
-        """Test get_all_start_characters calls fetchall and returns results."""
+    async def test_get_char_deaths(self, mock_dal):
+        """Test get_char_deaths calls fetchall and returns results."""
         expected = [
-            {"user_id": 67890, "name": "CharOne", "profession": "Warrior", "start": True},
-            {"user_id": 67890, "name": "CharTwo", "profession": "Elementalist", "start": True},
+            {"user_id": 67890, "name": "CharOne", "profession": "Warrior", "start": 5, "end": 8},
+            {"user_id": 67890, "name": "CharTwo", "profession": "Elementalist", "start": 10, "end": 12},
         ]
         mock_dal.db_utils.fetchall.return_value = expected
-        results = await mock_dal.get_all_start_characters(user_id=67890)
+        results = await mock_dal.get_char_deaths(user_id=67890)
         mock_dal.db_utils.fetchall.assert_called_once()
         call_args = mock_dal.db_utils.fetchall.call_args
         assert call_args[0][1] is True
         assert results == expected
 
     @pytest.mark.asyncio
-    async def test_get_all_start_characters_empty(self, mock_dal):
-        """Test get_all_start_characters when no characters exist."""
+    async def test_get_char_deaths_empty(self, mock_dal):
+        """Test get_char_deaths when no characters exist."""
         mock_dal.db_utils.fetchall.return_value = []
-        results = await mock_dal.get_all_start_characters(user_id=99999)
-        assert results == []
-
-    @pytest.mark.asyncio
-    async def test_get_all_end_characters(self, mock_dal):
-        """Test get_all_end_characters calls fetchall and returns results."""
-        expected = [
-            {"user_id": 67890, "name": "CharOne", "profession": "Warrior", "end": True},
-        ]
-        mock_dal.db_utils.fetchall.return_value = expected
-        results = await mock_dal.get_all_end_characters(user_id=67890)
-        mock_dal.db_utils.fetchall.assert_called_once()
-        call_args = mock_dal.db_utils.fetchall.call_args
-        assert call_args[0][1] is True
-        assert results == expected
-
-    @pytest.mark.asyncio
-    async def test_get_all_end_characters_empty(self, mock_dal):
-        """Test get_all_end_characters when no characters exist."""
-        mock_dal.db_utils.fetchall.return_value = []
-        results = await mock_dal.get_all_end_characters(user_id=99999)
+        results = await mock_dal.get_char_deaths(user_id=99999)
         assert results == []
 
 
