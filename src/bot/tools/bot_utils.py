@@ -137,13 +137,13 @@ async def send_embed(ctx, embed, dm=False):
                     icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url,
                 )
                 await ctx.send(embed=notification_embed)
-            except (discord.Forbidden, discord.HTTPException):
+            except discord.Forbidden, discord.HTTPException:
                 # DM failed, fall back to sending in the channel
                 await ctx.send(embed=embed)
         else:
             # Send to channel
             await ctx.send(embed=embed)
-    except (discord.Forbidden, discord.HTTPException):
+    except discord.Forbidden, discord.HTTPException:
         await send_error_msg(ctx, messages.DISABLED_DM)
     except Exception as e:
         ctx.bot.log.error(e)

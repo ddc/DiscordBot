@@ -90,9 +90,8 @@ class CommandError:
     PRIVILEGE_LOW = "Your Privilege is too low."
     DIRECT_MESSAGES_DISABLED = (
         "Direct messages are disabled in your configuration.\n"
-        "If you want to receive messages from Bots, "
-        "you need to enable this option under Privacy & Safety:"
-        '"Allow direct messages from server members."'
+        "To receive messages from Bots, enable **Direct messages** "
+        "under **Settings > Content & Social > Social permissions**."
     )
 
 
@@ -170,9 +169,8 @@ class BotUtils:
     LOADING_EXTENSION_FAILED = "ERROR: FAILED to load extension"
     DISABLED_DM = (
         "Direct messages are disabled in your configuration.\n"
-        "If you want to receive messages from Bots, "
-        "you need to enable this option under Privacy & Safety:\n"
-        '"Allow direct messages from server members."\n'
+        "To receive messages from Bots, enable **Direct messages** "
+        "under **Settings > Content & Social > Social permissions**."
     )
     MESSAGE_REMOVED_FOR_PRIVACY = "Your message was removed for privacy."
     DELETE_MESSAGE_NO_PERMISSION = "Bot does not have permission to delete messages."

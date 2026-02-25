@@ -90,7 +90,17 @@ async def session(ctx):
     rs_end = rs_session[0]["end"]
 
     if rs_end is None or rs_end.get("date") is None:
-        return await bot_utils.send_error_msg(ctx, gw2_messages.SESSION_SAVE_ERROR)
+        # Check if the user is currently playing GW2
+        is_playing = (
+            not isinstance(ctx.channel, discord.DMChannel)
+            and hasattr(ctx.message.author, "activity")
+            and ctx.message.author.activity is not None
+            and "guild wars 2" in str(ctx.message.author.activity.name).lower()
+        )
+        if is_playing:
+            return await gw2_utils.send_msg(ctx, gw2_messages.SESSION_IN_PROGRESS)
+        # Game stopped but end data not saved yet — bot may still be updating
+        return await gw2_utils.send_msg(ctx, gw2_messages.SESSION_BOT_STILL_UPDATING)
 
     await ctx.message.channel.typing()
     color = ctx.bot.settings["gw2"]["EmbedColor"]
