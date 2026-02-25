@@ -154,9 +154,96 @@ async def send_embed(ctx, embed, dm=False):
                 ))
             except (discord.Forbidden, discord.HTTPException):
                 pass  # Can't send to channel either, nothing we can do
-        # If channel send failed, the error is already logged above
+        else:
+            # Channel send failed — notify the user with a simple embed
+            try:
+                await ctx.send(embed=discord.Embed(
+                    description=chat_formatting.error(messages.SEND_MESSAGE_FAILED),
+                    color=discord.Color.red(),
+                ))
+            except (discord.Forbidden, discord.HTTPException):
+                pass  # Can't send anything, nothing we can do
     except Exception as e:
         ctx.bot.log.error(f"Unexpected error sending message: {e}")
+
+
+class EmbedPaginatorView(discord.ui.View):
+    """Interactive pagination view for embed pages with Previous/Next buttons."""
+
+    def __init__(self, pages: list[discord.Embed], author_id: int):
+        super().__init__(timeout=None)
+        self.pages = pages
+        self.current_page = 0
+        self.author_id = author_id
+        self.message: discord.Message | None = None
+        self._update_buttons()
+
+    def _update_buttons(self):
+        self.previous_button.disabled = self.current_page == 0
+        self.page_indicator.label = f"{self.current_page + 1}/{len(self.pages)}"
+        self.next_button.disabled = self.current_page == len(self.pages) - 1
+
+    @discord.ui.button(label="\u25c0", style=discord.ButtonStyle.secondary)
+    async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.author_id:
+            return await interaction.response.send_message(
+                "Only the command invoker can use these buttons.", ephemeral=True
+            )
+        self.current_page -= 1
+        self._update_buttons()
+        await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+
+    @discord.ui.button(label="1/1", style=discord.ButtonStyle.secondary, disabled=True)
+    async def page_indicator(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+
+    @discord.ui.button(label="\u25b6", style=discord.ButtonStyle.secondary)
+    async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.author_id:
+            return await interaction.response.send_message(
+                "Only the command invoker can use these buttons.", ephemeral=True
+            )
+        self.current_page += 1
+        self._update_buttons()
+        await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+
+
+async def send_paginated_embed(ctx, embed: discord.Embed, max_fields: int = 25) -> None:
+    """Send an embed with pagination if it exceeds max_fields.
+
+    Splits the embed's fields across multiple pages with navigation buttons.
+    Non-field properties (color, author, description, thumbnail) are preserved on each page.
+    """
+    if len(embed.fields) <= max_fields:
+        await send_embed(ctx, embed)
+        return
+
+    color = embed.color or ctx.bot.settings["bot"]["EmbedColor"]
+    total_fields = len(embed.fields)
+    pages = []
+
+    for i in range(0, total_fields, max_fields):
+        page_embed = discord.Embed(color=color, description=embed.description)
+        if embed.author:
+            page_embed.set_author(name=embed.author.name, icon_url=embed.author.icon_url)
+        if embed.thumbnail:
+            page_embed.set_thumbnail(url=embed.thumbnail.url)
+
+        for field in embed.fields[i : i + max_fields]:
+            page_embed.add_field(name=field.name, value=field.value, inline=field.inline)
+
+        page_number = (i // max_fields) + 1
+        total_pages = (total_fields + max_fields - 1) // max_fields
+        page_embed.set_footer(text=f"Page {page_number}/{total_pages}")
+        pages.append(page_embed)
+
+    if len(pages) == 1:
+        await send_embed(ctx, pages[0])
+        return
+
+    view = EmbedPaginatorView(pages, ctx.message.author.id)
+    msg = await ctx.send(embed=pages[0], view=view)
+    view.message = msg
 
 
 async def delete_message(ctx, warning=False):

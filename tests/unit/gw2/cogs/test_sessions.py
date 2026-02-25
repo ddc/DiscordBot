@@ -102,7 +102,9 @@ class TestSessionCommand:
         ctx.message.author.mention = "<@12345>"
         ctx.message.author.activity = None
         ctx.message.channel = MagicMock()
-        ctx.message.channel.typing = AsyncMock()
+        ctx.message.channel.typing = MagicMock()
+        ctx.message.channel.typing.return_value.__aenter__ = AsyncMock(return_value=None)
+        ctx.message.channel.typing.return_value.__aexit__ = AsyncMock(return_value=False)
         ctx.prefix = "!"
         ctx.guild = MagicMock()
         ctx.guild.id = 99999
@@ -179,7 +181,7 @@ class TestSessionCommand:
                     patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short", side_effect=lambda x: x),
                     patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed", return_value=sample_time_passed),
                     patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal_class,
-                    patch("src.gw2.cogs.sessions.bot_utils.send_embed") as mock_send,
+                    patch("src.gw2.cogs.sessions.bot_utils.send_paginated_embed") as mock_send,
                     patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"),
                 ):
                     mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
@@ -508,8 +510,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            karma_field = next((f for f in embed.fields if f.name == "Gained Karma"), None)
-            assert karma_field is not None
+            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
+            assert field is not None
+            assert "Karma" in field.value
 
     @pytest.mark.asyncio
     async def test_session_karma_lost(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -519,8 +522,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            karma_field = next((f for f in embed.fields if f.name == "Lost Karma"), None)
-            assert karma_field is not None
+            field = next((f for f in embed.fields if f.name == "Lost Currencies"), None)
+            assert field is not None
+            assert "Karma" in field.value
 
     @pytest.mark.asyncio
     async def test_session_laurels_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -530,8 +534,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Laurels"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
             assert field is not None
+            assert "Laurels" in field.value
 
     @pytest.mark.asyncio
     async def test_session_laurels_lost(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -541,8 +546,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Lost Laurels"), None)
+            field = next((f for f in embed.fields if f.name == "Lost Currencies"), None)
             assert field is not None
+            assert "Laurels" in field.value
 
     @pytest.mark.asyncio
     async def test_session_wvw_tickets_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -552,8 +558,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained WvW Skirmish Tickets"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
             assert field is not None
+            assert "WvW Skirmish Tickets" in field.value
 
     @pytest.mark.asyncio
     async def test_session_wvw_tickets_lost(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -563,8 +570,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Lost WvW Skirmish Tickets"), None)
+            field = next((f for f in embed.fields if f.name == "Lost Currencies"), None)
             assert field is not None
+            assert "WvW Skirmish Tickets" in field.value
 
     @pytest.mark.asyncio
     async def test_session_proof_heroics_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -574,8 +582,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Proof of Heroics"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
             assert field is not None
+            assert "Proof of Heroics" in field.value
 
     @pytest.mark.asyncio
     async def test_session_badges_honor_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -585,8 +594,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Badges of Honor"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
             assert field is not None
+            assert "Badges of Honor" in field.value
 
     @pytest.mark.asyncio
     async def test_session_guild_commendations_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -596,8 +606,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Guild Commendations"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
             assert field is not None
+            assert "Guild Commendations" in field.value
 
     # === New currency tests ===
 
@@ -609,8 +620,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Spirit Shards"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
             assert field is not None
+            assert "Spirit Shards" in field.value
             assert "+10" in field.value
 
     @pytest.mark.asyncio
@@ -621,8 +633,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Volatile Magic"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
             assert field is not None
+            assert "Volatile Magic" in field.value
             assert "+200" in field.value
 
     @pytest.mark.asyncio
@@ -633,8 +646,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Unbound Magic"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
             assert field is not None
+            assert "Unbound Magic" in field.value
             assert "+200" in field.value
 
     @pytest.mark.asyncio
@@ -645,8 +659,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Transmutation Charges"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
             assert field is not None
+            assert "Transmutation Charges" in field.value
             assert "+5" in field.value
 
     @pytest.mark.asyncio
@@ -657,8 +672,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Lost Spirit Shards"), None)
+            field = next((f for f in embed.fields if f.name == "Lost Currencies"), None)
             assert field is not None
+            assert "Spirit Shards" in field.value
             assert "-10" in field.value
 
     @pytest.mark.asyncio
@@ -880,9 +896,10 @@ class TestAddWalletCurrencyFields:
         end = {"karma": 200, "laurels": 15}
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_wallet_currency_fields(embed, start, end)
-            field_names = [f.name for f in embed.fields]
-            assert "Gained Karma" in field_names
-            assert "Gained Laurels" in field_names
+            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
+            assert field is not None
+            assert "Karma" in field.value
+            assert "Laurels" in field.value
 
     def test_currency_lost(self):
         embed = discord.Embed()
@@ -890,9 +907,10 @@ class TestAddWalletCurrencyFields:
         end = {"karma": 100}
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_wallet_currency_fields(embed, start, end)
-            field = next((f for f in embed.fields if f.name == "Lost Karma"), None)
+            field = next((f for f in embed.fields if f.name == "Lost Currencies"), None)
             assert field is not None
             assert "-100" in field.value
+            assert "Karma" in field.value
 
     def test_gold_is_skipped(self):
         embed = discord.Embed()
@@ -907,6 +925,16 @@ class TestAddWalletCurrencyFields:
         end = {"karma": 100}
         _add_wallet_currency_fields(embed, start, end)
         assert len(embed.fields) == 0
+
+    def test_gained_and_lost_separate_fields(self):
+        embed = discord.Embed()
+        start = {"karma": 100, "laurels": 50}
+        end = {"karma": 200, "laurels": 30}
+        with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
+            _add_wallet_currency_fields(embed, start, end)
+            field_names = [f.name for f in embed.fields]
+            assert "Gained Currencies" in field_names
+            assert "Lost Currencies" in field_names
 
 
 class TestSessionSetup:

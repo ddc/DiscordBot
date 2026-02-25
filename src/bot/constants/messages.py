@@ -174,6 +174,7 @@ class BotUtils:
     )
     MESSAGE_REMOVED_FOR_PRIVACY = "Your message was removed for privacy."
     DELETE_MESSAGE_NO_PERMISSION = "Bot does not have permission to delete messages."
+    SEND_MESSAGE_FAILED = "An error occurred while sending the response. Please try again later."
 
 
 class DiceRolls:
@@ -338,6 +339,7 @@ LOADING_EXTENSION_FAILED = BotUtils.LOADING_EXTENSION_FAILED
 DISABLED_DM = BotUtils.DISABLED_DM
 MESSAGE_REMOVED_FOR_PRIVACY = BotUtils.MESSAGE_REMOVED_FOR_PRIVACY
 DELETE_MESSAGE_NO_PERMISSION = BotUtils.DELETE_MESSAGE_NO_PERMISSION
+SEND_MESSAGE_FAILED = BotUtils.SEND_MESSAGE_FAILED
 
 # Dice Rolls
 DICE_SIZE_NOT_VALID = DiceRolls.SIZE_NOT_VALID
