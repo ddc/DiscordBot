@@ -102,7 +102,11 @@ async def session(ctx):
         # Game stopped but end data not saved yet — bot may still be updating
         return await gw2_utils.send_msg(ctx, gw2_messages.SESSION_BOT_STILL_UPDATING)
 
-    async with ctx.message.channel.typing():
+    progress_msg = await gw2_utils.send_progress_embed(
+        ctx, "Please wait, I'm fetching your session data... (this may take a moment)"
+    )
+
+    try:
         color = ctx.bot.settings["gw2"]["EmbedColor"]
 
         # Use JSONB date fields for session duration
@@ -114,6 +118,7 @@ async def session(ctx):
         if time_passed.hours == 0 and time_passed.minutes < player_wait_minutes:
             wait_time = str(player_wait_minutes - time_passed.minutes)
             m = "minute" if wait_time == "1" else "minutes"
+            await progress_msg.delete()
             return await gw2_utils.send_msg(
                 ctx, f"{gw2_messages.SESSION_BOT_STILL_UPDATING}\n {gw2_messages.WAITING_TIME}: `{wait_time} {m}`"
             )
@@ -163,7 +168,12 @@ async def session(ctx):
             await gw2_utils.end_session(ctx.bot, ctx.message.author, api_key)
             await ctx.send(still_playing_msg)
 
+        await progress_msg.delete()
         await bot_utils.send_paginated_embed(ctx, embed)
+    except Exception as e:
+        await progress_msg.delete()
+        await bot_utils.send_error_msg(ctx, e)
+        return ctx.bot.log.error(ctx, e)
     return None
 
 

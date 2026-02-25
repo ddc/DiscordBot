@@ -31,6 +31,7 @@ from src.gw2.tools.gw2_client import Gw2Client
 _gw2_settings = get_gw2_settings()
 _background_tasks: set[asyncio.Task] = set()
 _processing_sessions: set[int] = set()
+_achievement_cache: dict[int, dict] = {}
 
 
 class Gw2Servers(Enum):
@@ -125,30 +126,36 @@ async def calculate_user_achiev_points(ctx: commands.Context, api_req_acc_achiev
 
 
 async def _fetch_achievement_data_in_batches(gw2_api: Gw2Client, user_achievements: list[dict]) -> list[dict]:
-    """Fetch achievement data from API in parallel batches of 200."""
-    batch_size = 200
-    sem = asyncio.Semaphore(5)
+    """Fetch achievement data from API in parallel batches of 200, with in-memory cache.
 
-    async def _fetch_batch(batch):
-        async with sem:
-            achievement_ids = [str(ach["id"]) for ach in batch]
-            ids_string = ",".join(achievement_ids)
-            return await gw2_api.call_api(f"achievements?ids={ids_string}")
+    Achievement definitions (tiers, points) are static game data that rarely change,
+    so caching them avoids 18+ API calls on every `gw2 account` invocation.
+    """
+    needed_ids = [ach["id"] for ach in user_achievements if ach["id"] not in _achievement_cache]
 
-    batch_tasks = []
-    for i in range(0, len(user_achievements), batch_size):
-        batch = user_achievements[i : i + batch_size]
-        batch_tasks.append(_fetch_batch(batch))
+    if needed_ids:
+        batch_size = 200
+        sem = asyncio.Semaphore(5)
 
-    results = await asyncio.gather(*batch_tasks, return_exceptions=True)
+        async def _fetch_batch(batch_ids):
+            async with sem:
+                ids_string = ",".join(str(aid) for aid in batch_ids)
+                return await gw2_api.call_api(f"achievements?ids={ids_string}")
 
-    all_achievement_data = []
-    for result in results:
-        if isinstance(result, Exception):
-            continue
-        all_achievement_data.extend(result)
+        batch_tasks = []
+        for i in range(0, len(needed_ids), batch_size):
+            batch = needed_ids[i : i + batch_size]
+            batch_tasks.append(_fetch_batch(batch))
 
-    return all_achievement_data
+        results = await asyncio.gather(*batch_tasks, return_exceptions=True)
+
+        for result in results:
+            if isinstance(result, Exception):
+                continue
+            for ach in result:
+                _achievement_cache[ach["id"]] = ach
+
+    return [_achievement_cache[ach["id"]] for ach in user_achievements if ach["id"] in _achievement_cache]
 
 
 def _calculate_earned_points(user_achievements: list[dict], achievement_data: list[dict]) -> int:
