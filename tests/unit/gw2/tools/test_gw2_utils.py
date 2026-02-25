@@ -9,11 +9,14 @@ from src.gw2.tools.gw2_utils import (
     TimeObject,
     _calculate_earned_points,
     _create_initial_user_stats,
+    _do_end_session,
+    _do_start_session,
     _fetch_achievement_data_in_batches,
     _get_non_custom_activity,
     _get_wvw_rank_prefix,
     _handle_gw2_activity_change,
     _is_gw2_activity_detected,
+    _retry_session_later,
     _update_achievement_stats,
     _update_wallet_stats,
     calculate_user_achiev_points,
@@ -786,16 +789,16 @@ class TestStartSession:
         return member
 
     @pytest.mark.asyncio
-    async def test_get_user_stats_returns_none(self, mock_bot, mock_member):
-        """Test that None user stats returns early (lines 300-302)."""
+    async def test_get_user_stats_returns_none_schedules_bg_retry(self, mock_bot, mock_member):
+        """Test that None user stats schedules background retry task."""
         with patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats:
             mock_stats.return_value = None
 
-            await start_session(mock_bot, mock_member, "api-key")
+            with patch("src.gw2.tools.gw2_utils.asyncio.create_task") as mock_create_task:
+                await start_session(mock_bot, mock_member, "api-key")
 
-            # Should not proceed to session dal
-            with patch("src.gw2.tools.gw2_utils.Gw2SessionsDal") as mock_dal:
-                mock_dal.assert_not_called()
+                mock_create_task.assert_called_once()
+                mock_bot.log.warning.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_successful_start_session(self, mock_bot, mock_member):
@@ -847,12 +850,16 @@ class TestEndSession:
         return member
 
     @pytest.mark.asyncio
-    async def test_get_user_stats_returns_none(self, mock_bot, mock_member):
-        """Test that None user stats returns early (lines 314-316)."""
+    async def test_get_user_stats_returns_none_schedules_bg_retry(self, mock_bot, mock_member):
+        """Test that None user stats schedules background retry task."""
         with patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats:
             mock_stats.return_value = None
 
-            await end_session(mock_bot, mock_member, "api-key")
+            with patch("src.gw2.tools.gw2_utils.asyncio.create_task") as mock_create_task:
+                await end_session(mock_bot, mock_member, "api-key")
+
+                mock_create_task.assert_called_once()
+                mock_bot.log.warning.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_successful_end_session(self, mock_bot, mock_member):
@@ -1913,3 +1920,144 @@ class TestWalletMappingAndDisplayNames:
         assert WALLET_MAPPING[45] == "volatile_magic"
         assert WALLET_MAPPING[32] == "unbound_magic"
         assert WALLET_MAPPING[18] == "transmutation_charges"
+
+
+class TestRetrySessionLater:
+    """Test cases for _retry_session_later background retry function."""
+
+    @pytest.fixture
+    def mock_bot(self):
+        """Create a mock bot."""
+        bot = MagicMock()
+        bot.db_session = MagicMock()
+        bot.log = MagicMock()
+        return bot
+
+    @pytest.fixture
+    def mock_member(self):
+        """Create a mock member."""
+        member = MagicMock()
+        member.id = 12345
+        member.send = AsyncMock()
+        return member
+
+    @pytest.mark.asyncio
+    async def test_retry_succeeds_on_first_bg_attempt_start(self, mock_bot, mock_member):
+        """Test background retry succeeds on first attempt for start session."""
+        session_data = {"acc_name": "TestUser.1234", "wvw_rank": 50}
+
+        with (
+            patch("src.gw2.tools.gw2_utils.asyncio.sleep") as mock_sleep,
+            patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats,
+            patch("src.gw2.tools.gw2_utils._do_start_session") as mock_do_start,
+            patch("src.gw2.tools.gw2_utils._gw2_settings") as mock_settings,
+        ):
+            mock_settings.api_session_retry_bg_delay = 60.0
+            mock_settings.api_retry_max_attempts = 5
+            mock_stats.return_value = session_data
+            mock_do_start.return_value = None
+
+            await _retry_session_later(mock_bot, mock_member, "api-key", "start")
+
+            mock_sleep.assert_called_once_with(60.0)
+            mock_do_start.assert_called_once_with(mock_bot, mock_member, "api-key", session_data)
+            mock_member.send.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_retry_succeeds_on_first_bg_attempt_end(self, mock_bot, mock_member):
+        """Test background retry succeeds on first attempt for end session."""
+        session_data = {"acc_name": "TestUser.1234", "wvw_rank": 50}
+
+        with (
+            patch("src.gw2.tools.gw2_utils.asyncio.sleep") as mock_sleep,
+            patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats,
+            patch("src.gw2.tools.gw2_utils._do_end_session") as mock_do_end,
+            patch("src.gw2.tools.gw2_utils._gw2_settings") as mock_settings,
+        ):
+            mock_settings.api_session_retry_bg_delay = 60.0
+            mock_settings.api_retry_max_attempts = 5
+            mock_stats.return_value = session_data
+            mock_do_end.return_value = None
+
+            await _retry_session_later(mock_bot, mock_member, "api-key", "end")
+
+            mock_sleep.assert_called_once_with(60.0)
+            mock_do_end.assert_called_once_with(mock_bot, mock_member, "api-key", session_data)
+            mock_member.send.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_retry_succeeds_on_third_attempt(self, mock_bot, mock_member):
+        """Test background retry succeeds after multiple failed attempts."""
+        session_data = {"acc_name": "TestUser.1234", "wvw_rank": 50}
+
+        with (
+            patch("src.gw2.tools.gw2_utils.asyncio.sleep") as mock_sleep,
+            patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats,
+            patch("src.gw2.tools.gw2_utils._do_start_session") as mock_do_start,
+            patch("src.gw2.tools.gw2_utils._gw2_settings") as mock_settings,
+        ):
+            mock_settings.api_session_retry_bg_delay = 60.0
+            mock_settings.api_retry_max_attempts = 5
+            mock_stats.side_effect = [None, None, session_data]
+            mock_do_start.return_value = None
+
+            await _retry_session_later(mock_bot, mock_member, "api-key", "start")
+
+            assert mock_sleep.call_count == 3
+            mock_do_start.assert_called_once_with(mock_bot, mock_member, "api-key", session_data)
+            mock_member.send.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_all_retries_exhausted_sends_dm(self, mock_bot, mock_member):
+        """Test DM is sent when all background retries are exhausted."""
+        with (
+            patch("src.gw2.tools.gw2_utils.asyncio.sleep"),
+            patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats,
+            patch("src.gw2.tools.gw2_utils._gw2_settings") as mock_settings,
+        ):
+            mock_settings.api_session_retry_bg_delay = 60.0
+            mock_settings.api_retry_max_attempts = 3
+            mock_stats.return_value = None
+
+            await _retry_session_later(mock_bot, mock_member, "api-key", "start")
+
+            mock_member.send.assert_called_once()
+            sent_msg = mock_member.send.call_args[0][0]
+            assert "GW2 API was unreachable" in sent_msg
+            mock_bot.log.error.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_dm_failure_handled_gracefully(self, mock_bot, mock_member):
+        """Test that DM send failure is handled gracefully when user has DMs disabled."""
+        with (
+            patch("src.gw2.tools.gw2_utils.asyncio.sleep"),
+            patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats,
+            patch("src.gw2.tools.gw2_utils._gw2_settings") as mock_settings,
+        ):
+            mock_settings.api_session_retry_bg_delay = 60.0
+            mock_settings.api_retry_max_attempts = 2
+            mock_stats.return_value = None
+            mock_member.send.side_effect = discord.HTTPException(MagicMock(), "Forbidden")
+
+            await _retry_session_later(mock_bot, mock_member, "api-key", "end")
+
+            mock_member.send.assert_called_once()
+            mock_bot.log.warning.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_retry_uses_correct_delay_and_attempts(self, mock_bot, mock_member):
+        """Test that retry uses configured delay and max attempts."""
+        with (
+            patch("src.gw2.tools.gw2_utils.asyncio.sleep") as mock_sleep,
+            patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats,
+            patch("src.gw2.tools.gw2_utils._gw2_settings") as mock_settings,
+        ):
+            mock_settings.api_session_retry_bg_delay = 120.0
+            mock_settings.api_retry_max_attempts = 2
+            mock_stats.return_value = None
+
+            await _retry_session_later(mock_bot, mock_member, "api-key", "start")
+
+            assert mock_sleep.call_count == 2
+            mock_sleep.assert_called_with(120.0)
+            assert mock_stats.call_count == 2
