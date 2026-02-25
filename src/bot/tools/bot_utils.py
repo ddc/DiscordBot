@@ -137,16 +137,26 @@ async def send_embed(ctx, embed, dm=False):
                     icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url,
                 )
                 await ctx.send(embed=notification_embed)
-            except discord.Forbidden, discord.HTTPException:
+            except (discord.Forbidden, discord.HTTPException):
                 # DM failed, fall back to sending in the channel
                 await ctx.send(embed=embed)
         else:
             # Send to channel
             await ctx.send(embed=embed)
-    except discord.Forbidden, discord.HTTPException:
-        await send_error_msg(ctx, messages.DISABLED_DM)
+    except (discord.Forbidden, discord.HTTPException) as e:
+        ctx.bot.log.error(f"Failed to send message: {e}")
+        if dm or is_private_message(ctx):
+            # Only show DM disabled message when we were actually trying to DM
+            try:
+                await ctx.send(embed=discord.Embed(
+                    description=chat_formatting.error(messages.DISABLED_DM),
+                    color=discord.Color.red(),
+                ))
+            except (discord.Forbidden, discord.HTTPException):
+                pass  # Can't send to channel either, nothing we can do
+        # If channel send failed, the error is already logged above
     except Exception as e:
-        ctx.bot.log.error(e)
+        ctx.bot.log.error(f"Unexpected error sending message: {e}")
 
 
 async def delete_message(ctx, warning=False):

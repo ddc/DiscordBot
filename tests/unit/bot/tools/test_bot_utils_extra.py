@@ -195,29 +195,30 @@ class TestSendEmbed:
         mock_ctx.author.send.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch("src.bot.tools.bot_utils.send_error_msg")
-    async def test_send_embed_discord_forbidden_exception(self, mock_send_error, mock_ctx):
-        """Test send_embed handles discord.Forbidden exception."""
+    async def test_send_embed_discord_forbidden_dm_shows_disabled_msg(self, mock_ctx):
+        """Test send_embed shows DM disabled message when DM send fails."""
         embed = discord.Embed(description="Test", color=discord.Color.green())
         mock_ctx.channel = MagicMock(spec=discord.DMChannel)
         mock_ctx.author.send.side_effect = discord.Forbidden(MagicMock(), "Cannot send messages")
 
         await bot_utils.send_embed(mock_ctx, embed)
 
-        mock_send_error.assert_called_once()
-        call_args = mock_send_error.call_args[0]
-        assert call_args[0] == mock_ctx
+        # Should log the error
+        mock_ctx.bot.log.error.assert_called_once()
+        # Should try to send DM disabled message to channel
+        mock_ctx.send.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("src.bot.tools.bot_utils.send_error_msg")
-    async def test_send_embed_discord_http_exception(self, mock_send_error, mock_ctx):
-        """Test send_embed handles discord.HTTPException."""
+    async def test_send_embed_discord_http_exception_channel_logs_error(self, mock_ctx):
+        """Test send_embed logs error when channel send fails (no DM disabled message)."""
         embed = discord.Embed(description="Test", color=discord.Color.green())
         mock_ctx.send.side_effect = discord.HTTPException(MagicMock(), "HTTP error")
 
         await bot_utils.send_embed(mock_ctx, embed, dm=False)
 
-        mock_send_error.assert_called_once()
+        # Should log the error but NOT show DM disabled (was a channel send)
+        mock_ctx.bot.log.error.assert_called_once()
+        assert "Failed to send message" in mock_ctx.bot.log.error.call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_send_embed_generic_exception(self, mock_ctx):
@@ -228,9 +229,7 @@ class TestSendEmbed:
         await bot_utils.send_embed(mock_ctx, embed, dm=False)
 
         mock_ctx.bot.log.error.assert_called_once()
-        error_arg = mock_ctx.bot.log.error.call_args[0][0]
-        assert isinstance(error_arg, ValueError)
-        assert str(error_arg) == "Some unexpected error"
+        assert "Unexpected error" in mock_ctx.bot.log.error.call_args[0][0]
 
 
 class TestDeleteMessage:
