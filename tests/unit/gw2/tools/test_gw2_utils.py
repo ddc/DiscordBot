@@ -129,6 +129,15 @@ class TestInsertGw2ServerConfigs:
 class TestFetchAchievementDataInBatches:
     """Test cases for _fetch_achievement_data_in_batches function."""
 
+    @pytest.fixture(autouse=True)
+    def clear_cache(self):
+        """Clear the module-level achievement cache between tests."""
+        from src.gw2.tools import gw2_utils
+
+        gw2_utils._achievement_cache.clear()
+        yield
+        gw2_utils._achievement_cache.clear()
+
     @pytest.mark.asyncio
     async def test_single_batch_under_200(self):
         """Test fetching with fewer than 200 achievements (single batch)."""

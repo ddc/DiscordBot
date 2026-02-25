@@ -193,6 +193,11 @@ class TestSessionCommand:
                     patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal_class,
                     patch("src.gw2.cogs.sessions.bot_utils.send_paginated_embed") as mock_send,
                     patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"),
+                    patch(
+                        "src.gw2.cogs.sessions.gw2_utils.send_progress_embed",
+                        new_callable=AsyncMock,
+                        return_value=AsyncMock(),
+                    ),
                 ):
                     mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
                     mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
