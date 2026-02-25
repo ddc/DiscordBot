@@ -89,7 +89,7 @@ async def session(ctx):
     rs_start = rs_session[0]["start"]
     rs_end = rs_session[0]["end"]
 
-    if rs_end is None or rs_end.get("date") is None:
+    if rs_end is None:
         # Check if the user is currently playing GW2
         is_playing = (
             not isinstance(ctx.channel, discord.DMChannel)
@@ -104,8 +104,10 @@ async def session(ctx):
 
     async with ctx.message.channel.typing():
         color = ctx.bot.settings["gw2"]["EmbedColor"]
-        start_time = bot_utils.convert_str_to_datetime_short(rs_start["date"])
-        end_time = bot_utils.convert_str_to_datetime_short(rs_end["date"])
+
+        # Use DB timestamps for wall-clock session duration
+        start_time = rs_session[0]["created_at"]
+        end_time = rs_session[0]["updated_at"]
 
         time_passed = gw2_utils.get_time_passed(start_time, end_time)
         player_wait_minutes = 1
@@ -117,20 +119,22 @@ async def session(ctx):
             )
 
         acc_name = rs_session[0]["acc_name"]
+        session_date = str(start_time).split()[0]
         embed = discord.Embed(color=color)
         embed.set_author(
-            name=f"{ctx.message.author.display_name}'s {gw2_messages.SESSION_TITLE} ({rs_start['date'].split()[0]})",
+            name=f"{ctx.message.author.display_name}'s {gw2_messages.SESSION_TITLE} ({session_date})",
             icon_url=ctx.message.author.display_avatar.url,
         )
         embed.add_field(name=gw2_messages.ACCOUNT_NAME, value=chat_formatting.inline(acc_name))
         embed.add_field(name=gw2_messages.SERVER, value=chat_formatting.inline(gw2_server))
 
-        # Play time from API age (actual in-game time)
-        start_age = rs_start.get("age", 0)
-        end_age = rs_end.get("age", 0)
-        play_time_seconds = end_age - start_age
-        if play_time_seconds > 0:
-            play_time_str = gw2_utils.format_seconds_to_time(play_time_seconds)
+        # Play time from API age (actual in-game time) — only when both snapshots have age
+        if "age" in rs_start and "age" in rs_end:
+            play_time_seconds = rs_end["age"] - rs_start["age"]
+            if play_time_seconds > 0:
+                play_time_str = gw2_utils.format_seconds_to_time(play_time_seconds)
+            else:
+                play_time_str = str(time_passed.timedelta)
         else:
             play_time_str = str(time_passed.timedelta)
         embed.add_field(name=gw2_messages.PLAY_TIME, value=chat_formatting.inline(play_time_str))
@@ -161,14 +165,16 @@ async def session(ctx):
             await gw2_utils.end_session(ctx.bot, ctx.message.author, api_key)
             await ctx.send(still_playing_msg)
 
-    await bot_utils.send_paginated_embed(ctx, embed)
+        await bot_utils.send_paginated_embed(ctx, embed)
     return None
 
 
 def _add_gold_field(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
     """Add gold gained/lost field to embed."""
-    start_gold = rs_start.get("gold", 0)
-    end_gold = rs_end.get("gold", 0)
+    if "gold" not in rs_start or "gold" not in rs_end:
+        return
+    start_gold = rs_start["gold"]
+    end_gold = rs_end["gold"]
     if start_gold != end_gold:
         diff = end_gold - start_gold
         full_gold = str(diff)
@@ -187,30 +193,43 @@ def _add_gold_field(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
 
 
 def _add_deaths_field(embed: discord.Embed, rs_chars_start: list[dict], rs_chars_end: list[dict]) -> None:
-    """Add deaths field to embed."""
+    """Add deaths field to embed.
+
+    Uses a dict keyed on character name to deduplicate entries from
+    multiple guild event firings.
+    """
     if not rs_chars_end:
         return
 
-    prof_names = ""
+    # Build lookup from end chars, deduplicating by name (keep first occurrence)
+    end_lookup: dict[str, dict] = {}
+    for char_end in rs_chars_end:
+        name = char_end["name"]
+        if name not in end_lookup:
+            end_lookup[name] = char_end
+
+    death_lines: list[str] = []
     total_deaths = 0
 
     for char_start in rs_chars_start:
-        for char_end in rs_chars_end:
-            if char_start["name"] == char_end["name"]:
-                if char_start["deaths"] != char_end["deaths"]:
-                    name = char_start["name"]
-                    profession = char_start["profession"]
-                    time_deaths = int(char_end["deaths"]) - int(char_start["deaths"])
-                    total_deaths += time_deaths
-                    prof_names += f"({profession}:{name}:{time_deaths})"
+        name = char_start["name"]
+        char_end = end_lookup.get(name)
+        if char_end and char_start["deaths"] != char_end["deaths"]:
+            profession = char_start["profession"]
+            time_deaths = int(char_end["deaths"]) - int(char_start["deaths"])
+            total_deaths += time_deaths
+            death_lines.append(f"{profession}: {name} - {time_deaths}")
 
-    if len(prof_names) > 0:
-        deaths_msg = f"{prof_names} [Total:{total_deaths}]"
-        # Truncate if it would exceed Discord's 1024-char field value limit (2 chars for inline backticks)
-        if len(deaths_msg) > 1020:
-            total_suffix = f"... [Total:{total_deaths}]"
-            deaths_msg = prof_names[: 1020 - len(total_suffix)] + total_suffix
-        embed.add_field(name=gw2_messages.TIMES_YOU_DIED, value=chat_formatting.inline(deaths_msg), inline=False)
+    if death_lines:
+        value = "\n".join(death_lines)
+        # Truncate if it would exceed Discord's 1024-char field value limit
+        if len(value) > 1020:
+            value = value[:1017] + "..."
+        embed.add_field(
+            name=f"{gw2_messages.TIMES_YOU_DIED}: {total_deaths}",
+            value=chat_formatting.inline(value),
+            inline=False,
+        )
 
 
 def _add_wvw_stats(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
@@ -227,76 +246,42 @@ def _add_wvw_stats(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
     ]
 
     for stat_key, field_name in wvw_fields:
-        start_val = rs_start.get(stat_key, 0)
-        end_val = rs_end.get(stat_key, 0)
+        if stat_key not in rs_start or stat_key not in rs_end:
+            continue
+        start_val = rs_start[stat_key]
+        end_val = rs_end[stat_key]
         if start_val != end_val:
             diff = end_val - start_val
             embed.add_field(name=field_name, value=chat_formatting.inline(str(diff)))
 
 
-def _add_currency_fields(embed: discord.Embed, name: str, lines: list[str]) -> None:
-    """Add one or more embed fields for a list of currency lines.
-
-    Splits into multiple fields when the value would exceed Discord's
-    1024-character field value limit.
-    """
-    max_value_len = 1020  # leave room for backtick wrapping from inline()
-    chunk: list[str] = []
-    chunk_len = 0
-    part = 0
-
-    for line in lines:
-        # +1 for the newline separator between lines
-        added_len = len(line) + (1 if chunk else 0)
-        if chunk and chunk_len + added_len > max_value_len:
-            part += 1
-            field_name = name if part == 1 else f"{name} ({part})"
-            embed.add_field(
-                name=field_name,
-                value=chat_formatting.inline("\n".join(chunk)),
-                inline=False,
-            )
-            chunk = []
-            chunk_len = 0
-        chunk.append(line)
-        chunk_len += added_len
-
-    if chunk:
-        part += 1
-        field_name = name if part == 1 else f"{name} ({part})"
-        embed.add_field(
-            name=field_name,
-            value=chat_formatting.inline("\n".join(chunk)),
-            inline=False,
-        )
-
-
 def _add_wallet_currency_fields(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
     """Add wallet currency fields to embed (all except gold, which has special formatting).
 
-    Currencies are grouped into "Gained Currencies" and "Lost Currencies" fields
-    to avoid exceeding Discord's 25-field and 1024-char field value limits.
+    Each changed currency gets its own inline field for clean Discord rendering.
     """
-    gained_lines = []
-    lost_lines = []
-
     for stat_key, display_name in WALLET_DISPLAY_NAMES.items():
         if stat_key == "gold":
             continue
+        if stat_key not in rs_start or stat_key not in rs_end:
+            continue
 
-        start_val = rs_start.get(stat_key, 0)
-        end_val = rs_end.get(stat_key, 0)
+        start_val = rs_start[stat_key]
+        end_val = rs_end[stat_key]
         if start_val != end_val:
             diff = end_val - start_val
             if diff > 0:
-                gained_lines.append(f"+{diff} {display_name}")
+                embed.add_field(
+                    name=f"Gained {display_name}",
+                    value=chat_formatting.inline(f"+{diff}"),
+                    inline=True,
+                )
             else:
-                lost_lines.append(f"{diff} {display_name}")
-
-    if gained_lines:
-        _add_currency_fields(embed, "Gained Currencies", gained_lines)
-    if lost_lines:
-        _add_currency_fields(embed, "Lost Currencies", lost_lines)
+                embed.add_field(
+                    name=f"Lost {display_name}",
+                    value=chat_formatting.inline(str(diff)),
+                    inline=True,
+                )
 
 
 async def setup(bot):
