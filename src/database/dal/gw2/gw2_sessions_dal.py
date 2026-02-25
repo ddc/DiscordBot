@@ -11,13 +11,13 @@ class Gw2SessionsDal:
         self.log = log
 
     async def insert_start_session(self, session: dict):
-        stmt = sa.delete(Gw2Sessions).where(
-            Gw2Sessions.user_id == session["user_id"],
+        stmt = sa.delete(Gw2SessionChars).where(
+            Gw2SessionChars.user_id == session["user_id"],
         )
         await self.db_utils.execute(stmt)
 
-        stmt = sa.delete(Gw2SessionChars).where(
-            Gw2SessionChars.user_id == session["user_id"],
+        stmt = sa.delete(Gw2Sessions).where(
+            Gw2Sessions.user_id == session["user_id"],
         )
         await self.db_utils.execute(stmt)
 

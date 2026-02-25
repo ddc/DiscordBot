@@ -10,7 +10,7 @@ import urllib.request
 from src.gw2.constants.gw2_currencies import ACHIEVEMENT_MAPPING, WALLET_MAPPING
 
 GW2_API_BASE = "https://api.guildwars2.com/v2"
-REQUEST_TIMEOUT = 30
+REQUEST_TIMEOUT = 60
 
 
 def _fetch_json(url: str) -> dict | list:
