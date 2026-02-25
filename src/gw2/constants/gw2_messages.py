@@ -108,6 +108,9 @@ KEEPS_CAPTURED = "Keeps captured"
 TOWERS_CAPTURED = "Towers captured"
 CAMPS_CAPTURED = "Camps captured"
 SMC_CAPTURED = "SMC captured"
+SESSION_IN_PROGRESS = (
+    "Your Guild Wars 2 session is still in progress.\nSession stats will be available after you stop playing."
+)
 SESSION_SAVE_ERROR = (
     "There was a problem trying to record your last finished session.\n"
     "Please, do not close discord when the game is running."

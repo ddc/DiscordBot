@@ -11,6 +11,7 @@ from src.gw2.cogs.sessions import (
     session,
     setup,
 )
+from src.gw2.constants import gw2_messages
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
@@ -272,7 +273,7 @@ class TestSessionCommand:
 
     @pytest.mark.asyncio
     async def test_session_end_date_is_none(self, mock_ctx, sample_api_key_data):
-        """Test session command when session end date is None."""
+        """Test session command when session end date is None and user not playing."""
         session_data = [{"acc_name": "TestUser.1234", "start": {"date": "2024-01-15 10:00:00"}, "end": {"date": None}}]
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
@@ -280,11 +281,27 @@ class TestSessionCommand:
                 mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
                 with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=session_data)
-                    with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
+                    with patch("src.gw2.cogs.sessions.gw2_utils.send_msg") as mock_send:
                         await session(mock_ctx)
-                        mock_error.assert_called_once()
-                        # Error sent to channel (not via DM)
-                        assert len(mock_error.call_args[0]) == 2
+                        mock_send.assert_called_once()
+                        assert gw2_messages.SESSION_BOT_STILL_UPDATING in mock_send.call_args[0][1]
+
+    @pytest.mark.asyncio
+    async def test_session_end_date_is_none_while_playing(self, mock_ctx, sample_api_key_data):
+        """Test session command when end date is None and user is currently playing GW2."""
+        session_data = [{"acc_name": "TestUser.1234", "start": {"date": "2024-01-15 10:00:00"}, "end": {"date": None}}]
+        mock_ctx.message.author.activity = MagicMock()
+        mock_ctx.message.author.activity.name = "Guild Wars 2"
+        with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
+            with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
+                mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
+                with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
+                    mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=session_data)
+                    with patch("src.gw2.cogs.sessions.gw2_utils.send_msg") as mock_send:
+                        await session(mock_ctx)
+                        mock_send.assert_called_once()
+                        assert gw2_messages.SESSION_IN_PROGRESS in mock_send.call_args[0][1]
 
     @pytest.mark.asyncio
     async def test_session_time_passed_less_than_one_minute(self, mock_ctx, sample_api_key_data):
