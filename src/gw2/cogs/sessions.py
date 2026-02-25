@@ -105,9 +105,9 @@ async def session(ctx):
     async with ctx.message.channel.typing():
         color = ctx.bot.settings["gw2"]["EmbedColor"]
 
-        # Use DB timestamps for wall-clock session duration
-        start_time = rs_session[0]["created_at"]
-        end_time = rs_session[0]["updated_at"]
+        # Use JSONB date fields for session duration
+        start_time = bot_utils.convert_str_to_datetime_short(rs_start["date"])
+        end_time = bot_utils.convert_str_to_datetime_short(rs_end["date"])
 
         time_passed = gw2_utils.get_time_passed(start_time, end_time)
         player_wait_minutes = 1
@@ -119,7 +119,7 @@ async def session(ctx):
             )
 
         acc_name = rs_session[0]["acc_name"]
-        session_date = str(start_time).split()[0]
+        session_date = rs_start["date"].split()[0]
         embed = discord.Embed(color=color)
         embed.set_author(
             name=f"{ctx.message.author.display_name}'s {gw2_messages.SESSION_TITLE} ({session_date})",
@@ -128,12 +128,8 @@ async def session(ctx):
         embed.add_field(name=gw2_messages.ACCOUNT_NAME, value=chat_formatting.inline(acc_name))
         embed.add_field(name=gw2_messages.SERVER, value=chat_formatting.inline(gw2_server))
 
-        # Play time from API age (actual in-game time)
-        play_time_seconds = rs_end["age"] - rs_start["age"]
-        if play_time_seconds > 0:
-            play_time_str = gw2_utils.format_seconds_to_time(play_time_seconds)
-        else:
-            play_time_str = str(time_passed.timedelta)
+        # Play time from DB timestamps (session duration)
+        play_time_str = gw2_utils.format_seconds_to_time(int(time_passed.timedelta.total_seconds()))
         embed.add_field(name=gw2_messages.PLAY_TIME, value=chat_formatting.inline(play_time_str))
 
         # Gold (special formatting)
@@ -151,6 +147,11 @@ async def session(ctx):
 
         # All wallet currencies (except gold, handled above)
         _add_wallet_currency_fields(embed, rs_start, rs_end)
+
+        embed.set_footer(
+            icon_url=ctx.bot.user.avatar.url if ctx.bot.user.avatar else None,
+            text=f"{bot_utils.get_current_date_time_str_long()} UTC",
+        )
 
         if (
             not (isinstance(ctx.channel, discord.DMChannel))
