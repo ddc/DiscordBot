@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from datetime import datetime, timedelta
 from discord.ext import commands
@@ -23,8 +24,11 @@ from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
 from src.gw2.constants import gw2_messages
 from src.gw2.constants.gw2_currencies import ACHIEVEMENT_MAPPING, WALLET_MAPPING
+from src.gw2.constants.gw2_settings import get_gw2_settings
 from src.gw2.constants.gw2_teams import get_team_name, is_wr_team_id
 from src.gw2.tools.gw2_client import Gw2Client
+
+_gw2_settings = get_gw2_settings()
 
 
 class Gw2Servers(Enum):
@@ -274,6 +278,11 @@ async def check_gw2_game_activity(bot: Bot, before: discord.Member, after: disco
     after_activity = _get_non_custom_activity(after.activities)
 
     if _is_gw2_activity_detected(before_activity, after_activity):
+        bot.log.debug(
+            f"GW2 activity detected for {after.id}: "
+            f"before={before_activity.name if before_activity else None}, "
+            f"after={after_activity.name if after_activity else None}"
+        )
         await _handle_gw2_activity_change(bot, after, after_activity)
 
 
@@ -302,19 +311,23 @@ async def _handle_gw2_activity_change(
     server_configs = await gw2_configs.get_gw2_server_configs(member.guild.id)
 
     if not server_configs or not server_configs[0]["session"]:
+        bot.log.debug(f"Session tracking not enabled for guild {member.guild.id}, skipping")
         return
 
     gw2_key_dal = Gw2KeyDal(bot.db_session, bot.log)
     api_key_result = await gw2_key_dal.get_api_key_by_user(member.id)
 
     if not api_key_result:
+        bot.log.debug(f"No GW2 API key found for user {member.id}, skipping session")
         return
 
     api_key = api_key_result[0]["key"]
 
     if after_activity is not None:
+        bot.log.debug(f"Starting GW2 session for user {member.id}")
         await start_session(bot, member, api_key)
     else:
+        bot.log.debug(f"Ending GW2 session for user {member.id}")
         await end_session(bot, member, api_key)
 
 
@@ -322,8 +335,15 @@ async def start_session(bot: Bot, member: discord.Member, api_key: str) -> None:
     """Start a new GW2 session for a member."""
     session = await get_user_stats(bot, api_key)
     if not session:
+        bot.log.warning(f"Failed to start session for user {member.id}: unable to fetch stats from GW2 API")
+        asyncio.create_task(_retry_session_later(bot, member, api_key, "start"))
         return
 
+    await _do_start_session(bot, member, api_key, session)
+
+
+async def _do_start_session(bot: Bot, member: discord.Member, api_key: str, session: dict) -> None:
+    """Execute start session DB operations."""
     session["user_id"] = member.id
     session["date"] = bot_utils.convert_datetime_to_str_short(bot_utils.get_current_date_time())
 
@@ -336,8 +356,15 @@ async def end_session(bot: Bot, member: discord.Member, api_key: str) -> None:
     """End a GW2 session for a member."""
     session = await get_user_stats(bot, api_key)
     if not session:
+        bot.log.warning(f"Failed to end session for user {member.id}: unable to fetch stats from GW2 API")
+        asyncio.create_task(_retry_session_later(bot, member, api_key, "end"))
         return
 
+    await _do_end_session(bot, member, api_key, session)
+
+
+async def _do_end_session(bot: Bot, member: discord.Member, api_key: str, session: dict) -> None:
+    """Execute end session DB operations."""
     session["user_id"] = member.id
     session["date"] = bot_utils.convert_datetime_to_str_short(bot_utils.get_current_date_time())
 
@@ -349,6 +376,47 @@ async def end_session(bot: Bot, member: discord.Member, api_key: str) -> None:
     gw2_session_chars_dal = Gw2SessionCharsDal(bot.db_session, bot.log)
     await gw2_session_chars_dal.delete_end_characters(session_id)
     await insert_session_char(bot, member, api_key, session_id, "end")
+
+
+async def _retry_session_later(
+    bot: Bot, member: discord.Member, api_key: str, session_type: str
+) -> None:
+    """Background task: wait and retry session, DM user on final failure."""
+    bg_delay = _gw2_settings.api_session_retry_bg_delay
+    max_attempts = _gw2_settings.api_retry_max_attempts
+
+    bot.log.warning(
+        f"Scheduling background retry for {session_type} session "
+        f"for user {member.id} ({max_attempts} attempts, {bg_delay}s delay)"
+    )
+
+    for attempt in range(1, max_attempts + 1):
+        await asyncio.sleep(bg_delay)
+
+        session = await get_user_stats(bot, api_key)
+        if session:
+            bot.log.info(
+                f"Background retry succeeded for {session_type} session "
+                f"for user {member.id} on attempt {attempt}/{max_attempts}"
+            )
+            if session_type == "start":
+                await _do_start_session(bot, member, api_key, session)
+            else:
+                await _do_end_session(bot, member, api_key, session)
+            return
+
+        bot.log.warning(
+            f"Background retry {attempt}/{max_attempts} failed for "
+            f"{session_type} session for user {member.id}"
+        )
+
+    bot.log.error(
+        f"All background retries exhausted for {session_type} session for user {member.id}"
+    )
+    try:
+        await member.send(gw2_messages.SESSION_API_DOWN_DM)
+    except discord.HTTPException:
+        bot.log.warning(f"Could not DM user {member.id} about GW2 API failure")
 
 
 async def get_user_stats(bot: Bot, api_key: str) -> dict | None:

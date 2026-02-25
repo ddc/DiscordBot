@@ -39,10 +39,14 @@ class Gw2Client:
         max_attempts = _gw2_settings.api_retry_max_attempts
         retry_delay = _gw2_settings.api_retry_delay
 
+        clean_endpoint = endpoint.split("?")[0]
+        self.bot.log.debug(f"GW2 API call: {clean_endpoint}")
+
         for attempt in range(1, max_attempts + 1):
             try:
                 async with self.bot.aiosession.get(endpoint, headers=headers) as response:
                     if response.status in (200, 206):
+                        self.bot.log.debug(f"GW2 API response: {response.status} for {clean_endpoint}")
                         return await response.json()
 
                     if response.status not in _RETRYABLE_STATUSES or attempt == max_attempts:
@@ -50,7 +54,7 @@ class Gw2Client:
                         return None
 
                     self.bot.log.warning(
-                        f"GW2 API returned {response.status} for {endpoint.split('?')[0]}, "
+                        f"GW2 API returned {response.status} for {clean_endpoint}, "
                         f"retrying ({attempt}/{max_attempts})..."
                     )
             except APIError:
@@ -59,7 +63,7 @@ class Gw2Client:
                 if attempt == max_attempts:
                     raise
                 self.bot.log.warning(
-                    f"GW2 API connection error for {endpoint.split('?')[0]}, retrying ({attempt}/{max_attempts})..."
+                    f"GW2 API connection error for {clean_endpoint}, retrying ({attempt}/{max_attempts})..."
                 )
 
             await asyncio.sleep(retry_delay)

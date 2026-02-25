@@ -30,6 +30,7 @@ class Gw2Settings(BaseSettings):
     # GW2 API retry
     api_retry_max_attempts: int | None = Field(default=5)
     api_retry_delay: float | None = Field(default=3.0)
+    api_session_retry_bg_delay: float | None = Field(default=30.0)
 
 
 @lru_cache(maxsize=1)

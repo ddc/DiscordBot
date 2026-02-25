@@ -115,6 +115,10 @@ SESSION_SAVE_ERROR = (
     "There was a problem trying to record your last finished session.\n"
     "Please, do not close discord when the game is running."
 )
+SESSION_API_DOWN_DM = (
+    "The GW2 API was unreachable while recording your session.\n"
+    "Your session data may be incomplete. Please try again later."
+)
 USER_NO_SESSION_FOUND = (
     "No records were found in your name.\n"
     "You are probably trying to execute this command without playing the game.\n"
