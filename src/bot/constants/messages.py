@@ -89,7 +89,7 @@ class CommandError:
     DM_CANNOT_EXECUTE = "Cannot execute action on a DM channel"
     PRIVILEGE_LOW = "Your Privilege is too low."
     DIRECT_MESSAGES_DISABLED = (
-        "Direct messages are disable in your configuration.\n"
+        "Direct messages are disabled in your configuration.\n"
         "If you want to receive messages from Bots, "
         "you need to enable this option under Privacy & Safety:"
         '"Allow direct messages from server members."'
@@ -169,7 +169,7 @@ class BotUtils:
     LOADING_EXTENSIONS = "Loading Bot Extensions..."
     LOADING_EXTENSION_FAILED = "ERROR: FAILED to load extension"
     DISABLED_DM = (
-        "Direct messages are disable in your configuration.\n"
+        "Direct messages are disabled in your configuration.\n"
         "If you want to receive messages from Bots, "
         "you need to enable this option under Privacy & Safety:\n"
         '"Allow direct messages from server members."\n'

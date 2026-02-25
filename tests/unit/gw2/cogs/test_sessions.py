@@ -267,7 +267,8 @@ class TestSessionCommand:
                     with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                         await session(mock_ctx)
                         mock_error.assert_called_once()
-                        assert mock_error.call_args[0][2] is True
+                        # Error sent to channel (not via DM)
+                        assert len(mock_error.call_args[0]) == 2
 
     @pytest.mark.asyncio
     async def test_session_end_date_is_none(self, mock_ctx, sample_api_key_data):
@@ -282,7 +283,8 @@ class TestSessionCommand:
                     with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                         await session(mock_ctx)
                         mock_error.assert_called_once()
-                        assert mock_error.call_args[0][2] is True
+                        # Error sent to channel (not via DM)
+                        assert len(mock_error.call_args[0]) == 2
 
     @pytest.mark.asyncio
     async def test_session_time_passed_less_than_one_minute(self, mock_ctx, sample_api_key_data):

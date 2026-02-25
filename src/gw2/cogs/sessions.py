@@ -84,13 +84,13 @@ async def session(ctx):
     gw2_session_dal = Gw2SessionsDal(ctx.bot.db_session, ctx.bot.log)
     rs_session = await gw2_session_dal.get_user_last_session(user_id)
     if not rs_session:
-        return await bot_utils.send_error_msg(ctx, gw2_messages.USER_NO_SESSION_FOUND, True)
+        return await bot_utils.send_error_msg(ctx, gw2_messages.USER_NO_SESSION_FOUND)
 
     rs_start = rs_session[0]["start"]
     rs_end = rs_session[0]["end"]
 
     if rs_end is None or rs_end.get("date") is None:
-        return await bot_utils.send_error_msg(ctx, gw2_messages.SESSION_SAVE_ERROR, True)
+        return await bot_utils.send_error_msg(ctx, gw2_messages.SESSION_SAVE_ERROR)
 
     await ctx.message.channel.typing()
     color = ctx.bot.settings["gw2"]["EmbedColor"]

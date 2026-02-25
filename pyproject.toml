@@ -1,6 +1,6 @@
 [project]
 name = "DiscordBot"
-version = "3.0.4"
+version = "3.0.5"
 description = "A simple Discord bot with OpenAI support and server administration tools"
 urls.Repository = "https://github.com/ddc/DiscordBot"
 urls.Homepage = "https://github.com/ddc/DiscordBot"
@@ -36,7 +36,7 @@ dependencies = [
   "ddcdatabases[postgres]>=3.0.10",
   "discord-py>=2.6.4",
   "gTTS>=2.5.4",
-  "openai>=2.23.0",
+  "openai>=2.24.0",
   "PyNaCl>=1.6.2",
   "pythonLogs>=6.0.2",
 ]
