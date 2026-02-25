@@ -102,67 +102,66 @@ async def session(ctx):
         # Game stopped but end data not saved yet — bot may still be updating
         return await gw2_utils.send_msg(ctx, gw2_messages.SESSION_BOT_STILL_UPDATING)
 
-    await ctx.message.channel.typing()
-    color = ctx.bot.settings["gw2"]["EmbedColor"]
-    start_time = bot_utils.convert_str_to_datetime_short(rs_start["date"])
-    end_time = bot_utils.convert_str_to_datetime_short(rs_end["date"])
+    async with ctx.message.channel.typing():
+        color = ctx.bot.settings["gw2"]["EmbedColor"]
+        start_time = bot_utils.convert_str_to_datetime_short(rs_start["date"])
+        end_time = bot_utils.convert_str_to_datetime_short(rs_end["date"])
 
-    time_passed = gw2_utils.get_time_passed(start_time, end_time)
-    player_wait_minutes = 1
-    if time_passed.hours == 0 and time_passed.minutes < player_wait_minutes:
-        wait_time = str(player_wait_minutes - time_passed.minutes)
-        m = "minute" if wait_time == "1" else "minutes"
-        return await gw2_utils.send_msg(
-            ctx, f"{gw2_messages.SESSION_BOT_STILL_UPDATING}\n {gw2_messages.WAITING_TIME}: `{wait_time} {m}`"
+        time_passed = gw2_utils.get_time_passed(start_time, end_time)
+        player_wait_minutes = 1
+        if time_passed.hours == 0 and time_passed.minutes < player_wait_minutes:
+            wait_time = str(player_wait_minutes - time_passed.minutes)
+            m = "minute" if wait_time == "1" else "minutes"
+            return await gw2_utils.send_msg(
+                ctx, f"{gw2_messages.SESSION_BOT_STILL_UPDATING}\n {gw2_messages.WAITING_TIME}: `{wait_time} {m}`"
+            )
+
+        acc_name = rs_session[0]["acc_name"]
+        embed = discord.Embed(color=color)
+        embed.set_author(
+            name=f"{ctx.message.author.display_name}'s {gw2_messages.SESSION_TITLE} ({rs_start['date'].split()[0]})",
+            icon_url=ctx.message.author.display_avatar.url,
         )
+        embed.add_field(name=gw2_messages.ACCOUNT_NAME, value=chat_formatting.inline(acc_name))
+        embed.add_field(name=gw2_messages.SERVER, value=chat_formatting.inline(gw2_server))
 
-    acc_name = rs_session[0]["acc_name"]
-    embed = discord.Embed(color=color)
-    embed.set_author(
-        name=f"{ctx.message.author.display_name}'s {gw2_messages.SESSION_TITLE} ({rs_start['date'].split()[0]})",
-        icon_url=ctx.message.author.display_avatar.url,
-    )
-    embed.add_field(name=gw2_messages.ACCOUNT_NAME, value=chat_formatting.inline(acc_name))
-    embed.add_field(name=gw2_messages.SERVER, value=chat_formatting.inline(gw2_server))
+        # Play time from API age (actual in-game time)
+        start_age = rs_start.get("age", 0)
+        end_age = rs_end.get("age", 0)
+        play_time_seconds = end_age - start_age
+        if play_time_seconds > 0:
+            play_time_str = gw2_utils.format_seconds_to_time(play_time_seconds)
+        else:
+            play_time_str = str(time_passed.timedelta)
+        embed.add_field(name=gw2_messages.PLAY_TIME, value=chat_formatting.inline(play_time_str))
 
-    # Play time from API age (actual in-game time)
-    start_age = rs_start.get("age", 0)
-    end_age = rs_end.get("age", 0)
-    play_time_seconds = end_age - start_age
-    if play_time_seconds > 0:
-        play_time_str = gw2_utils.format_seconds_to_time(play_time_seconds)
-    else:
-        play_time_str = str(time_passed.timedelta)
-    embed.add_field(name=gw2_messages.PLAY_TIME, value=chat_formatting.inline(play_time_str))
+        # Gold (special formatting)
+        _add_gold_field(embed, rs_start, rs_end)
 
-    # Gold (special formatting)
-    _add_gold_field(embed, rs_start, rs_end)
+        # Deaths
+        gw2_session_chars_dal = Gw2SessionCharsDal(ctx.bot.db_session, ctx.bot.log)
+        rs_chars_start = await gw2_session_chars_dal.get_all_start_characters(user_id)
+        if rs_chars_start:
+            rs_chars_end = await gw2_session_chars_dal.get_all_end_characters(user_id)
+            _add_deaths_field(embed, rs_chars_start, rs_chars_end)
 
-    # Deaths
-    gw2_session_chars_dal = Gw2SessionCharsDal(ctx.bot.db_session, ctx.bot.log)
-    rs_chars_start = await gw2_session_chars_dal.get_all_start_characters(user_id)
-    if rs_chars_start:
-        rs_chars_end = await gw2_session_chars_dal.get_all_end_characters(user_id)
-        _add_deaths_field(embed, rs_chars_start, rs_chars_end)
+        # WvW achievement-based stats
+        _add_wvw_stats(embed, rs_start, rs_end)
 
-    # WvW achievement-based stats
-    _add_wvw_stats(embed, rs_start, rs_end)
+        # All wallet currencies (except gold, handled above)
+        _add_wallet_currency_fields(embed, rs_start, rs_end)
 
-    # All wallet currencies (except gold, handled above)
-    _add_wallet_currency_fields(embed, rs_start, rs_end)
+        if (
+            not (isinstance(ctx.channel, discord.DMChannel))
+            and hasattr(ctx.message.author, "activity")
+            and ctx.message.author.activity is not None
+            and "guild wars 2" in str(ctx.message.author.activity.name).lower()
+        ):
+            still_playing_msg = f"{ctx.message.author.mention}\n {gw2_messages.SESSION_USER_STILL_PLAYING}"
+            await gw2_utils.end_session(ctx.bot, ctx.message.author, api_key)
+            await ctx.send(still_playing_msg)
 
-    if (
-        not (isinstance(ctx.channel, discord.DMChannel))
-        and hasattr(ctx.message.author, "activity")
-        and ctx.message.author.activity is not None
-        and "guild wars 2" in str(ctx.message.author.activity.name).lower()
-    ):
-        still_playing_msg = f"{ctx.message.author.mention}\n {gw2_messages.SESSION_USER_STILL_PLAYING}"
-        await ctx.message.channel.typing()
-        await gw2_utils.end_session(ctx.bot, ctx.message.author, api_key)
-        await ctx.send(still_playing_msg)
-
-    await bot_utils.send_embed(ctx, embed)
+    await bot_utils.send_paginated_embed(ctx, embed)
     return None
 
 
@@ -232,7 +231,14 @@ def _add_wvw_stats(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
 
 
 def _add_wallet_currency_fields(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
-    """Add wallet currency fields to embed (all except gold, which has special formatting)."""
+    """Add wallet currency fields to embed (all except gold, which has special formatting).
+
+    Currencies are grouped into "Gained Currencies" and "Lost Currencies" fields
+    to avoid exceeding Discord's 25-field embed limit.
+    """
+    gained_lines = []
+    lost_lines = []
+
     for stat_key, display_name in WALLET_DISPLAY_NAMES.items():
         if stat_key == "gold":
             continue
@@ -242,9 +248,22 @@ def _add_wallet_currency_fields(embed: discord.Embed, rs_start: dict, rs_end: di
         if start_val != end_val:
             diff = end_val - start_val
             if diff > 0:
-                embed.add_field(name=f"Gained {display_name}", value=chat_formatting.inline(f"+{diff}"))
+                gained_lines.append(f"+{diff} {display_name}")
             else:
-                embed.add_field(name=f"Lost {display_name}", value=chat_formatting.inline(str(diff)))
+                lost_lines.append(f"{diff} {display_name}")
+
+    if gained_lines:
+        embed.add_field(
+            name="Gained Currencies",
+            value=chat_formatting.inline("\n".join(gained_lines)),
+            inline=False,
+        )
+    if lost_lines:
+        embed.add_field(
+            name="Lost Currencies",
+            value=chat_formatting.inline("\n".join(lost_lines)),
+            inline=False,
+        )
 
 
 async def setup(bot):
