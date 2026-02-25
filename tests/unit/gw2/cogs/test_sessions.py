@@ -190,7 +190,7 @@ class TestSessionCommand:
                     patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal,
                     patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short", side_effect=lambda x: x),
                     patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed", return_value=sample_time_passed),
-                    patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal_class,
+                    patch("src.gw2.cogs.sessions.Gw2SessionCharDeathsDal") as mock_chars_dal_class,
                     patch("src.gw2.cogs.sessions.bot_utils.send_paginated_embed") as mock_send,
                     patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"),
                     patch(
@@ -202,8 +202,7 @@ class TestSessionCommand:
                     mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
                     mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
                     mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=session_data)
-                    mock_chars_dal_class.return_value.get_all_start_characters = AsyncMock(return_value=None)
-                    mock_chars_dal_class.return_value.get_all_end_characters = AsyncMock(return_value=None)
+                    mock_chars_dal_class.return_value.get_char_deaths = AsyncMock(return_value=None)
 
                     self_runner.mock_send = mock_send
                     self_runner.mock_chars_dal = mock_chars_dal_class.return_value
@@ -407,18 +406,13 @@ class TestSessionCommand:
     async def test_session_characters_with_deaths(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command with character deaths."""
         session_data = _make_session_data()
-        chars_start = [
-            {"name": "TestChar", "profession": "Warrior", "deaths": 10},
-            {"name": "TestChar2", "profession": "Ranger", "deaths": 5},
-        ]
-        chars_end = [
-            {"name": "TestChar", "profession": "Warrior", "deaths": 15},
-            {"name": "TestChar2", "profession": "Ranger", "deaths": 5},
+        char_deaths = [
+            {"name": "TestChar", "profession": "Warrior", "start": 10, "end": 15},
+            {"name": "TestChar2", "profession": "Ranger", "start": 5, "end": 5},
         ]
         runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
         async with runner.run() as r:
-            r.mock_chars_dal.get_all_start_characters = AsyncMock(return_value=chars_start)
-            r.mock_chars_dal.get_all_end_characters = AsyncMock(return_value=chars_end)
+            r.mock_chars_dal.get_char_deaths = AsyncMock(return_value=char_deaths)
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
             deaths_field = next((f for f in embed.fields if f.name == gw2_messages.TIMES_YOU_DIED), None)
@@ -431,12 +425,10 @@ class TestSessionCommand:
     async def test_session_no_deaths_when_unchanged(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command shows no deaths field when deaths unchanged."""
         session_data = _make_session_data()
-        chars_start = [{"name": "TestChar", "profession": "Warrior", "deaths": 10}]
-        chars_end = [{"name": "TestChar", "profession": "Warrior", "deaths": 10}]
+        char_deaths = [{"name": "TestChar", "profession": "Warrior", "start": 10, "end": 10}]
         runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
         async with runner.run() as r:
-            r.mock_chars_dal.get_all_start_characters = AsyncMock(return_value=chars_start)
-            r.mock_chars_dal.get_all_end_characters = AsyncMock(return_value=chars_end)
+            r.mock_chars_dal.get_char_deaths = AsyncMock(return_value=char_deaths)
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
             deaths_field = next((f for f in embed.fields if f.name == gw2_messages.TIMES_YOU_DIED), None)
@@ -446,18 +438,13 @@ class TestSessionCommand:
     async def test_session_multiple_character_deaths(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command with multiple characters dying."""
         session_data = _make_session_data()
-        chars_start = [
-            {"name": "Char1", "profession": "Warrior", "deaths": 10},
-            {"name": "Char2", "profession": "Mesmer", "deaths": 5},
-        ]
-        chars_end = [
-            {"name": "Char1", "profession": "Warrior", "deaths": 13},
-            {"name": "Char2", "profession": "Mesmer", "deaths": 8},
+        char_deaths = [
+            {"name": "Char1", "profession": "Warrior", "start": 10, "end": 13},
+            {"name": "Char2", "profession": "Mesmer", "start": 5, "end": 8},
         ]
         runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
         async with runner.run() as r:
-            r.mock_chars_dal.get_all_start_characters = AsyncMock(return_value=chars_start)
-            r.mock_chars_dal.get_all_end_characters = AsyncMock(return_value=chars_end)
+            r.mock_chars_dal.get_char_deaths = AsyncMock(return_value=char_deaths)
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
             deaths_field = next((f for f in embed.fields if f.name == gw2_messages.TIMES_YOU_DIED), None)
@@ -857,10 +844,9 @@ class TestAddDeathsField:
 
     def test_deaths_changed(self):
         embed = discord.Embed()
-        start = [{"name": "Char1", "profession": "Warrior", "deaths": 10}]
-        end = [{"name": "Char1", "profession": "Warrior", "deaths": 15}]
+        char_deaths = [{"name": "Char1", "profession": "Warrior", "start": 10, "end": 15}]
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
-            _add_deaths_field(embed, start, end)
+            _add_deaths_field(embed, char_deaths)
             assert len(embed.fields) == 1
             assert embed.fields[0].name == gw2_messages.TIMES_YOU_DIED
             assert "Char1 (Warrior): 5" in embed.fields[0].value
@@ -868,52 +854,25 @@ class TestAddDeathsField:
 
     def test_no_deaths(self):
         embed = discord.Embed()
-        start = [{"name": "Char1", "profession": "Warrior", "deaths": 10}]
-        end = [{"name": "Char1", "profession": "Warrior", "deaths": 10}]
-        _add_deaths_field(embed, start, end)
+        char_deaths = [{"name": "Char1", "profession": "Warrior", "start": 10, "end": 10}]
+        _add_deaths_field(embed, char_deaths)
         assert len(embed.fields) == 0
 
-    def test_empty_end_chars(self):
+    def test_end_deaths_none_skipped(self):
         embed = discord.Embed()
-        start = [{"name": "Char1", "profession": "Warrior", "deaths": 10}]
-        _add_deaths_field(embed, start, [])
+        char_deaths = [{"name": "Char1", "profession": "Warrior", "start": 10, "end": None}]
+        _add_deaths_field(embed, char_deaths)
         assert len(embed.fields) == 0
-
-    def test_none_end_chars(self):
-        embed = discord.Embed()
-        start = [{"name": "Char1", "profession": "Warrior", "deaths": 10}]
-        _add_deaths_field(embed, start, None)
-        assert len(embed.fields) == 0
-
-    def test_duplicate_end_chars_deduplicated(self):
-        """Test that duplicate end chars (from multiple guild events) are deduplicated."""
-        embed = discord.Embed()
-        start = [{"name": "Char1", "profession": "Warrior", "deaths": 10}]
-        end = [
-            {"name": "Char1", "profession": "Warrior", "deaths": 15},
-            {"name": "Char1", "profession": "Warrior", "deaths": 15},
-            {"name": "Char1", "profession": "Warrior", "deaths": 15},
-        ]
-        with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
-            _add_deaths_field(embed, start, end)
-            assert len(embed.fields) == 1
-            assert "Total: 5" in embed.fields[0].value
-            # Should only show the character once
-            assert embed.fields[0].value.count("Warrior") == 1
 
     def test_multiple_characters_per_line_format(self):
         """Test that each character appears on its own line."""
         embed = discord.Embed()
-        start = [
-            {"name": "I Hadesz I", "profession": "Necromancer", "deaths": 10},
-            {"name": "Hàdész", "profession": "Mesmer", "deaths": 5},
-        ]
-        end = [
-            {"name": "I Hadesz I", "profession": "Necromancer", "deaths": 11},
-            {"name": "Hàdész", "profession": "Mesmer", "deaths": 7},
+        char_deaths = [
+            {"name": "I Hadesz I", "profession": "Necromancer", "start": 10, "end": 11},
+            {"name": "Hàdész", "profession": "Mesmer", "start": 5, "end": 7},
         ]
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
-            _add_deaths_field(embed, start, end)
+            _add_deaths_field(embed, char_deaths)
             assert len(embed.fields) == 1
             assert embed.fields[0].name == gw2_messages.TIMES_YOU_DIED
             assert "I Hadesz I (Necromancer): 1" in embed.fields[0].value

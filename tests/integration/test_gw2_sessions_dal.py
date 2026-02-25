@@ -1,5 +1,6 @@
 import pytest
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
+from uuid import UUID
 
 pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
 
@@ -19,7 +20,7 @@ async def test_insert_start_session_returns_id(db_session, log):
     dal = Gw2SessionsDal(db_session, log)
     session_id = await dal.insert_start_session(_make_session())
     assert session_id is not None
-    assert isinstance(session_id, int)
+    assert isinstance(session_id, UUID)
 
 
 async def test_insert_start_session_stores_jsonb(db_session, log):

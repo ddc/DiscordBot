@@ -1,7 +1,7 @@
 import sqlalchemy as sa
 from ddcDatabases import DBUtilsAsync
 from sqlalchemy.future import select
-from src.database.models.gw2_models import Gw2SessionChars, Gw2Sessions
+from src.database.models.gw2_models import Gw2SessionCharDeaths, Gw2Sessions
 
 
 class Gw2SessionsDal:
@@ -11,8 +11,8 @@ class Gw2SessionsDal:
         self.log = log
 
     async def insert_start_session(self, session: dict):
-        stmt = sa.delete(Gw2SessionChars).where(
-            Gw2SessionChars.user_id == session["user_id"],
+        stmt = sa.delete(Gw2SessionCharDeaths).where(
+            Gw2SessionCharDeaths.user_id == session["user_id"],
         )
         await self.db_utils.execute(stmt)
 

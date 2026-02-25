@@ -1,6 +1,7 @@
 import pytest
 from src.bot.constants import variables
 from src.database.dal.bot.bot_configs_dal import BotConfigsDal
+from uuid import UUID
 
 pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
 
@@ -10,7 +11,7 @@ async def test_get_bot_configs_returns_seeded_row(db_session, log):
     results = await dal.get_bot_configs()
     assert len(results) == 1
     row = results[0]
-    assert row["id"] == 1
+    assert isinstance(row["id"], UUID)
     assert row["prefix"] == variables.PREFIX
     assert row["author_id"] == int(variables.AUTHOR_ID)
     assert row["url"] == variables.BOT_WEBPAGE_URL

@@ -34,11 +34,12 @@ from src.gw2.tools.gw2_utils import (
     get_worlds_ids,
     get_wvw_rank_title,
     insert_gw2_server_configs,
-    insert_session_char,
+    insert_start_char_deaths,
     is_private_message,
     max_ap,
     send_msg,
     start_session,
+    update_end_char_deaths,
 )
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -829,7 +830,7 @@ class TestStartSession:
                         mock_instance = mock_session_dal.return_value
                         mock_instance.insert_start_session = AsyncMock(return_value=42)
 
-                        with patch("src.gw2.tools.gw2_utils.insert_session_char") as mock_insert_char:
+                        with patch("src.gw2.tools.gw2_utils.insert_start_char_deaths") as mock_insert_char:
                             mock_insert_char.return_value = None
 
                             await start_session(mock_bot, mock_member, "api-key")
@@ -839,7 +840,7 @@ class TestStartSession:
                             assert call_arg["user_id"] == 12345
                             assert call_arg["date"] == "2023-01-01"
 
-                            mock_insert_char.assert_called_once_with(mock_bot, mock_member, "api-key", 42, "start")
+                            mock_insert_char.assert_called_once_with(mock_bot, mock_member, "api-key", 42)
 
 
 class TestEndSession:
@@ -894,26 +895,21 @@ class TestEndSession:
                         mock_instance = mock_session_dal.return_value
                         mock_instance.update_end_session = AsyncMock(return_value=42)
 
-                        with patch("src.gw2.tools.gw2_utils.Gw2SessionCharsDal") as mock_chars_dal:
-                            mock_chars_instance = mock_chars_dal.return_value
-                            mock_chars_instance.delete_end_characters = AsyncMock()
+                        with patch("src.gw2.tools.gw2_utils.update_end_char_deaths") as mock_update_char:
+                            mock_update_char.return_value = None
 
-                            with patch("src.gw2.tools.gw2_utils.insert_session_char") as mock_insert_char:
-                                mock_insert_char.return_value = None
+                            await end_session(mock_bot, mock_member, "api-key")
 
-                                await end_session(mock_bot, mock_member, "api-key")
+                            mock_instance.update_end_session.assert_called_once()
+                            call_arg = mock_instance.update_end_session.call_args[0][0]
+                            assert call_arg["user_id"] == 12345
+                            assert call_arg["date"] == "2023-01-01"
 
-                                mock_instance.update_end_session.assert_called_once()
-                                call_arg = mock_instance.update_end_session.call_args[0][0]
-                                assert call_arg["user_id"] == 12345
-                                assert call_arg["date"] == "2023-01-01"
-
-                                mock_chars_instance.delete_end_characters.assert_called_once_with(42)
-                                mock_insert_char.assert_called_once_with(mock_bot, mock_member, "api-key", 42, "end")
+                            mock_update_char.assert_called_once_with(mock_bot, mock_member, "api-key", 42)
 
     @pytest.mark.asyncio
     async def test_end_session_no_active_session(self, mock_bot, mock_member):
-        """Test end_session skips insert_session_char when no active session exists."""
+        """Test end_session skips update_end_char_deaths when no active session exists."""
         session_data = {"acc_name": "TestUser.1234", "wvw_rank": 50, "gold": 1000}
 
         with patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats:
@@ -929,11 +925,11 @@ class TestEndSession:
                         mock_instance = mock_session_dal.return_value
                         mock_instance.update_end_session = AsyncMock(return_value=None)
 
-                        with patch("src.gw2.tools.gw2_utils.insert_session_char") as mock_insert_char:
+                        with patch("src.gw2.tools.gw2_utils.update_end_char_deaths") as mock_update_char:
                             await end_session(mock_bot, mock_member, "api-key")
 
                             mock_instance.update_end_session.assert_called_once()
-                            mock_insert_char.assert_not_called()
+                            mock_update_char.assert_not_called()
                             mock_bot.log.warning.assert_called_once()
 
 
@@ -1200,8 +1196,8 @@ class TestUpdateAchievementStats:
         assert user_stats["players"] == 0
 
 
-class TestInsertSessionChar:
-    """Test cases for insert_session_char function."""
+class TestInsertStartCharDeaths:
+    """Test cases for insert_start_char_deaths function."""
 
     @pytest.fixture
     def mock_bot(self):
@@ -1220,58 +1216,80 @@ class TestInsertSessionChar:
 
     @pytest.mark.asyncio
     async def test_successful_insert(self, mock_bot, mock_member):
-        """Test successful session character insert."""
+        """Test successful start char deaths insert."""
         with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             characters_data = [{"name": "CharName", "profession": "Warrior", "deaths": 5}]
             mock_client.call_api = AsyncMock(return_value=characters_data)
 
-            with patch("src.gw2.tools.gw2_utils.Gw2SessionCharsDal") as mock_dal:
+            with patch("src.gw2.tools.gw2_utils.Gw2SessionCharDeathsDal") as mock_dal:
                 mock_instance = mock_dal.return_value
-                mock_instance.insert_session_char = AsyncMock()
+                mock_instance.insert_start_char_deaths = AsyncMock()
 
-                await insert_session_char(mock_bot, mock_member, "api-key", 42, "start")
+                await insert_start_char_deaths(mock_bot, mock_member, "api-key", 42)
 
                 mock_client.call_api.assert_called_once_with("characters?ids=all", "api-key")
-                mock_instance.insert_session_char.assert_called_once()
-
-                call_args = mock_instance.insert_session_char.call_args[0]
-                assert call_args[0] == characters_data
-                insert_args = call_args[1]
-                assert insert_args["session_id"] == 42
-                assert insert_args["user_id"] == 12345
-                assert insert_args["start"] is True
-                assert insert_args["end"] is False
-
-    @pytest.mark.asyncio
-    async def test_insert_end_session_type(self, mock_bot, mock_member):
-        """Test insert with end session type."""
-        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
-            mock_client = mock_client_class.return_value
-            mock_client.call_api = AsyncMock(return_value=[])
-
-            with patch("src.gw2.tools.gw2_utils.Gw2SessionCharsDal") as mock_dal:
-                mock_instance = mock_dal.return_value
-                mock_instance.insert_session_char = AsyncMock()
-
-                await insert_session_char(mock_bot, mock_member, "api-key", 42, "end")
-
-                call_args = mock_instance.insert_session_char.call_args[0]
-                insert_args = call_args[1]
-                assert insert_args["start"] is False
-                assert insert_args["end"] is True
+                mock_instance.insert_start_char_deaths.assert_called_once_with(42, 12345, characters_data)
 
     @pytest.mark.asyncio
     async def test_exception_logs_error(self, mock_bot, mock_member):
-        """Test that exception is caught and logged (lines 430-431)."""
+        """Test that exception is caught and logged."""
         with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
             mock_client = mock_client_class.return_value
             mock_client.call_api = AsyncMock(side_effect=Exception("API Error"))
 
-            await insert_session_char(mock_bot, mock_member, "api-key", 42, "start")
+            await insert_start_char_deaths(mock_bot, mock_member, "api-key", 42)
 
             mock_bot.log.error.assert_called_once()
             assert "Error inserting start session character data" in mock_bot.log.error.call_args[0][0]
+
+
+class TestUpdateEndCharDeaths:
+    """Test cases for update_end_char_deaths function."""
+
+    @pytest.fixture
+    def mock_bot(self):
+        """Create a mock bot."""
+        bot = MagicMock()
+        bot.db_session = MagicMock()
+        bot.log = MagicMock()
+        return bot
+
+    @pytest.fixture
+    def mock_member(self):
+        """Create a mock member."""
+        member = MagicMock()
+        member.id = 12345
+        return member
+
+    @pytest.mark.asyncio
+    async def test_successful_update(self, mock_bot, mock_member):
+        """Test successful end char deaths update."""
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
+            mock_client = mock_client_class.return_value
+            characters_data = [{"name": "CharName", "profession": "Warrior", "deaths": 8}]
+            mock_client.call_api = AsyncMock(return_value=characters_data)
+
+            with patch("src.gw2.tools.gw2_utils.Gw2SessionCharDeathsDal") as mock_dal:
+                mock_instance = mock_dal.return_value
+                mock_instance.update_end_char_deaths = AsyncMock()
+
+                await update_end_char_deaths(mock_bot, mock_member, "api-key", 42)
+
+                mock_client.call_api.assert_called_once_with("characters?ids=all", "api-key")
+                mock_instance.update_end_char_deaths.assert_called_once_with(42, 12345, characters_data)
+
+    @pytest.mark.asyncio
+    async def test_exception_logs_error(self, mock_bot, mock_member):
+        """Test that exception is caught and logged."""
+        with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
+            mock_client = mock_client_class.return_value
+            mock_client.call_api = AsyncMock(side_effect=Exception("API Error"))
+
+            await update_end_char_deaths(mock_bot, mock_member, "api-key", 42)
+
+            mock_bot.log.error.assert_called_once()
+            assert "Error updating end session character data" in mock_bot.log.error.call_args[0][0]
 
 
 class TestGetPvpRankTitle:
