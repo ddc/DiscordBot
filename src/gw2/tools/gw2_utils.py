@@ -29,6 +29,8 @@ from src.gw2.constants.gw2_teams import get_team_name, is_wr_team_id
 from src.gw2.tools.gw2_client import Gw2Client
 
 _gw2_settings = get_gw2_settings()
+_background_tasks: set[asyncio.Task] = set()
+_processing_sessions: set[int] = set()
 
 
 class Gw2Servers(Enum):
@@ -307,28 +309,36 @@ async def _handle_gw2_activity_change(
     after_activity,
 ) -> None:
     """Handle GW2 activity changes and manage session tracking."""
-    gw2_configs = Gw2ConfigsDal(bot.db_session, bot.log)
-    server_configs = await gw2_configs.get_gw2_server_configs(member.guild.id)
-
-    if not server_configs or not server_configs[0]["session"]:
-        bot.log.debug(f"Session tracking not enabled for guild {member.guild.id}, skipping")
+    if member.id in _processing_sessions:
+        bot.log.debug(f"Session operation already in progress for user {member.id}, skipping duplicate")
         return
 
-    gw2_key_dal = Gw2KeyDal(bot.db_session, bot.log)
-    api_key_result = await gw2_key_dal.get_api_key_by_user(member.id)
+    _processing_sessions.add(member.id)
+    try:
+        gw2_configs = Gw2ConfigsDal(bot.db_session, bot.log)
+        server_configs = await gw2_configs.get_gw2_server_configs(member.guild.id)
 
-    if not api_key_result:
-        bot.log.debug(f"No GW2 API key found for user {member.id}, skipping session")
-        return
+        if not server_configs or not server_configs[0]["session"]:
+            bot.log.debug(f"Session tracking not enabled for guild {member.guild.id}, skipping")
+            return
 
-    api_key = api_key_result[0]["key"]
+        gw2_key_dal = Gw2KeyDal(bot.db_session, bot.log)
+        api_key_result = await gw2_key_dal.get_api_key_by_user(member.id)
 
-    if after_activity is not None:
-        bot.log.debug(f"Starting GW2 session for user {member.id}")
-        await start_session(bot, member, api_key)
-    else:
-        bot.log.debug(f"Ending GW2 session for user {member.id}")
-        await end_session(bot, member, api_key)
+        if not api_key_result:
+            bot.log.debug(f"No GW2 API key found for user {member.id}, skipping session")
+            return
+
+        api_key = api_key_result[0]["key"]
+
+        if after_activity is not None:
+            bot.log.debug(f"Starting GW2 session for user {member.id}")
+            await start_session(bot, member, api_key)
+        else:
+            bot.log.debug(f"Ending GW2 session for user {member.id}")
+            await end_session(bot, member, api_key)
+    finally:
+        _processing_sessions.discard(member.id)
 
 
 async def start_session(bot: Bot, member: discord.Member, api_key: str) -> None:
@@ -336,7 +346,9 @@ async def start_session(bot: Bot, member: discord.Member, api_key: str) -> None:
     session = await get_user_stats(bot, api_key)
     if not session:
         bot.log.warning(f"Failed to start session for user {member.id}: unable to fetch stats from GW2 API")
-        asyncio.create_task(_retry_session_later(bot, member, api_key, "start"))
+        task = asyncio.create_task(_retry_session_later(bot, member, api_key, "start"))
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
         return
 
     await _do_start_session(bot, member, api_key, session)
@@ -347,8 +359,14 @@ async def _do_start_session(bot: Bot, member: discord.Member, api_key: str, sess
     session["user_id"] = member.id
     session["date"] = bot_utils.convert_datetime_to_str_short(bot_utils.get_current_date_time())
 
-    gw2_session_dal = Gw2SessionsDal(bot.db_session, bot.log)
-    session_id = await gw2_session_dal.insert_start_session(session)
+    bot.log.debug(f"Attempting to insert start session into DB for user {member.id}")
+    try:
+        gw2_session_dal = Gw2SessionsDal(bot.db_session, bot.log)
+        session_id = await gw2_session_dal.insert_start_session(session)
+        bot.log.debug(f"Successfully inserted start session {session_id} for user {member.id}")
+    except Exception as e:
+        bot.log.error(f"Failed to insert start session into DB for user {member.id}: {e}")
+        return
     await insert_session_char(bot, member, api_key, session_id, "start")
 
 
@@ -357,7 +375,9 @@ async def end_session(bot: Bot, member: discord.Member, api_key: str) -> None:
     session = await get_user_stats(bot, api_key)
     if not session:
         bot.log.warning(f"Failed to end session for user {member.id}: unable to fetch stats from GW2 API")
-        asyncio.create_task(_retry_session_later(bot, member, api_key, "end"))
+        task = asyncio.create_task(_retry_session_later(bot, member, api_key, "end"))
+        _background_tasks.add(task)
+        task.add_done_callback(_background_tasks.discard)
         return
 
     await _do_end_session(bot, member, api_key, session)
@@ -368,19 +388,29 @@ async def _do_end_session(bot: Bot, member: discord.Member, api_key: str, sessio
     session["user_id"] = member.id
     session["date"] = bot_utils.convert_datetime_to_str_short(bot_utils.get_current_date_time())
 
-    gw2_session_dal = Gw2SessionsDal(bot.db_session, bot.log)
-    session_id = await gw2_session_dal.update_end_session(session)
+    bot.log.debug(f"Attempting to update end session in DB for user {member.id}")
+    try:
+        gw2_session_dal = Gw2SessionsDal(bot.db_session, bot.log)
+        session_id = await gw2_session_dal.update_end_session(session)
+    except Exception as e:
+        bot.log.error(f"Failed to update end session in DB for user {member.id}: {e}")
+        return
     if session_id is None:
         bot.log.warning(f"No active session found for user {member.id}, skipping end session chars")
         return
-    gw2_session_chars_dal = Gw2SessionCharsDal(bot.db_session, bot.log)
-    await gw2_session_chars_dal.delete_end_characters(session_id)
+    bot.log.debug(f"Successfully updated end session {session_id} for user {member.id}")
+    bot.log.debug(f"Deleting previous end characters for session {session_id}")
+    try:
+        gw2_session_chars_dal = Gw2SessionCharsDal(bot.db_session, bot.log)
+        await gw2_session_chars_dal.delete_end_characters(session_id)
+        bot.log.debug(f"Successfully deleted end characters for session {session_id}")
+    except Exception as e:
+        bot.log.error(f"Failed to delete end characters for session {session_id}: {e}")
+        return
     await insert_session_char(bot, member, api_key, session_id, "end")
 
 
-async def _retry_session_later(
-    bot: Bot, member: discord.Member, api_key: str, session_type: str
-) -> None:
+async def _retry_session_later(bot: Bot, member: discord.Member, api_key: str, session_type: str) -> None:
     """Background task: wait and retry session, DM user on final failure."""
     bg_delay = _gw2_settings.api_session_retry_bg_delay
     max_attempts = _gw2_settings.api_retry_max_attempts
@@ -406,13 +436,10 @@ async def _retry_session_later(
             return
 
         bot.log.warning(
-            f"Background retry {attempt}/{max_attempts} failed for "
-            f"{session_type} session for user {member.id}"
+            f"Background retry {attempt}/{max_attempts} failed for {session_type} session for user {member.id}"
         )
 
-    bot.log.error(
-        f"All background retries exhausted for {session_type} session for user {member.id}"
-    )
+    bot.log.error(f"All background retries exhausted for {session_type} session for user {member.id}")
     try:
         await member.send(gw2_messages.SESSION_API_DOWN_DM)
     except discord.HTTPException:
@@ -482,6 +509,7 @@ async def insert_session_char(
     bot: Bot, member: discord.Member, api_key: str, session_id: int, session_type: str
 ) -> None:
     """Insert session character data."""
+    bot.log.debug(f"Attempting to insert {session_type} session chars for session {session_id}, user {member.id}")
     try:
         gw2_api = Gw2Client(bot)
         characters_data = await gw2_api.call_api("characters", api_key)
@@ -496,9 +524,12 @@ async def insert_session_char(
 
         gw2_session_chars_dal = Gw2SessionCharsDal(bot.db_session, bot.log)
         await gw2_session_chars_dal.insert_session_char(gw2_api, characters_data, insert_args)
+        bot.log.debug(f"Successfully inserted {session_type} session chars for session {session_id}, user {member.id}")
 
     except Exception as e:
-        bot.log.error(f"Error inserting session character data: {e}")
+        bot.log.error(
+            f"Error inserting {session_type} session character data for session {session_id}, user {member.id}: {e}"
+        )
 
 
 def get_wvw_rank_title(rank: int) -> str:
