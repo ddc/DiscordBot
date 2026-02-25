@@ -1,4 +1,5 @@
 from ddcDatabases import DBUtilsAsync
+from sqlalchemy import delete
 from sqlalchemy.future import select
 from src.database.models.gw2_models import Gw2SessionChars
 
@@ -27,6 +28,13 @@ class Gw2SessionCharsDal:
                 end=insert_args["end"],
             )
             await self.db_utils.insert(stmt)
+
+    async def delete_end_characters(self, session_id: int):
+        stmt = delete(Gw2SessionChars).where(
+            Gw2SessionChars.session_id == session_id,
+            Gw2SessionChars.end.is_(True),
+        )
+        await self.db_utils.execute(stmt)
 
     async def get_all_start_characters(self, user_id: int):
         stmt = select(*self.columns).where(Gw2SessionChars.user_id == user_id, Gw2SessionChars.start.is_(True))

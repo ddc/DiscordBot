@@ -2,9 +2,9 @@
 
 import discord
 import pytest
+from datetime import datetime
 from src.gw2.cogs.sessions import (
     GW2Session,
-    _add_currency_fields,
     _add_deaths_field,
     _add_gold_field,
     _add_wallet_currency_fields,
@@ -48,7 +48,6 @@ class TestGW2Session:
 def _make_session_data(start_overrides=None, end_overrides=None):
     """Helper to create session data with defaults."""
     base_stats = {
-        "date": "2024-01-15 10:00:00",
         "age": 5000000,
         "gold": 100000,
         "karma": 50000,
@@ -72,15 +71,20 @@ def _make_session_data(start_overrides=None, end_overrides=None):
         "gems": 0,
     }
     end_stats = {
-        "date": "2024-01-15 12:30:00",
         "age": 5009000,
-        **{k: v for k, v in base_stats.items() if k not in ("date", "age")},
+        **{k: v for k, v in base_stats.items() if k != "age"},
     }
     if start_overrides:
         base_stats.update(start_overrides)
     if end_overrides:
         end_stats.update(end_overrides)
-    return [{"acc_name": "TestUser.1234", "start": base_stats, "end": end_stats}]
+    return [{
+        "acc_name": "TestUser.1234",
+        "start": base_stats,
+        "end": end_stats,
+        "created_at": datetime(2024, 1, 15, 10, 0, 0),
+        "updated_at": datetime(2024, 1, 15, 12, 30, 0),
+    }]
 
 
 class TestSessionCommand:
@@ -179,7 +183,6 @@ class TestSessionCommand:
                     patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal,
                     patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs,
                     patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal,
-                    patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short", side_effect=lambda x: x),
                     patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed", return_value=sample_time_passed),
                     patch("src.gw2.cogs.sessions.Gw2SessionCharsDal") as mock_chars_dal_class,
                     patch("src.gw2.cogs.sessions.bot_utils.send_paginated_embed") as mock_send,
@@ -276,8 +279,8 @@ class TestSessionCommand:
 
     @pytest.mark.asyncio
     async def test_session_end_date_is_none(self, mock_ctx, sample_api_key_data):
-        """Test session command when session end date is None and user not playing."""
-        session_data = [{"acc_name": "TestUser.1234", "start": {"date": "2024-01-15 10:00:00"}, "end": {"date": None}}]
+        """Test session command when session end is None and user not playing."""
+        session_data = [{"acc_name": "TestUser.1234", "start": {}, "end": None}]
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
             with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
@@ -291,8 +294,8 @@ class TestSessionCommand:
 
     @pytest.mark.asyncio
     async def test_session_end_date_is_none_while_playing(self, mock_ctx, sample_api_key_data):
-        """Test session command when end date is None and user is currently playing GW2."""
-        session_data = [{"acc_name": "TestUser.1234", "start": {"date": "2024-01-15 10:00:00"}, "end": {"date": None}}]
+        """Test session command when end is None and user is currently playing GW2."""
+        session_data = [{"acc_name": "TestUser.1234", "start": {}, "end": None}]
         mock_ctx.message.author.activity = MagicMock()
         mock_ctx.message.author.activity.name = "Guild Wars 2"
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
@@ -309,7 +312,7 @@ class TestSessionCommand:
     @pytest.mark.asyncio
     async def test_session_time_passed_less_than_one_minute(self, mock_ctx, sample_api_key_data):
         """Test session command when time passed is less than 1 minute."""
-        session_data = _make_session_data(end_overrides={"date": "2024-01-15 10:00:30"})
+        session_data = _make_session_data()
         from src.gw2.tools.gw2_utils import TimeObject
 
         time_obj = TimeObject()
@@ -323,15 +326,12 @@ class TestSessionCommand:
                 mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
                 with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=session_data)
-                    with patch(
-                        "src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short", side_effect=lambda x: x
-                    ):
-                        with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed", return_value=time_obj):
-                            with patch("src.gw2.cogs.sessions.gw2_utils.send_msg") as mock_send_msg:
-                                await session(mock_ctx)
-                                mock_send_msg.assert_called_once()
-                                msg = mock_send_msg.call_args[0][1]
-                                assert "still updating" in msg.lower() or "Bot still updating" in msg
+                    with patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed", return_value=time_obj):
+                        with patch("src.gw2.cogs.sessions.gw2_utils.send_msg") as mock_send_msg:
+                            await session(mock_ctx)
+                            mock_send_msg.assert_called_once()
+                            msg = mock_send_msg.call_args[0][1]
+                            assert "still updating" in msg.lower() or "Bot still updating" in msg
 
     # === Playtime tests ===
 
@@ -357,6 +357,22 @@ class TestSessionCommand:
             start_overrides={"age": 0},
             end_overrides={"age": 0},
         )
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            play_time_field = next((f for f in embed.fields if f.name == "Play time"), None)
+            assert play_time_field is not None
+            assert "2:30:00" in play_time_field.value
+
+    @pytest.mark.asyncio
+    async def test_session_play_time_fallback_when_age_missing_from_start(
+        self, mock_ctx, sample_api_key_data, sample_time_passed
+    ):
+        """Test that play time falls back to wall-clock when age key is missing from start."""
+        # Remove age from start entirely to simulate stale data
+        session_data = _make_session_data(end_overrides={"age": 5009000})
+        del session_data[0]["start"]["age"]
         runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
         async with runner.run() as r:
             await session(mock_ctx)
@@ -425,11 +441,11 @@ class TestSessionCommand:
             r.mock_chars_dal.get_all_end_characters = AsyncMock(return_value=chars_end)
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            deaths_field = next((f for f in embed.fields if f.name == "Times you died"), None)
+            deaths_field = next((f for f in embed.fields if "Times you died" in f.name), None)
             assert deaths_field is not None
             assert "Warrior" in deaths_field.value
             assert "TestChar" in deaths_field.value
-            assert "Total:5" in deaths_field.value
+            assert ": 5" in deaths_field.name
 
     @pytest.mark.asyncio
     async def test_session_no_deaths_when_unchanged(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -443,7 +459,7 @@ class TestSessionCommand:
             r.mock_chars_dal.get_all_end_characters = AsyncMock(return_value=chars_end)
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            deaths_field = next((f for f in embed.fields if f.name == "Times you died"), None)
+            deaths_field = next((f for f in embed.fields if "Times you died" in f.name), None)
             assert deaths_field is None
 
     @pytest.mark.asyncio
@@ -464,9 +480,9 @@ class TestSessionCommand:
             r.mock_chars_dal.get_all_end_characters = AsyncMock(return_value=chars_end)
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            deaths_field = next((f for f in embed.fields if f.name == "Times you died"), None)
+            deaths_field = next((f for f in embed.fields if "Times you died" in f.name), None)
             assert deaths_field is not None
-            assert "Total:6" in deaths_field.value
+            assert ": 6" in deaths_field.name
             assert "Warrior" in deaths_field.value
             assert "Mesmer" in deaths_field.value
 
@@ -511,9 +527,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Karma"), None)
             assert field is not None
-            assert "Karma" in field.value
+            assert "+5000" in field.value
 
     @pytest.mark.asyncio
     async def test_session_karma_lost(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -523,9 +539,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Lost Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Lost Karma"), None)
             assert field is not None
-            assert "Karma" in field.value
+            assert "-5000" in field.value
 
     @pytest.mark.asyncio
     async def test_session_laurels_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -535,9 +551,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Laurels"), None)
             assert field is not None
-            assert "Laurels" in field.value
+            assert "+5" in field.value
 
     @pytest.mark.asyncio
     async def test_session_laurels_lost(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -547,9 +563,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Lost Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Lost Laurels"), None)
             assert field is not None
-            assert "Laurels" in field.value
+            assert "-5" in field.value
 
     @pytest.mark.asyncio
     async def test_session_wvw_tickets_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -559,9 +575,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Gained WvW Skirmish Tickets"), None)
             assert field is not None
-            assert "WvW Skirmish Tickets" in field.value
+            assert "+20" in field.value
 
     @pytest.mark.asyncio
     async def test_session_wvw_tickets_lost(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -571,9 +587,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Lost Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Lost WvW Skirmish Tickets"), None)
             assert field is not None
-            assert "WvW Skirmish Tickets" in field.value
+            assert "-20" in field.value
 
     @pytest.mark.asyncio
     async def test_session_proof_heroics_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -583,9 +599,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Proof of Heroics"), None)
             assert field is not None
-            assert "Proof of Heroics" in field.value
+            assert "+10" in field.value
 
     @pytest.mark.asyncio
     async def test_session_badges_honor_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -595,9 +611,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Badges of Honor"), None)
             assert field is not None
-            assert "Badges of Honor" in field.value
+            assert "+30" in field.value
 
     @pytest.mark.asyncio
     async def test_session_guild_commendations_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -607,9 +623,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Guild Commendations"), None)
             assert field is not None
-            assert "Guild Commendations" in field.value
+            assert "+5" in field.value
 
     # === New currency tests ===
 
@@ -621,9 +637,8 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Spirit Shards"), None)
             assert field is not None
-            assert "Spirit Shards" in field.value
             assert "+10" in field.value
 
     @pytest.mark.asyncio
@@ -634,9 +649,8 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Volatile Magic"), None)
             assert field is not None
-            assert "Volatile Magic" in field.value
             assert "+200" in field.value
 
     @pytest.mark.asyncio
@@ -647,9 +661,8 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Unbound Magic"), None)
             assert field is not None
-            assert "Unbound Magic" in field.value
             assert "+200" in field.value
 
     @pytest.mark.asyncio
@@ -660,9 +673,8 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Transmutation Charges"), None)
             assert field is not None
-            assert "Transmutation Charges" in field.value
             assert "+5" in field.value
 
     @pytest.mark.asyncio
@@ -673,9 +685,8 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            field = next((f for f in embed.fields if f.name == "Lost Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Lost Spirit Shards"), None)
             assert field is not None
-            assert "Spirit Shards" in field.value
             assert "-10" in field.value
 
     @pytest.mark.asyncio
@@ -694,6 +705,50 @@ class TestSessionCommand:
             # No gained/lost fields
             gained_lost = [n for n in field_names if "Gained" in n or "Lost" in n]
             assert len(gained_lost) == 0
+
+    # === Stale data tests (missing keys) ===
+
+    @pytest.mark.asyncio
+    async def test_session_gold_not_shown_when_missing_from_start(
+        self, mock_ctx, sample_api_key_data, sample_time_passed
+    ):
+        """Test that gold is not shown when the key is missing from start data."""
+        session_data = _make_session_data(end_overrides={"gold": 150000})
+        del session_data[0]["start"]["gold"]
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            gold_fields = [f for f in embed.fields if "Gold" in f.name]
+            assert len(gold_fields) == 0
+
+    @pytest.mark.asyncio
+    async def test_session_currency_not_shown_when_missing_from_start(
+        self, mock_ctx, sample_api_key_data, sample_time_passed
+    ):
+        """Test that a currency is skipped when the key is missing from start data."""
+        session_data = _make_session_data(end_overrides={"karma": 55000})
+        del session_data[0]["start"]["karma"]
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            karma_fields = [f for f in embed.fields if "Karma" in f.name]
+            assert len(karma_fields) == 0
+
+    @pytest.mark.asyncio
+    async def test_session_wvw_stat_not_shown_when_missing_from_start(
+        self, mock_ctx, sample_api_key_data, sample_time_passed
+    ):
+        """Test that WvW stats are skipped when the key is missing from start data."""
+        session_data = _make_session_data(end_overrides={"yaks": 15})
+        del session_data[0]["start"]["yaks"]
+        runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
+        async with runner.run() as r:
+            await session(mock_ctx)
+            embed = r.mock_send.call_args[0][1]
+            yaks_fields = [f for f in embed.fields if "Yaks killed" in f.name]
+            assert len(yaks_fields) == 0
 
     # === Still playing / DM tests ===
 
@@ -761,7 +816,7 @@ class TestSessionCommand:
     @pytest.mark.asyncio
     async def test_session_time_passed_exactly_one_minute(self, mock_ctx, sample_api_key_data):
         """Test session command when time passed is exactly 1 minute (should proceed)."""
-        session_data = _make_session_data(end_overrides={"date": "2024-01-15 10:01:00"})
+        session_data = _make_session_data()
         from src.gw2.tools.gw2_utils import TimeObject
 
         time_obj = TimeObject()
@@ -800,7 +855,19 @@ class TestAddGoldField:
         _add_gold_field(embed, {"gold": 100}, {"gold": 100})
         assert len(embed.fields) == 0
 
-    def test_gold_missing_defaults_to_zero(self):
+    def test_gold_missing_from_start(self):
+        """Gold key missing from start — should not add any field."""
+        embed = discord.Embed()
+        _add_gold_field(embed, {}, {"gold": 200})
+        assert len(embed.fields) == 0
+
+    def test_gold_missing_from_end(self):
+        """Gold key missing from end — should not add any field."""
+        embed = discord.Embed()
+        _add_gold_field(embed, {"gold": 100}, {})
+        assert len(embed.fields) == 0
+
+    def test_gold_missing_from_both(self):
         embed = discord.Embed()
         _add_gold_field(embed, {}, {})
         assert len(embed.fields) == 0
@@ -816,7 +883,8 @@ class TestAddDeathsField:
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_deaths_field(embed, start, end)
             assert len(embed.fields) == 1
-            assert "Total:5" in embed.fields[0].value
+            assert ": 5" in embed.fields[0].name
+            assert "Warrior: Char1 - 5" in embed.fields[0].value
 
     def test_no_deaths(self):
         embed = discord.Embed()
@@ -836,6 +904,40 @@ class TestAddDeathsField:
         start = [{"name": "Char1", "profession": "Warrior", "deaths": 10}]
         _add_deaths_field(embed, start, None)
         assert len(embed.fields) == 0
+
+    def test_duplicate_end_chars_deduplicated(self):
+        """Test that duplicate end chars (from multiple guild events) are deduplicated."""
+        embed = discord.Embed()
+        start = [{"name": "Char1", "profession": "Warrior", "deaths": 10}]
+        end = [
+            {"name": "Char1", "profession": "Warrior", "deaths": 15},
+            {"name": "Char1", "profession": "Warrior", "deaths": 15},
+            {"name": "Char1", "profession": "Warrior", "deaths": 15},
+        ]
+        with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
+            _add_deaths_field(embed, start, end)
+            assert len(embed.fields) == 1
+            assert ": 5" in embed.fields[0].name
+            # Should only show the character once
+            assert embed.fields[0].value.count("Warrior") == 1
+
+    def test_multiple_characters_per_line_format(self):
+        """Test that each character appears on its own line."""
+        embed = discord.Embed()
+        start = [
+            {"name": "I Hadesz I", "profession": "Necromancer", "deaths": 10},
+            {"name": "Hàdész", "profession": "Mesmer", "deaths": 5},
+        ]
+        end = [
+            {"name": "I Hadesz I", "profession": "Necromancer", "deaths": 11},
+            {"name": "Hàdész", "profession": "Mesmer", "deaths": 7},
+        ]
+        with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
+            _add_deaths_field(embed, start, end)
+            assert len(embed.fields) == 1
+            assert ": 3" in embed.fields[0].name
+            assert "Necromancer: I Hadesz I - 1" in embed.fields[0].value
+            assert "Mesmer: Hàdész - 2" in embed.fields[0].value
 
 
 class TestAddWvwStats:
@@ -882,9 +984,16 @@ class TestAddWvwStats:
         _add_wvw_stats(embed, stats, stats)
         assert len(embed.fields) == 0
 
-    def test_missing_keys_default_to_zero(self):
+    def test_missing_keys_skipped(self):
+        """Keys missing from start or end are skipped entirely."""
         embed = discord.Embed()
         _add_wvw_stats(embed, {}, {})
+        assert len(embed.fields) == 0
+
+    def test_key_missing_from_one_side(self):
+        """A stat present only in end is skipped."""
+        embed = discord.Embed()
+        _add_wvw_stats(embed, {}, {"yaks": 5})
         assert len(embed.fields) == 0
 
 
@@ -897,10 +1006,12 @@ class TestAddWalletCurrencyFields:
         end = {"karma": 200, "laurels": 15}
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_wallet_currency_fields(embed, start, end)
-            field = next((f for f in embed.fields if f.name == "Gained Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Gained Karma"), None)
             assert field is not None
-            assert "Karma" in field.value
-            assert "Laurels" in field.value
+            assert "+100" in field.value
+            field2 = next((f for f in embed.fields if f.name == "Gained Laurels"), None)
+            assert field2 is not None
+            assert "+5" in field2.value
 
     def test_currency_lost(self):
         embed = discord.Embed()
@@ -908,10 +1019,9 @@ class TestAddWalletCurrencyFields:
         end = {"karma": 100}
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_wallet_currency_fields(embed, start, end)
-            field = next((f for f in embed.fields if f.name == "Lost Currencies"), None)
+            field = next((f for f in embed.fields if f.name == "Lost Karma"), None)
             assert field is not None
             assert "-100" in field.value
-            assert "Karma" in field.value
 
     def test_gold_is_skipped(self):
         embed = discord.Embed()
@@ -934,42 +1044,23 @@ class TestAddWalletCurrencyFields:
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_wallet_currency_fields(embed, start, end)
             field_names = [f.name for f in embed.fields]
-            assert "Gained Currencies" in field_names
-            assert "Lost Currencies" in field_names
+            assert "Gained Karma" in field_names
+            assert "Lost Laurels" in field_names
 
-
-class TestAddCurrencyFields:
-    """Test the _add_currency_fields helper for splitting long values."""
-
-    def test_splits_when_exceeding_limit(self):
-        """Test that lines are split across fields when they exceed 1024 chars."""
+    def test_currency_missing_from_start_skipped(self):
+        """Currency key missing from start data — should not add any field."""
         embed = discord.Embed()
-        # 40 lines * ~45 chars each ≈ 1800+ chars → must split
-        lines = [f"+{i * 100000} Testimony of Some Currency Name {i}" for i in range(1, 41)]
-        with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
-            _add_currency_fields(embed, "Gained Currencies", lines)
-            assert len(embed.fields) >= 2
-            assert embed.fields[0].name == "Gained Currencies"
-            assert embed.fields[1].name == "Gained Currencies (2)"
+        _add_wallet_currency_fields(embed, {}, {"karma": 200})
+        assert len(embed.fields) == 0
 
-    def test_single_field_when_short(self):
-        """Test that a small list produces exactly one field."""
+    def test_inline_fields(self):
+        """Currency fields should be inline for compact display."""
         embed = discord.Embed()
-        lines = ["+100 Karma", "+50 Laurels"]
+        start = {"karma": 100}
+        end = {"karma": 200}
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
-            _add_currency_fields(embed, "Gained Currencies", lines)
-            assert len(embed.fields) == 1
-            assert embed.fields[0].name == "Gained Currencies"
-
-    def test_no_field_value_exceeds_1024(self):
-        """Test that no individual field value exceeds Discord's 1024-char limit."""
-        embed = discord.Embed()
-        # Simulate worst case: all 77 non-gold currencies changed
-        lines = [f"+{i * 99999} Testimony of Some Long Currency Name {i}" for i in range(1, 78)]
-        with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
-            _add_currency_fields(embed, "Test", lines)
-            for field in embed.fields:
-                assert len(field.value) <= 1024
+            _add_wallet_currency_fields(embed, start, end)
+            assert embed.fields[0].inline is True
 
 
 class TestSessionSetup:
