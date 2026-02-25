@@ -47,7 +47,7 @@ async def worlds_na(ctx):
     )
 
     na_worlds = [w for w in worlds_ids if w["id"] < 2001]
-    embed_na, failed_worlds = await _fetch_worlds_matches(ctx, na_worlds, gw2_messages.NA_SERVERS_TITLE, "1-")
+    embed_na, _ = await _fetch_worlds_matches(ctx, na_worlds, gw2_messages.NA_SERVERS_TITLE, "1-")
 
     await progress_msg.delete()
     await _send_paginated_worlds_embed(ctx, embed_na)
@@ -72,7 +72,7 @@ async def worlds_eu(ctx):
     )
 
     eu_worlds = [w for w in worlds_ids if w["id"] > 2001]
-    embed_eu, failed_worlds = await _fetch_worlds_matches(ctx, eu_worlds, gw2_messages.EU_SERVERS_TITLE, "2-")
+    embed_eu, _ = await _fetch_worlds_matches(ctx, eu_worlds, gw2_messages.EU_SERVERS_TITLE, "2-")
 
     await progress_msg.delete()
     await _send_paginated_worlds_embed(ctx, embed_eu)
