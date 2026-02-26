@@ -8,7 +8,12 @@ from src.gw2.cogs.wvw import (
     _get_map_names_embed_values,
     _get_match_embed_values,
     _resolve_tier,
+    _resolve_wvw_world_id,
+    info,
+    kdr,
+    match,
     setup,
+    wvw,
 )
 from src.gw2.constants import gw2_messages
 from src.gw2.tools.gw2_exceptions import APIKeyError
@@ -148,8 +153,6 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_no_world_no_api_key(self, mock_bot, mock_ctx):
         """Test info command with no world and no API key."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
@@ -157,7 +160,7 @@ class TestInfoCommand:
 
             with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                 with patch("src.gw2.cogs.wvw.Gw2Client"):
-                    await cog.info.callback(cog, mock_ctx, world=None)
+                    await info(mock_ctx, world=None)
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
@@ -166,8 +169,6 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_no_world_api_key_exists(self, mock_bot, mock_ctx, sample_matches_data, sample_worldinfo_data):
         """Test info command with no world but API key exists, uses account's world."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         api_key_data = [{"key": "test-api-key-12345"}]
 
@@ -186,14 +187,12 @@ class TestInfoCommand:
                 )
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
-                    await cog.info.callback(cog, mock_ctx, world=None)
+                    await info(mock_ctx, world=None)
                     mock_send.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_info_no_world_api_key_error(self, mock_bot, mock_ctx):
         """Test info command with no world and APIKeyError."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         api_key_data = [{"key": "test-api-key-12345"}]
 
@@ -206,7 +205,7 @@ class TestInfoCommand:
                 mock_client_instance.call_api = AsyncMock(side_effect=APIKeyError(mock_ctx.bot, "Invalid key"))
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                    await cog.info.callback(cog, mock_ctx, world=None)
+                    await info(mock_ctx, world=None)
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
@@ -215,8 +214,6 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_no_world_generic_exception(self, mock_bot, mock_ctx):
         """Test info command with no world and generic exception."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         api_key_data = [{"key": "test-api-key-12345"}]
 
@@ -230,7 +227,7 @@ class TestInfoCommand:
                 mock_client_instance.call_api = AsyncMock(side_effect=error)
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                    await cog.info.callback(cog, mock_ctx, world=None)
+                    await info(mock_ctx, world=None)
 
                     mock_error.assert_called_once_with(mock_ctx, error)
                     mock_ctx.bot.log.error.assert_called_once()
@@ -240,8 +237,6 @@ class TestInfoCommand:
         self, mock_bot, mock_ctx, sample_matches_data, sample_worldinfo_data
     ):
         """Test info command with world given uses get_world_id."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
@@ -256,7 +251,7 @@ class TestInfoCommand:
                 )
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
-                    await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
+                    await info(mock_ctx, world="Anvil Rock")
 
                     mock_get_wid.assert_called_once_with(mock_ctx.bot, "Anvil Rock")
                     mock_send.assert_called_once()
@@ -264,15 +259,13 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_wid_is_none(self, mock_bot, mock_ctx):
         """Test info command when wid is None."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = None
 
             with patch("src.gw2.cogs.wvw.Gw2Client"):
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                    await cog.info.callback(cog, mock_ctx, world="InvalidWorld")
+                    await info(mock_ctx, world="InvalidWorld")
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
@@ -282,8 +275,6 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_api_call_fails(self, mock_bot, mock_ctx):
         """Test info command when API calls for matches/worldinfo fail."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
@@ -294,7 +285,7 @@ class TestInfoCommand:
                 mock_client_instance.call_api = AsyncMock(side_effect=error)
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                    await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
+                    await info(mock_ctx, world="Anvil Rock")
 
                     mock_error.assert_called_once_with(mock_ctx, error)
                     mock_ctx.bot.log.error.assert_called_once()
@@ -302,8 +293,6 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_world_color_not_found(self, mock_bot, mock_ctx, sample_worldinfo_data):
         """Test info command when world color is not found."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         matches_data = {
             "id": "1-3",
@@ -327,7 +316,7 @@ class TestInfoCommand:
                 )
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                    await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
+                    await info(mock_ctx, world="Anvil Rock")
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
@@ -336,8 +325,6 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_na_tier(self, mock_bot, mock_ctx, sample_matches_data, sample_worldinfo_data):
         """Test info command with NA tier (wid < 2001)."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001  # NA world
@@ -352,7 +339,7 @@ class TestInfoCommand:
                 )
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
-                    await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
+                    await info(mock_ctx, world="Anvil Rock")
 
                     embed = mock_send.call_args[0][1]
                     assert gw2_messages.NA_TIER_TITLE in embed.description
@@ -360,8 +347,6 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_eu_tier(self, mock_bot, mock_ctx, sample_worldinfo_data):
         """Test info command with EU tier (wid >= 2001)."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         eu_matches_data = {
             "id": "2-5",
@@ -402,7 +387,7 @@ class TestInfoCommand:
                 )
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
-                    await cog.info.callback(cog, mock_ctx, world="Desolation")
+                    await info(mock_ctx, world="Desolation")
 
                     embed = mock_send.call_args[0][1]
                     assert gw2_messages.EU_TIER_TITLE in embed.description
@@ -410,8 +395,6 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_red_world_color(self, mock_bot, mock_ctx, sample_matches_data, sample_worldinfo_data):
         """Test info command with red world color."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001  # In red all_worlds
@@ -426,7 +409,7 @@ class TestInfoCommand:
                 )
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
-                    await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
+                    await info(mock_ctx, world="Anvil Rock")
 
                     embed = mock_send.call_args[0][1]
                     assert embed.color == discord.Color.red()
@@ -434,8 +417,6 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_green_world_color(self, mock_bot, mock_ctx, sample_matches_data, sample_worldinfo_data):
         """Test info command with green world color."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1003  # In green all_worlds
@@ -450,7 +431,7 @@ class TestInfoCommand:
                 )
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
-                    await cog.info.callback(cog, mock_ctx, world="Some World")
+                    await info(mock_ctx, world="Some World")
 
                     embed = mock_send.call_args[0][1]
                     assert embed.color == discord.Color.green()
@@ -458,8 +439,6 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_blue_world_color(self, mock_bot, mock_ctx, sample_matches_data, sample_worldinfo_data):
         """Test info command with blue world color."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1005  # In blue all_worlds
@@ -474,7 +453,7 @@ class TestInfoCommand:
                 )
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
-                    await cog.info.callback(cog, mock_ctx, world="Some World")
+                    await info(mock_ctx, world="Some World")
 
                     embed = mock_send.call_args[0][1]
                     assert embed.color == discord.Color.blue()
@@ -482,8 +461,6 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_population_veryhigh(self, mock_bot, mock_ctx, sample_matches_data):
         """Test info command with VeryHigh population is converted to 'Very high'."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         worldinfo_veryhigh = {
             "id": 1001,
@@ -505,7 +482,7 @@ class TestInfoCommand:
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                     with patch("src.gw2.cogs.wvw.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
-                        await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
+                        await info(mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
                         # Check that the Population field has "Very high"
@@ -515,8 +492,6 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_kills_zero_kd(self, mock_bot, mock_ctx, sample_worldinfo_data):
         """Test info command when kills=0, kd should be '0.0'."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         matches_zero_kills = {
             "id": "1-3",
@@ -551,7 +526,7 @@ class TestInfoCommand:
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                     with patch("src.gw2.cogs.wvw.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
-                        await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
+                        await info(mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
                         kd_field = next(f for f in embed.fields if f.name == "K/D ratio")
@@ -560,8 +535,6 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_deaths_zero_kd(self, mock_bot, mock_ctx, sample_worldinfo_data):
         """Test info command when deaths=0, kd should be '0.0'."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         matches_zero_deaths = {
             "id": "1-3",
@@ -596,7 +569,7 @@ class TestInfoCommand:
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                     with patch("src.gw2.cogs.wvw.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
-                        await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
+                        await info(mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
                         kd_field = next(f for f in embed.fields if f.name == "K/D ratio")
@@ -605,8 +578,6 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_normal_kd_calculation(self, mock_bot, mock_ctx, sample_matches_data, sample_worldinfo_data):
         """Test info command with normal kd calculation."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001  # red world
@@ -622,7 +593,7 @@ class TestInfoCommand:
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                     with patch("src.gw2.cogs.wvw.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
-                        await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
+                        await info(mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
                         kd_field = next(f for f in embed.fields if f.name == "K/D ratio")
@@ -632,8 +603,6 @@ class TestInfoCommand:
     @pytest.mark.asyncio
     async def test_info_successful_embed_sent(self, mock_bot, mock_ctx, sample_matches_data, sample_worldinfo_data):
         """Test info command sends successful embed with all fields."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
@@ -649,7 +618,7 @@ class TestInfoCommand:
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                     with patch("src.gw2.cogs.wvw.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
-                        await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
+                        await info(mock_ctx, world="Anvil Rock")
 
                         mock_send.assert_called_once()
                         embed = mock_send.call_args[0][1]
@@ -756,8 +725,6 @@ class TestMatchCommand:
     @pytest.mark.asyncio
     async def test_match_no_world_no_api_key(self, mock_bot, mock_ctx):
         """Test match command with no world and no API key shows help message."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
@@ -765,7 +732,7 @@ class TestMatchCommand:
 
             with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                 with patch("src.gw2.cogs.wvw.Gw2Client"):
-                    await cog.match.callback(cog, mock_ctx, world=None)
+                    await match(mock_ctx, world=None)
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
@@ -774,8 +741,6 @@ class TestMatchCommand:
     @pytest.mark.asyncio
     async def test_match_no_world_api_key_error(self, mock_bot, mock_ctx):
         """Test match command with no world and APIKeyError."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         api_key_data = [{"key": "test-api-key-12345"}]
 
@@ -788,7 +753,7 @@ class TestMatchCommand:
                 mock_client_instance.call_api = AsyncMock(side_effect=APIKeyError(mock_ctx.bot, "Invalid key"))
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                    await cog.match.callback(cog, mock_ctx, world=None)
+                    await match(mock_ctx, world=None)
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
@@ -797,8 +762,6 @@ class TestMatchCommand:
     @pytest.mark.asyncio
     async def test_match_no_world_generic_exception(self, mock_bot, mock_ctx):
         """Test match command with no world and generic exception."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         api_key_data = [{"key": "test-api-key-12345"}]
 
@@ -812,7 +775,7 @@ class TestMatchCommand:
                 mock_client_instance.call_api = AsyncMock(side_effect=error)
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                    await cog.match.callback(cog, mock_ctx, world=None)
+                    await match(mock_ctx, world=None)
 
                     mock_error.assert_called_once_with(mock_ctx, error)
                     mock_ctx.bot.log.error.assert_called_once()
@@ -820,8 +783,6 @@ class TestMatchCommand:
     @pytest.mark.asyncio
     async def test_match_world_given_uses_get_world_id(self, mock_bot, mock_ctx, sample_matches_data):
         """Test match command with world given uses get_world_id."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
@@ -834,22 +795,20 @@ class TestMatchCommand:
                     mock_pop.return_value = ["World1 (High)", "World2 (Medium)"]
 
                     with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
-                        await cog.match.callback(cog, mock_ctx, world="Anvil Rock")
+                        await match(mock_ctx, world="Anvil Rock")
 
                         mock_get_wid.assert_called_once_with(mock_ctx.bot, "Anvil Rock")
 
     @pytest.mark.asyncio
     async def test_match_wid_none(self, mock_bot, mock_ctx):
         """Test match command when wid is None."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = None
 
             with patch("src.gw2.cogs.wvw.Gw2Client"):
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                    await cog.match.callback(cog, mock_ctx, world="InvalidWorld")
+                    await match(mock_ctx, world="InvalidWorld")
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
@@ -859,8 +818,6 @@ class TestMatchCommand:
     @pytest.mark.asyncio
     async def test_match_na_tier(self, mock_bot, mock_ctx, sample_matches_data):
         """Test match command with NA tier."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
@@ -873,7 +830,7 @@ class TestMatchCommand:
                     mock_pop.return_value = ["World1 (High)"]
 
                     with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
-                        await cog.match.callback(cog, mock_ctx, world="Anvil Rock")
+                        await match(mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
                         assert gw2_messages.NA_TIER_TITLE in embed.description
@@ -881,8 +838,6 @@ class TestMatchCommand:
     @pytest.mark.asyncio
     async def test_match_eu_tier(self, mock_bot, mock_ctx):
         """Test match command with EU tier."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         eu_matches = {
             "id": "2-5",
@@ -934,7 +889,7 @@ class TestMatchCommand:
                     mock_pop.return_value = ["World1 (High)"]
 
                     with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
-                        await cog.match.callback(cog, mock_ctx, world="Desolation")
+                        await match(mock_ctx, world="Desolation")
 
                         embed = mock_send.call_args[0][1]
                         assert gw2_messages.EU_TIER_TITLE in embed.description
@@ -942,8 +897,6 @@ class TestMatchCommand:
     @pytest.mark.asyncio
     async def test_match_exception_during_fetch(self, mock_bot, mock_ctx):
         """Test match command when exception during matches fetch."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
@@ -954,7 +907,7 @@ class TestMatchCommand:
                 mock_client_instance.call_api = AsyncMock(side_effect=error)
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                    await cog.match.callback(cog, mock_ctx, world="Anvil Rock")
+                    await match(mock_ctx, world="Anvil Rock")
 
                     mock_error.assert_called_once_with(mock_ctx, error)
                     mock_ctx.bot.log.error.assert_called_once()
@@ -962,8 +915,6 @@ class TestMatchCommand:
     @pytest.mark.asyncio
     async def test_match_successful_embed(self, mock_bot, mock_ctx, sample_matches_data):
         """Test match command sends successful embed with green/blue/red values."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
@@ -976,7 +927,7 @@ class TestMatchCommand:
                     mock_pop.return_value = ["World1 (High)", "World2 (Medium)"]
 
                     with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
-                        await cog.match.callback(cog, mock_ctx, world="Anvil Rock")
+                        await match(mock_ctx, world="Anvil Rock")
 
                         mock_send.assert_called_once()
                         embed = mock_send.call_args[0][1]
@@ -1068,8 +1019,6 @@ class TestKdrCommand:
     @pytest.mark.asyncio
     async def test_kdr_no_world_no_api_key(self, mock_bot, mock_ctx):
         """Test kdr command with no world and no API key shows error message."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
@@ -1077,7 +1026,7 @@ class TestKdrCommand:
 
             with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
                 with patch("src.gw2.cogs.wvw.Gw2Client"):
-                    await cog.kdr.callback(cog, mock_ctx, world=None)
+                    await kdr(mock_ctx, world=None)
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
@@ -1086,8 +1035,6 @@ class TestKdrCommand:
     @pytest.mark.asyncio
     async def test_kdr_no_world_api_key_error(self, mock_bot, mock_ctx):
         """Test kdr command with no world and APIKeyError."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         api_key_data = [{"key": "test-api-key-12345"}]
 
@@ -1100,7 +1047,7 @@ class TestKdrCommand:
                 mock_client_instance.call_api = AsyncMock(side_effect=APIKeyError(mock_ctx.bot, "Invalid key"))
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                    await cog.kdr.callback(cog, mock_ctx, world=None)
+                    await kdr(mock_ctx, world=None)
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
@@ -1109,8 +1056,6 @@ class TestKdrCommand:
     @pytest.mark.asyncio
     async def test_kdr_no_world_generic_exception(self, mock_bot, mock_ctx):
         """Test kdr command with no world and generic exception."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         api_key_data = [{"key": "test-api-key-12345"}]
 
@@ -1124,7 +1069,7 @@ class TestKdrCommand:
                 mock_client_instance.call_api = AsyncMock(side_effect=error)
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                    await cog.kdr.callback(cog, mock_ctx, world=None)
+                    await kdr(mock_ctx, world=None)
 
                     mock_error.assert_called_once_with(mock_ctx, error)
                     mock_ctx.bot.log.error.assert_called_once()
@@ -1132,8 +1077,6 @@ class TestKdrCommand:
     @pytest.mark.asyncio
     async def test_kdr_world_given(self, mock_bot, mock_ctx, sample_matches_data):
         """Test kdr command with world given uses get_world_id."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
@@ -1146,22 +1089,20 @@ class TestKdrCommand:
                     mock_pop.return_value = ["World1 (High)"]
 
                     with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
-                        await cog.kdr.callback(cog, mock_ctx, world="Anvil Rock")
+                        await kdr(mock_ctx, world="Anvil Rock")
 
                         mock_get_wid.assert_called_once_with(mock_ctx.bot, "Anvil Rock")
 
     @pytest.mark.asyncio
     async def test_kdr_wid_none(self, mock_bot, mock_ctx):
         """Test kdr command when wid is None."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = None
 
             with patch("src.gw2.cogs.wvw.Gw2Client"):
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                    await cog.kdr.callback(cog, mock_ctx, world="InvalidWorld")
+                    await kdr(mock_ctx, world="InvalidWorld")
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
@@ -1171,8 +1112,6 @@ class TestKdrCommand:
     @pytest.mark.asyncio
     async def test_kdr_na_tier_title(self, mock_bot, mock_ctx, sample_matches_data):
         """Test kdr command with NA tier title."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
@@ -1185,7 +1124,7 @@ class TestKdrCommand:
                     mock_pop.return_value = ["World1 (High)"]
 
                     with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
-                        await cog.kdr.callback(cog, mock_ctx, world="Anvil Rock")
+                        await kdr(mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
                         assert gw2_messages.NA_TIER_TITLE in embed.description
@@ -1193,8 +1132,6 @@ class TestKdrCommand:
     @pytest.mark.asyncio
     async def test_kdr_eu_tier_title(self, mock_bot, mock_ctx):
         """Test kdr command with EU tier title."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         eu_matches = {
             "id": "2-5",
@@ -1246,7 +1183,7 @@ class TestKdrCommand:
                     mock_pop.return_value = ["World1 (High)"]
 
                     with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
-                        await cog.kdr.callback(cog, mock_ctx, world="Desolation")
+                        await kdr(mock_ctx, world="Desolation")
 
                         embed = mock_send.call_args[0][1]
                         assert "Europe" in embed.description
@@ -1255,8 +1192,6 @@ class TestKdrCommand:
     @pytest.mark.asyncio
     async def test_kdr_exception_during_fetch(self, mock_bot, mock_ctx):
         """Test kdr command when exception during matches fetch."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
@@ -1267,7 +1202,7 @@ class TestKdrCommand:
                 mock_client_instance.call_api = AsyncMock(side_effect=error)
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                    await cog.kdr.callback(cog, mock_ctx, world="Anvil Rock")
+                    await kdr(mock_ctx, world="Anvil Rock")
 
                     mock_error.assert_called_once_with(mock_ctx, error)
                     mock_ctx.bot.log.error.assert_called_once()
@@ -1275,8 +1210,6 @@ class TestKdrCommand:
     @pytest.mark.asyncio
     async def test_kdr_successful_embed(self, mock_bot, mock_ctx, sample_matches_data):
         """Test kdr command sends successful embed."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
             mock_get_wid.return_value = 1001
@@ -1289,7 +1222,7 @@ class TestKdrCommand:
                     mock_pop.return_value = ["World1 (High)"]
 
                     with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
-                        await cog.kdr.callback(cog, mock_ctx, world="Anvil Rock")
+                        await kdr(mock_ctx, world="Anvil Rock")
 
                         mock_send.assert_called_once()
                         embed = mock_send.call_args[0][1]
@@ -1787,10 +1720,8 @@ class TestWvWSubcommand:
     @pytest.mark.asyncio
     async def test_wvw_group_calls_invoke_subcommand(self, mock_bot, mock_ctx):
         """Test that wvw group command calls invoke_subcommand (line 27)."""
-        cog = GW2WvW(mock_bot)
-
         with patch("src.gw2.cogs.wvw.bot_utils.invoke_subcommand", new_callable=AsyncMock) as mock_invoke:
-            await cog.wvw.callback(cog, mock_ctx)
+            await wvw(mock_ctx)
             mock_invoke.assert_called_once_with(mock_ctx, "gw2 wvw")
 
 
@@ -1829,8 +1760,6 @@ class TestInfoDefaultColor:
     @pytest.mark.asyncio
     async def test_info_unknown_world_color_uses_default(self, mock_bot, mock_ctx):
         """Test info command uses discord.Color.default() for unexpected worldcolor (lines 89-90)."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         sample_worldinfo = {"id": 1001, "name": "Anvil Rock", "population": "High"}
 
@@ -1857,7 +1786,7 @@ class TestInfoDefaultColor:
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                     with patch("src.gw2.cogs.wvw.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
-                        await cog.info.callback(cog, mock_ctx, world="Anvil Rock")
+                        await info(mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
                         assert embed.color == discord.Color.default()
@@ -1898,8 +1827,6 @@ class TestMatchAPIKeyError:
     @pytest.mark.asyncio
     async def test_match_api_key_error_on_account_call(self, mock_bot, mock_ctx):
         """Test match command sends NO_API_KEY error when APIKeyError is raised during account call (line 159-161)."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         api_key_data = [{"key": "test-api-key"}]
 
@@ -1913,7 +1840,7 @@ class TestMatchAPIKeyError:
                 mock_client_instance.call_api = AsyncMock(side_effect=APIKeyError(mock_ctx.bot, "Invalid key"))
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                    result = await cog.match.callback(cog, mock_ctx, world=None)
+                    result = await match(mock_ctx, world=None)
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
@@ -1955,8 +1882,6 @@ class TestKdrAPIKeyError:
     @pytest.mark.asyncio
     async def test_kdr_api_key_error_on_account_call(self, mock_bot, mock_ctx):
         """Test kdr command sends NO_API_KEY error when APIKeyError is raised during account call (line 227-229)."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
 
         api_key_data = [{"key": "test-api-key"}]
 
@@ -1969,7 +1894,7 @@ class TestKdrAPIKeyError:
                 mock_client_instance.call_api = AsyncMock(side_effect=APIKeyError(mock_ctx.bot, "Invalid key"))
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                    result = await cog.kdr.callback(cog, mock_ctx, world=None)
+                    result = await kdr(mock_ctx, world=None)
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
@@ -2034,62 +1959,52 @@ class TestResolveWvwWorldId:
     @pytest.mark.asyncio
     async def test_with_world_name_delegates_to_get_world_id(self, mock_bot, mock_ctx):
         """Test that providing a world name uses get_world_id."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
         gw2_api = MagicMock()
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock, return_value=1001):
-            result = await cog._resolve_wvw_world_id(mock_ctx, gw2_api, "Anvil Rock", "error msg")
+            result = await _resolve_wvw_world_id(mock_ctx, gw2_api, "Anvil Rock", "error msg")
             assert result == 1001
 
     @pytest.mark.asyncio
     async def test_prefers_wvw_team_id_over_world(self, mock_bot, mock_ctx):
         """Test that wvw.team_id is preferred over legacy world field."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
         gw2_api = MagicMock()
         gw2_api.call_api = AsyncMock(return_value={"world": 1001, "wvw": {"team_id": 11005}})
 
         with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=[{"key": "test-key"}])
 
-            result = await cog._resolve_wvw_world_id(mock_ctx, gw2_api, None, "error msg")
+            result = await _resolve_wvw_world_id(mock_ctx, gw2_api, None, "error msg")
             assert result == 11005
 
     @pytest.mark.asyncio
     async def test_falls_back_to_world_when_no_team_id(self, mock_bot, mock_ctx):
         """Test fallback to world when wvw.team_id is absent."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
         gw2_api = MagicMock()
         gw2_api.call_api = AsyncMock(return_value={"world": 1001})
 
         with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=[{"key": "test-key"}])
 
-            result = await cog._resolve_wvw_world_id(mock_ctx, gw2_api, None, "error msg")
+            result = await _resolve_wvw_world_id(mock_ctx, gw2_api, None, "error msg")
             assert result == 1001
 
     @pytest.mark.asyncio
     async def test_no_api_key_sends_error(self, mock_bot, mock_ctx):
         """Test that missing API key sends error and returns None."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
         gw2_api = MagicMock()
 
         with patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal:
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=None)
 
             with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                result = await cog._resolve_wvw_world_id(mock_ctx, gw2_api, None, "no key msg")
+                result = await _resolve_wvw_world_id(mock_ctx, gw2_api, None, "no key msg")
                 assert result is None
                 mock_error.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_api_key_error_sends_error(self, mock_bot, mock_ctx):
         """Test that APIKeyError sends error message."""
-        cog = GW2WvW(mock_bot)
-        cog.bot = mock_ctx.bot
         gw2_api = MagicMock()
         gw2_api.call_api = AsyncMock(side_effect=APIKeyError(mock_ctx.bot, "bad key"))
 
@@ -2097,6 +2012,6 @@ class TestResolveWvwWorldId:
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=[{"key": "test-key"}])
 
             with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
-                result = await cog._resolve_wvw_world_id(mock_ctx, gw2_api, None, "error msg")
+                result = await _resolve_wvw_world_id(mock_ctx, gw2_api, None, "error msg")
                 assert result is None
                 mock_error.assert_called_once()

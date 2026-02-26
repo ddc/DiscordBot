@@ -28,32 +28,32 @@ async def characters(ctx):
         gw2 characters
     """
 
-    await ctx.message.channel.typing()
-    gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
-    rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
-    if not rs:
-        msg = gw2_messages.NO_API_KEY
-        msg += gw2_messages.key_add_info_help(ctx.prefix)
-        msg += gw2_messages.key_more_info_help(ctx.prefix)
-        return await bot_utils.send_error_msg(ctx, msg)
+    async with ctx.typing():
+        gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
+        rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
+        if not rs:
+            msg = gw2_messages.NO_API_KEY
+            msg += gw2_messages.key_add_info_help(ctx.prefix)
+            msg += gw2_messages.key_more_info_help(ctx.prefix)
+            return await bot_utils.send_error_msg(ctx, msg)
 
-    api_key = str(rs[0]["key"])
-    gw2_api = Gw2Client(ctx.bot)
-    is_valid_key = await gw2_api.check_api_key(api_key)
-    if not isinstance(is_valid_key, dict):
-        msg = f"{is_valid_key.message}\n"
-        msg += gw2_messages.INVALID_API_KEY_HELP_MESSAGE
-        msg += gw2_messages.key_add_info_help(ctx.prefix)
-        msg += gw2_messages.key_more_info_help(ctx.prefix)
-        return await bot_utils.send_error_msg(ctx, msg)
+        api_key = str(rs[0]["key"])
+        gw2_api = Gw2Client(ctx.bot)
+        is_valid_key = await gw2_api.check_api_key(api_key)
+        if not isinstance(is_valid_key, dict):
+            msg = f"{is_valid_key.message}\n"
+            msg += gw2_messages.INVALID_API_KEY_HELP_MESSAGE
+            msg += gw2_messages.key_add_info_help(ctx.prefix)
+            msg += gw2_messages.key_more_info_help(ctx.prefix)
+            return await bot_utils.send_error_msg(ctx, msg)
 
-    permissions = str(rs[0]["permissions"])
-    if "characters" not in permissions or "account" not in permissions:
-        return await bot_utils.send_error_msg(ctx, gw2_messages.API_KEY_NO_PERMISSION, True)
+        permissions = str(rs[0]["permissions"])
+        if "characters" not in permissions or "account" not in permissions:
+            return await bot_utils.send_error_msg(ctx, gw2_messages.API_KEY_NO_PERMISSION, True)
 
-    progress_msg = await gw2_utils.send_progress_embed(
-        ctx, "Please wait, I'm fetching your character data... (this may take a moment)"
-    )
+        progress_msg = await gw2_utils.send_progress_embed(
+            ctx, "Please wait, I'm fetching your character data... (this may take a moment)"
+        )
 
     try:
         # Fetch account info and all characters in parallel
