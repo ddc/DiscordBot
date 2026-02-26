@@ -105,8 +105,7 @@ class TestAddCommand:
         with patch("src.gw2.cogs.key.bot_utils.delete_message") as mock_delete:
             with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
-                invalid_error = APIInvalidKey(mock_ctx.bot, "Invalid key")
-                invalid_error.args = ("error", "Invalid API key")
+                invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.INVALID_API_KEY}")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
                 with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                     mock_error.return_value = None
@@ -120,8 +119,7 @@ class TestAddCommand:
         with patch("src.gw2.cogs.key.bot_utils.delete_message"):
             with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
-                invalid_error = APIInvalidKey(mock_ctx.bot, "Invalid key")
-                invalid_error.args = ("error", gw2_messages.INVALID_API_KEY)
+                invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.INVALID_API_KEY}")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
                 with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                     mock_error.return_value = None
@@ -364,8 +362,7 @@ class TestUpdateCommand:
                 mock_instance.get_api_key_by_user = AsyncMock(return_value=[{"name": "OldKey", "key": "old-key-12345"}])
                 with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                     mock_client_instance = mock_client.return_value
-                    invalid_error = APIInvalidKey(mock_ctx.bot, "Invalid key")
-                    invalid_error.args = ("error", gw2_messages.INVALID_API_KEY)
+                    invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.INVALID_API_KEY}")
                     mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
                     with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                         mock_error.return_value = None
@@ -681,8 +678,7 @@ class TestInfoCommand:
             )
             with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
-                invalid_error = APIInvalidKey(mock_ctx.bot, "Invalid key")
-                invalid_error.args = ("error", "Invalid key")
+                invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.INVALID_API_KEY}")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
                 with patch("src.gw2.cogs.key.bot_utils.send_embed") as mock_send:
                     with patch("src.gw2.cogs.key.bot_utils.get_current_date_time_str_long") as mock_time:

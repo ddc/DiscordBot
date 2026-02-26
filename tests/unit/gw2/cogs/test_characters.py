@@ -111,8 +111,7 @@ class TestCharactersCommand:
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
             with patch("src.gw2.cogs.characters.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
-                invalid_error = APIInvalidKey(mock_ctx.bot, "Invalid key")
-                invalid_error.args = ("error", gw2_messages.INVALID_API_KEY)
+                invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.INVALID_API_KEY}")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
                 with patch("src.gw2.cogs.characters.bot_utils.send_error_msg") as mock_error:
                     mock_error.return_value = None
