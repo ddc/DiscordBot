@@ -9,6 +9,8 @@ from src.gw2.cogs.sessions import (
     _add_gold_field,
     _add_wallet_currency_fields,
     _add_wvw_stats,
+    _build_live_char_deaths,
+    _is_user_playing_gw2,
     session,
     setup,
 )
@@ -110,7 +112,7 @@ class TestSessionCommand:
         ctx.message.author.avatar = MagicMock()
         ctx.message.author.avatar.url = "https://example.com/avatar.png"
         ctx.message.author.mention = "<@12345>"
-        ctx.message.author.activity = None
+        ctx.message.author.activities = ()
         ctx.message.channel = MagicMock()
         ctx.message.channel.typing = MagicMock()
         ctx.message.channel.typing.return_value.__aenter__ = AsyncMock(return_value=None)
@@ -288,36 +290,129 @@ class TestSessionCommand:
                         assert len(mock_error.call_args[0]) == 2
 
     @pytest.mark.asyncio
-    async def test_session_end_date_is_none(self, mock_ctx, sample_api_key_data):
-        """Test session command when session end is None and user not playing."""
+    async def test_session_end_date_is_none_api_fails(self, mock_ctx, sample_api_key_data):
+        """Test session command when session end is None, user not playing, and API fails to finalize."""
         session_data = [{"acc_name": "TestUser.1234", "start": {}, "end": None}]
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
             with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
                 with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
+                    # end_session is called but fails, so re-fetch still returns None end
                     mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=session_data)
-                    with patch("src.gw2.cogs.sessions.gw2_utils.send_msg") as mock_send:
-                        await session(mock_ctx)
-                        mock_send.assert_called_once()
-                        assert gw2_messages.SESSION_BOT_STILL_UPDATING in mock_send.call_args[0][1]
+                    with patch("src.gw2.cogs.sessions.gw2_utils.end_session", new_callable=AsyncMock):
+                        with patch(
+                            "src.gw2.cogs.sessions.gw2_utils.send_progress_embed",
+                            new_callable=AsyncMock,
+                            return_value=AsyncMock(),
+                        ):
+                            with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
+                                await session(mock_ctx)
+                                mock_error.assert_called_once()
+                                assert gw2_messages.SESSION_BOT_STILL_UPDATING in str(mock_error.call_args[0][1])
 
     @pytest.mark.asyncio
-    async def test_session_end_date_is_none_while_playing(self, mock_ctx, sample_api_key_data):
-        """Test session command when end is None and user is currently playing GW2."""
+    async def test_session_end_date_is_none_auto_completes(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test session command auto-completes when end is None and user stopped playing."""
+        start_data = {"date": "2024-01-15 10:00:00", "gold": 100000, "wvw_rank": 100}
+        end_data = {"date": "2024-01-15 12:30:00", "gold": 120000, "wvw_rank": 101}
+        session_no_end = [{"acc_name": "TestUser.1234", "start": start_data, "end": None}]
+        session_with_end = [{"acc_name": "TestUser.1234", "start": start_data, "end": end_data}]
+
+        with (
+            patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal,
+            patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs,
+            patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal,
+            patch("src.gw2.cogs.sessions.gw2_utils.end_session", new_callable=AsyncMock) as mock_end,
+            patch(
+                "src.gw2.cogs.sessions.gw2_utils.send_progress_embed",
+                new_callable=AsyncMock,
+                return_value=AsyncMock(),
+            ),
+            patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short", side_effect=lambda x: x),
+            patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed", return_value=sample_time_passed),
+            patch("src.gw2.cogs.sessions.Gw2SessionCharDeathsDal") as mock_chars_dal,
+            patch("src.gw2.cogs.sessions.bot_utils.send_paginated_embed") as mock_send,
+            patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"),
+        ):
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
+            mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
+            # First call returns no end, second call (after end_session) returns with end
+            mock_sessions_dal.return_value.get_user_last_session = AsyncMock(
+                side_effect=[session_no_end, session_with_end]
+            )
+            mock_chars_dal.return_value.get_char_deaths = AsyncMock(return_value=None)
+
+            await session(mock_ctx)
+
+            mock_end.assert_called_once()
+            mock_send.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_session_end_date_is_none_while_playing_api_fails(self, mock_ctx, sample_api_key_data):
+        """Test session command when end is None, playing, but API fails - shows SESSION_IN_PROGRESS."""
         session_data = [{"acc_name": "TestUser.1234", "start": {}, "end": None}]
-        mock_ctx.message.author.activity = MagicMock()
-        mock_ctx.message.author.activity.name = "Guild Wars 2"
+        gw2_activity = MagicMock()
+        gw2_activity.type = discord.ActivityType.playing
+        gw2_activity.name = "Guild Wars 2"
+        mock_ctx.message.author.activities = (gw2_activity,)
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
             with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
                 with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=session_data)
-                    with patch("src.gw2.cogs.sessions.gw2_utils.send_msg") as mock_send:
-                        await session(mock_ctx)
-                        mock_send.assert_called_once()
-                        assert gw2_messages.SESSION_IN_PROGRESS in mock_send.call_args[0][1]
+                    with patch("src.gw2.cogs.sessions.gw2_utils.get_user_stats", new_callable=AsyncMock, return_value=None):
+                        with patch(
+                            "src.gw2.cogs.sessions.gw2_utils.send_progress_embed",
+                            new_callable=AsyncMock,
+                            return_value=AsyncMock(),
+                        ):
+                            with patch("src.gw2.cogs.sessions.gw2_utils.send_msg") as mock_send:
+                                await session(mock_ctx)
+                                mock_send.assert_called_once()
+                                assert gw2_messages.SESSION_IN_PROGRESS in mock_send.call_args[0][1]
+
+    @pytest.mark.asyncio
+    async def test_session_live_snapshot_while_playing(self, mock_ctx, sample_api_key_data, sample_time_passed):
+        """Test session command shows live snapshot when user is playing and end is None."""
+        start_data = {"date": "2024-01-15 10:00:00", "gold": 100000, "wvw_rank": 100}
+        session_data = [{"acc_name": "TestUser.1234", "start": start_data, "end": None}]
+        live_stats = {"acc_name": "TestUser.1234", "gold": 120000, "wvw_rank": 101}
+
+        gw2_activity = MagicMock()
+        gw2_activity.type = discord.ActivityType.playing
+        gw2_activity.name = "Guild Wars 2"
+        mock_ctx.message.author.activities = (gw2_activity,)
+
+        with (
+            patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal,
+            patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs,
+            patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal,
+            patch("src.gw2.cogs.sessions.gw2_utils.get_user_stats", new_callable=AsyncMock, return_value=live_stats),
+            patch("src.gw2.cogs.sessions.bot_utils.convert_datetime_to_str_short", return_value="2024-01-15 12:30:00"),
+            patch("src.gw2.cogs.sessions.bot_utils.convert_str_to_datetime_short", side_effect=lambda x: x),
+            patch("src.gw2.cogs.sessions.gw2_utils.get_time_passed", return_value=sample_time_passed),
+            patch("src.gw2.cogs.sessions.Gw2SessionCharDeathsDal"),
+            patch("src.gw2.cogs.sessions._build_live_char_deaths", new_callable=AsyncMock, return_value=None),
+            patch("src.gw2.cogs.sessions.bot_utils.send_paginated_embed") as mock_send,
+            patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"),
+            patch(
+                "src.gw2.cogs.sessions.gw2_utils.send_progress_embed",
+                new_callable=AsyncMock,
+                return_value=AsyncMock(),
+            ),
+        ):
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
+            mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
+            mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=session_data)
+
+            await session(mock_ctx)
+
+            mock_send.assert_called_once()
+            embed = mock_send.call_args[0][1]
+            assert "(Live)" in embed.author.name
+            assert gw2_messages.SESSION_USER_STILL_PLAYING in embed.footer.text
 
     @pytest.mark.asyncio
     async def test_session_time_passed_less_than_one_minute(self, mock_ctx, sample_api_key_data):
@@ -720,10 +815,12 @@ class TestSessionCommand:
 
     @pytest.mark.asyncio
     async def test_session_still_playing_gw2(self, mock_ctx, sample_api_key_data, sample_time_passed):
-        """Test session command when user is still playing GW2."""
+        """Test session command when user is still playing GW2 (completed session exists)."""
         session_data = _make_session_data()
-        mock_ctx.message.author.activity = MagicMock()
-        mock_ctx.message.author.activity.name = "Guild Wars 2"
+        gw2_activity = MagicMock()
+        gw2_activity.type = discord.ActivityType.playing
+        gw2_activity.name = "Guild Wars 2"
+        mock_ctx.message.author.activities = (gw2_activity,)
         mock_ctx.channel = MagicMock(spec=discord.TextChannel)
 
         runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
@@ -738,7 +835,7 @@ class TestSessionCommand:
     async def test_session_not_playing_gw2_no_activity(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command when user has no activity (not playing)."""
         session_data = _make_session_data()
-        mock_ctx.message.author.activity = None
+        mock_ctx.message.author.activities = ()
 
         runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
         async with runner.run() as r:
@@ -753,8 +850,10 @@ class TestSessionCommand:
         """Test session command in DM channel does not trigger still playing message."""
         session_data = _make_session_data()
         mock_ctx.channel = MagicMock(spec=discord.DMChannel)
-        mock_ctx.message.author.activity = MagicMock()
-        mock_ctx.message.author.activity.name = "Guild Wars 2"
+        gw2_activity = MagicMock()
+        gw2_activity.type = discord.ActivityType.playing
+        gw2_activity.name = "Guild Wars 2"
+        mock_ctx.message.author.activities = (gw2_activity,)
 
         runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
         async with runner.run() as r:

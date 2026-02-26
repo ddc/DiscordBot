@@ -30,7 +30,7 @@ from src.gw2.tools.gw2_client import Gw2Client
 
 _gw2_settings = get_gw2_settings()
 _background_tasks: set[asyncio.Task] = set()
-_processing_sessions: set[int] = set()
+_processing_sessions: dict[int, str | None] = {}
 _achievement_cache: dict[int, dict] = {}
 
 
@@ -307,13 +307,24 @@ async def check_gw2_game_activity(bot: Bot, before: discord.Member, after: disco
     before_activity = _get_non_custom_activity(before.activities)
     after_activity = _get_non_custom_activity(after.activities)
 
-    if _is_gw2_activity_detected(before_activity, after_activity):
-        bot.log.debug(
-            f"GW2 activity detected for {after.id}: "
-            f"before={before_activity.name if before_activity else None}, "
-            f"after={after_activity.name if after_activity else None}"
-        )
-        await _handle_gw2_activity_change(bot, after, after_activity)
+    if not _is_gw2_activity_detected(before_activity, after_activity):
+        return
+
+    before_is_gw2 = before_activity is not None and "guild wars 2" in str(before_activity.name).lower()
+    after_is_gw2 = after_activity is not None and "guild wars 2" in str(after_activity.name).lower()
+
+    bot.log.debug(
+        f"GW2 activity detected for {after.id}: "
+        f"before={before_activity.name if before_activity else None}, "
+        f"after={after_activity.name if after_activity else None}"
+    )
+
+    if before_is_gw2 and after_is_gw2:
+        bot.log.debug(f"User {after.id} still playing GW2, no session change needed")
+        return
+
+    action = "start" if after_is_gw2 else "end"
+    await _handle_gw2_activity_change(bot, after, action)
 
 
 def _get_non_custom_activity(activities) -> discord.Activity | None:
@@ -334,39 +345,58 @@ def _is_gw2_activity_detected(before_activity, after_activity) -> bool:
 async def _handle_gw2_activity_change(
     bot: Bot,
     member: discord.Member,
-    after_activity,
+    action: str,
 ) -> None:
-    """Handle GW2 activity changes and manage session tracking."""
+    """Handle GW2 activity changes and manage session tracking.
+
+    Uses a per-user pending-action queue so that end events arriving while
+    a start is in progress are never silently dropped.
+    """
     if member.id in _processing_sessions:
-        bot.log.debug(f"Session operation already in progress for user {member.id}, skipping duplicate")
+        _processing_sessions[member.id] = action
+        bot.log.debug(
+            f"Session operation in progress for user {member.id}, "
+            f"queuing '{action}' as pending"
+        )
         return
 
-    _processing_sessions.add(member.id)
+    _processing_sessions[member.id] = None
     try:
-        gw2_configs = Gw2ConfigsDal(bot.db_session, bot.log)
-        server_configs = await gw2_configs.get_gw2_server_configs(member.guild.id)
-
-        if not server_configs or not server_configs[0]["session"]:
-            bot.log.debug(f"Session tracking not enabled for guild {member.guild.id}, skipping")
-            return
-
-        gw2_key_dal = Gw2KeyDal(bot.db_session, bot.log)
-        api_key_result = await gw2_key_dal.get_api_key_by_user(member.id)
-
-        if not api_key_result:
-            bot.log.debug(f"No GW2 API key found for user {member.id}, skipping session")
-            return
-
-        api_key = api_key_result[0]["key"]
-
-        if after_activity is not None:
-            bot.log.debug(f"Starting GW2 session for user {member.id}")
-            await start_session(bot, member, api_key)
-        else:
-            bot.log.debug(f"Ending GW2 session for user {member.id}")
-            await end_session(bot, member, api_key)
+        while action is not None:
+            await _execute_session_action(bot, member, action)
+            # Check if a new action was queued while we were processing
+            action = _processing_sessions[member.id]
+            _processing_sessions[member.id] = None
+            if action is not None:
+                bot.log.debug(f"Processing pending '{action}' action for user {member.id}")
     finally:
-        _processing_sessions.discard(member.id)
+        _processing_sessions.pop(member.id, None)
+
+
+async def _execute_session_action(bot: Bot, member: discord.Member, action: str) -> None:
+    """Execute a single session action (start or end)."""
+    gw2_configs = Gw2ConfigsDal(bot.db_session, bot.log)
+    server_configs = await gw2_configs.get_gw2_server_configs(member.guild.id)
+
+    if not server_configs or not server_configs[0]["session"]:
+        bot.log.debug(f"Session tracking not enabled for guild {member.guild.id}, skipping")
+        return
+
+    gw2_key_dal = Gw2KeyDal(bot.db_session, bot.log)
+    api_key_result = await gw2_key_dal.get_api_key_by_user(member.id)
+
+    if not api_key_result:
+        bot.log.debug(f"No GW2 API key found for user {member.id}, skipping session")
+        return
+
+    api_key = api_key_result[0]["key"]
+
+    if action == "start":
+        bot.log.debug(f"Starting GW2 session for user {member.id}")
+        await start_session(bot, member, api_key)
+    else:
+        bot.log.debug(f"Ending GW2 session for user {member.id}")
+        await end_session(bot, member, api_key)
 
 
 async def start_session(bot: Bot, member: discord.Member, api_key: str) -> None:
