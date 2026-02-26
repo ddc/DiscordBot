@@ -30,7 +30,7 @@ from src.gw2.tools.gw2_client import Gw2Client
 
 _gw2_settings = get_gw2_settings()
 _background_tasks: set[asyncio.Task] = set()
-_processing_sessions: dict[int, str | None] = {}
+_processing_sessions: dict[int, dict[str, str | None]] = {}
 _achievement_cache: dict[int, dict] = {}
 
 
@@ -352,20 +352,25 @@ async def _handle_gw2_activity_change(
     """Handle GW2 activity changes and manage session tracking.
 
     Uses a per-user pending-action queue so that end events arriving while
-    a start is in progress are never silently dropped.
+    a start is in progress are never silently dropped.  Duplicate events
+    (same action as current or already-pending) are dropped.
     """
     if member.id in _processing_sessions:
-        _processing_sessions[member.id] = action
+        state = _processing_sessions[member.id]
+        if action == state["current"] or action == state["pending"]:
+            bot.log.debug(f"Duplicate '{action}' event for user {member.id}, ignoring")
+            return
+        state["pending"] = action
         bot.log.debug(f"Session operation in progress for user {member.id}, queuing '{action}' as pending")
         return
 
-    _processing_sessions[member.id] = None
+    _processing_sessions[member.id] = {"current": action, "pending": None}
     try:
         while action is not None:
+            _processing_sessions[member.id]["current"] = action
             await _execute_session_action(bot, member, action)
-            # Check if a new action was queued while we were processing
-            action = _processing_sessions[member.id]
-            _processing_sessions[member.id] = None
+            action = _processing_sessions[member.id]["pending"]
+            _processing_sessions[member.id]["pending"] = None
             if action is not None:
                 bot.log.debug(f"Processing pending '{action}' action for user {member.id}")
     finally:
@@ -411,10 +416,20 @@ async def start_session(bot: Bot, member: discord.Member, api_key: str) -> None:
     await _do_start_session(bot, member, api_key, session)
 
 
+def _sort_session_dict(session: dict) -> dict:
+    """Sort session dict keys alphabetically with 'date' first."""
+    date_value = session.pop("date", None)
+    sorted_dict = dict(sorted(session.items()))
+    if date_value is not None:
+        sorted_dict = {"date": date_value, **sorted_dict}
+    return sorted_dict
+
+
 async def _do_start_session(bot: Bot, member: discord.Member, api_key: str, session: dict) -> None:
     """Execute start session DB operations."""
     session["user_id"] = member.id
     session["date"] = bot_utils.convert_datetime_to_str_short(bot_utils.get_current_date_time())
+    session = _sort_session_dict(session)
 
     bot.log.debug(f"Attempting to insert start session into DB for user {member.id}")
     try:
@@ -444,6 +459,7 @@ async def _do_end_session(bot: Bot, member: discord.Member, api_key: str, sessio
     """Execute end session DB operations."""
     session["user_id"] = member.id
     session["date"] = bot_utils.convert_datetime_to_str_short(bot_utils.get_current_date_time())
+    session = _sort_session_dict(session)
 
     bot.log.debug(f"Attempting to update end session in DB for user {member.id}")
     try:

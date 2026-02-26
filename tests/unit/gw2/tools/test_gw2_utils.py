@@ -17,6 +17,7 @@ from src.gw2.tools.gw2_utils import (
     _is_gw2_activity_detected,
     _processing_sessions,
     _retry_session_later,
+    _sort_session_dict,
     _update_achievement_stats,
     _update_wallet_stats,
     calculate_user_achiev_points,
@@ -821,7 +822,7 @@ class TestHandleGw2ActivityChange:
                 call_count += 1
                 if call_count == 1:
                     # Simulate end event arriving during start processing
-                    _processing_sessions[member.id] = "end"
+                    _processing_sessions[member.id]["pending"] = "end"
 
             mock_execute.side_effect = side_effect
 
@@ -833,8 +834,8 @@ class TestHandleGw2ActivityChange:
             assert mock_member.id not in _processing_sessions
 
     @pytest.mark.asyncio
-    async def test_duplicate_during_processing_queues_latest(self, mock_bot, mock_member):
-        """Test that only the latest pending action is kept when multiple arrive during processing."""
+    async def test_different_pending_overwrites_previous(self, mock_bot, mock_member):
+        """Test that a different pending action overwrites a previous one."""
         with patch("src.gw2.tools.gw2_utils._execute_session_action") as mock_execute:
             call_count = 0
 
@@ -842,30 +843,59 @@ class TestHandleGw2ActivityChange:
                 nonlocal call_count
                 call_count += 1
                 if call_count == 1:
-                    # Simulate: start queued, then end queued (end wins)
-                    _processing_sessions[member.id] = "start"
-                    _processing_sessions[member.id] = "end"
+                    # Simulate: end queued during start processing
+                    _processing_sessions[member.id]["pending"] = "end"
 
             mock_execute.side_effect = side_effect
 
             await _handle_gw2_activity_change(mock_bot, mock_member, "start")
 
             assert mock_execute.call_count == 2
-            # Second call should be "end" (last queued action)
+            # Second call should be "end" (pending action)
             mock_execute.assert_any_call(mock_bot, mock_member, "end")
             assert mock_member.id not in _processing_sessions
 
     @pytest.mark.asyncio
-    async def test_concurrent_call_queues_instead_of_dropping(self, mock_bot, mock_member):
-        """Test that a concurrent call queues the action instead of dropping it."""
-        # Simulate a session already being processed
-        _processing_sessions[mock_member.id] = None
+    async def test_concurrent_call_queues_different_action(self, mock_bot, mock_member):
+        """Test that a concurrent call with a different action queues it."""
+        # Simulate a start session already being processed
+        _processing_sessions[mock_member.id] = {"current": "start", "pending": None}
 
         try:
             await _handle_gw2_activity_change(mock_bot, mock_member, "end")
 
-            # The action should be queued, not dropped
-            assert _processing_sessions[mock_member.id] == "end"
+            # The end action should be queued as pending
+            assert _processing_sessions[mock_member.id]["pending"] == "end"
+        finally:
+            _processing_sessions.pop(mock_member.id, None)
+
+    @pytest.mark.asyncio
+    async def test_duplicate_current_action_is_dropped(self, mock_bot, mock_member):
+        """Test that a duplicate of the currently running action is dropped."""
+        # Simulate a start session already being processed
+        _processing_sessions[mock_member.id] = {"current": "start", "pending": None}
+
+        try:
+            await _handle_gw2_activity_change(mock_bot, mock_member, "start")
+
+            # Duplicate should be ignored, pending stays None
+            assert _processing_sessions[mock_member.id]["pending"] is None
+            mock_bot.log.debug.assert_called_with(f"Duplicate 'start' event for user {mock_member.id}, ignoring")
+        finally:
+            _processing_sessions.pop(mock_member.id, None)
+
+    @pytest.mark.asyncio
+    async def test_duplicate_pending_action_is_dropped(self, mock_bot, mock_member):
+        """Test that a duplicate of an already-pending action is dropped."""
+        # Simulate start running with end already pending
+        _processing_sessions[mock_member.id] = {"current": "start", "pending": "end"}
+
+        try:
+            await _handle_gw2_activity_change(mock_bot, mock_member, "end")
+
+            # Duplicate should be ignored, pending stays "end"
+            assert _processing_sessions[mock_member.id]["pending"] == "end"
+            mock_bot.log.debug.assert_called_with(f"Duplicate 'end' event for user {mock_member.id}, ignoring")
         finally:
             _processing_sessions.pop(mock_member.id, None)
 
@@ -1669,6 +1699,37 @@ class TestTimeFunctions:
         assert obj.hours == 0
         assert obj.minutes == 0
         assert obj.seconds == 0
+
+
+class TestSortSessionDict:
+    """Test cases for _sort_session_dict function."""
+
+    def test_date_first_then_alphabetical(self):
+        """Test that date is first, remaining keys sorted alphabetically."""
+        session = {"gold": 100, "date": "2026-01-01 00:00:00", "acc_name": "Test", "karma": 50}
+        result = _sort_session_dict(session)
+        keys = list(result.keys())
+        assert keys[0] == "date"
+        assert keys[1:] == sorted(keys[1:])
+
+    def test_no_date_key(self):
+        """Test sorting when no date key exists."""
+        session = {"gold": 100, "acc_name": "Test", "karma": 50}
+        result = _sort_session_dict(session)
+        assert list(result.keys()) == ["acc_name", "gold", "karma"]
+
+    def test_preserves_values(self):
+        """Test that values are preserved after sorting."""
+        session = {"date": "2026-01-01", "gold": 100, "acc_name": "Test"}
+        result = _sort_session_dict(session)
+        assert result["date"] == "2026-01-01"
+        assert result["gold"] == 100
+        assert result["acc_name"] == "Test"
+
+    def test_empty_dict(self):
+        """Test with empty dict."""
+        result = _sort_session_dict({})
+        assert result == {}
 
 
 class TestDeleteApiKey:

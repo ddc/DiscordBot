@@ -62,6 +62,7 @@ class TestCharactersCommand:
         ctx.message.author.display_avatar.url = "https://example.com/avatar.png"
         ctx.message.channel = MagicMock()
         ctx.message.channel.typing = AsyncMock()
+        ctx.typing = MagicMock(return_value=AsyncMock())
         ctx.prefix = "!"
         ctx.send = AsyncMock()
         return ctx
@@ -346,7 +347,7 @@ class TestCharactersCommand:
             mock_instance.get_api_key_by_user = AsyncMock(return_value=None)
             with patch("src.gw2.cogs.characters.bot_utils.send_error_msg"):
                 await characters(mock_ctx)
-                mock_ctx.message.channel.typing.assert_called()
+                mock_ctx.typing.assert_called()
 
     @pytest.mark.asyncio
     async def test_characters_embed_has_thumbnail_and_author(self, mock_ctx, sample_api_key_data, sample_account_data):

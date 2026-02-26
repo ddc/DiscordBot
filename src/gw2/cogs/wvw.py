@@ -18,276 +18,281 @@ class GW2WvW(GuildWars2):
     def __init__(self, bot):
         super().__init__(bot)
 
-    @GuildWars2.gw2.group()
-    async def wvw(self, ctx):
-        """Guild Wars 2 World vs World commands.
 
-        Available subcommands:
-            gw2 wvw info [world] - Info about a WvW world
-            gw2 wvw match [world] - WvW match scores
-            gw2 wvw kdr [world] - WvW kill/death ratios
-        """
+@GW2WvW.gw2.group()
+async def wvw(ctx):
+    """Guild Wars 2 World vs World commands.
 
-        await bot_utils.invoke_subcommand(ctx, "gw2 wvw")
+    Available subcommands:
+        gw2 wvw info [world] - Info about a WvW world
+        gw2 wvw match [world] - WvW match scores
+        gw2 wvw kdr [world] - WvW kill/death ratios
+    """
 
-    async def _resolve_wvw_world_id(self, ctx, gw2_api, world, error_msg):
-        """Resolve a WvW world/team ID from world name or account data.
+    await bot_utils.invoke_subcommand(ctx, "gw2 wvw")
 
-        Returns the world/team ID, or None if resolution failed (error already sent).
-        """
+
+@wvw.command(name="info")
+@commands.cooldown(1, GW2CoolDowns.Wvw.seconds, commands.BucketType.user)
+async def info(ctx, *, world: str = None):
+    """Display WvW information for a world. Defaults to your account's world.
+
+    Usage:
+        gw2 wvw info
+        gw2 wvw info Blackgate
+    """
+    await ctx.message.channel.typing()
+    gw2_api = Gw2Client(ctx.bot)
+
+    no_api_key_msg = gw2_messages.NO_API_KEY
+    no_api_key_msg += gw2_messages.key_add_info_help(ctx.prefix)
+    no_api_key_msg += gw2_messages.key_more_info_help(ctx.prefix)
+
+    wid = await _resolve_wvw_world_id(ctx, gw2_api, world, no_api_key_msg)
+    if not wid:
         if world:
-            return await gw2_utils.get_world_id(self.bot, world)
+            return await bot_utils.send_error_msg(ctx, f"{gw2_messages.INVALID_WORLD_NAME}\n{world}")
+        return None
 
-        try:
-            gw2_key_dal = Gw2KeyDal(self.bot.db_session, self.bot.log)
-            rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
-            if not rs:
-                await bot_utils.send_error_msg(ctx, error_msg)
-                return None
+    progress_msg = await gw2_utils.send_progress_embed(
+        ctx, "Please wait, I'm fetching WvW info... (this may take a moment)"
+    )
 
-            api_key = rs[0]["key"]
-            results = await gw2_api.call_api("account", api_key)
-            # Prefer WR team_id over legacy world
-            return results.get("wvw", {}).get("team_id") or results["world"]
-        except APIKeyError:
-            await bot_utils.send_error_msg(ctx, error_msg)
-            return None
-        except Exception as e:
-            await bot_utils.send_error_msg(ctx, e)
-            self.bot.log.error(ctx, e)
-            return None
+    try:
+        # Fetch match data and world info in parallel when possible
+        if is_wr_team_id(wid):
+            matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
+            world_name = get_team_name(wid) or f"Team {wid}"
+            population = "N/A"
+        else:
+            matches, worldinfo = await asyncio.gather(
+                gw2_api.call_api(f"wvw/matches?world={wid}"),
+                gw2_api.call_api(f"worlds?id={wid}"),
+            )
+            world_name = worldinfo["name"]
+            population = worldinfo["population"]
+    except Exception as e:
+        await progress_msg.delete()
+        await bot_utils.send_error_msg(ctx, e)
+        return ctx.bot.log.error(ctx, e)
 
-    @wvw.command(name="info")
-    @commands.cooldown(1, GW2CoolDowns.Wvw.seconds, commands.BucketType.user)
-    async def info(self, ctx, *, world: str = None):
-        """Display WvW information for a world. Defaults to your account's world.
+    tier = _resolve_tier(matches)
 
-        Usage:
-            gw2 wvw info
-            gw2 wvw info Blackgate
-        """
-        await ctx.message.channel.typing()
-        gw2_api = Gw2Client(self.bot)
+    worldcolor = None
+    for key, value in matches["all_worlds"].items():
+        if wid in value:
+            worldcolor = key
+    if not worldcolor:
+        return await bot_utils.send_error_msg(ctx, gw2_messages.WORLD_COLOR_ERROR)
 
-        no_api_key_msg = gw2_messages.NO_API_KEY
-        no_api_key_msg += gw2_messages.key_add_info_help(ctx.prefix)
-        no_api_key_msg += gw2_messages.key_more_info_help(ctx.prefix)
+    match worldcolor:
+        case "red":
+            color = discord.Color.red()
+        case "green":
+            color = discord.Color.green()
+        case "blue":
+            color = discord.Color.blue()
+        case _:
+            color = discord.Color.default()
 
-        wid = await self._resolve_wvw_world_id(ctx, gw2_api, world, no_api_key_msg)
-        if not wid:
-            if world:
-                return await bot_utils.send_error_msg(ctx, f"{gw2_messages.INVALID_WORLD_NAME}\n{world}")
-            return None
+    ppt = 0
+    score = format(matches["scores"][worldcolor], ",d")
+    victoryp = matches["victory_points"][worldcolor]
 
-        progress_msg = await gw2_utils.send_progress_embed(
-            ctx, "Please wait, I'm fetching WvW info... (this may take a moment)"
-        )
+    await ctx.message.channel.typing()
+    for m in matches["maps"]:
+        for objective in m["objectives"]:
+            if objective["owner"].lower() == worldcolor:
+                ppt += objective["points_tick"]
 
-        try:
-            # Fetch match data and world info in parallel when possible
-            if is_wr_team_id(wid):
-                matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
-                world_name = get_team_name(wid) or f"Team {wid}"
-                population = "N/A"
-            else:
-                matches, worldinfo = await asyncio.gather(
-                    gw2_api.call_api(f"wvw/matches?world={wid}"),
-                    gw2_api.call_api(f"worlds?id={wid}"),
-                )
-                world_name = worldinfo["name"]
-                population = worldinfo["population"]
-        except Exception as e:
-            await progress_msg.delete()
-            await bot_utils.send_error_msg(ctx, e)
-            return ctx.bot.log.error(ctx, e)
+    if population == "VeryHigh":
+        population = "Very high"
+
+    kills = matches["kills"][worldcolor]
+    deaths = matches["deaths"][worldcolor]
+
+    if kills == 0 or deaths == 0:
+        kd = "0.0"
+    else:
+        kd = round((kills / deaths), 3)
+
+    skirmish_now = len(matches["skirmishes"]) - 1
+    skirmish = format(matches["skirmishes"][skirmish_now]["scores"][worldcolor], ",d")
+
+    kills = format(matches["kills"][worldcolor], ",d")
+    deaths = format(matches["deaths"][worldcolor], ",d")
+
+    embed = discord.Embed(title=world_name, description=tier, color=color)
+    embed.add_field(name="Score", value=chat_formatting.inline(score))
+    embed.add_field(name="Points per tick", value=chat_formatting.inline(ppt))
+    embed.add_field(name="Victory Points", value=chat_formatting.inline(victoryp))
+    embed.add_field(name="Skirmish", value=chat_formatting.inline(skirmish))
+    embed.add_field(name="Kills", value=chat_formatting.inline(kills))
+    embed.add_field(name="Deaths", value=chat_formatting.inline(deaths))
+    embed.add_field(name="K/D ratio", value=chat_formatting.inline(str(kd)))
+    embed.add_field(name="Population", value=chat_formatting.inline(population), inline=False)
+    await progress_msg.delete()
+    await bot_utils.send_embed(ctx, embed)
+    return None
+
+
+@wvw.command(name="match")
+@commands.cooldown(1, GW2CoolDowns.Wvw.seconds, commands.BucketType.user)
+async def match(ctx, *, world: str = None):
+    """Display WvW match scores. Defaults to your account's world.
+
+    Usage:
+        gw2 wvw match
+        gw2 wvw match Blackgate
+    """
+
+    await ctx.message.channel.typing()
+    gw2_api = Gw2Client(ctx.bot)
+
+    no_key_msg = gw2_messages.MISSING_WORLD_NAME
+    no_key_msg += gw2_messages.match_world_name_help(ctx.prefix)
+    no_key_msg += gw2_messages.key_add_info_help(ctx.prefix)
+    no_key_msg += gw2_messages.key_more_info_help(ctx.prefix)
+
+    wid = await _resolve_wvw_world_id(ctx, gw2_api, world, no_key_msg)
+    if not wid:
+        if world:
+            return await bot_utils.send_error_msg(ctx, f"{gw2_messages.INVALID_WORLD_NAME}: {world}")
+        return None
+
+    progress_msg = await gw2_utils.send_progress_embed(
+        ctx, "Please wait, I'm fetching WvW match data... (this may take a moment)"
+    )
+
+    try:
+        matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
 
         tier = _resolve_tier(matches)
 
-        worldcolor = None
-        for key, value in matches["all_worlds"].items():
-            if wid in value:
-                worldcolor = key
-        if not worldcolor:
-            return await bot_utils.send_error_msg(ctx, gw2_messages.WORLD_COLOR_ERROR)
-
-        match worldcolor:
-            case "red":
-                color = discord.Color.red()
-            case "green":
-                color = discord.Color.green()
-            case "blue":
-                color = discord.Color.blue()
-            case _:
-                color = discord.Color.default()
-
-        ppt = 0
-        score = format(matches["scores"][worldcolor], ",d")
-        victoryp = matches["victory_points"][worldcolor]
-
-        await ctx.message.channel.typing()
-        for m in matches["maps"]:
-            for objective in m["objectives"]:
-                if objective["owner"].lower() == worldcolor:
-                    ppt += objective["points_tick"]
-
-        if population == "VeryHigh":
-            population = "Very high"
-
-        kills = matches["kills"][worldcolor]
-        deaths = matches["deaths"][worldcolor]
-
-        if kills == 0 or deaths == 0:
-            kd = "0.0"
-        else:
-            kd = round((kills / deaths), 3)
-
-        skirmish_now = len(matches["skirmishes"]) - 1
-        skirmish = format(matches["skirmishes"][skirmish_now]["scores"][worldcolor], ",d")
-
-        kills = format(matches["kills"][worldcolor], ",d")
-        deaths = format(matches["deaths"][worldcolor], ",d")
-
-        embed = discord.Embed(title=world_name, description=tier, color=color)
-        embed.add_field(name="Score", value=chat_formatting.inline(score))
-        embed.add_field(name="Points per tick", value=chat_formatting.inline(ppt))
-        embed.add_field(name="Victory Points", value=chat_formatting.inline(victoryp))
-        embed.add_field(name="Skirmish", value=chat_formatting.inline(skirmish))
-        embed.add_field(name="Kills", value=chat_formatting.inline(kills))
-        embed.add_field(name="Deaths", value=chat_formatting.inline(deaths))
-        embed.add_field(name="K/D ratio", value=chat_formatting.inline(str(kd)))
-        embed.add_field(name="Population", value=chat_formatting.inline(population), inline=False)
+        (
+            green_worlds_names,
+            blue_worlds_names,
+            red_worlds_names,
+            green_values,
+            blue_values,
+            red_values,
+        ) = await asyncio.gather(
+            _get_map_names_embed_values(ctx, "green", matches),
+            _get_map_names_embed_values(ctx, "blue", matches),
+            _get_map_names_embed_values(ctx, "red", matches),
+            _get_match_embed_values("green", matches),
+            _get_match_embed_values("blue", matches),
+            _get_match_embed_values("red", matches),
+        )
+    except Exception as e:
         await progress_msg.delete()
-        await bot_utils.send_embed(ctx, embed)
+        await bot_utils.send_error_msg(ctx, e)
+        return ctx.bot.log.error(ctx, e)
+
+    color = ctx.bot.settings["gw2"]["EmbedColor"]
+    embed = discord.Embed(title="WvW Score", description=tier, color=color)
+    embed.add_field(name="Green", value=green_worlds_names)
+    embed.add_field(name="Blue", value=blue_worlds_names)
+    embed.add_field(name="Red", value=red_worlds_names)
+    embed.add_field(name="--------------------", value=green_values)
+    embed.add_field(name="--------------------", value=blue_values)
+    embed.add_field(name="--------------------", value=red_values)
+    await progress_msg.delete()
+    await bot_utils.send_embed(ctx, embed)
+    return None
+
+
+@wvw.command(name="kdr")
+@commands.cooldown(1, GW2CoolDowns.Wvw.seconds, commands.BucketType.user)
+async def kdr(ctx, *, world: str = None):
+    """Display WvW kill/death ratios. Defaults to your account's world.
+
+    Usage:
+        gw2 wvw kdr
+        gw2 wvw kdr Blackgate
+    """
+
+    await ctx.message.channel.typing()
+    gw2_api = Gw2Client(ctx.bot)
+
+    no_key_msg = gw2_messages.INVALID_WORLD_NAME
+    no_key_msg += gw2_messages.match_world_name_help(ctx.prefix)
+    no_key_msg += gw2_messages.key_add_info_help(ctx.prefix)
+    no_key_msg += gw2_messages.key_more_info_help(ctx.prefix)
+
+    wid = await _resolve_wvw_world_id(ctx, gw2_api, world, no_key_msg)
+    if not wid:
+        if world:
+            return await bot_utils.send_error_msg(ctx, f"{gw2_messages.INVALID_WORLD_NAME}: {world}")
         return None
 
-    @wvw.command(name="match")
-    @commands.cooldown(1, GW2CoolDowns.Wvw.seconds, commands.BucketType.user)
-    async def match(self, ctx, *, world: str = None):
-        """Display WvW match scores. Defaults to your account's world.
+    progress_msg = await gw2_utils.send_progress_embed(
+        ctx, "Please wait, I'm fetching WvW K/D data... (this may take a moment)"
+    )
 
-        Usage:
-            gw2 wvw match
-            gw2 wvw match Blackgate
-        """
+    try:
+        matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
 
-        await ctx.message.channel.typing()
-        gw2_api = Gw2Client(self.bot)
+        tier = _resolve_tier(matches)
 
-        no_key_msg = gw2_messages.MISSING_WORLD_NAME
-        no_key_msg += gw2_messages.match_world_name_help(ctx.prefix)
-        no_key_msg += gw2_messages.key_add_info_help(ctx.prefix)
-        no_key_msg += gw2_messages.key_more_info_help(ctx.prefix)
+        (
+            green_worlds_names,
+            blue_worlds_names,
+            red_worlds_names,
+            green_values,
+            blue_values,
+            red_values,
+        ) = await asyncio.gather(
+            _get_map_names_embed_values(ctx, "green", matches),
+            _get_map_names_embed_values(ctx, "blue", matches),
+            _get_map_names_embed_values(ctx, "red", matches),
+            _get_kdr_embed_values("green", matches),
+            _get_kdr_embed_values("blue", matches),
+            _get_kdr_embed_values("red", matches),
+        )
+    except Exception as e:
+        await progress_msg.delete()
+        await bot_utils.send_error_msg(ctx, e)
+        return ctx.bot.log.error(ctx, e)
 
-        wid = await self._resolve_wvw_world_id(ctx, gw2_api, world, no_key_msg)
-        if not wid:
-            if world:
-                return await bot_utils.send_error_msg(ctx, f"{gw2_messages.INVALID_WORLD_NAME}: {world}")
+    color = ctx.bot.settings["gw2"]["EmbedColor"]
+    embed = discord.Embed(title=gw2_messages.WVW_KDR_TITLE, description=tier, color=color)
+    embed.add_field(name="Green", value=green_worlds_names)
+    embed.add_field(name="Blue", value=blue_worlds_names)
+    embed.add_field(name="Red", value=red_worlds_names)
+    embed.add_field(name="--------------------", value=green_values)
+    embed.add_field(name="--------------------", value=blue_values)
+    embed.add_field(name="--------------------", value=red_values)
+    await progress_msg.delete()
+    await bot_utils.send_embed(ctx, embed)
+    return None
+
+
+async def _resolve_wvw_world_id(ctx, gw2_api, world, error_msg):
+    """Resolve a WvW world/team ID from world name or account data.
+
+    Returns the world/team ID, or None if resolution failed (error already sent).
+    """
+    if world:
+        return await gw2_utils.get_world_id(ctx.bot, world)
+
+    try:
+        gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
+        rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
+        if not rs:
+            await bot_utils.send_error_msg(ctx, error_msg)
             return None
 
-        progress_msg = await gw2_utils.send_progress_embed(
-            ctx, "Please wait, I'm fetching WvW match data... (this may take a moment)"
-        )
-
-        try:
-            matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
-
-            tier = _resolve_tier(matches)
-
-            (
-                green_worlds_names,
-                blue_worlds_names,
-                red_worlds_names,
-                green_values,
-                blue_values,
-                red_values,
-            ) = await asyncio.gather(
-                _get_map_names_embed_values(ctx, "green", matches),
-                _get_map_names_embed_values(ctx, "blue", matches),
-                _get_map_names_embed_values(ctx, "red", matches),
-                _get_match_embed_values("green", matches),
-                _get_match_embed_values("blue", matches),
-                _get_match_embed_values("red", matches),
-            )
-        except Exception as e:
-            await progress_msg.delete()
-            await bot_utils.send_error_msg(ctx, e)
-            return ctx.bot.log.error(ctx, e)
-
-        color = self.bot.settings["gw2"]["EmbedColor"]
-        embed = discord.Embed(title="WvW Score", description=tier, color=color)
-        embed.add_field(name="Green", value=green_worlds_names)
-        embed.add_field(name="Blue", value=blue_worlds_names)
-        embed.add_field(name="Red", value=red_worlds_names)
-        embed.add_field(name="--------------------", value=green_values)
-        embed.add_field(name="--------------------", value=blue_values)
-        embed.add_field(name="--------------------", value=red_values)
-        await progress_msg.delete()
-        await bot_utils.send_embed(ctx, embed)
+        api_key = rs[0]["key"]
+        results = await gw2_api.call_api("account", api_key)
+        # Prefer WR team_id over legacy world
+        return results.get("wvw", {}).get("team_id") or results["world"]
+    except APIKeyError:
+        await bot_utils.send_error_msg(ctx, error_msg)
         return None
-
-    @wvw.command(name="kdr")
-    @commands.cooldown(1, GW2CoolDowns.Wvw.seconds, commands.BucketType.user)
-    async def kdr(self, ctx, *, world: str = None):
-        """Display WvW kill/death ratios. Defaults to your account's world.
-
-        Usage:
-            gw2 wvw kdr
-            gw2 wvw kdr Blackgate
-        """
-
-        await ctx.message.channel.typing()
-        gw2_api = Gw2Client(self.bot)
-
-        no_key_msg = gw2_messages.INVALID_WORLD_NAME
-        no_key_msg += gw2_messages.match_world_name_help(ctx.prefix)
-        no_key_msg += gw2_messages.key_add_info_help(ctx.prefix)
-        no_key_msg += gw2_messages.key_more_info_help(ctx.prefix)
-
-        wid = await self._resolve_wvw_world_id(ctx, gw2_api, world, no_key_msg)
-        if not wid:
-            if world:
-                return await bot_utils.send_error_msg(ctx, f"{gw2_messages.INVALID_WORLD_NAME}: {world}")
-            return None
-
-        progress_msg = await gw2_utils.send_progress_embed(
-            ctx, "Please wait, I'm fetching WvW K/D data... (this may take a moment)"
-        )
-
-        try:
-            matches = await gw2_api.call_api(f"wvw/matches?world={wid}")
-
-            tier = _resolve_tier(matches)
-
-            (
-                green_worlds_names,
-                blue_worlds_names,
-                red_worlds_names,
-                green_values,
-                blue_values,
-                red_values,
-            ) = await asyncio.gather(
-                _get_map_names_embed_values(ctx, "green", matches),
-                _get_map_names_embed_values(ctx, "blue", matches),
-                _get_map_names_embed_values(ctx, "red", matches),
-                _get_kdr_embed_values("green", matches),
-                _get_kdr_embed_values("blue", matches),
-                _get_kdr_embed_values("red", matches),
-            )
-        except Exception as e:
-            await progress_msg.delete()
-            await bot_utils.send_error_msg(ctx, e)
-            return ctx.bot.log.error(ctx, e)
-
-        color = self.bot.settings["gw2"]["EmbedColor"]
-        embed = discord.Embed(title=gw2_messages.WVW_KDR_TITLE, description=tier, color=color)
-        embed.add_field(name="Green", value=green_worlds_names)
-        embed.add_field(name="Blue", value=blue_worlds_names)
-        embed.add_field(name="Red", value=red_worlds_names)
-        embed.add_field(name="--------------------", value=green_values)
-        embed.add_field(name="--------------------", value=blue_values)
-        embed.add_field(name="--------------------", value=red_values)
-        await progress_msg.delete()
-        await bot_utils.send_embed(ctx, embed)
+    except Exception as e:
+        await bot_utils.send_error_msg(ctx, e)
+        ctx.bot.log.error(ctx, e)
         return None
 
 
