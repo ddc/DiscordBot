@@ -4,6 +4,7 @@ import discord
 import pytest
 from datetime import datetime, timedelta
 from src.gw2.constants.gw2_currencies import WALLET_DISPLAY_NAMES, WALLET_MAPPING
+from src.gw2.constants.gw2_messages import GW2_FULL_NAME
 from src.gw2.tools.gw2_exceptions import APIConnectionError
 from src.gw2.tools.gw2_utils import (
     TimeObject,
@@ -638,7 +639,7 @@ class TestCheckGw2GameActivity:
 
         gw2_activity = MagicMock()
         gw2_activity.type = discord.ActivityType.playing
-        gw2_activity.name = "Guild Wars 2"
+        gw2_activity.name = GW2_FULL_NAME
 
         before.activities = []
         after.activities = [gw2_activity]
@@ -656,7 +657,7 @@ class TestCheckGw2GameActivity:
 
         gw2_activity = MagicMock()
         gw2_activity.type = discord.ActivityType.playing
-        gw2_activity.name = "Guild Wars 2"
+        gw2_activity.name = GW2_FULL_NAME
 
         before.activities = [gw2_activity]
         after.activities = []
@@ -674,7 +675,7 @@ class TestCheckGw2GameActivity:
 
         gw2_activity = MagicMock()
         gw2_activity.type = discord.ActivityType.playing
-        gw2_activity.name = "Guild Wars 2"
+        gw2_activity.name = GW2_FULL_NAME
 
         before.activities = [gw2_activity]
         after.activities = [gw2_activity]
@@ -708,7 +709,7 @@ class TestCheckGw2GameActivity:
 
         custom_activity = MagicMock()
         custom_activity.type = discord.ActivityType.custom
-        custom_activity.name = "Guild Wars 2"
+        custom_activity.name = GW2_FULL_NAME
 
         before.activities = [custom_activity]
         after.activities = [custom_activity]
@@ -1824,7 +1825,7 @@ class TestActivityHelpers:
     def test_is_gw2_activity_detected_after(self):
         """Test _is_gw2_activity_detected with GW2 in after activity."""
         mock_activity = MagicMock()
-        mock_activity.name = "Guild Wars 2"
+        mock_activity.name = GW2_FULL_NAME
 
         result = _is_gw2_activity_detected(None, mock_activity)
         assert result is True

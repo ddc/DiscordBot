@@ -1,3 +1,4 @@
+GW2_FULL_NAME = "Guild Wars 2"
 #################################
 # EVENT ON COMMAND ERROR
 #################################

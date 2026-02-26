@@ -199,7 +199,10 @@ def _is_user_playing_gw2(ctx) -> bool:
     if not hasattr(member, "activities"):
         return False
     for activity in member.activities:
-        if activity.type is not discord.ActivityType.custom and "guild wars 2" in str(activity.name).lower():
+        if (
+            activity.type is not discord.ActivityType.custom
+            and gw2_messages.GW2_FULL_NAME.lower() in str(activity.name).lower()
+        ):
             return True
     return False
 

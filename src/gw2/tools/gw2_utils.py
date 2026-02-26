@@ -310,8 +310,10 @@ async def check_gw2_game_activity(bot: Bot, before: discord.Member, after: disco
     if not _is_gw2_activity_detected(before_activity, after_activity):
         return
 
-    before_is_gw2 = before_activity is not None and "guild wars 2" in str(before_activity.name).lower()
-    after_is_gw2 = after_activity is not None and "guild wars 2" in str(after_activity.name).lower()
+    before_is_gw2 = (
+        before_activity is not None and gw2_messages.GW2_FULL_NAME.lower() in str(before_activity.name).lower()
+    )
+    after_is_gw2 = after_activity is not None and gw2_messages.GW2_FULL_NAME.lower() in str(after_activity.name).lower()
 
     bot.log.debug(
         f"GW2 activity detected for {after.id}: "
@@ -337,8 +339,8 @@ def _get_non_custom_activity(activities) -> discord.Activity | None:
 
 def _is_gw2_activity_detected(before_activity, after_activity) -> bool:
     """Check if Guild Wars 2 activity is detected in before or after states."""
-    return (after_activity is not None and "guild wars 2" in str(after_activity.name).lower()) or (
-        before_activity is not None and "guild wars 2" in str(before_activity.name).lower()
+    return (after_activity is not None and gw2_messages.GW2_FULL_NAME.lower() in str(after_activity.name).lower()) or (
+        before_activity is not None and gw2_messages.GW2_FULL_NAME.lower() in str(before_activity.name).lower()
     )
 
 

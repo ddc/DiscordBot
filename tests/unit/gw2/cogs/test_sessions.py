@@ -14,6 +14,7 @@ from src.gw2.cogs.sessions import (
 )
 from src.gw2.constants import gw2_messages
 from src.gw2.constants.gw2_currencies import WALLET_DISPLAY_NAMES
+from src.gw2.constants.gw2_messages import GW2_FULL_NAME
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
@@ -352,7 +353,7 @@ class TestSessionCommand:
         session_data = [{"acc_name": "TestUser.1234", "start": {}, "end": None}]
         gw2_activity = MagicMock()
         gw2_activity.type = discord.ActivityType.playing
-        gw2_activity.name = "Guild Wars 2"
+        gw2_activity.name = GW2_FULL_NAME
         mock_ctx.message.author.activities = (gw2_activity,)
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
@@ -382,7 +383,7 @@ class TestSessionCommand:
 
         gw2_activity = MagicMock()
         gw2_activity.type = discord.ActivityType.playing
-        gw2_activity.name = "Guild Wars 2"
+        gw2_activity.name = GW2_FULL_NAME
         mock_ctx.message.author.activities = (gw2_activity,)
 
         with (
@@ -819,7 +820,7 @@ class TestSessionCommand:
         session_data = _make_session_data()
         gw2_activity = MagicMock()
         gw2_activity.type = discord.ActivityType.playing
-        gw2_activity.name = "Guild Wars 2"
+        gw2_activity.name = GW2_FULL_NAME
         mock_ctx.message.author.activities = (gw2_activity,)
         mock_ctx.channel = MagicMock(spec=discord.TextChannel)
 
@@ -852,7 +853,7 @@ class TestSessionCommand:
         mock_ctx.channel = MagicMock(spec=discord.DMChannel)
         gw2_activity = MagicMock()
         gw2_activity.type = discord.ActivityType.playing
-        gw2_activity.name = "Guild Wars 2"
+        gw2_activity.name = GW2_FULL_NAME
         mock_ctx.message.author.activities = (gw2_activity,)
 
         runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
