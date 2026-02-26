@@ -122,9 +122,7 @@ class TestAccountCommand:
 
             with patch("src.gw2.cogs.account.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
-                invalid_key_error = APIInvalidKey(mock_ctx.bot, "Invalid API key")
-                # Make the error have an args attribute like a real exception
-                invalid_key_error.args = ("error", "Invalid API key message")
+                invalid_key_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.INVALID_API_KEY}")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_key_error)
 
                 with patch("src.gw2.cogs.account.bot_utils.send_error_msg") as mock_error:
@@ -132,7 +130,7 @@ class TestAccountCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert "Invalid API key message" in error_msg
+                    assert gw2_messages.INVALID_API_KEY in error_msg
 
     @pytest.mark.asyncio
     async def test_account_command_insufficient_permissions(self, mock_ctx, sample_account_data):

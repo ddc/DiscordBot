@@ -39,7 +39,7 @@ async def _validate_api_key(bot, api_key):
     gw2_api = Gw2Client(bot)
     is_valid_key = await gw2_api.check_api_key(api_key)
     if not isinstance(is_valid_key, dict):
-        raise ValueError(f"{is_valid_key.args[1]}\n`{api_key}`")
+        raise ValueError(f"{is_valid_key.message}\n`{api_key}`")
 
     key_name = is_valid_key["name"]
     permissions = ",".join(is_valid_key["permissions"])

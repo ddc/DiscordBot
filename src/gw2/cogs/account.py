@@ -74,7 +74,7 @@ async def account(ctx):
     # Validate API key
     is_valid_key = await gw2_api.check_api_key(api_key)
     if not isinstance(is_valid_key, dict):
-        msg = f"{is_valid_key.args[1]}\n"
+        msg = f"{is_valid_key.message}\n"
         msg += gw2_messages.INVALID_API_KEY_HELP_MESSAGE
         msg += gw2_messages.key_add_info_help(ctx.prefix)
         msg += gw2_messages.key_more_info_help(ctx.prefix)
