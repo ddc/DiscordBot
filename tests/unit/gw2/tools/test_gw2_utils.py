@@ -9,7 +9,6 @@ from src.gw2.tools.gw2_utils import (
     TimeObject,
     _calculate_earned_points,
     _create_initial_user_stats,
-    _execute_session_action,
     _fetch_achievement_data_in_batches,
     _get_non_custom_activity,
     _get_wvw_rank_prefix,
@@ -43,7 +42,6 @@ from src.gw2.tools.gw2_utils import (
     start_session,
     update_end_char_deaths,
 )
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 

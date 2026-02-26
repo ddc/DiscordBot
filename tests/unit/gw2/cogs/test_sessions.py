@@ -9,8 +9,6 @@ from src.gw2.cogs.sessions import (
     _add_gold_field,
     _add_wallet_currency_fields,
     _add_wvw_stats,
-    _build_live_char_deaths,
-    _is_user_playing_gw2,
     session,
     setup,
 )
@@ -362,7 +360,9 @@ class TestSessionCommand:
                 mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
                 with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
                     mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=session_data)
-                    with patch("src.gw2.cogs.sessions.gw2_utils.get_user_stats", new_callable=AsyncMock, return_value=None):
+                    with patch(
+                        "src.gw2.cogs.sessions.gw2_utils.get_user_stats", new_callable=AsyncMock, return_value=None
+                    ):
                         with patch(
                             "src.gw2.cogs.sessions.gw2_utils.send_progress_embed",
                             new_callable=AsyncMock,

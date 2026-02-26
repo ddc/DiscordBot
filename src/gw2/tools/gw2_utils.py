@@ -354,10 +354,7 @@ async def _handle_gw2_activity_change(
     """
     if member.id in _processing_sessions:
         _processing_sessions[member.id] = action
-        bot.log.debug(
-            f"Session operation in progress for user {member.id}, "
-            f"queuing '{action}' as pending"
-        )
+        bot.log.debug(f"Session operation in progress for user {member.id}, queuing '{action}' as pending")
         return
 
     _processing_sessions[member.id] = None
