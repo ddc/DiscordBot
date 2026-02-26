@@ -4,6 +4,7 @@ import discord
 import pytest
 from datetime import datetime, timedelta
 from src.gw2.constants.gw2_currencies import WALLET_DISPLAY_NAMES, WALLET_MAPPING
+from src.gw2.constants.gw2_messages import GW2_FULL_NAME
 from src.gw2.tools.gw2_exceptions import APIConnectionError
 from src.gw2.tools.gw2_utils import (
     TimeObject,
@@ -14,6 +15,7 @@ from src.gw2.tools.gw2_utils import (
     _get_wvw_rank_prefix,
     _handle_gw2_activity_change,
     _is_gw2_activity_detected,
+    _processing_sessions,
     _retry_session_later,
     _update_achievement_stats,
     _update_wallet_stats,
@@ -631,13 +633,13 @@ class TestCheckGw2GameActivity:
 
     @pytest.mark.asyncio
     async def test_gw2_activity_detected_triggers_handler(self, mock_bot):
-        """Test that GW2 activity detected triggers handler (lines 250-254)."""
+        """Test that GW2 activity detected triggers handler."""
         before = MagicMock()
         after = MagicMock()
 
         gw2_activity = MagicMock()
         gw2_activity.type = discord.ActivityType.playing
-        gw2_activity.name = "Guild Wars 2"
+        gw2_activity.name = GW2_FULL_NAME
 
         before.activities = []
         after.activities = [gw2_activity]
@@ -645,7 +647,42 @@ class TestCheckGw2GameActivity:
         with patch("src.gw2.tools.gw2_utils._handle_gw2_activity_change") as mock_handle:
             mock_handle.return_value = None
             await check_gw2_game_activity(mock_bot, before, after)
-            mock_handle.assert_called_once_with(mock_bot, after, gw2_activity)
+            mock_handle.assert_called_once_with(mock_bot, after, "start")
+
+    @pytest.mark.asyncio
+    async def test_gw2_stopped_triggers_end(self, mock_bot):
+        """Test that stopping GW2 triggers end action."""
+        before = MagicMock()
+        after = MagicMock()
+
+        gw2_activity = MagicMock()
+        gw2_activity.type = discord.ActivityType.playing
+        gw2_activity.name = GW2_FULL_NAME
+
+        before.activities = [gw2_activity]
+        after.activities = []
+
+        with patch("src.gw2.tools.gw2_utils._handle_gw2_activity_change") as mock_handle:
+            mock_handle.return_value = None
+            await check_gw2_game_activity(mock_bot, before, after)
+            mock_handle.assert_called_once_with(mock_bot, after, "end")
+
+    @pytest.mark.asyncio
+    async def test_gw2_to_gw2_skipped(self, mock_bot):
+        """Test that GW2->GW2 transitions are skipped (no session change)."""
+        before = MagicMock()
+        after = MagicMock()
+
+        gw2_activity = MagicMock()
+        gw2_activity.type = discord.ActivityType.playing
+        gw2_activity.name = GW2_FULL_NAME
+
+        before.activities = [gw2_activity]
+        after.activities = [gw2_activity]
+
+        with patch("src.gw2.tools.gw2_utils._handle_gw2_activity_change") as mock_handle:
+            await check_gw2_game_activity(mock_bot, before, after)
+            mock_handle.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_no_gw2_activity_does_nothing(self, mock_bot):
@@ -672,7 +709,7 @@ class TestCheckGw2GameActivity:
 
         custom_activity = MagicMock()
         custom_activity.type = discord.ActivityType.custom
-        custom_activity.name = "Guild Wars 2"
+        custom_activity.name = GW2_FULL_NAME
 
         before.activities = [custom_activity]
         after.activities = [custom_activity]
@@ -704,13 +741,12 @@ class TestHandleGw2ActivityChange:
 
     @pytest.mark.asyncio
     async def test_no_server_configs_returns(self, mock_bot, mock_member):
-        """Test that no server configs returns early (line 281)."""
+        """Test that no server configs returns early."""
         with patch("src.gw2.tools.gw2_utils.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_gw2_server_configs = AsyncMock(return_value=None)
 
-            after_activity = MagicMock()
-            await _handle_gw2_activity_change(mock_bot, mock_member, after_activity)
+            await _handle_gw2_activity_change(mock_bot, mock_member, "start")
 
             # Should not proceed to Gw2KeyDal
             with patch("src.gw2.tools.gw2_utils.Gw2KeyDal") as mock_key_dal:
@@ -718,17 +754,16 @@ class TestHandleGw2ActivityChange:
 
     @pytest.mark.asyncio
     async def test_session_not_active_returns(self, mock_bot, mock_member):
-        """Test that inactive session returns early (line 281)."""
+        """Test that inactive session returns early."""
         with patch("src.gw2.tools.gw2_utils.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_gw2_server_configs = AsyncMock(return_value=[{"session": False}])
 
-            after_activity = MagicMock()
-            await _handle_gw2_activity_change(mock_bot, mock_member, after_activity)
+            await _handle_gw2_activity_change(mock_bot, mock_member, "start")
 
     @pytest.mark.asyncio
     async def test_no_api_key_returns(self, mock_bot, mock_member):
-        """Test that no API key returns early (lines 287-288)."""
+        """Test that no API key returns early."""
         with patch("src.gw2.tools.gw2_utils.Gw2ConfigsDal") as mock_dal:
             mock_configs = mock_dal.return_value
             mock_configs.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
@@ -737,12 +772,11 @@ class TestHandleGw2ActivityChange:
                 mock_key_instance = mock_key_dal.return_value
                 mock_key_instance.get_api_key_by_user = AsyncMock(return_value=None)
 
-                after_activity = MagicMock()
-                await _handle_gw2_activity_change(mock_bot, mock_member, after_activity)
+                await _handle_gw2_activity_change(mock_bot, mock_member, "start")
 
     @pytest.mark.asyncio
-    async def test_after_activity_not_none_starts_session(self, mock_bot, mock_member):
-        """Test that non-None after_activity starts a session (lines 292-293)."""
+    async def test_start_action_starts_session(self, mock_bot, mock_member):
+        """Test that 'start' action starts a session."""
         with patch("src.gw2.tools.gw2_utils.Gw2ConfigsDal") as mock_dal:
             mock_configs = mock_dal.return_value
             mock_configs.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
@@ -753,15 +787,14 @@ class TestHandleGw2ActivityChange:
 
                 with patch("src.gw2.tools.gw2_utils.start_session") as mock_start:
                     mock_start.return_value = None
-                    after_activity = MagicMock()  # Not None
 
-                    await _handle_gw2_activity_change(mock_bot, mock_member, after_activity)
+                    await _handle_gw2_activity_change(mock_bot, mock_member, "start")
 
                     mock_start.assert_called_once_with(mock_bot, mock_member, "test-api-key-123")
 
     @pytest.mark.asyncio
-    async def test_after_activity_none_ends_session(self, mock_bot, mock_member):
-        """Test that None after_activity ends a session (lines 294-295)."""
+    async def test_end_action_ends_session(self, mock_bot, mock_member):
+        """Test that 'end' action ends a session."""
         with patch("src.gw2.tools.gw2_utils.Gw2ConfigsDal") as mock_dal:
             mock_configs = mock_dal.return_value
             mock_configs.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
@@ -773,9 +806,79 @@ class TestHandleGw2ActivityChange:
                 with patch("src.gw2.tools.gw2_utils.end_session") as mock_end:
                     mock_end.return_value = None
 
-                    await _handle_gw2_activity_change(mock_bot, mock_member, None)
+                    await _handle_gw2_activity_change(mock_bot, mock_member, "end")
 
                     mock_end.assert_called_once_with(mock_bot, mock_member, "test-api-key-123")
+
+    @pytest.mark.asyncio
+    async def test_pending_end_processed_after_start(self, mock_bot, mock_member):
+        """Test that an end event queued during a start is processed after start finishes."""
+        with patch("src.gw2.tools.gw2_utils._execute_session_action") as mock_execute:
+            call_count = 0
+
+            async def side_effect(bot, member, action):
+                nonlocal call_count
+                call_count += 1
+                if call_count == 1:
+                    # Simulate end event arriving during start processing
+                    _processing_sessions[member.id] = "end"
+
+            mock_execute.side_effect = side_effect
+
+            await _handle_gw2_activity_change(mock_bot, mock_member, "start")
+
+            assert mock_execute.call_count == 2
+            mock_execute.assert_any_call(mock_bot, mock_member, "start")
+            mock_execute.assert_any_call(mock_bot, mock_member, "end")
+            assert mock_member.id not in _processing_sessions
+
+    @pytest.mark.asyncio
+    async def test_duplicate_during_processing_queues_latest(self, mock_bot, mock_member):
+        """Test that only the latest pending action is kept when multiple arrive during processing."""
+        with patch("src.gw2.tools.gw2_utils._execute_session_action") as mock_execute:
+            call_count = 0
+
+            async def side_effect(bot, member, action):
+                nonlocal call_count
+                call_count += 1
+                if call_count == 1:
+                    # Simulate: start queued, then end queued (end wins)
+                    _processing_sessions[member.id] = "start"
+                    _processing_sessions[member.id] = "end"
+
+            mock_execute.side_effect = side_effect
+
+            await _handle_gw2_activity_change(mock_bot, mock_member, "start")
+
+            assert mock_execute.call_count == 2
+            # Second call should be "end" (last queued action)
+            mock_execute.assert_any_call(mock_bot, mock_member, "end")
+            assert mock_member.id not in _processing_sessions
+
+    @pytest.mark.asyncio
+    async def test_concurrent_call_queues_instead_of_dropping(self, mock_bot, mock_member):
+        """Test that a concurrent call queues the action instead of dropping it."""
+        # Simulate a session already being processed
+        _processing_sessions[mock_member.id] = None
+
+        try:
+            await _handle_gw2_activity_change(mock_bot, mock_member, "end")
+
+            # The action should be queued, not dropped
+            assert _processing_sessions[mock_member.id] == "end"
+        finally:
+            _processing_sessions.pop(mock_member.id, None)
+
+    @pytest.mark.asyncio
+    async def test_processing_sessions_cleaned_up_on_error(self, mock_bot, mock_member):
+        """Test that _processing_sessions is cleaned up even when an error occurs."""
+        with patch("src.gw2.tools.gw2_utils._execute_session_action") as mock_execute:
+            mock_execute.side_effect = RuntimeError("test error")
+
+            with pytest.raises(RuntimeError, match="test error"):
+                await _handle_gw2_activity_change(mock_bot, mock_member, "start")
+
+            assert mock_member.id not in _processing_sessions
 
 
 class TestStartSession:
@@ -1722,7 +1825,7 @@ class TestActivityHelpers:
     def test_is_gw2_activity_detected_after(self):
         """Test _is_gw2_activity_detected with GW2 in after activity."""
         mock_activity = MagicMock()
-        mock_activity.name = "Guild Wars 2"
+        mock_activity.name = GW2_FULL_NAME
 
         result = _is_gw2_activity_detected(None, mock_activity)
         assert result is True
