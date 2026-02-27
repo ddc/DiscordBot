@@ -107,7 +107,7 @@ async def session(ctx):
         else:
             # End data missing and user stopped playing - finalize the session now
             progress_msg = await gw2_utils.send_progress_embed(ctx)
-            await gw2_utils.end_session(ctx.bot, ctx.message.author, api_key)
+            await gw2_utils.end_session(ctx.bot, ctx.message.author, api_key, skip_delay=True)
             rs_session = await gw2_session_dal.get_user_last_session(user_id)
             if not rs_session or rs_session[0]["end"] is None:
                 await progress_msg.delete()
@@ -179,7 +179,7 @@ async def session(ctx):
 
         if not is_live_snapshot and is_playing:
             still_playing_msg = f"{ctx.message.author.mention}\n {gw2_messages.SESSION_USER_STILL_PLAYING}"
-            await gw2_utils.end_session(ctx.bot, ctx.message.author, api_key)
+            await gw2_utils.end_session(ctx.bot, ctx.message.author, api_key, skip_delay=True)
             await ctx.send(still_playing_msg)
 
         await progress_msg.delete()
