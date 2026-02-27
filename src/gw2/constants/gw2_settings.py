@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from functools import lru_cache
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Lazy loading flag for dotenv
@@ -31,7 +31,13 @@ class Gw2Settings(BaseSettings):
     api_retry_max_attempts: int | None = Field(default=5)
     api_retry_delay: float | None = Field(default=3.0)
     api_session_retry_bg_delay: float | None = Field(default=30.0)
-    api_session_end_delay: float | None = Field(default=120.0)
+    api_session_end_delay: float | None = Field(default=180.0)
+
+    @model_validator(mode="after")
+    def _clamp_session_end_delay(self) -> Gw2Settings:
+        if self.api_session_end_delay is not None and self.api_session_end_delay < 180.0:
+            self.api_session_end_delay = 180.0
+        return self
 
 
 @lru_cache(maxsize=1)
