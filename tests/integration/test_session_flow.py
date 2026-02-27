@@ -151,7 +151,7 @@ async def test_session_start_end_lifecycle(db_session, log):
     mock_gw2_api_end.call_api = AsyncMock(side_effect=_mock_call_api_end)
 
     with patch("src.gw2.tools.gw2_utils.Gw2Client", return_value=mock_gw2_api_end):
-        await gw2_utils.end_session(mock_bot, mock_member, API_KEY)
+        await gw2_utils.end_session(mock_bot, mock_member, API_KEY, skip_delay=True)
 
     # Verify session end JSONB was populated
     sessions = await sessions_dal.get_user_last_session(USER_ID)
@@ -186,7 +186,7 @@ async def test_end_session_without_start_is_noop(db_session, log):
     mock_gw2_api.call_api = AsyncMock(side_effect=_mock_call_api_end)
 
     with patch("src.gw2.tools.gw2_utils.Gw2Client", return_value=mock_gw2_api):
-        await gw2_utils.end_session(mock_bot, mock_member, API_KEY)
+        await gw2_utils.end_session(mock_bot, mock_member, API_KEY, skip_delay=True)
 
     mock_log.warning.assert_called_once()
     assert "999888" in mock_log.warning.call_args[0][0]

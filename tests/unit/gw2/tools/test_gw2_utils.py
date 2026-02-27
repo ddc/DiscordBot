@@ -1004,7 +1004,7 @@ class TestEndSession:
                 mock_task = MagicMock()
                 mock_create_task.return_value = mock_task
 
-                await end_session(mock_bot, mock_member, "api-key")
+                await end_session(mock_bot, mock_member, "api-key", skip_delay=True)
 
                 mock_create_task.assert_called_once()
                 mock_task.add_done_callback.assert_called_once()
@@ -1031,7 +1031,7 @@ class TestEndSession:
                         with patch("src.gw2.tools.gw2_utils.update_end_char_deaths") as mock_update_char:
                             mock_update_char.return_value = None
 
-                            await end_session(mock_bot, mock_member, "api-key")
+                            await end_session(mock_bot, mock_member, "api-key", skip_delay=True)
 
                             mock_instance.update_end_session.assert_called_once()
                             call_arg = mock_instance.update_end_session.call_args[0][0]
@@ -1059,11 +1059,42 @@ class TestEndSession:
                         mock_instance.update_end_session = AsyncMock(return_value=None)
 
                         with patch("src.gw2.tools.gw2_utils.update_end_char_deaths") as mock_update_char:
-                            await end_session(mock_bot, mock_member, "api-key")
+                            await end_session(mock_bot, mock_member, "api-key", skip_delay=True)
 
                             mock_instance.update_end_session.assert_called_once()
                             mock_update_char.assert_not_called()
                             mock_bot.log.warning.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_end_session_waits_for_api_cache(self, mock_bot, mock_member):
+        """Test that end_session waits for the API cache delay before fetching stats."""
+        with patch("src.gw2.tools.gw2_utils._gw2_settings") as mock_settings:
+            mock_settings.api_session_end_delay = 300.0
+
+            with patch("src.gw2.tools.gw2_utils.asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+                with patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats:
+                    mock_stats.return_value = None
+
+                    with patch("src.gw2.tools.gw2_utils.asyncio.create_task") as mock_task:
+                        mock_task.return_value = MagicMock()
+
+                        await end_session(mock_bot, mock_member, "api-key")
+
+                        mock_sleep.assert_called_once_with(300.0)
+
+    @pytest.mark.asyncio
+    async def test_end_session_skip_delay(self, mock_bot, mock_member):
+        """Test that skip_delay=True bypasses the API cache wait."""
+        with patch("src.gw2.tools.gw2_utils.asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+            with patch("src.gw2.tools.gw2_utils.get_user_stats") as mock_stats:
+                mock_stats.return_value = None
+
+                with patch("src.gw2.tools.gw2_utils.asyncio.create_task") as mock_task:
+                    mock_task.return_value = MagicMock()
+
+                    await end_session(mock_bot, mock_member, "api-key", skip_delay=True)
+
+                    mock_sleep.assert_not_called()
 
 
 class TestGetUserStats:

@@ -442,8 +442,18 @@ async def _do_start_session(bot: Bot, member: discord.Member, api_key: str, sess
     await insert_start_char_deaths(bot, member, api_key, session_id)
 
 
-async def end_session(bot: Bot, member: discord.Member, api_key: str) -> None:
-    """End a GW2 session for a member."""
+async def end_session(bot: Bot, member: discord.Member, api_key: str, *, skip_delay: bool = False) -> None:
+    """End a GW2 session for a member.
+
+    Waits for the GW2 API cache to refresh before fetching end stats,
+    so that wallet/achievement values reflect in-game changes.
+    Set skip_delay=True for user-facing commands where the user is actively waiting.
+    """
+    end_delay = _gw2_settings.api_session_end_delay
+    if not skip_delay and end_delay and end_delay > 0:
+        bot.log.debug(f"Waiting {end_delay}s for GW2 API cache to refresh before ending session for user {member.id}")
+        await asyncio.sleep(end_delay)
+
     session = await get_user_stats(bot, api_key)
     if not session:
         bot.log.warning(f"Failed to end session for user {member.id}: unable to fetch stats from GW2 API")
