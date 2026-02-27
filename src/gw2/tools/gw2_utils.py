@@ -344,6 +344,28 @@ def _is_gw2_activity_detected(before_activity, after_activity) -> bool:
     )
 
 
+def is_session_ending(user_id: int) -> bool:
+    """Check if a session end is currently being processed for this user."""
+    if user_id not in _processing_sessions:
+        return False
+    state = _processing_sessions[user_id]
+    return state["current"] == "end" or state.get("pending") == "end"
+
+
+def get_session_end_remaining_seconds(user_id: int) -> int | None:
+    """Get remaining seconds until end session delay completes, or None if not waiting."""
+    if user_id not in _processing_sessions:
+        return None
+    state = _processing_sessions[user_id]
+    started_at = state.get("delay_started_at")
+    if started_at is None or state["current"] != "end":
+        return None
+    end_delay = _gw2_settings.api_session_end_delay or 0
+    elapsed = (datetime.now() - started_at).total_seconds()
+    remaining = max(0, int(end_delay - elapsed))
+    return remaining
+
+
 async def _handle_gw2_activity_change(
     bot: Bot,
     member: discord.Member,
@@ -452,6 +474,8 @@ async def end_session(bot: Bot, member: discord.Member, api_key: str, *, skip_de
     end_delay = _gw2_settings.api_session_end_delay
     if not skip_delay and end_delay and end_delay > 0:
         bot.log.debug(f"Waiting {end_delay}s for GW2 API cache to refresh before ending session for user {member.id}")
+        if member.id in _processing_sessions:
+            _processing_sessions[member.id]["delay_started_at"] = datetime.now()
         await asyncio.sleep(end_delay)
 
     session = await get_user_stats(bot, api_key)
