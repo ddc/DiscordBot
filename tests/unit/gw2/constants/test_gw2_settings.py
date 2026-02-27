@@ -157,6 +157,27 @@ class TestGw2Settings:
             assert settings.session_cooldown == 3600
             assert settings.account_cooldown == 86400
 
+    def test_session_end_delay_below_180_clamped(self):
+        """Test that api_session_end_delay below 180 is clamped to 180."""
+        env_vars = {"GW2_API_SESSION_END_DELAY": "60"}
+        with patch.dict(os.environ, env_vars, clear=True):
+            settings = Gw2Settings()
+            assert settings.api_session_end_delay == 180.0
+
+    def test_session_end_delay_at_180_preserved(self):
+        """Test that api_session_end_delay at exactly 180 is preserved."""
+        env_vars = {"GW2_API_SESSION_END_DELAY": "180"}
+        with patch.dict(os.environ, env_vars, clear=True):
+            settings = Gw2Settings()
+            assert settings.api_session_end_delay == 180.0
+
+    def test_session_end_delay_above_180_preserved(self):
+        """Test that api_session_end_delay above 180 is preserved."""
+        env_vars = {"GW2_API_SESSION_END_DELAY": "300"}
+        with patch.dict(os.environ, env_vars, clear=True):
+            settings = Gw2Settings()
+            assert settings.api_session_end_delay == 300.0
+
     def test_all_cooldown_fields_exist(self):
         """Test that all expected cooldown fields exist with correct types."""
         settings = Gw2Settings()
