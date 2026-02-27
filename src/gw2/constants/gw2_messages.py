@@ -95,6 +95,11 @@ ADD_RIGHT_API_KEY_PERMISSIONS = (
     "Please add another API key with permissions that are MISSING if you want to use this command."
 )
 SESSION_BOT_STILL_UPDATING = "Bot still updating your stats!"
+SESSION_END_PROCESSING = (
+    "Your session is still being processed.\n"
+    "The bot waits a few minutes after you stop playing to ensure accurate data from the GW2 API.\n"
+    "Please try again shortly."
+)
 SESSION_USER_STILL_PLAYING = "You are playing Guild Wars 2 at the moment.\nYour stats may NOT be accurate."
 WAITING_TIME = "Waiting time"
 ACCOUNT_NAME = "Account Name"

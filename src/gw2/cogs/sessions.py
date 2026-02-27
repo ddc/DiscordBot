@@ -104,8 +104,18 @@ async def session(ctx):
             live_stats["date"] = bot_utils.convert_datetime_to_str_short(bot_utils.get_current_date_time())
             rs_end = live_stats
             is_live_snapshot = True
+        elif gw2_utils.is_session_ending(user_id):
+            # Background end_session is still waiting for the API cache to refresh
+            remaining = gw2_utils.get_session_end_remaining_seconds(user_id)
+            msg = gw2_messages.SESSION_END_PROCESSING
+            if remaining is not None and remaining > 0:
+                m = remaining // 60
+                s = remaining % 60
+                time_str = f"{m}m {s}s" if m > 0 else f"{s}s"
+                msg += f"\n{gw2_messages.WAITING_TIME}: `{time_str}`"
+            return await bot_utils.send_warning_msg(ctx, msg)
         else:
-            # End data missing and user stopped playing - finalize the session now
+            # End data missing, user stopped playing, no background task - finalize now
             progress_msg = await gw2_utils.send_progress_embed(ctx)
             await gw2_utils.end_session(ctx.bot, ctx.message.author, api_key, skip_delay=True)
             rs_session = await gw2_session_dal.get_user_last_session(user_id)
