@@ -352,15 +352,15 @@ postgres = [
 
 [[package]]
 name = "discord-py"
-version = "2.6.4"
+version = "2.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
     { name = "audioop-lts" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ce/e7/9b1dbb9b2fc07616132a526c05af23cfd420381793968a189ee08e12e35f/discord_py-2.6.4.tar.gz", hash = "sha256:44384920bae9b7a073df64ae9b14c8cf85f9274b5ad5d1d07bd5a67539de2da9", size = 1092623, upload-time = "2025-10-08T21:45:43.593Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3b/6e/8c6ceba65e2c832fd00906bbfa3801c3a175eafc3039b47a7f587978e01f/discord_py-2.7.0.tar.gz", hash = "sha256:b40a36fd09232c958cef0640c7830f3cdc9b1d476e63355b91728576ac7dd1ba", size = 1106358, upload-time = "2026-02-27T18:53:17.074Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ca/ae/3d3a89b06f005dc5fa8618528dde519b3ba7775c365750f7932b9831ef05/discord_py-2.6.4-py3-none-any.whl", hash = "sha256:2783b7fb7f8affa26847bfc025144652c294e8fe6e0f8877c67ed895749eb227", size = 1209284, upload-time = "2025-10-08T21:45:41.679Z" },
+    { url = "https://files.pythonhosted.org/packages/ba/92/eb023fe59414e179e17e3b20d4708da5248714c2832b4af55b8c0386bedd/discord_py-2.7.0-py3-none-any.whl", hash = "sha256:6abe8392d8127213b02ef714be41f843dd053775500bb2e7c596abb77e802b9b", size = 1227558, upload-time = "2026-02-27T18:53:15.381Z" },
 ]
 
 [[package]]
@@ -395,7 +395,7 @@ requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.14.3" },
     { name = "better-profanity", specifier = ">=0.7.0" },
     { name = "ddcdatabases", extras = ["postgres"], specifier = ">=3.0.11" },
-    { name = "discord-py", specifier = ">=2.6.4" },
+    { name = "discord-py", specifier = ">=2.7.0" },
     { name = "gtts", specifier = ">=2.5.4" },
     { name = "openai", specifier = ">=2.24.0" },
     { name = "pynacl", specifier = ">=1.6.2" },
@@ -973,11 +973,11 @@ wheels = [
 
 [[package]]
 name = "python-dotenv"
-version = "1.2.1"
+version = "1.2.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f0/26/19cadc79a718c5edbec86fd4919a6b6d3f681039a2f6d66d14be94e75fb9/python_dotenv-1.2.1.tar.gz", hash = "sha256:42667e897e16ab0d66954af0e60a9caa94f0fd4ecf3aaf6d2d260eec1aa36ad6", size = 44221, upload-time = "2025-10-26T15:12:10.434Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/82/ed/0301aeeac3e5353ef3d94b6ec08bbcabd04a72018415dcb29e588514bba8/python_dotenv-1.2.2.tar.gz", hash = "sha256:2c371a91fbd7ba082c2c1dc1f8bf89ca22564a087c2c287cd9b662adde799cf3", size = 50135, upload-time = "2026-03-01T16:00:26.196Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/14/1b/a298b06749107c305e1fe0f814c6c74aea7b2f1e10989cb30f544a1b3253/python_dotenv-1.2.1-py3-none-any.whl", hash = "sha256:b81ee9561e9ca4004139c6cbba3a238c32b03e4894671e181b671e8cb8425d61", size = 21230, upload-time = "2025-10-26T15:12:09.109Z" },
+    { url = "https://files.pythonhosted.org/packages/0b/d7/1959b9648791274998a9c3526f6d0ec8fd2233e4d4acce81bbae76b44b2a/python_dotenv-1.2.2-py3-none-any.whl", hash = "sha256:1d8214789a24de455a8b8bd8ae6fe3c6b69a5e3d64aa8a8e5d68e694bbcb285a", size = 22101, upload-time = "2026-03-01T16:00:25.09Z" },
 ]
 
 [[package]]
