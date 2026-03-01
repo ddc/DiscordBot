@@ -43,9 +43,9 @@
   - [GW2 WvW](#gw2-wvw-commands)
 - [Development and Testing](#development-and-testing)
 - [Credits](#Credits)
-- [Support](#support)
 - [License](#license)
-
+- [Support](#support)
+- 
 
 # Features
 - OpenAI integration for AI-powered responses
@@ -305,13 +305,13 @@ poe profile-integration
 - [PostgreSQL](https://www.postgresql.org)
 
 
+# License
+Released under the [MIT License](LICENSE)
+
+
 # Support
 If you find this project helpful, consider supporting development:
 
 - [GitHub Sponsor](https://github.com/sponsors/ddc)
 - [ko-fi](https://ko-fi.com/ddcsta)
 - [PayPal](https://www.paypal.com/ncp/payment/6G9Z78QHUD4RJ)
-
-
-# License
-Released under the [MIT License](LICENSE)
