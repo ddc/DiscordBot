@@ -9,11 +9,9 @@
     <a href="https://github.com/sponsors/ddc"><img src="https://img.shields.io/static/v1?style=plastic&label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=ff69b4" alt="Sponsor"/></a>
     <br>
     <a href="https://www.python.org/downloads"><img src="https://img.shields.io/badge/python-3.14-blue.svg?style=plastic&logo=python&logoColor=3776AB" alt="Python"/></a>
+    <a href="https://github.com/ddc/DiscordBot/releases/latest"><img src="https://img.shields.io/github/v/release/ddc/DiscordBot?style=plastic&logo=github&logoColor=white" alt="Release"/></a>
     <a href="https://github.com/astral-sh/uv"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json&style=plastic" alt="uv"/></a>
     <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=plastic" alt="Ruff"/></a>
-    <br>
-    <a href="https://github.com/ddc/DiscordBot/releases/latest"><img src="https://img.shields.io/github/v/release/ddc/DiscordBot?style=plastic&logo=github&logoColor=white" alt="Release"/></a>
-    <a href="https://github.com/ddc/DiscordBot/releases/latest"><img src="https://img.shields.io/github/downloads/ddc/DiscordBot/total?style=plastic&logo=github&logoColor=white" alt="Downloads"/></a>
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=plastic&logo=creativecommons&logoColor=FFFFFF" alt="License: MIT"/></a>
     <br>
     <a href="https://github.com/ddc/DiscordBot/issues"><img src="https://img.shields.io/github/issues/ddc/DiscordBot?style=plastic&logo=github&logoColor=white" alt="issues"/></a>
@@ -26,7 +24,7 @@
 <p align="center">A simple <a href="https://discord.com">Discord</a> bot with OpenAI support and server administration tools.<br>This bot serves as a starting point (template) for building other bots.</p>
 
 
-## Table of Contents
+# Table of Contents
 - [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
@@ -44,10 +42,10 @@
   - [GW2 Key](#gw2-key-commands)
   - [GW2 WvW](#gw2-wvw-commands)
 - [Development and Testing](#development-and-testing)
-- [Acknowledgements](#acknowledgements)
-- [Support](#support)
+- [Credits](#Credits)
 - [License](#license)
-
+- [Support](#support)
+- 
 
 # Features
 - OpenAI integration for AI-powered responses
@@ -67,13 +65,13 @@
 
 # Installation
 
-### 1. Clone the repository
+## 1. Clone the repository
 ```shell
 git clone https://github.com/ddc/DiscordBot.git
 cd DiscordBot
 ```
 
-### 2. Configure environment variables
+## 2. Configure environment variables
 ```shell
 cp .env.example .env
 ```
@@ -96,7 +94,7 @@ POSTGRESQL_DATABASE=discordbot
 
 See [Configuration](#configuration) for all available options.
 
-### 3. Start the bot
+## 3. Start the bot
 
 The bot expects an external PostgreSQL instance running on a Docker network named `postgres_network`.
 If you don't have one, you can start a local database using the included compose file:
@@ -115,7 +113,7 @@ This will:
 2. Run database migrations automatically
 3. Start the bot
 
-### 4. Verify the bot is running
+## 4. Verify the bot is running
 ```shell
 docker-compose logs -f discordbot
 ```
@@ -127,7 +125,7 @@ For the full installation guide, see the [Wiki](https://ddc.github.io/DiscordBot
 
 All configuration is done through environment variables in the `.env` file.
 
-### Bot Settings
+## Bot Settings
 | Variable                  | Default           | Description                                                |
 |:--------------------------|:------------------|:-----------------------------------------------------------|
 | `BOT_TOKEN`               |                   | Discord bot token **(required)**                           |
@@ -139,13 +137,13 @@ All configuration is done through environment variables in the `.env` file.
 | `BOT_EXCLUSIVE_USERS`     |                   | Restrict bot to specific users (comma-separated IDs)       |
 | `BOT_BG_ACTIVITY_TIMER`   | `0`               | Background activity rotation timer (seconds, 0 = disabled) |
 
-### OpenAI Settings
+## OpenAI Settings
 | Variable           | Default       | Description         |
 |:-------------------|:--------------|:--------------------|
 | `OPENAI_API_KEY`   |               | OpenAI API key      |
 | `BOT_OPENAI_MODEL` | `gpt-4o-mini` | OpenAI model to use |
 
-### PostgreSQL Settings
+## PostgreSQL Settings
 | Variable              | Default               | Description       |
 |:----------------------|:----------------------|:------------------|
 | `POSTGRESQL_HOST`     | `postgres`            | Database host     |
@@ -155,7 +153,7 @@ All configuration is done through environment variables in the `.env` file.
 | `POSTGRESQL_DATABASE` | `discordbot`          | Database name     |
 | `POSTGRESQL_SCHEMA`   | `public`              | Database schema   |
 
-### Logging Settings
+## Logging Settings
 | Variable           | Default           | Description           |
 |:-------------------|:------------------|:----------------------|
 | `LOG_LEVEL`        | `INFO`            | Log level             |
@@ -168,17 +166,17 @@ See [.env.example](.env.example) for the complete list of configuration options 
 
 # Commands
 
-### OpenAI Commands
+## OpenAI Commands
 | Command        | Description                                      |
 |:---------------|:-------------------------------------------------|
 | `ai <message>` | Ask OpenAI for assistance, response as embed     |
 
-### Admin/Mod Commands
+## Admin/Mod Commands
 | Command                    | Description                     |
 |:---------------------------|:--------------------------------|
 | `admin botgame <new game>` | Change game that bot is playing |
 
-### Config Commands
+## Config Commands
 | Command                                    | Description                                  |
 |:-------------------------------------------|:---------------------------------------------|
 | `admin config list`                        | List all bot configurations                  |
@@ -190,7 +188,7 @@ See [.env.example](.env.example) for the complete list of configuration options 
 | `admin config botreactions [on, off]`      | Toggle bot reactions to member words         |
 | `admin config pfilter [on, off] <channel>` | Configure profanity filter per channel       |
 
-### Custom Commands
+## Custom Commands
 | Command                               | Description                        |
 |:--------------------------------------|:-----------------------------------|
 | `admin cc add <command> <text>`       | Add a new custom command           |
@@ -199,7 +197,7 @@ See [.env.example](.env.example) for the complete list of configuration options 
 | `admin cc removeall`                  | Remove all custom commands         |
 | `admin cc list`                       | List all custom commands           |
 
-### Misc Commands
+## Misc Commands
 | Command             | Description                             |
 |:--------------------|:----------------------------------------|
 | `about`             | Display bot info                        |
@@ -212,7 +210,7 @@ See [.env.example](.env.example) for the complete list of configuration options 
 | `lmgtfy <search>`   | Create a LMGTFY link                    |
 | `invites`           | List active invite links for the server |
 
-### Dice Rolls Commands
+## Dice Rolls Commands
 | Command                  | Description                               |
 |:-------------------------|:------------------------------------------|
 | `roll`                   | Roll a die (defaults to 100)              |
@@ -220,14 +218,14 @@ See [.env.example](.env.example) for the complete list of configuration options 
 | `roll results`           | Display all dice rolls from the server    |
 | `roll reset`             | Delete all dice rolls (admin only)        |
 
-### Bot Owner Commands
+## Bot Owner Commands
 | Command                                  | Description                     |
 |:-----------------------------------------|:--------------------------------|
 | `owner servers`                          | Display all servers in database |
 | `owner prefix <new prefix>`              | Change bot prefix for commands  |
 | `owner botdescription <new description>` | Update bot description          |
 
-### GW2 Commands
+## GW2 Commands
 | Command             | Description                               |
 |:--------------------|:------------------------------------------|
 | `gw2 account`       | Display your GW2 account information      |
@@ -238,13 +236,13 @@ See [.env.example](.env.example) for the complete list of configuration options 
 | `gw2 wiki <search>` | Search the Guild Wars 2 wiki              |
 | `gw2 info <search>` | Information about a given name/skill/rune |
 
-### GW2 Config Commands
+## GW2 Config Commands
 | Command                        | Description                           |
 |:-------------------------------|:--------------------------------------|
 | `gw2 config list`              | List all GW2 configurations           |
 | `gw2 config session [on, off]` | Toggle recording of user sessions     |
 
-### GW2 Key Commands
+## GW2 Key Commands
 | Command                    | Description                   |
 |:---------------------------|:------------------------------|
 | `gw2 key add [api_key]`    | Add your first GW2 API key    |
@@ -252,7 +250,7 @@ See [.env.example](.env.example) for the complete list of configuration options 
 | `gw2 key remove`           | Remove your GW2 API key       |
 | `gw2 key info`             | Show your API key information |
 
-### GW2 WvW Commands
+## GW2 WvW Commands
 | Command                 | Description            |
 |:------------------------|:-----------------------|
 | `gw2 wvw info [world]`  | Info about a WvW world |
@@ -264,12 +262,12 @@ See [.env.example](.env.example) for the complete list of configuration options 
 
 Requires [UV](https://docs.astral.sh/uv/getting-started/installation/) to be installed.
 
-### Setup
+## Setup
 ```shell
 uv sync --all-extras --all-groups
 ```
 
-### Running Tests
+## Running Tests
 ```shell
 # Unit tests
 poe test
@@ -281,7 +279,7 @@ poe test-integration
 poe tests
 ```
 
-### Other Tasks
+## Other Tasks
 ```shell
 # Run linter (ruff)
 poe linter
@@ -300,11 +298,15 @@ poe profile-integration
 ```
 
 
-# Acknowledgements
+# Credits
 - [Discord Bot API](https://discord.com/developers/applications)
 - [OpenAI API](https://openai.com/api)
 - [Guild Wars 2 API](https://wiki.guildwars2.com/wiki/API:2)
 - [PostgreSQL](https://www.postgresql.org)
+
+
+# License
+Released under the [MIT License](LICENSE)
 
 
 # Support
@@ -313,7 +315,3 @@ If you find this project helpful, consider supporting development:
 - [GitHub Sponsor](https://github.com/sponsors/ddc)
 - [ko-fi](https://ko-fi.com/ddcsta)
 - [PayPal](https://www.paypal.com/ncp/payment/6G9Z78QHUD4RJ)
-
-
-# License
-Released under the [MIT License](LICENSE)
