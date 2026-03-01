@@ -5,21 +5,25 @@
 </h1>
 
 <p align="center">
-    <a href="https://www.paypal.com/ncp/payment/6G9Z78QHUD4RJ"><img src="https://img.shields.io/badge/Donate-PayPal-brightgreen.svg?style=plastic" alt="Donate"/></a>
+    <a href="https://www.paypal.com/ncp/payment/6G9Z78QHUD4RJ"><img src="https://img.shields.io/badge/Donate-PayPal-brightgreen.svg?style=plastic&logo=paypal&logoColor=3776AB" alt="Donate"/></a>
     <a href="https://github.com/sponsors/ddc"><img src="https://img.shields.io/static/v1?style=plastic&label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=ff69b4" alt="Sponsor"/></a>
     <br>
-    <a href="https://www.python.org/downloads"><img src="https://img.shields.io/badge/python-3.14-blue.svg?style=plastic" alt="Python"/></a>
-    <a href="https://github.com/astral-sh/uv"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json?style=plastic" alt="uv"/></a>
-    <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json?style=plastic" alt="Ruff"/></a>
-    <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=plastic" alt="License: MIT"/></a>
+    <a href="https://www.python.org/downloads"><img src="https://img.shields.io/badge/python-3.14-blue.svg?style=plastic&logo=python&logoColor=3776AB" alt="Python"/></a>
+    <a href="https://github.com/astral-sh/uv"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json&style=plastic" alt="uv"/></a>
+    <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=plastic" alt="Ruff"/></a>
     <br>
-    <a href="https://github.com/ddc/DiscordBot/issues"><img src="https://img.shields.io/github/issues/ddc/DiscordBot?style=plastic" alt="issues"/></a>
-    <a href="https://codecov.io/gh/ddc/DiscordBot"><img src="https://codecov.io/gh/ddc/DiscordBot/graph/badge.svg?token=E942EZII4Q&style=plastic" alt="codecov"/></a>
-    <a href="https://sonarcloud.io/dashboard?id=ddc_DiscordBot"><img src="https://sonarcloud.io/api/project_badges/measure?project=ddc_DiscordBot&metric=alert_status&style=plastic" alt="Quality Gate Status"/></a>
-    <a href="https://github.com/ddc/DiscordBot/actions/workflows/workflow.yml"><img src="https://github.com/ddc/DiscordBot/actions/workflows/workflow.yml/badge.svg?style=plastic" alt="CI/CD Pipeline"/></a>
+    <a href="https://github.com/ddc/DiscordBot/releases/latest"><img src="https://img.shields.io/github/v/release/ddc/DiscordBot?style=plastic&logo=github&logoColor=white" alt="Release"/></a>
+    <a href="https://github.com/ddc/DiscordBot/releases/latest"><img src="https://img.shields.io/github/downloads/ddc/DiscordBot/total?style=plastic&logo=github&logoColor=white" alt="Downloads"/></a>
+    <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=plastic&logo=creativecommons&logoColor=FFFFFF" alt="License: MIT"/></a>
+    <br>
+    <a href="https://github.com/ddc/DiscordBot/issues"><img src="https://img.shields.io/github/issues/ddc/DiscordBot?style=plastic&logo=github&logoColor=white" alt="issues"/></a>
+    <a href="https://codecov.io/gh/ddc/DiscordBot"><img src="https://img.shields.io/codecov/c/github/ddc/DiscordBot?token=E942EZII4Q&style=plastic&logo=codecov" alt="codecov"/></a>
+    <a href="https://sonarcloud.io/dashboard?id=ddc_DiscordBot"><img src="https://img.shields.io/sonar/quality_gate/ddc_DiscordBot?server=https%3A%2F%2Fsonarcloud.io&style=plastic&logo=sonarqubecloud&logoColor=white" alt="Quality Gate Status"/></a>
+    <a href="https://github.com/ddc/DiscordBot/actions/workflows/workflow.yml"><img src="https://img.shields.io/github/actions/workflow/status/ddc/DiscordBot/workflow.yml?style=plastic&logo=github&logoColor=white&label=CI%2FCD%20Pipeline" alt="CI/CD Pipeline"/></a>
+    <a href="https://actions-badge.atrox.dev/ddc/DiscordBot/goto?ref=main"><img src="https://img.shields.io/endpoint.svg?url=https%3A//actions-badge.atrox.dev/ddc/DiscordBot/badge?ref=main&label=build&logo=github&style=plastic" alt="Build Status"/></a>
 </p>
 
-<p align="center">A simple Discord bot with OpenAI support and server administration tools.</p>
+<p align="center">A simple <a href="https://discord.com">Discord</a> bot with OpenAI support and server administration tools.<br>This bot serves as a starting point (template) for building other bots.</p>
 
 
 ## Table of Contents
