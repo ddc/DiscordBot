@@ -3,7 +3,7 @@ name = "DiscordBot"
 version = "3.0.8"
 description = "A simple Discord bot with OpenAI support and server administration tools"
 urls.Repository = "https://github.com/ddc/DiscordBot"
-urls.Homepage = "https://github.com/ddc/DiscordBot"
+urls.Homepage = "https://ddc.github.io/DiscordBot"
 license = { text = "MIT" }
 readme = "README.md"
 authors = [
@@ -14,8 +14,8 @@ maintainers = [
 ]
 keywords = [
   "python", "python3", "python-3",
-  "DiscordBot", "discord-bots", "bot",
-  "discord-py", "discord"
+  "DiscordBot", "discord-bot", "bot",
+  "discord-py", "discord-py-bot", "discord"
 ]
 classifiers = [
   "Topic :: Communications :: Chat",
