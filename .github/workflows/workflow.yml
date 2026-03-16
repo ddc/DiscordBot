@@ -120,10 +120,26 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Prepare docs from README
+        run: |
+          {
+            echo '---'
+            echo 'layout: default'
+            echo '---'
+            echo ''
+            cat README.md
+          } > docs/index.md
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: docs/
+          destination: ./_site
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/
+          path: ./_site/
 
       - name: Deploy to GitHub Pages
         id: deployment
