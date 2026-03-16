@@ -33,6 +33,28 @@ services:
       retries: 5
       start_period: 30s
 
+  discordbot_alembic:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: discordbot_alembic
+    restart: always
+    env_file: .env
+    environment:
+      DOCKER_BUILDKIT: 1
+    networks:
+      - postgres_network
+    command: ["sh", "-c", "uv run --frozen --no-sync alembic upgrade head && touch /tmp/alembic_done && sleep infinity"]
+    deploy:
+      restart_policy:
+        delay: 60s
+    healthcheck:
+      test: ["CMD", "sh", "-c", "test -f /tmp/alembic_done"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 120s
+
 volumes:
   discordbot_database_data:
     name: "discordbot_database_data"
