@@ -127,8 +127,8 @@ jobs:
             echo 'layout: default'
             echo '---'
             echo ''
-            cat README.md
           } > docs/index.md
+          awk '{if (/^\|/ && prev != "" && prev !~ /^\|/) print ""; print; prev=$0}' README.md >> docs/index.md
 
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
