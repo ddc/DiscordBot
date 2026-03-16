@@ -36,8 +36,13 @@ class OpenAi(commands.Cog):
             color = discord.Color.red()
             description = f"Sorry, I encountered an error: {e}"
 
-        embed = self._create_ai_embed(ctx, description, color)
-        await bot_utils.send_embed(ctx, embed, False)
+        embeds = self._create_ai_embeds(ctx, description, color)
+        if len(embeds) == 1:
+            await bot_utils.send_embed(ctx, embeds[0], False)
+        else:
+            view = bot_utils.EmbedPaginatorView(embeds, ctx.author.id)
+            msg = await ctx.send(embed=embeds[0], view=view)
+            view.message = msg
 
     @property
     def openai_client(self) -> OpenAI:
@@ -71,20 +76,39 @@ class OpenAi(commands.Cog):
         return response.choices[0].message.content.strip()
 
     @staticmethod
-    def _create_ai_embed(ctx: commands.Context, description: str, color: discord.Color) -> discord.Embed:
-        """Create formatted embed for AI response."""
-        # Truncate long responses to fit Discord limits
-        if len(description) > 2000:
-            description = description[:1997] + "..."
+    def _create_ai_embeds(ctx: commands.Context, description: str, color: discord.Color) -> list[discord.Embed]:
+        """Create formatted embed(s) for AI response, paginating if needed."""
+        max_length = 2000
+        chunks = []
 
-        embed = discord.Embed(color=color, description=description)
-        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url if ctx.author.avatar else None)
-        embed.set_footer(
-            icon_url=ctx.bot.user.avatar.url if ctx.bot.user.avatar else None,
-            text=f"{bot_utils.get_current_date_time_str_long()} UTC",
-        )
+        while description:
+            if len(description) <= max_length:
+                chunks.append(description)
+                break
+            split_index = description.rfind("\n", 0, max_length)
+            if split_index == -1:
+                split_index = description.rfind(" ", 0, max_length)
+            if split_index == -1:
+                split_index = max_length
+            chunks.append(description[:split_index])
+            description = description[split_index:].lstrip()
 
-        return embed
+        pages = []
+        for i, chunk in enumerate(chunks):
+            embed = discord.Embed(color=color, description=chunk)
+            embed.set_author(
+                name=ctx.author.display_name, icon_url=ctx.author.avatar.url if ctx.author.avatar else None
+            )
+            footer_text = bot_utils.get_current_date_time_str_long() + " UTC"
+            if len(chunks) > 1:
+                footer_text = f"Page {i + 1}/{len(chunks)} | {footer_text}"
+            embed.set_footer(
+                icon_url=ctx.bot.user.avatar.url if ctx.bot.user.avatar else None,
+                text=footer_text,
+            )
+            pages.append(embed)
+
+        return pages
 
 
 async def setup(bot: Bot) -> None:

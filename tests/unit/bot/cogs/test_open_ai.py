@@ -196,61 +196,66 @@ class TestOpenAi:
 
         assert result == "Response with spaces"
 
-    def test_create_ai_embed_normal_length(self, openai_cog, mock_ctx):
-        """Test _create_ai_embed with normal length description."""
+    def test_create_ai_embeds_normal_length(self, openai_cog, mock_ctx):
+        """Test _create_ai_embeds with normal length description."""
         description = "This is a normal length response."
         color = discord.Color.blue()
 
-        embed = openai_cog._create_ai_embed(mock_ctx, description, color)
+        embeds = openai_cog._create_ai_embeds(mock_ctx, description, color)
 
-        assert isinstance(embed, discord.Embed)
-        assert embed.color == color
-        assert embed.description == description
-        assert embed.author.name == "TestUser"
-        assert embed.author.icon_url == "https://example.com/avatar.png"
+        assert len(embeds) == 1
+        assert isinstance(embeds[0], discord.Embed)
+        assert embeds[0].color == color
+        assert embeds[0].description == description
+        assert embeds[0].author.name == "TestUser"
+        assert embeds[0].author.icon_url == "https://example.com/avatar.png"
 
-    def test_create_ai_embed_long_description(self, openai_cog, mock_ctx):
-        """Test _create_ai_embed with description exceeding 2000 characters."""
+    def test_create_ai_embeds_long_description(self, openai_cog, mock_ctx):
+        """Test _create_ai_embeds with description exceeding 2000 characters paginates."""
         long_description = "a" * 2010  # Exceeds 2000-character limit
         color = discord.Color.green()
 
-        embed = openai_cog._create_ai_embed(mock_ctx, long_description, color)
+        embeds = openai_cog._create_ai_embeds(mock_ctx, long_description, color)
 
-        assert len(embed.description) <= 2000
-        assert embed.description.endswith("...")
-        assert embed.description.startswith("a" * 1997)
+        assert len(embeds) == 2
+        assert len(embeds[0].description) <= 2000
+        assert len(embeds[1].description) <= 2000
+        assert embeds[0].description + embeds[1].description == long_description
+        assert "Page 1/2" in embeds[0].footer.text
+        assert "Page 2/2" in embeds[1].footer.text
 
-    def test_create_ai_embed_exactly_2000_chars(self, openai_cog, mock_ctx):
-        """Test _create_ai_embed with exactly 2000 characters."""
+    def test_create_ai_embeds_exactly_2000_chars(self, openai_cog, mock_ctx):
+        """Test _create_ai_embeds with exactly 2000 characters returns single page."""
         description = "a" * 2000
         color = discord.Color.red()
 
-        embed = openai_cog._create_ai_embed(mock_ctx, description, color)
+        embeds = openai_cog._create_ai_embeds(mock_ctx, description, color)
 
-        assert embed.description == description
-        assert len(embed.description) == 2000
+        assert len(embeds) == 1
+        assert embeds[0].description == description
+        assert len(embeds[0].description) == 2000
 
-    def test_create_ai_embed_no_author_avatar(self, openai_cog, mock_ctx):
-        """Test _create_ai_embed when author has no avatar."""
+    def test_create_ai_embeds_no_author_avatar(self, openai_cog, mock_ctx):
+        """Test _create_ai_embeds when author has no avatar."""
         mock_ctx.author.avatar = None
         description = "Test response"
         color = discord.Color.orange()
 
-        embed = openai_cog._create_ai_embed(mock_ctx, description, color)
+        embeds = openai_cog._create_ai_embeds(mock_ctx, description, color)
 
-        assert embed.author.name == "TestUser"
-        assert embed.author.icon_url is None
+        assert embeds[0].author.name == "TestUser"
+        assert embeds[0].author.icon_url is None
 
-    def test_create_ai_embed_no_bot_avatar(self, openai_cog, mock_ctx):
-        """Test _create_ai_embed when bot has no avatar."""
+    def test_create_ai_embeds_no_bot_avatar(self, openai_cog, mock_ctx):
+        """Test _create_ai_embeds when bot has no avatar."""
         mock_ctx.bot.user.avatar = None
         description = "Test response"
         color = discord.Color.purple()
 
-        embed = openai_cog._create_ai_embed(mock_ctx, description, color)
+        embeds = openai_cog._create_ai_embeds(mock_ctx, description, color)
 
-        assert embed.footer.icon_url is None
-        assert "UTC" in embed.footer.text
+        assert embeds[0].footer.icon_url is None
+        assert "UTC" in embeds[0].footer.text
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.get_bot_settings")
@@ -350,13 +355,13 @@ class TestOpenAi:
         assert call_args["model"] == "gpt-3.5-turbo"
 
     @patch("src.bot.cogs.open_ai.bot_utils.get_current_date_time_str_long")
-    def test_create_ai_embed_footer(self, mock_get_datetime, openai_cog, mock_ctx):
+    def test_create_ai_embeds_footer(self, mock_get_datetime, openai_cog, mock_ctx):
         """Test that embed footer contains correct timestamp."""
         mock_get_datetime.return_value = "2023-01-01 12:00:00"
 
-        embed = openai_cog._create_ai_embed(mock_ctx, "Test", discord.Color.blue())
+        embeds = openai_cog._create_ai_embeds(mock_ctx, "Test", discord.Color.blue())
 
-        assert embed.footer.text == "2023-01-01 12:00:00 UTC"
+        assert embeds[0].footer.text == "2023-01-01 12:00:00 UTC"
         mock_get_datetime.assert_called_once()
 
     @pytest.mark.asyncio
@@ -435,24 +440,53 @@ class TestOpenAi:
 
         assert result == ""  # Should strip to empty string
 
-    def test_create_ai_embed_edge_case_1997_chars(self, openai_cog, mock_ctx):
-        """Test _create_ai_embed with exactly 1997 characters (edge case)."""
+    def test_create_ai_embeds_edge_case_1997_chars(self, openai_cog, mock_ctx):
+        """Test _create_ai_embeds with exactly 1997 characters returns single page."""
         description = "a" * 1997
         color = discord.Color.teal()
 
-        embed = openai_cog._create_ai_embed(mock_ctx, description, color)
+        embeds = openai_cog._create_ai_embeds(mock_ctx, description, color)
 
-        # Should not be truncated
-        assert embed.description == description
-        assert len(embed.description) == 1997
+        assert len(embeds) == 1
+        assert embeds[0].description == description
+        assert len(embeds[0].description) == 1997
 
-    def test_create_ai_embed_edge_case_1998_chars(self, openai_cog, mock_ctx):
-        """Test _create_ai_embed with 1998 characters (should NOT be truncated)."""
+    def test_create_ai_embeds_edge_case_1998_chars(self, openai_cog, mock_ctx):
+        """Test _create_ai_embeds with 1998 characters returns single page."""
         description = "a" * 1998
         color = discord.Color.magenta()
 
-        embed = openai_cog._create_ai_embed(mock_ctx, description, color)
+        embeds = openai_cog._create_ai_embeds(mock_ctx, description, color)
 
-        # Should NOT be truncated since 1998 <= 2000
-        assert embed.description == description
-        assert len(embed.description) == 1998
+        assert len(embeds) == 1
+        assert embeds[0].description == description
+        assert len(embeds[0].description) == 1998
+
+    def test_create_ai_embeds_splits_on_newline(self, openai_cog, mock_ctx):
+        """Test _create_ai_embeds splits on newline boundary when possible."""
+        # Create text with a newline near the 2000 char boundary
+        first_part = "a" * 1990
+        second_part = "b" * 100
+        description = first_part + "\n" + second_part
+        color = discord.Color.green()
+
+        embeds = openai_cog._create_ai_embeds(mock_ctx, description, color)
+
+        assert len(embeds) == 2
+        assert embeds[0].description == first_part
+        assert embeds[1].description == second_part
+
+    @pytest.mark.asyncio
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    async def test_ai_command_pagination(self, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings):
+        """Test AI command uses pagination for long responses."""
+        mock_get_settings.return_value = mock_bot_settings
+        long_response = "a" * 3000
+
+        with patch.object(openai_cog, "_get_ai_response", return_value=long_response):
+            await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="Long question")
+
+            mock_ctx.send.assert_called_once()
+            call_kwargs = mock_ctx.send.call_args[1]
+            assert "embed" in call_kwargs
+            assert "view" in call_kwargs
