@@ -3,9 +3,12 @@ Pytest configuration and fixtures.
 Auto-imports all modules for coverage discovery.
 """
 
+import logging
 import sys
 from pathlib import Path
 from unittest.mock import Mock
+
+logger = logging.getLogger(__name__)
 
 # Ensure the project root is on sys.path so `from src...` imports work
 # regardless of whether pytest was invoked via `python -m pytest` or `pytest`
@@ -36,8 +39,7 @@ def auto_import_modules():
         try:
             __import__(module_name)
         except Exception:
-            # Silently ignore import failures
-            pass
+            logger.debug("Failed to import %s for coverage discovery", module_name)
 
 
 # Run auto-import during pytest collection

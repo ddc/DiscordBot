@@ -8,7 +8,7 @@ Create Date: 2023-11-22 21:37:13.445078
 
 from alembic import op
 from collections.abc import Sequence
-from ddcDatabases.postgresql import get_postgresql_settings
+from ddcdatabases.postgresql import get_postgresql_settings
 
 revision: str = "0001"
 down_revision: str | None = None

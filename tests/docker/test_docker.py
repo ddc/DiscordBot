@@ -3,6 +3,7 @@ import shutil
 import subprocess
 
 pytestmark = pytest.mark.docker
+_DOCKER = shutil.which("docker") or "docker"
 
 
 class TestDockerLint:
@@ -10,7 +11,7 @@ class TestDockerLint:
         """Dockerfile passes hadolint linting."""
         dockerfile = project_root / "Dockerfile"
         hadolint_config = project_root / ".hadolint.yml"
-        cmd = ["docker", "run", "--rm", "-i"]
+        cmd = [_DOCKER, "run", "--rm", "-i"]
         if hadolint_config.exists():
             cmd += ["-v", f"{hadolint_config}:/.config/hadolint.yaml:ro"]
         cmd.append("hadolint/hadolint")
@@ -35,7 +36,7 @@ class TestComposeConfig:
             cleanup = True
         try:
             result = subprocess.run(
-                ["docker", "compose", "-f", compose_file, "config", "--quiet"],
+                [_DOCKER, "compose", "-f", compose_file, "config", "--quiet"],
                 cwd=project_root,
                 capture_output=True,
                 text=True,
@@ -65,7 +66,7 @@ class TestDockerSmoke:
     def test_python_available(self, docker_build):
         """Python is available and is 3.14.x in the base image."""
         result = subprocess.run(
-            ["docker", "run", "--rm", docker_build, "python", "--version"],
+            [_DOCKER, "run", "--rm", docker_build, "python", "--version"],
             capture_output=True,
             text=True,
             timeout=30,
@@ -76,7 +77,7 @@ class TestDockerSmoke:
     def test_uv_available(self, docker_build):
         """uv is available in the base image."""
         result = subprocess.run(
-            ["docker", "run", "--rm", docker_build, "uv", "--version"],
+            [_DOCKER, "run", "--rm", docker_build, "uv", "--version"],
             capture_output=True,
             text=True,
             timeout=30,

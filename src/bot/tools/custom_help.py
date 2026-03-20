@@ -14,7 +14,7 @@ class HelpPaginatorView(discord.ui.View):
         self.message: discord.Message | None = None
         self._update_buttons()
 
-    def _format_page(self) -> str:
+    def format_page(self) -> str:
         page_header = f"**Page {self.current_page + 1}/{len(self.pages)}**\n"
         return page_header + self.pages[self.current_page]
 
@@ -31,7 +31,7 @@ class HelpPaginatorView(discord.ui.View):
             )
         self.current_page -= 1
         self._update_buttons()
-        await interaction.response.edit_message(content=self._format_page(), view=self)
+        await interaction.response.edit_message(content=self.format_page(), view=self)
 
     @discord.ui.button(label="1/1", style=discord.ButtonStyle.secondary, disabled=True)
     async def page_indicator(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -45,7 +45,7 @@ class HelpPaginatorView(discord.ui.View):
             )
         self.current_page += 1
         self._update_buttons()
-        await interaction.response.edit_message(content=self._format_page(), view=self)
+        await interaction.response.edit_message(content=self.format_page(), view=self)
 
 
 class CustomHelpCommand(commands.DefaultHelpCommand):
@@ -131,7 +131,7 @@ class CustomHelpCommand(commands.DefaultHelpCommand):
             await self.context.author.send(pages[0])
         else:
             view = HelpPaginatorView(pages, self.context.author.id)
-            msg = await self.context.author.send(content=view._format_page(), view=view)
+            msg = await self.context.author.send(content=view.format_page(), view=view)
             view.message = msg
 
     async def _send_pages_to_destination(self, destination):
@@ -141,5 +141,5 @@ class CustomHelpCommand(commands.DefaultHelpCommand):
             await destination.send(pages[0])
         else:
             view = HelpPaginatorView(pages, self.context.author.id)
-            msg = await destination.send(content=view._format_page(), view=view)
+            msg = await destination.send(content=view.format_page(), view=view)
             view.message = msg

@@ -39,14 +39,14 @@ EXPECTED_GW2_TRIGGERS = [
 
 
 async def _fetch_rows(db_session, stmt):
-    from ddcDatabases import DBUtilsAsync
+    from ddcdatabases import DBUtilsAsync
 
     db = DBUtilsAsync(db_session)
     return await db.fetchall(stmt, True)
 
 
 async def _execute(db_session, stmt):
-    from ddcDatabases import DBUtilsAsync
+    from ddcdatabases import DBUtilsAsync
 
     db = DBUtilsAsync(db_session)
     await db.execute(stmt)
@@ -590,8 +590,8 @@ async def test_gw2_session_char_deaths_insert_and_read(db_session):
         text(
             "INSERT INTO gw2.gw2_session_char_deaths "
             "(session_id, user_id, name, profession, start) "
-            f"VALUES ('{session_id}', 8002, 'MyWarrior', 'Warrior', 5)"
-        ),
+            "VALUES (:session_id, 8002, 'MyWarrior', 'Warrior', 5)"
+        ).bindparams(session_id=session_id),
     )
     rows = await _fetch_rows(
         db_session,

@@ -1,4 +1,4 @@
-from ddcDatabases import DBUtilsAsync
+from ddcdatabases import DBUtilsAsync
 from sqlalchemy import update
 from sqlalchemy.future import select
 from src.database.models.gw2_models import Gw2SessionCharDeaths

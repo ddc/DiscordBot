@@ -25,7 +25,7 @@ class TestBotClass:
     """Test cases for Bot message class."""
 
     def test_token_not_found(self):
-        assert Bot.TOKEN_NOT_FOUND == "BOT_TOKEN variable not found"
+        assert Bot.MISSING_ENV_VAR == "BOT_TOKEN variable not found"
 
     def test_terminated(self):
         assert Bot.TERMINATED == "Bot has been terminated."
@@ -450,7 +450,7 @@ class TestBackwardCompatibility:
     """Test that module-level aliases match their class counterparts."""
 
     def test_bot_constants(self):
-        assert messages.BOT_TOKEN_NOT_FOUND == Bot.TOKEN_NOT_FOUND
+        assert messages.BOT_TOKEN_NOT_FOUND == Bot.MISSING_ENV_VAR
         assert messages.BOT_TERMINATED == Bot.TERMINATED
         assert messages.BOT_STOPPED_CTRTC == Bot.STOPPED_CTRTC
         assert messages.BOT_FATAL_ERROR_MAIN == Bot.FATAL_ERROR_MAIN

@@ -52,7 +52,7 @@ def setup_env_and_run_migrations(postgres_container):
     os.environ["POSTGRESQL_SCHEMA"] = "gw2,public"
     os.environ["POSTGRESQL_SSL_MODE"] = "disable"
 
-    from ddcDatabases import clear_postgresql_settings_cache
+    from ddcdatabases import clear_postgresql_settings_cache
 
     clear_postgresql_settings_cache()
 

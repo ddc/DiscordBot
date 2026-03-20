@@ -2,7 +2,7 @@
 
 
 class Bot:
-    TOKEN_NOT_FOUND = "BOT_TOKEN variable not found"
+    MISSING_ENV_VAR = "BOT_TOKEN variable not found"
     TERMINATED = "Bot has been terminated."
     STOPPED_CTRTC = "Bot stopped with Ctrl+C"
     FATAL_ERROR_MAIN = "Fatal error in main()"
@@ -225,7 +225,7 @@ class Owner:
 # ============================================================================
 
 # Bot
-BOT_TOKEN_NOT_FOUND = Bot.TOKEN_NOT_FOUND
+BOT_TOKEN_NOT_FOUND = Bot.MISSING_ENV_VAR
 BOT_TERMINATED = Bot.TERMINATED
 BOT_STOPPED_CTRTC = Bot.STOPPED_CTRTC
 BOT_FATAL_ERROR_MAIN = Bot.FATAL_ERROR_MAIN

@@ -5,7 +5,7 @@ import sys
 import time
 import traceback
 from aiohttp import ClientSession
-from ddcDatabases import PostgreSQL
+from ddcdatabases import PostgreSQL
 from pythonLogs import TimedRotatingLog
 from src.bot.constants import messages, variables
 from src.bot.constants.settings import get_bot_settings
