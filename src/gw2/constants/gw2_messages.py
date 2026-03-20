@@ -7,7 +7,7 @@ GW2_SERVER_MORE_INFO = "For more info on gw2 server names"
 #################################
 # GW2 API
 #################################
-INVALID_API_KEY = "This API Key is INVALID or no longer exists in gw2 api database"
+INVALID_APIKEY_MSG = "This API Key is INVALID or no longer exists in gw2 api database"
 API_ERROR = "GW2 API ERROR"
 API_DOWN = "GW2 API is currently down. Try again later."
 API_NOT_FOUND = "GW2 API Not found."

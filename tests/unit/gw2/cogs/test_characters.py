@@ -112,14 +112,14 @@ class TestCharactersCommand:
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
             with patch("src.gw2.cogs.characters.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
-                invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.INVALID_API_KEY}")
+                invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.INVALID_APIKEY_MSG}")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
                 with patch("src.gw2.cogs.characters.bot_utils.send_error_msg") as mock_error:
                     mock_error.return_value = None
                     await characters(mock_ctx)
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert gw2_messages.INVALID_API_KEY in error_msg
+                    assert gw2_messages.INVALID_APIKEY_MSG in error_msg
                     assert "gw2 key add" in error_msg or "key add" in error_msg
 
     @pytest.mark.asyncio
