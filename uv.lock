@@ -349,15 +349,15 @@ wheels = [
 
 [[package]]
 name = "ddcdatabases"
-version = "4.0.0"
+version = "4.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic-settings" },
     { name = "sqlalchemy", extra = ["asyncio"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9f/9c/736ad8f72b862d5e35e6bf198b6237e999e09644411d27759c1576590262/ddcdatabases-4.0.0.tar.gz", hash = "sha256:c1f6dd19467982a82d9aafeb44a530d06e324a2cd067f0fe2eba6ebab8aa2924", size = 38010, upload-time = "2026-03-17T14:51:28.88Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3f/2b/5366a265b047b3d35ba994e38219ea43ee7879ce4849c5943398f9dc2c61/ddcdatabases-4.0.1.tar.gz", hash = "sha256:5fa9bccbcd3335f8538a9f87e570426eed62033db2ad1f78f3187e2e28f50069", size = 38682, upload-time = "2026-03-20T16:20:14.004Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b9/be/e7b6c1d8d276f1976da3491f7316912673ce1f204ece34d90afbe9bd64ad/ddcdatabases-4.0.0-py3-none-any.whl", hash = "sha256:c784bb490db3bb2ad52dad3b8d58492bddc05d24241e3ec44232135b921c134a", size = 40913, upload-time = "2026-03-17T14:51:27.234Z" },
+    { url = "https://files.pythonhosted.org/packages/2d/88/babefbb84382c784f408b63592a549d485c6b09d769ecba5ce9c0d5d3298/ddcdatabases-4.0.1-py3-none-any.whl", hash = "sha256:af3931f02637d910bddaddef13de8da4671b305ce3bb4e5a33e4294d4d329a37", size = 41118, upload-time = "2026-03-20T16:20:13.117Z" },
 ]
 
 [package.optional-dependencies]
@@ -410,12 +410,12 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.18.4" },
     { name = "beautifulsoup4", specifier = ">=4.14.3" },
     { name = "better-profanity", specifier = ">=0.7.0" },
-    { name = "ddcdatabases", extras = ["postgres"], specifier = ">=4.0.0" },
+    { name = "ddcdatabases", extras = ["postgres"], specifier = ">=4.0.1" },
     { name = "discord-py", specifier = ">=2.7.1" },
     { name = "gtts", specifier = ">=2.5.4" },
     { name = "openai", specifier = ">=2.29.0" },
     { name = "pynacl", specifier = ">=1.6.2" },
-    { name = "pythonlogs", specifier = ">=6.0.3" },
+    { name = "pythonlogs", specifier = ">=7.0.0" },
     { name = "uuid-utils", specifier = ">=0.14.1" },
 ]
 
@@ -998,14 +998,14 @@ wheels = [
 
 [[package]]
 name = "pythonlogs"
-version = "6.0.3"
+version = "7.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic-settings" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/47/22/4cc8022d2cde5933a3c634e25b7facf6b1f520130ce6f74ffe3629c2c43b/pythonlogs-6.0.3.tar.gz", hash = "sha256:144da03ca5f555f1f4aae8e298d1c465b73fc15e3b6fe141cf4e2b20f2f52ba8", size = 21278, upload-time = "2026-02-25T22:30:12.033Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/21/00/f2366834681f9d66b670aed50f0931d37c4241fe43d1e4cddb0c2b70ce9b/pythonlogs-7.0.0.tar.gz", hash = "sha256:8a5ef7a4508cd718772d2dd7052b50c0b44cafe72b52a5cc3e382f8efb6a15e8", size = 21406, upload-time = "2026-03-20T14:21:58.886Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a3/35/bf851f6443797d1d0ae7fcd1b808a94093eb26e294261386f1d0ecd92116/pythonlogs-6.0.3-py3-none-any.whl", hash = "sha256:3227497d61412c90ca17a56537373c1fa346f460b940a43337f0349650c8fb71", size = 25224, upload-time = "2026-02-25T22:30:11.167Z" },
+    { url = "https://files.pythonhosted.org/packages/83/c4/40a854e28beaf1201a291fb8ac7624184f0e5427506f34874c4f51a96bda/pythonlogs-7.0.0-py3-none-any.whl", hash = "sha256:61ee53e710edd7aedb7d21340c591e5d2cfd9a4dab5aae62914501299a704d0d", size = 25308, upload-time = "2026-03-20T14:21:57.614Z" },
 ]
 
 [[package]]
