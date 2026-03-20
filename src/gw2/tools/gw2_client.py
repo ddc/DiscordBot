@@ -108,13 +108,13 @@ class Gw2Client:
     def _handle_400_error(self, status, err_msg, init_msg):
         """Handle 400 Bad Request errors."""
         if err_msg == "invalid key":
-            raise APIInvalidKey(self.bot, f"({status}) {gw2_messages.INVALID_API_KEY}")
+            raise APIInvalidKey(self.bot, f"({status}) {gw2_messages.INVALID_APIKEY_MSG}")
         raise APIBadRequest(self.bot, f"({init_msg}) {gw2_messages.API_DOWN}")
 
     def _handle_403_error(self, status, err_msg, init_msg):
         """Handle 403 Forbidden errors."""
         if err_msg == "invalid key":
-            raise APIInvalidKey(self.bot, f"({status}) {gw2_messages.INVALID_API_KEY}")
+            raise APIInvalidKey(self.bot, f"({status}) {gw2_messages.INVALID_APIKEY_MSG}")
         raise APIForbidden(self.bot, f"({init_msg}) {gw2_messages.API_ACCESS_DENIED}")
 
     def _handle_404_error(self, status, endpoint):

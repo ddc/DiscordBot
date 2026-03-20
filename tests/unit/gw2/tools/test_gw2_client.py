@@ -540,7 +540,7 @@ class TestHandle400Error:
         with pytest.raises(APIInvalidKey) as exc_info:
             gw2_client._handle_400_error(400, "invalid key", "init_msg")
 
-        assert gw2_messages.INVALID_API_KEY in str(exc_info.value)
+        assert gw2_messages.INVALID_APIKEY_MSG in str(exc_info.value)
 
     def test_other_error_raises_api_bad_request(self, gw2_client):
         """Test other error messages raise APIBadRequest (line 90)."""
@@ -575,7 +575,7 @@ class TestHandle403Error:
         with pytest.raises(APIInvalidKey) as exc_info:
             gw2_client._handle_403_error(403, "invalid key", "init_msg")
 
-        assert gw2_messages.INVALID_API_KEY in str(exc_info.value)
+        assert gw2_messages.INVALID_APIKEY_MSG in str(exc_info.value)
 
     def test_other_error_raises_api_forbidden(self, gw2_client):
         """Test other error messages raise APIForbidden (line 96)."""

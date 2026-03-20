@@ -362,7 +362,7 @@ async def info(ctx):
         is_valid_key = await gw2_api.check_api_key(api_key)
         if not isinstance(is_valid_key, dict):
             is_valid_key = "NO"
-            name = f"***{gw2_messages.INVALID_API_KEY}***"
+            name = f"***{gw2_messages.INVALID_APIKEY_MSG}***"
         else:
             is_valid_key = "YES"
             name = f"{ctx.message.author}"

@@ -21,9 +21,10 @@ ENV LOG_DIRECTORY="${LOG_DIRECTORY}" \
 WORKDIR ${WORKDIR}
 
 RUN set -ex && \
-    apk upgrade --no-cache zlib && \
+    apk update && \
+    apk upgrade --no-cache && \
     apk add --no-cache ca-certificates curl && \
-    curl --proto '=https' -LsSf https://astral.sh/uv/install.sh | sh && \
+    curl --proto '=https' --tlsv1.3 -LsSf https://astral.sh/uv/install.sh | sh && \
     addgroup -g 1000 botuser && \
     adduser -u 1000 -G botuser -h /home/botuser -D botuser && \
     mv /root/.local /home/botuser/.local && \
