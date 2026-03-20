@@ -54,9 +54,8 @@ dev = [
 [tool.poe.tasks]
 linter.shell = "uv run ruff check --fix . && uv run ruff format ."
 snyk-export.shell = "rm -f requirements.txt && uv export --no-hashes --no-annotate --format requirements-txt > requirements.txt && uvx pre-commit run --all-files || uvx pre-commit run --all-files"
-snyk.shell = "uv pip install pip && snyk test --file=requirements.txt --org=ddc-mrrnhJ5SN4VtEu4esjsm2L && snyk code test --org=ddc-mrrnhJ5SN4VtEu4esjsm2L; uv pip uninstall pip"
-snyk-container.shell = "docker build -t discordbot:snyk-scan . && snyk container test discordbot:snyk-scan --file=Dockerfile --org=ddc-mrrnhJ5SN4VtEu4esjsm2L; docker rmi discordbot:snyk-scan"
-
+snyk.shell = "uv pip install pip && snyk test --file=requirements.txt && snyk code test; uv pip uninstall pip"
+snyk-container.shell = "docker build -t discordbot:snyk-scan . && snyk container test discordbot:snyk-scan --file=Dockerfile; docker rmi discordbot:snyk-scan"
 profile = "uv run python -m cProfile -o cprofile_unit.prof -m pytest tests/unit"
 profile-integration = "uv run python -m cProfile -o cprofile_integration.prof -m pytest tests/integration"
 test.sequence = [{ shell = "uv run coverage run -m pytest tests/unit" }, { shell = "uv run coverage report" }, { shell = "uv run coverage xml" }]
