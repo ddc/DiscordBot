@@ -36,7 +36,7 @@ _achievement_cache: dict[int, dict] = {}
 
 class Gw2Servers(Enum):
     Anvil_Rock = "Anvil Rock"
-    Borlis_Pass = "Borlis Pass"  # noqa: S105 (GW2 server name, not a password)
+    Borlis_Pass = "Borlis Pass"  # noqa: S105
     Yaks_Bend = "Yak's Bend"
     Henge_of_Denravi = "Henge of Denravi"
     Maguuma = "Maguuma"
