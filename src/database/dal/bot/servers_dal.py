@@ -1,6 +1,6 @@
 import discord
 import sqlalchemy as sa
-from ddcDatabases import DBUtilsAsync
+from ddcdatabases import DBUtilsAsync
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.future import select
 from src.database.models.bot_models import ProfanityFilters, Servers

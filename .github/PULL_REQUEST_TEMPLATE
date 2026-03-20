@@ -15,13 +15,7 @@
 - [ ] Other
 
 ## Testing
-- [ ] Unit tests added/updated
-- [ ] Integration tests added/updated
 - [ ] Manual testing performed
-
-## Checklist
-- [ ] Documentation updated (if applicable)
-- [ ] I have considered how this change may affect other services
 
 ## Reviewer
 - [ ] I understand that by approving this PR, I share responsibility for these changes

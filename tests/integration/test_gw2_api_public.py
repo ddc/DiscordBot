@@ -6,6 +6,7 @@ that our hardcoded ID mappings still exist in the live API.
 
 import json
 import pytest
+import urllib.parse
 import urllib.request
 from src.gw2.constants.gw2_currencies import ACHIEVEMENT_MAPPING, WALLET_MAPPING
 
@@ -15,8 +16,10 @@ REQUEST_TIMEOUT = 60
 
 def _fetch_json(url: str) -> dict | list:
     """Fetch JSON from a URL using only stdlib."""
-    req = urllib.request.Request(url, headers={"User-Agent": "DiscordBot-Tests/1.0"})
-    with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT) as resp:
+    if urllib.parse.urlparse(url).scheme not in ("http", "https"):
+        raise ValueError(f"Unsupported URL scheme: {url}")
+    req = urllib.request.Request(url, headers={"User-Agent": "DiscordBot-Tests/1.0"})  # noqa: S310
+    with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT) as resp:  # noqa: S310
         return json.loads(resp.read().decode())
 
 

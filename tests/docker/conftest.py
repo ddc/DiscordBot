@@ -6,6 +6,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 COMPOSE_FILE = "docker-compose.yml"
 IMAGE_NAME = "discordbot-docker-test"
+DOCKER = shutil.which("docker") or "docker"
 
 
 @pytest.fixture(scope="session")
@@ -27,7 +28,7 @@ def image_name():
 def docker_build(project_root, image_name):
     """Build the python-base stage once per session."""
     result = subprocess.run(
-        ["docker", "build", "--target", "python-base", "-t", image_name, "."],
+        [DOCKER, "build", "--target", "python-base", "-t", image_name, "."],
         cwd=project_root,
         capture_output=True,
         text=True,
@@ -35,7 +36,7 @@ def docker_build(project_root, image_name):
     )
     assert result.returncode == 0, f"Docker build failed:\n{result.stderr}"
     yield image_name
-    subprocess.run(["docker", "rmi", "-f", image_name], capture_output=True)
+    subprocess.run([DOCKER, "rmi", "-f", image_name], capture_output=True)
 
 
 def pytest_collection_modifyitems(config, items):

@@ -1,5 +1,5 @@
 import sqlalchemy as sa
-from ddcDatabases import DBUtilsAsync
+from ddcdatabases import DBUtilsAsync
 from sqlalchemy.future import select
 from src.database.models.gw2_models import Gw2Keys
 

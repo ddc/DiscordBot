@@ -1,6 +1,6 @@
 from alembic import context
 from alembic.script import ScriptDirectory
-from ddcDatabases import get_postgresql_settings
+from ddcdatabases import get_postgresql_settings
 from logging.config import fileConfig
 from sqlalchemy import create_engine, engine_from_config, pool, text
 from sqlalchemy.schema import SchemaItem

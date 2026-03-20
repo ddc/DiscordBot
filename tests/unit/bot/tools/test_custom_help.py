@@ -36,22 +36,22 @@ class TestHelpPaginatorView:
         assert view.page_indicator.label == "1/2"
 
     @pytest.mark.asyncio
-    async def test_format_page_first(self):
-        """Test _format_page returns page header + content for first page."""
+    async def testformat_page_first(self):
+        """Test format_page returns page header + content for first page."""
         view = HelpPaginatorView(["```\nContent A\n```", "```\nContent B\n```"], author_id=1)
 
-        result = view._format_page()
+        result = view.format_page()
 
         assert result == "**Page 1/2**\n```\nContent A\n```"
 
     @pytest.mark.asyncio
-    async def test_format_page_second(self):
-        """Test _format_page returns correct content after navigating."""
+    async def testformat_page_second(self):
+        """Test format_page returns correct content after navigating."""
         view = HelpPaginatorView(["Page A", "Page B", "Page C"], author_id=1)
         view.current_page = 1
         view._update_buttons()
 
-        result = view._format_page()
+        result = view.format_page()
 
         assert result == "**Page 2/3**\nPage B"
 
