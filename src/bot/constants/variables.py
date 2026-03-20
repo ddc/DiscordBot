@@ -2,7 +2,7 @@ import os
 import sys
 import tomllib
 from pathlib import Path
-from pythonLogs import get_log_settings
+from pythonlogs import get_log_settings
 from src.bot.constants.settings import get_bot_settings
 from typing import Final
 
