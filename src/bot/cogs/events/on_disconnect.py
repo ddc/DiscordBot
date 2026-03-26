@@ -26,7 +26,12 @@ class OnDisconnect(commands.Cog):
         - Discord terminating the connection
         """
         try:
-            self.bot.log.warning(messages.bot_disconnected(self.bot.user))
+            ws = self.bot.ws
+            close_code = getattr(ws, "close_code", None) if ws else None
+            msg = messages.bot_disconnected(self.bot.user)
+            if close_code:
+                msg += f" (close code: {close_code})"
+            self.bot.log.warning(msg)
         except Exception as e:
             # Fallback logging in case of critical failure
             print(f"Bot disconnected - logging failed: {e}")
