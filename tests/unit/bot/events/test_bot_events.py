@@ -248,6 +248,7 @@ class TestOnDisconnect:
     @pytest.mark.asyncio
     async def test_on_disconnect_event_logs_warning(self, mock_bot):
         """Test on_disconnect event logs a warning message."""
+        mock_bot.ws = None
         cog = OnDisconnect(mock_bot)
 
         # Call the listener method directly
@@ -256,9 +257,23 @@ class TestOnDisconnect:
         mock_bot.log.warning.assert_called_once_with(messages.bot_disconnected(mock_bot.user))
 
     @pytest.mark.asyncio
+    async def test_on_disconnect_event_logs_close_code(self, mock_bot):
+        """Test on_disconnect event logs close code when available."""
+        mock_ws = MagicMock()
+        mock_ws.close_code = 1001
+        mock_bot.ws = mock_ws
+        cog = OnDisconnect(mock_bot)
+
+        await cog.on_disconnect()
+
+        expected_msg = f"{messages.bot_disconnected(mock_bot.user)} (close code: 1001)"
+        mock_bot.log.warning.assert_called_once_with(expected_msg)
+
+    @pytest.mark.asyncio
     @patch("src.bot.cogs.events.on_disconnect.messages")
     async def test_on_disconnect_event_with_bot_disconnected_message(self, mock_messages, mock_bot):
         """Test on_disconnect event calls bot_disconnected function."""
+        mock_bot.ws = None
         mock_messages.bot_disconnected.return_value = f"Bot {mock_bot.user} has disconnected!"
 
         cog = OnDisconnect(mock_bot)

@@ -28,6 +28,10 @@ class Bot:
     def disconnected(bot_user) -> str:
         return f"Bot {bot_user} disconnected from Discord"
 
+    @staticmethod
+    def resumed(bot_user) -> str:
+        return f"Bot {bot_user} resumed connection to Discord"
+
 
 class Admin:
     @staticmethod
@@ -241,6 +245,7 @@ BOT_LOADED_ALL_COGS_SUCCESS: Final = Bot.LOADED_ALL_COGS_SUCCESS
 bot_online = Bot.online
 bot_starting = Bot.starting
 bot_disconnected = Bot.disconnected
+bot_resumed = Bot.resumed
 
 # Admin
 bot_announce_playing = Admin.announce_playing

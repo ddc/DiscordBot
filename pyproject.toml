@@ -1,6 +1,6 @@
 [project]
 name = "DiscordBot"
-version = "3.0.10"
+version = "3.0.11"
 description = "A simple Discord bot with OpenAI support and server administration tools"
 urls.Repository = "https://github.com/ddc/DiscordBot"
 urls.Homepage = "https://ddc.github.io/DiscordBot"
@@ -47,7 +47,7 @@ dev = [
     "coverage>=7.13.5",
     "poethepoet>=0.42.1",
     "pytest-asyncio>=1.3.0",
-    "ruff>=0.15.7",
+    "ruff>=0.15.8",
     "testcontainers[postgres]>=4.14.2",
 ]
 
