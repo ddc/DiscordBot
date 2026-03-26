@@ -11,10 +11,10 @@
     <a href="https://www.paypal.com/ncp/payment/6G9Z78QHUD4RJ"><img src="https://img.shields.io/badge/Donate-PayPal-brightgreen.svg?style=plastic&logo=paypal&logoColor=white" alt="Donate"/></a>
     <br>
     <a href="https://www.python.org/downloads"><img src="https://img.shields.io/badge/python-3.14-blue.svg?style=plastic&logo=python&logoColor=3776AB" alt="Python"/></a>
-    <a href="https://github.com/ddc/DiscordBot/releases/latest"><img src="https://img.shields.io/github/v/release/ddc/DiscordBot?style=plastic&logo=github&logoColor=white" alt="Release"/></a>
     <a href="https://github.com/astral-sh/uv"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json&style=plastic" alt="uv"/></a>
     <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=plastic" alt="Ruff"/></a>
     <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=plastic&logo=creativecommons&logoColor=FFFFFF" alt="License: MIT"/></a>
+    <a href="https://github.com/ddc/DiscordBot/releases/latest"><img src="https://img.shields.io/github/v/release/ddc/DiscordBot?style=plastic&logo=github&logoColor=white" alt="Release"/></a>
     <br>
     <a href="https://github.com/ddc/DiscordBot/issues"><img src="https://img.shields.io/github/issues/ddc/DiscordBot?style=plastic&logo=github&logoColor=white" alt="issues"/></a>
     <a href="https://codecov.io/gh/ddc/DiscordBot"><img src="https://img.shields.io/codecov/c/github/ddc/DiscordBot?token=E942EZII4Q&style=plastic&logo=codecov" alt="codecov"/></a>
@@ -266,7 +266,7 @@ Requires [UV](https://docs.astral.sh/uv/getting-started/installation/) to be ins
 
 ## Setup
 ```shell
-uv sync --all-extras --all-groups
+uv lock --upgrade && uv sync --all-extras --all-groups
 ```
 
 ## Running Tests

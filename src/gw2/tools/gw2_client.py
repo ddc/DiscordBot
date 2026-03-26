@@ -10,9 +10,10 @@ from src.gw2.tools.gw2_exceptions import (
     APIInvalidKey,
     APINotFound,
 )
+from typing import Final
 
 _gw2_settings = get_gw2_settings()
-_RETRYABLE_STATUSES = (502, 503, 504)
+_RETRYABLE_STATUSES: Final = (502, 503, 504)
 
 
 class Gw2Client:

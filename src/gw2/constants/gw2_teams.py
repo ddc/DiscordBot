@@ -5,8 +5,10 @@ server-based WvW. Team IDs (11xxx for NA, 12xxx for EU) are not in the /v2/world
 API, so names must be hardcoded.
 """
 
+from typing import Final
+
 # NA teams: 11001-11012, EU teams: 12001-12015
-WR_TEAM_NAMES: dict[int, str] = {
+WR_TEAM_NAMES: Final[dict[int, str]] = {
     # North America
     11001: "Team 1 (NA)",
     11002: "Team 2 (NA)",

@@ -1,6 +1,6 @@
 [project]
 name = "DiscordBot"
-version = "3.0.9"
+version = "3.0.10"
 description = "A simple Discord bot with OpenAI support and server administration tools"
 urls.Repository = "https://github.com/ddc/DiscordBot"
 urls.Homepage = "https://ddc.github.io/DiscordBot"
@@ -36,7 +36,7 @@ dependencies = [
   "ddcdatabases[postgres]>=4.0.1",
   "discord-py>=2.7.1",
   "gTTS>=2.5.4",
-  "openai>=2.29.0",
+  "openai>=2.30.0",
   "PyNaCl>=1.6.2",
   "pythonLogs>=7.0.0",
   "uuid-utils>=0.14.1",
@@ -63,7 +63,7 @@ test-integration = "uv run pytest tests/integration"
 hadolint.shell = "docker run --rm -i -v $(pwd)/.hadolint.yml:/.config/hadolint.yml:ro hadolint/hadolint < Dockerfile"
 test-docker = "uv run pytest tests/docker"
 tests.sequence = ["linter", "hadolint", "test-docker", "test", "test-integration"]
-updatedev.sequence = ["linter", {shell = "uv lock --upgrade && uv sync --all-extras --group dev"}]
+updatedev.sequence = ["linter", {shell = "uv lock --upgrade && uv sync --all-extras --all-groups"}]
 migration = "uv run --frozen alembic upgrade head"
 
 [tool.pytest.ini_options]

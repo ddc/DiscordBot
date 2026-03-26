@@ -1,3 +1,5 @@
+from typing import Final
+
 GW2_FULL_NAME = "Guild Wars 2"
 #################################
 # EVENT ON COMMAND ERROR
@@ -7,24 +9,24 @@ GW2_SERVER_MORE_INFO = "For more info on gw2 server names"
 #################################
 # GW2 API
 #################################
-INVALID_APIKEY_MSG = "This API Key is INVALID or no longer exists in gw2 api database"
-API_ERROR = "GW2 API ERROR"
-API_DOWN = "GW2 API is currently down. Try again later."
-API_NOT_FOUND = "GW2 API Not found."
-API_REQUEST_REACHED = "GW2 API Requests limit has been saturated. Try again later."
-API_ACCESS_DENIED = "Access denied with your GW2 API key."
+INVALID_APIKEY_MSG: Final = "This API Key is INVALID or no longer exists in gw2 api database"
+API_ERROR: Final = "GW2 API ERROR"
+API_DOWN: Final = "GW2 API is currently down. Try again later."
+API_NOT_FOUND: Final = "GW2 API Not found."
+API_REQUEST_REACHED: Final = "GW2 API Requests limit has been saturated. Try again later."
+API_ACCESS_DENIED: Final = "Access denied with your GW2 API key."
 #################################
 # GW2 UTILS
 #################################
-API_KEY_MESSAGE_REMOVED = "Your message with your API Key was removed for privacy."
-API_KEY_MESSAGE_REMOVED_DENIED = (
+API_KEY_MESSAGE_REMOVED: Final = "Your message with your API Key was removed for privacy."
+API_KEY_MESSAGE_REMOVED_DENIED: Final = (
     "Bot does not have permission to delete the message with your API key.\nMissing bot permission: `Manage Messages`"
 )
 #################################
 # GW2 ACCOUNT/CHARACTERS
 #################################
-NO_API_KEY = "You dont have an API key registered.\n"
-INVALID_API_KEY_HELP_MESSAGE = "This API Key is INVALID or no longer exists in gw2 api database.\n"
+NO_API_KEY: Final = "You dont have an API key registered.\n"
+INVALID_API_KEY_HELP_MESSAGE: Final = "This API Key is INVALID or no longer exists in gw2 api database.\n"
 
 
 def key_add_info_help(prefix: str) -> str:
@@ -35,27 +37,27 @@ def key_more_info_help(prefix: str) -> str:
     return f"To get info about your api key: `{prefix}gw2 key info`"
 
 
-API_KEY_NO_PERMISSION = (
+API_KEY_NO_PERMISSION: Final = (
     "Your API key doesnt have permission to access your gw2 account.\nPlease add one key with account permission."
 )
 #################################
 # GW2 CONFIG
 #################################
-CONFIG_TITLE = "Guild Wars 2 configurations for"
+CONFIG_TITLE: Final = "Guild Wars 2 configurations for"
 
 
 def config_more_info(prefix: str) -> str:
     return f"For more info: {prefix}help gw2 config"
 
 
-USER_SESSION_TITLE = "GW2 Users Session"
-SESSION_ACTIVATED = "Last session `ACTIVATED`\nBot will now record Gw2 users last sessions."
-SESSION_DEACTIVATED = "Last session `DEACTIVATED`\nBot will `NOT` record Gw2 users last sessions."
+USER_SESSION_TITLE: Final = "GW2 Users Session"
+SESSION_ACTIVATED: Final = "Last session `ACTIVATED`\nBot will now record Gw2 users last sessions."
+SESSION_DEACTIVATED: Final = "Last session `DEACTIVATED`\nBot will `NOT` record Gw2 users last sessions."
 #################################
 # GW2 KEY
 #################################
-KEY_ALREADY_IN_USE = "That API key is already in use by someone else."
-KEY_REMOVED_SUCCESSFULLY = "Your GW2 API Key has been deleted successfully."
+KEY_ALREADY_IN_USE: Final = "That API key is already in use by someone else."
+KEY_REMOVED_SUCCESSFULLY: Final = "Your GW2 API Key has been deleted successfully."
 
 
 def key_replaced_successfully(old: str, new: str, server: str) -> str:
@@ -69,63 +71,63 @@ def key_added_successfully(key_name: str, server_name: str) -> str:
 #################################
 # GW2 MISC
 #################################
-LONG_SEARCH = "Search too long"
-WIKI_SEARCH_RESULTS = "Wiki Search Results"
-NO_RESULTS = "No results!"
-CLICK_HERE = "Click here"
+LONG_SEARCH: Final = "Search too long"
+WIKI_SEARCH_RESULTS: Final = "Wiki Search Results"
+NO_RESULTS: Final = "No results!"
+CLICK_HERE: Final = "Click here"
 
 
 def displaying_wiki_search_title(count: int, keyword: str) -> str:
     return f"Displaying **{count}** closest titles that matches **{keyword}**"
 
 
-CLICK_ON_LINK = "Click on link above for more info !!!"
+CLICK_ON_LINK: Final = "Click on link above for more info !!!"
 #################################
 # GW2 SESSIONS
 #################################
-SESSION_TITLE = "GW2 Last Session"
+SESSION_TITLE: Final = "GW2 Last Session"
 
 
 def session_not_active(prefix: str) -> str:
     return f"Last session is not active on this server.\nTo activate use: `{prefix}gw2 config session on`"
 
 
-SESSION_MISSING_PERMISSIONS_TITLE = "To use this command your API key needs to have the following permissions"
-ADD_RIGHT_API_KEY_PERMISSIONS = (
+SESSION_MISSING_PERMISSIONS_TITLE: Final = "To use this command your API key needs to have the following permissions"
+ADD_RIGHT_API_KEY_PERMISSIONS: Final = (
     "Please add another API key with permissions that are MISSING if you want to use this command."
 )
-SESSION_BOT_STILL_UPDATING = "Bot still updating your stats!"
-SESSION_END_PROCESSING = (
+SESSION_BOT_STILL_UPDATING: Final = "Bot still updating your stats!"
+SESSION_END_PROCESSING: Final = (
     "Your session is still being processed.\n"
     "The bot waits a few minutes after you stop playing to ensure accurate data from the GW2 API.\n"
     "Please try again shortly."
 )
-SESSION_USER_STILL_PLAYING = "You are playing Guild Wars 2 at the moment.\nYour stats may NOT be accurate."
-WAITING_TIME = "Waiting time"
-ACCOUNT_NAME = "Account Name"
-SERVER = "Server"
-PLAY_TIME = "Play time"
-TIMES_YOU_DIED = "Times you died"
-WVW_RANKS = "WvW ranks"
-YAKS_KILLED = "Yaks killed"
-YAKS_SCORTED = "Yaks escorted"
-PLAYERS_KILLED = "Players killed"
-KEEPS_CAPTURED = "Keeps captured"
-TOWERS_CAPTURED = "Towers captured"
-CAMPS_CAPTURED = "Camps captured"
-SMC_CAPTURED = "SMC captured"
-SESSION_IN_PROGRESS = (
+SESSION_USER_STILL_PLAYING: Final = "You are playing Guild Wars 2 at the moment.\nYour stats may NOT be accurate."
+WAITING_TIME: Final = "Waiting time"
+ACCOUNT_NAME: Final = "Account Name"
+SERVER: Final = "Server"
+PLAY_TIME: Final = "Play time"
+TIMES_YOU_DIED: Final = "Times you died"
+WVW_RANKS: Final = "WvW ranks"
+YAKS_KILLED: Final = "Yaks killed"
+YAKS_SCORTED: Final = "Yaks escorted"
+PLAYERS_KILLED: Final = "Players killed"
+KEEPS_CAPTURED: Final = "Keeps captured"
+TOWERS_CAPTURED: Final = "Towers captured"
+CAMPS_CAPTURED: Final = "Camps captured"
+SMC_CAPTURED: Final = "SMC captured"
+SESSION_IN_PROGRESS: Final = (
     "Your Guild Wars 2 session is still in progress.\nSession stats will be available after you stop playing."
 )
-SESSION_SAVE_ERROR = (
+SESSION_SAVE_ERROR: Final = (
     "There was a problem trying to record your last finished session.\n"
     "Please, do not close discord when the game is running."
 )
-SESSION_API_DOWN_DM = (
+SESSION_API_DOWN_DM: Final = (
     "The GW2 API was unreachable while recording your session.\n"
     "Your session data may be incomplete. Please try again later."
 )
-USER_NO_SESSION_FOUND = (
+USER_NO_SESSION_FOUND: Final = (
     "No records were found in your name.\n"
     "You are probably trying to execute this command without playing the game.\n"
     "Make sure your status is NOT set to invisible in discord.\n"
@@ -135,20 +137,20 @@ USER_NO_SESSION_FOUND = (
 #################################
 # GW2 WORLDS
 #################################
-NA_SERVERS_TITLE = "~~~~~ NA Servers ~~~~~"
-EU_SERVERS_TITLE = "~~~~~ EU Servers ~~~~~"
+NA_SERVERS_TITLE: Final = "~~~~~ NA Servers ~~~~~"
+EU_SERVERS_TITLE: Final = "~~~~~ EU Servers ~~~~~"
 #################################
 # GW2 WVW
 #################################
-INVALID_WORLD_NAME = "Invalid world name"
-MISSING_WORLD_NAME = "Missing World Name"
-WORLD_COLOR_ERROR = "Could not resolve world's color"
+INVALID_WORLD_NAME: Final = "Invalid world name"
+MISSING_WORLD_NAME: Final = "Missing World Name"
+WORLD_COLOR_ERROR: Final = "Could not resolve world's color"
 
 
 def match_world_name_help(prefix: str) -> str:
     return f"Use `{prefix}gw2 match <world_name>`\nOr register an API key on your account.\n"
 
 
-WVW_KDR_TITLE = "WvW Kills/Death Ratings"
-NA_TIER_TITLE = "North America Tier"
-EU_TIER_TITLE = "Europe Tier"
+WVW_KDR_TITLE: Final = "WvW Kills/Death Ratings"
+NA_TIER_TITLE: Final = "North America Tier"
+EU_TIER_TITLE: Final = "Europe Tier"
