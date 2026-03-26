@@ -34,7 +34,7 @@ jobs:
         run: uv python install ${{ env.LATEST_PYTHON_VERSION }}
 
       - name: Install dependencies
-        run: uv sync --locked --all-extras --group dev
+        run: uv sync --locked --all-extras --all-groups
 
       - name: Run tests with coverage
         uses: nick-fields/retry@v3
@@ -68,7 +68,7 @@ jobs:
         run: uv python install ${{ env.LATEST_PYTHON_VERSION }}
 
       - name: Install dependencies
-        run: uv sync --locked --all-extras --group dev
+        run: uv sync --locked --all-extras --all-groups
 
       - name: Run integration tests
         uses: nick-fields/retry@v3
