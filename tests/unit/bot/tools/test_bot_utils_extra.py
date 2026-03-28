@@ -862,3 +862,207 @@ class TestSendPaginatedEmbed:
         call_kwargs = mock_ctx.send.call_args[1]
         view = call_kwargs["view"]
         assert view.message is sent_msg
+
+
+class TestEmbedPaginatorViewPersistence:
+    """Test EmbedPaginatorView database persistence methods."""
+
+    def _make_pages(self, count=3):
+        return [discord.Embed(title=f"Page {i + 1}", description=f"Content {i + 1}") for i in range(count)]
+
+    def test_embed_to_dict(self):
+        """Test _embed_to_dict converts embed to dict."""
+        embed = discord.Embed(title="Test", description="Desc", color=discord.Color.green())
+        result = EmbedPaginatorView._embed_to_dict(embed)
+        assert isinstance(result, dict)
+        assert result["title"] == "Test"
+        assert result["description"] == "Desc"
+
+    def test_dict_to_embed(self):
+        """Test _dict_to_embed converts dict back to embed."""
+        data = {"title": "Test", "description": "Desc", "color": 0x00FF00}
+        result = EmbedPaginatorView._dict_to_embed(data)
+        assert isinstance(result, discord.Embed)
+        assert result.title == "Test"
+        assert result.description == "Desc"
+
+    def test_embed_roundtrip(self):
+        """Test embed -> dict -> embed preserves data."""
+        original = discord.Embed(title="Round", description="Trip", color=discord.Color.red())
+        original.set_footer(text="Footer")
+        data = EmbedPaginatorView._embed_to_dict(original)
+        restored = EmbedPaginatorView._dict_to_embed(data)
+        assert restored.title == original.title
+        assert restored.description == original.description
+        assert restored.footer.text == original.footer.text
+
+    @pytest.mark.asyncio
+    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    async def test_send_and_save(self, mock_dal_class):
+        """Test send_and_save sends message and saves to DB."""
+        mock_dal = MagicMock()
+        mock_dal.insert_embed_pages = AsyncMock()
+        mock_dal_class.return_value = mock_dal
+
+        pages = self._make_pages(2)
+        view = EmbedPaginatorView(pages, author_id=42)
+
+        ctx = MagicMock()
+        mock_msg = MagicMock()
+        mock_msg.id = 111
+        mock_msg.channel.id = 222
+        ctx.send = AsyncMock(return_value=mock_msg)
+        ctx.bot.db_session = MagicMock()
+        ctx.bot.log = MagicMock()
+
+        await view.send_and_save(ctx)
+
+        assert view.message is mock_msg
+        ctx.send.assert_called_once()
+        mock_dal.insert_embed_pages.assert_awaited_once()
+        call_args = mock_dal.insert_embed_pages.call_args
+        assert call_args[0][0] == 111  # message_id
+        assert call_args[0][1] == 222  # channel_id
+        assert call_args[0][2] == 42   # author_id
+        assert len(call_args[0][3]) == 2  # pages data
+
+    @pytest.mark.asyncio
+    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    async def test_load_from_db_pages_already_set(self, mock_dal_class):
+        """Test _load_from_db returns True immediately when pages exist."""
+        pages = self._make_pages(2)
+        view = EmbedPaginatorView(pages, author_id=42)
+        interaction = MagicMock()
+
+        result = await view._load_from_db(interaction)
+
+        assert result is True
+        mock_dal_class.assert_not_called()
+
+    @pytest.mark.asyncio
+    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    async def test_load_from_db_loads_from_database(self, mock_dal_class):
+        """Test _load_from_db loads pages from DB when not in memory."""
+        mock_dal = MagicMock()
+        page_data = [{"title": "P1", "description": "D1"}, {"title": "P2", "description": "D2"}]
+        mock_dal.get_embed_pages = AsyncMock(return_value={
+            "pages": page_data,
+            "current_page": 1,
+            "author_id": 42,
+        })
+        mock_dal_class.return_value = mock_dal
+
+        view = EmbedPaginatorView()  # No pages
+        interaction = MagicMock()
+        interaction.message.id = 111
+        interaction.client.db_session = MagicMock()
+        interaction.client.log = MagicMock()
+
+        result = await view._load_from_db(interaction)
+
+        assert result is True
+        assert len(view.pages) == 2
+        assert view.current_page == 1
+        assert view.author_id == 42
+
+    @pytest.mark.asyncio
+    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    async def test_load_from_db_record_not_found(self, mock_dal_class):
+        """Test _load_from_db returns False when record not in DB."""
+        mock_dal = MagicMock()
+        mock_dal.get_embed_pages = AsyncMock(return_value=None)
+        mock_dal_class.return_value = mock_dal
+
+        view = EmbedPaginatorView()  # No pages
+        interaction = MagicMock()
+        interaction.message.id = 999
+        interaction.client.db_session = MagicMock()
+        interaction.client.log = MagicMock()
+        interaction.response = AsyncMock()
+
+        result = await view._load_from_db(interaction)
+
+        assert result is False
+        interaction.response.send_message.assert_called_once_with(
+            "This pagination has expired.", ephemeral=True
+        )
+
+    @pytest.mark.asyncio
+    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    async def test_save_current_page(self, mock_dal_class):
+        """Test _save_current_page updates DB."""
+        mock_dal = MagicMock()
+        mock_dal.update_current_page = AsyncMock()
+        mock_dal_class.return_value = mock_dal
+
+        pages = self._make_pages(3)
+        view = EmbedPaginatorView(pages, author_id=42)
+        view.current_page = 2
+
+        interaction = MagicMock()
+        interaction.message.id = 111
+        interaction.client.db_session = MagicMock()
+        interaction.client.log = MagicMock()
+
+        await view._save_current_page(interaction)
+
+        mock_dal.update_current_page.assert_awaited_once_with(111, 2)
+
+    def test_init_no_pages(self):
+        """Test EmbedPaginatorView with no pages defaults."""
+        view = EmbedPaginatorView()
+        assert view.pages == []
+        assert view.author_id == 0
+        assert view.page_indicator.label == "0/0"
+
+
+class TestEmbedPagesDal:
+    """Test EmbedPagesDal class."""
+
+    @pytest.fixture
+    def mock_dal(self):
+        db_session = MagicMock()
+        log = MagicMock()
+        with patch("src.database.dal.bot.embed_pages_dal.DBUtilsAsync") as mock_db_utils_class:
+            mock_db_utils = MagicMock()
+            mock_db_utils.insert = AsyncMock()
+            mock_db_utils.execute = AsyncMock()
+            mock_db_utils.fetchall = AsyncMock(return_value=[])
+            mock_db_utils_class.return_value = mock_db_utils
+            from src.database.dal.bot.embed_pages_dal import EmbedPagesDal
+            dal = EmbedPagesDal(db_session, log)
+            dal._mock_db_utils = mock_db_utils
+            return dal
+
+    @pytest.mark.asyncio
+    async def test_insert_embed_pages(self, mock_dal):
+        """Test insert_embed_pages calls db_utils.insert."""
+        pages = [{"title": "P1"}]
+        await mock_dal.insert_embed_pages(111, 222, 42, pages)
+        mock_dal._mock_db_utils.insert.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_get_embed_pages_found(self, mock_dal):
+        """Test get_embed_pages returns record when found."""
+        mock_dal._mock_db_utils.fetchall = AsyncMock(return_value=[{"message_id": 111, "pages": []}])
+        result = await mock_dal.get_embed_pages(111)
+        assert result == {"message_id": 111, "pages": []}
+
+    @pytest.mark.asyncio
+    async def test_get_embed_pages_not_found(self, mock_dal):
+        """Test get_embed_pages returns None when not found."""
+        mock_dal._mock_db_utils.fetchall = AsyncMock(return_value=[])
+        result = await mock_dal.get_embed_pages(999)
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_update_current_page(self, mock_dal):
+        """Test update_current_page calls db_utils.execute."""
+        await mock_dal.update_current_page(111, 2)
+        mock_dal._mock_db_utils.execute.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_delete_embed_pages(self, mock_dal):
+        """Test delete_embed_pages calls db_utils.execute."""
+        await mock_dal.delete_embed_pages(111)
+        mock_dal._mock_db_utils.execute.assert_awaited_once()
