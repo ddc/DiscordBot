@@ -9,6 +9,7 @@ import discord
 import pytest
 from src.bot.constants import messages
 from src.bot.discord_bot import Bot
+from src.bot.tools.bot_utils import EmbedPaginatorView
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
@@ -311,6 +312,7 @@ class TestSetupHook:
         mock_bot_utils.get_current_date_time.return_value = MagicMock()
         mock_bot_utils.get_color_settings.return_value = discord.Color.green()
         mock_bot_utils.load_cogs = AsyncMock()
+        mock_bot_utils.EmbedPaginatorView.return_value = EmbedPaginatorView()
 
         mock_bot_settings = MagicMock()
         mock_get_bot.return_value = mock_bot_settings
