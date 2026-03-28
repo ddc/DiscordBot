@@ -54,6 +54,7 @@
 - Guild Wars 2 API integration (accounts, WvW, sessions, wiki)
 - Server administration and moderation tools
 - Custom commands, profanity filtering, and text-to-speech
+- Persistent embed pagination that survives bot restarts
 - PostgreSQL database with Alembic migrations
 - Docker deployment with automatic database migrations
 
@@ -143,7 +144,7 @@ All configuration is done through environment variables in the `.env` file.
 | Variable           | Default       | Description         |
 |:-------------------|:--------------|:--------------------|
 | `OPENAI_API_KEY`   |               | OpenAI API key      |
-| `BOT_OPENAI_MODEL` | `gpt-4o-mini` | OpenAI model to use |
+| `BOT_OPENAI_MODEL` | `gpt-5.4`     | OpenAI model to use |
 
 ## PostgreSQL Settings
 | Variable              | Default               | Description       |

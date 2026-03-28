@@ -147,8 +147,7 @@ async def _send_paginated_worlds_embed(ctx, embed):
         return
 
     view = EmbedPaginatorView(pages, ctx.author.id)
-    msg = await ctx.send(embed=pages[0], view=view)
-    view.message = msg
+    await view.send_and_save(ctx)
 
 
 async def setup(bot):

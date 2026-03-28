@@ -1,6 +1,6 @@
 [project]
 name = "DiscordBot"
-version = "3.0.11"
+version = "3.0.12"
 description = "A simple Discord bot with OpenAI support and server administration tools"
 urls.Repository = "https://github.com/ddc/DiscordBot"
 urls.Homepage = "https://ddc.github.io/DiscordBot"
