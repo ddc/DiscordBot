@@ -44,6 +44,9 @@ services:
       DOCKER_BUILDKIT: 1
     networks:
       - postgres_network
+    depends_on:
+      discordbot_database:
+        condition: service_healthy
     command: ["sh", "-c", "uv run --frozen --no-sync alembic upgrade head && touch /tmp/alembic_done && sleep infinity"]
     deploy:
       restart_policy:

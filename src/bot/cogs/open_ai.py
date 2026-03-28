@@ -13,7 +13,8 @@ class OpenAi(commands.Cog):
 
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
-        self._openai_client: OpenAI | None = None
+        self._bot_settings = get_bot_settings()
+        self._openai_client: OpenAI = OpenAI(api_key=self._bot_settings.openai_api_key)
 
     @commands.command()
     @commands.cooldown(1, CoolDowns.OpenAI.value, commands.BucketType.user)
@@ -41,20 +42,11 @@ class OpenAi(commands.Cog):
             await bot_utils.send_embed(ctx, embeds[0], False)
         else:
             view = bot_utils.EmbedPaginatorView(embeds, ctx.author.id)
-            msg = await ctx.send(embed=embeds[0], view=view)
-            view.message = msg
-
-    @property
-    def openai_client(self) -> OpenAI:
-        """Get or create OpenAI client instance."""
-        if self._openai_client is None:
-            api_key = get_bot_settings().openai_api_key
-            self._openai_client = OpenAI(api_key=api_key)
-        return self._openai_client
+            await view.send_and_save(ctx)
 
     async def _get_ai_response(self, message: str) -> str:
         """Get response from OpenAI API."""
-        model = get_bot_settings().openai_model
+        model = self._bot_settings.openai_model
 
         # Create properly typed messages for OpenAI API
         messages: list[ChatCompletionSystemMessageParam | ChatCompletionUserMessageParam] = [
@@ -66,18 +58,19 @@ class OpenAi(commands.Cog):
         ]
 
         # Use the correct OpenAI API endpoint
-        response = self.openai_client.chat.completions.create(
+        response = self._openai_client.chat.completions.create(
             model=model,
             messages=messages,
             max_completion_tokens=1000,
             temperature=0.7,
         )
 
-        return response.choices[0].message.content.strip()
+        content = response.choices[0].message.content
+        return content.strip() if content else ""
 
-    @staticmethod
-    def _create_ai_embeds(ctx: commands.Context, description: str, color: discord.Color) -> list[discord.Embed]:
+    def _create_ai_embeds(self, ctx: commands.Context, description: str, color: discord.Color) -> list[discord.Embed]:
         """Create formatted embed(s) for AI response, paginating if needed."""
+        model = self._bot_settings.openai_model
         max_length = 2000
         chunks = []
 
@@ -97,13 +90,14 @@ class OpenAi(commands.Cog):
         for i, chunk in enumerate(chunks):
             embed = discord.Embed(color=color, description=chunk)
             embed.set_author(
-                name=ctx.author.display_name, icon_url=ctx.author.avatar.url if ctx.author.avatar else None
+                name=ctx.author.display_name,
+                icon_url=getattr(ctx.author.avatar, "url", None),
             )
-            footer_text = bot_utils.get_current_date_time_str_long() + " UTC"
+            footer_text = f"{model} | {bot_utils.get_current_date_time_str_long()} UTC"
             if len(chunks) > 1:
                 footer_text = f"Page {i + 1}/{len(chunks)} | {footer_text}"
             embed.set_footer(
-                icon_url=ctx.bot.user.avatar.url if ctx.bot.user.avatar else None,
+                icon_url=ctx.bot.user.avatar.url if ctx.bot.user and ctx.bot.user.avatar else None,
                 text=footer_text,
             )
             pages.append(embed)

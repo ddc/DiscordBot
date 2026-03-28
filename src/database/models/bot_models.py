@@ -1,7 +1,9 @@
-from sqlalchemy import CHAR, BigInteger, Boolean, ForeignKey, Uuid
+from sqlalchemy import CHAR, BigInteger, Boolean, ForeignKey, Integer, Uuid
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.bot.constants import variables
 from src.database.models import BotBase
+from typing import Any
 from uuid import UUID
 from uuid_utils import uuid7
 
@@ -67,3 +69,13 @@ class DiceRolls(BotBase):
     roll: Mapped[int] = mapped_column()
     dice_size: Mapped[int] = mapped_column()
     servers = relationship("Servers", back_populates="dice_rolls")
+
+
+class EmbedPages(BotBase):
+    __tablename__ = "embed_pages"
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid7)
+    message_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True)
+    channel_id: Mapped[int] = mapped_column(BigInteger)
+    author_id: Mapped[int] = mapped_column(BigInteger)
+    current_page: Mapped[int] = mapped_column(Integer, server_default="0")
+    pages: Mapped[list[dict[str, Any]]] = mapped_column(JSONB)

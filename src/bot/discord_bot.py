@@ -36,9 +36,10 @@ class Bot(commands.Bot):
         self._load_settings()
 
     async def setup_hook(self) -> None:
-        """Called after login - loads all cogs."""
+        """Called after login - loads all cogs and registers persistent views."""
         try:
             await bot_utils.load_cogs(self)
+            self.add_view(bot_utils.EmbedPaginatorView())
             self.log.info(messages.BOT_LOADED_ALL_COGS_SUCCESS)
         except Exception as e:
             self.log.error(f"{messages.BOT_LOAD_COGS_FAILED}: {e}")

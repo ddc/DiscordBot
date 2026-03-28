@@ -172,11 +172,14 @@ async def send_embed(ctx, embed, dm=False):
 
 
 class EmbedPaginatorView(discord.ui.View):
-    """Interactive pagination view for embed pages with Previous/Next buttons."""
+    """Persistent pagination view for embed pages with Previous/Next buttons.
 
-    def __init__(self, pages: list[discord.Embed], author_id: int):
+    Pages are stored in the database so pagination survives bot restarts.
+    """
+
+    def __init__(self, pages: list[discord.Embed] | None = None, author_id: int = 0):
         super().__init__(timeout=None)
-        self.pages = pages
+        self.pages = pages or []
         self.current_page = 0
         self.author_id = author_id
         self.message: discord.Message | None = None
@@ -184,11 +187,57 @@ class EmbedPaginatorView(discord.ui.View):
 
     def _update_buttons(self):
         self.previous_button.disabled = self.current_page == 0
-        self.page_indicator.label = f"{self.current_page + 1}/{len(self.pages)}"
-        self.next_button.disabled = self.current_page == len(self.pages) - 1
+        self.page_indicator.label = f"{self.current_page + 1}/{len(self.pages)}" if self.pages else "0/0"
+        self.next_button.disabled = self.current_page >= len(self.pages) - 1
 
-    @discord.ui.button(label="\u25c0", style=discord.ButtonStyle.secondary)
+    @staticmethod
+    def _embed_to_dict(embed: discord.Embed) -> dict:
+        return embed.to_dict()
+
+    @staticmethod
+    def _dict_to_embed(data: dict) -> discord.Embed:
+        return discord.Embed.from_dict(data)
+
+    async def send_and_save(self, ctx) -> None:
+        """Send the first page and save all pages to the database."""
+        msg = await ctx.send(embed=self.pages[0], view=self)
+        self.message = msg
+        from src.database.dal.bot.embed_pages_dal import EmbedPagesDal
+
+        dal = EmbedPagesDal(ctx.bot.db_session, ctx.bot.log)
+        pages_data = [self._embed_to_dict(p) for p in self.pages]
+        await dal.insert_embed_pages(msg.id, msg.channel.id, self.author_id, pages_data)
+
+    async def _load_from_db(self, interaction: discord.Interaction) -> bool:
+        """Load pages from database if not in memory. Returns True if loaded."""
+        if self.pages:
+            return True
+        from src.database.dal.bot.embed_pages_dal import EmbedPagesDal
+
+        bot = interaction.client
+        dal = EmbedPagesDal(bot.db_session, bot.log)
+        record = await dal.get_embed_pages(interaction.message.id)
+        if not record:
+            await interaction.response.send_message("This pagination has expired.", ephemeral=True)
+            return False
+        self.pages = [self._dict_to_embed(p) for p in record["pages"]]
+        self.current_page = record["current_page"]
+        self.author_id = record["author_id"]
+        self._update_buttons()
+        return True
+
+    async def _save_current_page(self, interaction: discord.Interaction) -> None:
+        """Update current page in database."""
+        from src.database.dal.bot.embed_pages_dal import EmbedPagesDal
+
+        bot = interaction.client
+        dal = EmbedPagesDal(bot.db_session, bot.log)
+        await dal.update_current_page(interaction.message.id, self.current_page)
+
+    @discord.ui.button(label="\u25c0", style=discord.ButtonStyle.secondary, custom_id="paginator:prev")
     async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if not await self._load_from_db(interaction):
+            return
         if interaction.user.id != self.author_id:
             return await interaction.response.send_message(
                 "Only the command invoker can use these buttons.", ephemeral=True
@@ -196,13 +245,16 @@ class EmbedPaginatorView(discord.ui.View):
         self.current_page -= 1
         self._update_buttons()
         await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+        await self._save_current_page(interaction)
 
-    @discord.ui.button(label="1/1", style=discord.ButtonStyle.secondary, disabled=True)
+    @discord.ui.button(label="1/1", style=discord.ButtonStyle.secondary, disabled=True, custom_id="paginator:page")
     async def page_indicator(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
 
-    @discord.ui.button(label="\u25b6", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label="\u25b6", style=discord.ButtonStyle.secondary, custom_id="paginator:next")
     async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if not await self._load_from_db(interaction):
+            return
         if interaction.user.id != self.author_id:
             return await interaction.response.send_message(
                 "Only the command invoker can use these buttons.", ephemeral=True
@@ -210,6 +262,7 @@ class EmbedPaginatorView(discord.ui.View):
         self.current_page += 1
         self._update_buttons()
         await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
+        await self._save_current_page(interaction)
 
 
 async def send_paginated_embed(ctx, embed: discord.Embed, max_fields: int = 25) -> None:
@@ -246,8 +299,7 @@ async def send_paginated_embed(ctx, embed: discord.Embed, max_fields: int = 25) 
         return
 
     view = EmbedPaginatorView(pages, ctx.message.author.id)
-    msg = await ctx.send(embed=pages[0], view=view)
-    view.message = msg
+    await view.send_and_save(ctx)
 
 
 async def delete_message(ctx, warning=False):
