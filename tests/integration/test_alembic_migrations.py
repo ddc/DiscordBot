@@ -13,6 +13,7 @@ EXPECTED_PUBLIC_TABLES = [
     "custom_commands",
     "profanity_filters",
     "dice_rolls",
+    "embed_pages",
 ]
 
 EXPECTED_GW2_TABLES = [
@@ -28,6 +29,7 @@ EXPECTED_PUBLIC_TRIGGERS = [
     "before_update_custom_commands_tr",
     "before_update_profanity_filters_tr",
     "before_update_dice_rolls_tr",
+    "before_update_embed_pages_tr",
 ]
 
 EXPECTED_GW2_TRIGGERS = [
@@ -135,7 +137,7 @@ async def test_alembic_version_at_head(db_session):
         text("SELECT version_num FROM alembic_version"),
     )
     assert len(rows) == 1
-    assert rows[0]["version_num"] == "0010"
+    assert rows[0]["version_num"] == "0011"
 
 
 # ──────────────────────────────────────────────────────────────────────

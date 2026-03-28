@@ -676,7 +676,8 @@ class TestEmbedPaginatorView:
         interaction.user.id = 42
         interaction.response = AsyncMock()
 
-        await view.next_button.callback(interaction)
+        with patch.object(view, '_save_current_page', new_callable=AsyncMock):
+            await view.next_button.callback(interaction)
 
         assert view.current_page == 1
         interaction.response.edit_message.assert_called_once_with(embed=pages[1], view=view)
@@ -692,7 +693,8 @@ class TestEmbedPaginatorView:
         interaction.user.id = 42
         interaction.response = AsyncMock()
 
-        await view.previous_button.callback(interaction)
+        with patch.object(view, '_save_current_page', new_callable=AsyncMock):
+            await view.previous_button.callback(interaction)
 
         assert view.current_page == 1
         interaction.response.edit_message.assert_called_once_with(embed=pages[1], view=view)
@@ -768,8 +770,13 @@ class TestSendPaginatedEmbed:
             mock_send.assert_called_once_with(mock_ctx, embed)
 
     @pytest.mark.asyncio
-    async def test_pagination_splits_fields(self, mock_ctx):
+    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    async def test_pagination_splits_fields(self, mock_dal_class, mock_ctx):
         """Test embed with >25 fields is split into pages (lines 221-246)."""
+        mock_dal = MagicMock()
+        mock_dal.insert_embed_pages = AsyncMock()
+        mock_dal_class.return_value = mock_dal
+
         embed = discord.Embed(color=discord.Color.green(), description="Test desc")
         embed.set_author(name="Author", icon_url="https://example.com/pic.png")
         embed.set_thumbnail(url="https://example.com/thumb.png")
@@ -818,8 +825,13 @@ class TestSendPaginatedEmbed:
             mock_send.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_pagination_no_color_uses_settings(self, mock_ctx):
+    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    async def test_pagination_no_color_uses_settings(self, mock_dal_class, mock_ctx):
         """Test that embed without color gets it from settings."""
+        mock_dal = MagicMock()
+        mock_dal.insert_embed_pages = AsyncMock()
+        mock_dal_class.return_value = mock_dal
+
         embed = discord.Embed()
         for i in range(30):
             embed.add_field(name=f"Field {i}", value=f"Value {i}")
@@ -831,8 +843,13 @@ class TestSendPaginatedEmbed:
         assert view.pages[0].color == discord.Color.blue()
 
     @pytest.mark.asyncio
-    async def test_pagination_stores_message(self, mock_ctx):
+    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    async def test_pagination_stores_message(self, mock_dal_class, mock_ctx):
         """Test that view.message is set after sending."""
+        mock_dal = MagicMock()
+        mock_dal.insert_embed_pages = AsyncMock()
+        mock_dal_class.return_value = mock_dal
+
         embed = discord.Embed(color=discord.Color.green())
         for i in range(30):
             embed.add_field(name=f"Field {i}", value=f"Value {i}")

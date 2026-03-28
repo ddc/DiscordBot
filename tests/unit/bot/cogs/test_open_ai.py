@@ -28,7 +28,10 @@ def mock_bot():
 @pytest.fixture
 def openai_cog(mock_bot):
     """Create an OpenAi cog instance."""
-    return OpenAi(mock_bot)
+    with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, \
+         patch("src.bot.cogs.open_ai.OpenAI"):
+        mock_settings.return_value = MagicMock(openai_api_key="test-key", openai_model="gpt-3.5-turbo")
+        return OpenAi(mock_bot)
 
 
 @pytest.fixture
@@ -77,30 +80,13 @@ class TestOpenAi:
 
     def test_init(self, mock_bot):
         """Test OpenAi cog initialization."""
-        cog = OpenAi(mock_bot)
-        assert cog.bot == mock_bot
-        assert cog._openai_client is None
-
-    def test_openai_client_property_creates_client(self, openai_cog):
-        """Test that openai_client property creates client on first access."""
-        with patch("src.bot.cogs.open_ai.OpenAI") as mock_openai_class:
-            mock_client = MagicMock()
-            mock_openai_class.return_value = mock_client
-
-            client = openai_cog.openai_client
-
-            assert client == mock_client
-            assert openai_cog._openai_client == mock_client
-            mock_openai_class.assert_called_once()
-
-    def test_openai_client_property_returns_existing_client(self, openai_cog):
-        """Test that openai_client property returns existing client."""
-        mock_client = MagicMock()
-        openai_cog._openai_client = mock_client
-
-        client = openai_cog.openai_client
-
-        assert client == mock_client
+        with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, \
+             patch("src.bot.cogs.open_ai.OpenAI"):
+            mock_settings.return_value = MagicMock(openai_api_key="test-key", openai_model="gpt-3.5-turbo")
+            cog = OpenAi(mock_bot)
+            assert cog.bot == mock_bot
+            assert cog._openai_client is not None
+            assert hasattr(cog, '_bot_settings')
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.get_bot_settings")
@@ -258,16 +244,13 @@ class TestOpenAi:
         assert "UTC" in embeds[0].footer.text
 
     @pytest.mark.asyncio
-    @patch("src.bot.cogs.open_ai.get_bot_settings")
     @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
     async def test_ai_command_with_different_models(
-        self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_openai_response
+        self, mock_send_embed, openai_cog, mock_ctx, mock_openai_response
     ):
         """Test AI command with different OpenAI models."""
-        # Test with GPT-4
-        mock_settings = MagicMock()
-        mock_settings.openai_model = "gpt-4"
-        mock_get_settings.return_value = mock_settings
+        # Test with GPT-4 - set model directly on the cog's stored settings
+        openai_cog._bot_settings.openai_model = "gpt-4"
 
         # Mock the client instance directly
         mock_client = MagicMock()
@@ -356,12 +339,12 @@ class TestOpenAi:
 
     @patch("src.bot.cogs.open_ai.bot_utils.get_current_date_time_str_long")
     def test_create_ai_embeds_footer(self, mock_get_datetime, openai_cog, mock_ctx):
-        """Test that embed footer contains correct timestamp."""
+        """Test that embed footer contains correct timestamp and model name."""
         mock_get_datetime.return_value = "2023-01-01 12:00:00"
 
         embeds = openai_cog._create_ai_embeds(mock_ctx, "Test", discord.Color.blue())
 
-        assert embeds[0].footer.text == "2023-01-01 12:00:00 UTC"
+        assert embeds[0].footer.text == "gpt-3.5-turbo | 2023-01-01 12:00:00 UTC"
         mock_get_datetime.assert_called_once()
 
     @pytest.mark.asyncio
@@ -369,7 +352,10 @@ class TestOpenAi:
         """Test the setup function."""
         from src.bot.cogs.open_ai import setup
 
-        await setup(mock_bot)
+        with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, \
+             patch("src.bot.cogs.open_ai.OpenAI"):
+            mock_settings.return_value = MagicMock(openai_api_key="test-key", openai_model="gpt-3.5-turbo")
+            await setup(mock_bot)
 
         mock_bot.add_cog.assert_called_once()
         added_cog = mock_bot.add_cog.call_args[0][0]
@@ -477,10 +463,14 @@ class TestOpenAi:
         assert embeds[1].description == second_part
 
     @pytest.mark.asyncio
+    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
     @patch("src.bot.cogs.open_ai.get_bot_settings")
-    async def test_ai_command_pagination(self, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings):
+    async def test_ai_command_pagination(self, mock_get_settings, mock_dal_class, openai_cog, mock_ctx, mock_bot_settings):
         """Test AI command uses pagination for long responses."""
         mock_get_settings.return_value = mock_bot_settings
+        mock_dal = MagicMock()
+        mock_dal.insert_embed_pages = AsyncMock()
+        mock_dal_class.return_value = mock_dal
         long_response = "a" * 3000
 
         with patch.object(openai_cog, "_get_ai_response", return_value=long_response):
