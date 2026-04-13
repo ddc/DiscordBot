@@ -676,7 +676,7 @@ class TestEmbedPaginatorView:
         interaction.user.id = 42
         interaction.response = AsyncMock()
 
-        with patch.object(view, '_save_current_page', new_callable=AsyncMock):
+        with patch.object(view, "_save_current_page", new_callable=AsyncMock):
             await view.next_button.callback(interaction)
 
         assert view.current_page == 1
@@ -693,7 +693,7 @@ class TestEmbedPaginatorView:
         interaction.user.id = 42
         interaction.response = AsyncMock()
 
-        with patch.object(view, '_save_current_page', new_callable=AsyncMock):
+        with patch.object(view, "_save_current_page", new_callable=AsyncMock):
             await view.previous_button.callback(interaction)
 
         assert view.current_page == 1
@@ -923,7 +923,7 @@ class TestEmbedPaginatorViewPersistence:
         call_args = mock_dal.insert_embed_pages.call_args
         assert call_args[0][0] == 111  # message_id
         assert call_args[0][1] == 222  # channel_id
-        assert call_args[0][2] == 42   # author_id
+        assert call_args[0][2] == 42  # author_id
         assert len(call_args[0][3]) == 2  # pages data
 
     @pytest.mark.asyncio
@@ -945,11 +945,13 @@ class TestEmbedPaginatorViewPersistence:
         """Test _load_from_db loads pages from DB when not in memory."""
         mock_dal = MagicMock()
         page_data = [{"title": "P1", "description": "D1"}, {"title": "P2", "description": "D2"}]
-        mock_dal.get_embed_pages = AsyncMock(return_value={
-            "pages": page_data,
-            "current_page": 1,
-            "author_id": 42,
-        })
+        mock_dal.get_embed_pages = AsyncMock(
+            return_value={
+                "pages": page_data,
+                "current_page": 1,
+                "author_id": 42,
+            }
+        )
         mock_dal_class.return_value = mock_dal
 
         view = EmbedPaginatorView()  # No pages
@@ -983,9 +985,7 @@ class TestEmbedPaginatorViewPersistence:
         result = await view._load_from_db(interaction)
 
         assert result is False
-        interaction.response.send_message.assert_called_once_with(
-            "This pagination has expired.", ephemeral=True
-        )
+        interaction.response.send_message.assert_called_once_with("This pagination has expired.", ephemeral=True)
 
     @pytest.mark.asyncio
     @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
@@ -1030,6 +1030,7 @@ class TestEmbedPagesDal:
             mock_db_utils.fetchall = AsyncMock(return_value=[])
             mock_db_utils_class.return_value = mock_db_utils
             from src.database.dal.bot.embed_pages_dal import EmbedPagesDal
+
             dal = EmbedPagesDal(db_session, log)
             dal._mock_db_utils = mock_db_utils
             return dal

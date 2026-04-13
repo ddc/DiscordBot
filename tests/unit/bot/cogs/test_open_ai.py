@@ -28,8 +28,7 @@ def mock_bot():
 @pytest.fixture
 def openai_cog(mock_bot):
     """Create an OpenAi cog instance."""
-    with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, \
-         patch("src.bot.cogs.open_ai.OpenAI"):
+    with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, patch("src.bot.cogs.open_ai.OpenAI"):
         mock_settings.return_value = MagicMock(openai_api_key="test-key", openai_model="gpt-3.5-turbo")
         return OpenAi(mock_bot)
 
@@ -80,13 +79,12 @@ class TestOpenAi:
 
     def test_init(self, mock_bot):
         """Test OpenAi cog initialization."""
-        with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, \
-             patch("src.bot.cogs.open_ai.OpenAI"):
+        with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, patch("src.bot.cogs.open_ai.OpenAI"):
             mock_settings.return_value = MagicMock(openai_api_key="test-key", openai_model="gpt-3.5-turbo")
             cog = OpenAi(mock_bot)
             assert cog.bot == mock_bot
             assert cog._openai_client is not None
-            assert hasattr(cog, '_bot_settings')
+            assert hasattr(cog, "_bot_settings")
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.get_bot_settings")
@@ -245,9 +243,7 @@ class TestOpenAi:
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
-    async def test_ai_command_with_different_models(
-        self, mock_send_embed, openai_cog, mock_ctx, mock_openai_response
-    ):
+    async def test_ai_command_with_different_models(self, mock_send_embed, openai_cog, mock_ctx, mock_openai_response):
         """Test AI command with different OpenAI models."""
         # Test with GPT-4 - set model directly on the cog's stored settings
         openai_cog._bot_settings.openai_model = "gpt-4"
@@ -352,8 +348,7 @@ class TestOpenAi:
         """Test the setup function."""
         from src.bot.cogs.open_ai import setup
 
-        with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, \
-             patch("src.bot.cogs.open_ai.OpenAI"):
+        with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, patch("src.bot.cogs.open_ai.OpenAI"):
             mock_settings.return_value = MagicMock(openai_api_key="test-key", openai_model="gpt-3.5-turbo")
             await setup(mock_bot)
 
@@ -465,7 +460,9 @@ class TestOpenAi:
     @pytest.mark.asyncio
     @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
     @patch("src.bot.cogs.open_ai.get_bot_settings")
-    async def test_ai_command_pagination(self, mock_get_settings, mock_dal_class, openai_cog, mock_ctx, mock_bot_settings):
+    async def test_ai_command_pagination(
+        self, mock_get_settings, mock_dal_class, openai_cog, mock_ctx, mock_bot_settings
+    ):
         """Test AI command uses pagination for long responses."""
         mock_get_settings.return_value = mock_bot_settings
         mock_dal = MagicMock()

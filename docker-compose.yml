@@ -11,9 +11,6 @@ services:
     networks:
       - postgres_network
     command: ["sh", "-c", "uv run --frozen --no-sync alembic upgrade head && touch /tmp/alembic_done && sleep infinity"]
-    deploy:
-      restart_policy:
-        delay: 60s
     healthcheck:
       test: ["CMD", "sh", "-c", "test -f /tmp/alembic_done"]
       interval: 5s
@@ -37,9 +34,6 @@ services:
     depends_on:
       discordbot_alembic:
         condition: service_healthy
-    deploy:
-      restart_policy:
-        delay: 60s
     command: ["uv", "run", "--frozen", "--no-sync", "python", "-m", "src"]
 
 networks:

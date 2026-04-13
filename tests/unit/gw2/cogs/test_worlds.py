@@ -489,7 +489,7 @@ class TestEmbedPaginatorView:
         interaction.user.id = 42
         interaction.response = AsyncMock()
 
-        with patch.object(view, '_save_current_page', new_callable=AsyncMock):
+        with patch.object(view, "_save_current_page", new_callable=AsyncMock):
             await view.next_button.callback(interaction)
 
         assert view.current_page == 1
@@ -508,7 +508,7 @@ class TestEmbedPaginatorView:
         interaction.user.id = 42
         interaction.response = AsyncMock()
 
-        with patch.object(view, '_save_current_page', new_callable=AsyncMock):
+        with patch.object(view, "_save_current_page", new_callable=AsyncMock):
             await view.previous_button.callback(interaction)
 
         assert view.current_page == 1
