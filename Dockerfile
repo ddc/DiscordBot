@@ -1,4 +1,4 @@
-FROM python:3.14.3-alpine3.23 AS python-base
+FROM python:3.14.4-alpine3.23 AS python-base
 
 LABEL Description="DiscordBot"
 

@@ -62,7 +62,6 @@ class OpenAi(commands.Cog):
             model=model,
             messages=messages,
             max_completion_tokens=1000,
-            temperature=0.7,
         )
 
         content = response.choices[0].message.content

@@ -59,7 +59,7 @@ DISCORDPY_URL: Final[str] = "https://github.com/Rapptz/discord.py"
 LMGTFY_URL: Final[str] = "https://lmgtfy.com"
 
 # Date and time formatting
-DATE_TIME_FORMATTER_STR: Final[str] = "%a %b %m %Y %X"
+DATE_TIME_FORMATTER_STR: Final[str] = "%a %b %d %Y %X"
 DATE_FORMATTER: Final[str] = "%Y-%m-%d"
 TIME_FORMATTER: Final[str] = "%H:%M:%S.%f"
 
