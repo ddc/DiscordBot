@@ -23,7 +23,7 @@ class BotSettings(BaseSettings):
     exclusive_users: str = Field(default="")
 
     # OpenAi
-    openai_model: str = Field(default="gpt-5.4", description="https://developers.openai.com/api/docs/models")
+    openai_model: str = Field(default="gpt-5.5", description="https://developers.openai.com/api/docs/models")
     openai_api_key: str | None = Field(default=None)
 
     # Cooldowns
