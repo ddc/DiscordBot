@@ -238,8 +238,12 @@ class EmbedPaginatorView(discord.ui.View):
         return discord.Embed.from_dict(data)
 
     async def send_and_save(self, ctx) -> None:
-        """Send the first page and save all pages to the database."""
-        msg = await ctx.send(embed=self.pages[0], view=self)
+        """Send the first page and save all pages to the database.
+
+        Uses _send_with_retry so transient Discord errors (5xx, code 40062) are
+        retried before propagating to the command error handler.
+        """
+        msg = await _send_with_retry(ctx, ctx.send, embed=self.pages[0], view=self)
         self.message = msg
         from src.database.dal.bot.embed_pages_dal import EmbedPagesDal
 

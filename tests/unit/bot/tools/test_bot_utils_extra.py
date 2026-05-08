@@ -928,6 +928,36 @@ class TestEmbedPaginatorViewPersistence:
 
     @pytest.mark.asyncio
     @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    async def test_send_and_save_retries_on_transient_error(self, mock_dal_class):
+        """send_and_save retries on 429 code 40062 instead of letting it propagate."""
+        mock_dal = MagicMock()
+        mock_dal.insert_embed_pages = AsyncMock()
+        mock_dal_class.return_value = mock_dal
+
+        pages = self._make_pages(2)
+        view = EmbedPaginatorView(pages, author_id=42)
+
+        ctx = MagicMock()
+        mock_msg = MagicMock()
+        mock_msg.id = 111
+        mock_msg.channel.id = 222
+        # First attempt: 429 code 40062 (transient). Notice send: ok. Retry: ok.
+        rate_limited = _make_http_exception(429, code=40062)
+        notice_msg = MagicMock()
+        ctx.send = AsyncMock(side_effect=[rate_limited, notice_msg, mock_msg])
+        ctx.bot.db_session = MagicMock()
+        ctx.bot.log = MagicMock()
+
+        with patch("src.bot.tools.bot_utils.asyncio.sleep", new_callable=AsyncMock):
+            await view.send_and_save(ctx)
+
+        # 3 ctx.send calls: failed attempt, retry notice, successful retry
+        assert ctx.send.await_count == 3
+        assert view.message is mock_msg
+        mock_dal.insert_embed_pages.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
     async def test_load_from_db_pages_already_set(self, mock_dal_class):
         """Test _load_from_db returns True immediately when pages exist."""
         pages = self._make_pages(2)
