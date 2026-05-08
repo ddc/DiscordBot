@@ -1067,3 +1067,92 @@ class TestEmbedPagesDal:
         """Test delete_embed_pages calls db_utils.execute."""
         await mock_dal.delete_embed_pages(111)
         mock_dal._mock_db_utils.execute.assert_awaited_once()
+
+
+def _make_http_exception(status: int, code: int = 0) -> discord.HTTPException:
+    """Build a discord.HTTPException with concrete status and Discord error code."""
+    response = MagicMock()
+    response.status = status
+    return discord.HTTPException(response, {"message": "boom", "code": code})
+
+
+class TestSendWithRetry:
+    """Test _send_with_retry helper for transient Discord errors."""
+
+    @pytest.fixture
+    def mock_ctx(self):
+        ctx = MagicMock()
+        ctx.bot = MagicMock()
+        ctx.bot.log = MagicMock()
+        ctx.send = AsyncMock()
+        return ctx
+
+    @pytest.mark.asyncio
+    async def test_success_on_first_attempt_no_retry(self, mock_ctx):
+        """Happy path: send_method called once, no notice sent."""
+        send = AsyncMock(return_value="ok")
+        result = await bot_utils._send_with_retry(mock_ctx, send, embed="x")
+        assert result == "ok"
+        send.assert_awaited_once_with(embed="x")
+        mock_ctx.send.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_retries_on_500_then_succeeds(self, mock_ctx):
+        """500 error → retry, second attempt succeeds; one channel notice sent."""
+        send = AsyncMock(side_effect=[_make_http_exception(500), "ok"])
+        with patch("src.bot.tools.bot_utils.asyncio.sleep", new_callable=AsyncMock):
+            result = await bot_utils._send_with_retry(mock_ctx, send, embed="x")
+        assert result == "ok"
+        assert send.await_count == 2
+        # Notice sent exactly once
+        mock_ctx.send.assert_called_once()
+        notice_embed = mock_ctx.send.call_args[1]["embed"]
+        assert "retrying" in notice_embed.description.lower()
+
+    @pytest.mark.asyncio
+    async def test_retries_on_429_code_40062(self, mock_ctx):
+        """429 with code 40062 is treated as transient and retried."""
+        send = AsyncMock(side_effect=[_make_http_exception(429, code=40062), "ok"])
+        with patch("src.bot.tools.bot_utils.asyncio.sleep", new_callable=AsyncMock):
+            result = await bot_utils._send_with_retry(mock_ctx, send)
+        assert result == "ok"
+        assert send.await_count == 2
+
+    @pytest.mark.asyncio
+    async def test_does_not_retry_on_403_forbidden(self, mock_ctx):
+        """Forbidden (403) is not transient — raises immediately."""
+        forbidden = discord.Forbidden(MagicMock(status=403), {"message": "no", "code": 50007})
+        send = AsyncMock(side_effect=forbidden)
+        with pytest.raises(discord.Forbidden):
+            await bot_utils._send_with_retry(mock_ctx, send)
+        send.assert_awaited_once()
+        mock_ctx.send.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_does_not_retry_on_429_other_code(self, mock_ctx):
+        """429 without code 40062 is not retried by this helper."""
+        send = AsyncMock(side_effect=_make_http_exception(429, code=20016))
+        with pytest.raises(discord.HTTPException):
+            await bot_utils._send_with_retry(mock_ctx, send)
+        send.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_exhausts_retries_then_raises(self, mock_ctx):
+        """All attempts fail with 500 → final attempt's exception propagates."""
+        send = AsyncMock(side_effect=_make_http_exception(500))
+        with patch("src.bot.tools.bot_utils.asyncio.sleep", new_callable=AsyncMock):
+            with pytest.raises(discord.HTTPException):
+                await bot_utils._send_with_retry(mock_ctx, send, max_attempts=3)
+        assert send.await_count == 3
+        # Notice sent at most once even across multiple failed attempts
+        assert mock_ctx.send.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_notice_failure_does_not_break_retry(self, mock_ctx):
+        """If the retry notice itself fails, retry loop continues silently."""
+        mock_ctx.send.side_effect = _make_http_exception(500)
+        send = AsyncMock(side_effect=[_make_http_exception(500), "ok"])
+        with patch("src.bot.tools.bot_utils.asyncio.sleep", new_callable=AsyncMock):
+            result = await bot_utils._send_with_retry(mock_ctx, send)
+        assert result == "ok"
+        assert send.await_count == 2

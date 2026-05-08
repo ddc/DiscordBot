@@ -1,3 +1,4 @@
+import asyncio
 import discord
 import random
 from datetime import UTC, datetime
@@ -115,6 +116,44 @@ async def send_help_msg(ctx, cmd):
         await ctx.send(chat_formatting.box(cmd.help))
 
 
+def _is_transient_discord_error(e: discord.HTTPException) -> bool:
+    """Return True for Discord errors worth retrying (5xx, or 429 with code 40062)."""
+    status = getattr(e, "status", None)
+    code = getattr(e, "code", None)
+    return (isinstance(status, int) and status >= 500) or code == 40062
+
+
+async def _send_with_retry(ctx, send_method, *args, max_attempts: int = 3, base_delay: float = 1.0, **kwargs):
+    """Call send_method(*args, **kwargs) and retry on transient Discord errors.
+
+    On the first transient failure, posts a one-time "retrying" notice to the channel.
+    Non-transient errors propagate immediately, preserving caller's error handling.
+    """
+    notified = False
+    for attempt in range(1, max_attempts + 1):
+        try:
+            return await send_method(*args, **kwargs)
+        except discord.HTTPException as e:
+            if not _is_transient_discord_error(e) or attempt >= max_attempts:
+                raise
+            ctx.bot.log.warning(
+                f"Transient Discord error (status={getattr(e, 'status', None)}, "
+                f"code={getattr(e, 'code', None)}), retry {attempt}/{max_attempts - 1}: {e}"
+            )
+            if not notified:
+                try:
+                    await ctx.send(
+                        embed=discord.Embed(
+                            description="⏳ Discord API is having issues — retrying...",
+                            color=discord.Color.orange(),
+                        )
+                    )
+                    notified = True
+                except discord.HTTPException:
+                    pass  # Notice itself failed; keep retrying the main send
+            await asyncio.sleep(base_delay * (2 ** (attempt - 1)))
+
+
 async def send_embed(ctx, embed, dm=False):
     try:
         if not embed.color:
@@ -124,11 +163,11 @@ async def send_embed(ctx, embed, dm=False):
 
         if is_private_message(ctx):
             # Already in DM, just send the embed
-            await ctx.author.send(embed=embed)
+            await _send_with_retry(ctx, ctx.author.send, embed=embed)
         elif dm:
             # Send to DM and notify in channel
             try:
-                await ctx.author.send(embed=embed)
+                await _send_with_retry(ctx, ctx.author.send, embed=embed)
                 notification_embed = discord.Embed(
                     description="📬 Response sent to your DM", color=discord.Color.green()
                 )
@@ -136,13 +175,13 @@ async def send_embed(ctx, embed, dm=False):
                     name=ctx.author.display_name,
                     icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url,
                 )
-                await ctx.send(embed=notification_embed)
+                await _send_with_retry(ctx, ctx.send, embed=notification_embed)
             except discord.Forbidden, discord.HTTPException:
                 # DM failed, fall back to sending in the channel
-                await ctx.send(embed=embed)
+                await _send_with_retry(ctx, ctx.send, embed=embed)
         else:
             # Send to channel
-            await ctx.send(embed=embed)
+            await _send_with_retry(ctx, ctx.send, embed=embed)
     except (discord.Forbidden, discord.HTTPException) as e:
         ctx.bot.log.error(f"Failed to send message: {e}")
         if dm or is_private_message(ctx):
