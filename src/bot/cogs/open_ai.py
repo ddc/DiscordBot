@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from openai import OpenAI
+from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 from src.bot.constants.settings import get_bot_settings
 from src.bot.discord_bot import Bot
@@ -14,7 +14,7 @@ class OpenAi(commands.Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
         self._bot_settings = get_bot_settings()
-        self._openai_client: OpenAI = OpenAI(api_key=self._bot_settings.openai_api_key)
+        self._openai_client: AsyncOpenAI = AsyncOpenAI(api_key=self._bot_settings.openai_api_key)
 
     @commands.command()
     @commands.cooldown(1, CoolDowns.OpenAI.value, commands.BucketType.user)
@@ -57,8 +57,8 @@ class OpenAi(commands.Cog):
             ChatCompletionUserMessageParam(role="user", content=message),
         ]
 
-        # Use the correct OpenAI API endpoint
-        response = self._openai_client.chat.completions.create(
+        # Use the correct OpenAI API endpoint (async — does not block the event loop)
+        response = await self._openai_client.chat.completions.create(
             model=model,
             messages=messages,
             max_completion_tokens=1000,

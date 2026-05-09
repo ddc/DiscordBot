@@ -89,11 +89,17 @@ class Gw2Servers(Enum):
 async def send_progress_embed(
     ctx: commands.Context, message: str = "Please wait, I'm fetching data from GW2 API... (this may take a moment)"
 ) -> discord.Message:
-    """Send a progress embed that can be deleted when the operation completes."""
+    """Send a progress embed that can be deleted when the operation completes.
+
+    Uses send_with_retry so transient Discord errors (5xx, code 40062) are retried
+    instead of bubbling up to the command error handler.
+    """
+    from src.bot.tools.bot_utils import send_with_retry
+
     color = ctx.bot.settings["gw2"]["EmbedColor"]
     embed = discord.Embed(description=f"\U0001f504 **{message}**", color=color)
     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.display_avatar.url)
-    return await ctx.send(embed=embed)
+    return await send_with_retry(ctx, ctx.send, embed=embed)
 
 
 async def send_msg(ctx: commands.Context, description: str, dm: bool = False) -> None:

@@ -123,7 +123,7 @@ def _is_transient_discord_error(e: discord.HTTPException) -> bool:
     return (isinstance(status, int) and status >= 500) or code == 40062
 
 
-async def _send_with_retry(ctx, send_method, *args, max_attempts: int = 3, base_delay: float = 1.0, **kwargs):
+async def send_with_retry(ctx, send_method, *args, max_attempts: int = 3, base_delay: float = 1.0, **kwargs):
     """Call send_method(*args, **kwargs) and retry on transient Discord errors.
 
     On the first transient failure, posts a one-time "retrying" notice to the channel.
@@ -163,11 +163,11 @@ async def send_embed(ctx, embed, dm=False):
 
         if is_private_message(ctx):
             # Already in DM, just send the embed
-            await _send_with_retry(ctx, ctx.author.send, embed=embed)
+            await send_with_retry(ctx, ctx.author.send, embed=embed)
         elif dm:
             # Send to DM and notify in channel
             try:
-                await _send_with_retry(ctx, ctx.author.send, embed=embed)
+                await send_with_retry(ctx, ctx.author.send, embed=embed)
                 notification_embed = discord.Embed(
                     description="📬 Response sent to your DM", color=discord.Color.green()
                 )
@@ -175,13 +175,13 @@ async def send_embed(ctx, embed, dm=False):
                     name=ctx.author.display_name,
                     icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url,
                 )
-                await _send_with_retry(ctx, ctx.send, embed=notification_embed)
+                await send_with_retry(ctx, ctx.send, embed=notification_embed)
             except discord.Forbidden, discord.HTTPException:
                 # DM failed, fall back to sending in the channel
-                await _send_with_retry(ctx, ctx.send, embed=embed)
+                await send_with_retry(ctx, ctx.send, embed=embed)
         else:
             # Send to channel
-            await _send_with_retry(ctx, ctx.send, embed=embed)
+            await send_with_retry(ctx, ctx.send, embed=embed)
     except (discord.Forbidden, discord.HTTPException) as e:
         ctx.bot.log.error(f"Failed to send message: {e}")
         if dm or is_private_message(ctx):
@@ -240,10 +240,10 @@ class EmbedPaginatorView(discord.ui.View):
     async def send_and_save(self, ctx) -> None:
         """Send the first page and save all pages to the database.
 
-        Uses _send_with_retry so transient Discord errors (5xx, code 40062) are
+        Uses send_with_retry so transient Discord errors (5xx, code 40062) are
         retried before propagating to the command error handler.
         """
-        msg = await _send_with_retry(ctx, ctx.send, embed=self.pages[0], view=self)
+        msg = await send_with_retry(ctx, ctx.send, embed=self.pages[0], view=self)
         self.message = msg
         from src.database.dal.bot.embed_pages_dal import EmbedPagesDal
 

@@ -1107,7 +1107,7 @@ def _make_http_exception(status: int, code: int = 0) -> discord.HTTPException:
 
 
 class TestSendWithRetry:
-    """Test _send_with_retry helper for transient Discord errors."""
+    """Test send_with_retry helper for transient Discord errors."""
 
     @pytest.fixture
     def mock_ctx(self):
@@ -1121,7 +1121,7 @@ class TestSendWithRetry:
     async def test_success_on_first_attempt_no_retry(self, mock_ctx):
         """Happy path: send_method called once, no notice sent."""
         send = AsyncMock(return_value="ok")
-        result = await bot_utils._send_with_retry(mock_ctx, send, embed="x")
+        result = await bot_utils.send_with_retry(mock_ctx, send, embed="x")
         assert result == "ok"
         send.assert_awaited_once_with(embed="x")
         mock_ctx.send.assert_not_called()
@@ -1131,7 +1131,7 @@ class TestSendWithRetry:
         """500 error → retry, second attempt succeeds; one channel notice sent."""
         send = AsyncMock(side_effect=[_make_http_exception(500), "ok"])
         with patch("src.bot.tools.bot_utils.asyncio.sleep", new_callable=AsyncMock):
-            result = await bot_utils._send_with_retry(mock_ctx, send, embed="x")
+            result = await bot_utils.send_with_retry(mock_ctx, send, embed="x")
         assert result == "ok"
         assert send.await_count == 2
         # Notice sent exactly once
@@ -1144,7 +1144,7 @@ class TestSendWithRetry:
         """429 with code 40062 is treated as transient and retried."""
         send = AsyncMock(side_effect=[_make_http_exception(429, code=40062), "ok"])
         with patch("src.bot.tools.bot_utils.asyncio.sleep", new_callable=AsyncMock):
-            result = await bot_utils._send_with_retry(mock_ctx, send)
+            result = await bot_utils.send_with_retry(mock_ctx, send)
         assert result == "ok"
         assert send.await_count == 2
 
@@ -1154,7 +1154,7 @@ class TestSendWithRetry:
         forbidden = discord.Forbidden(MagicMock(status=403), {"message": "no", "code": 50007})
         send = AsyncMock(side_effect=forbidden)
         with pytest.raises(discord.Forbidden):
-            await bot_utils._send_with_retry(mock_ctx, send)
+            await bot_utils.send_with_retry(mock_ctx, send)
         send.assert_awaited_once()
         mock_ctx.send.assert_not_called()
 
@@ -1163,7 +1163,7 @@ class TestSendWithRetry:
         """429 without code 40062 is not retried by this helper."""
         send = AsyncMock(side_effect=_make_http_exception(429, code=20016))
         with pytest.raises(discord.HTTPException):
-            await bot_utils._send_with_retry(mock_ctx, send)
+            await bot_utils.send_with_retry(mock_ctx, send)
         send.assert_awaited_once()
 
     @pytest.mark.asyncio
@@ -1172,7 +1172,7 @@ class TestSendWithRetry:
         send = AsyncMock(side_effect=_make_http_exception(500))
         with patch("src.bot.tools.bot_utils.asyncio.sleep", new_callable=AsyncMock):
             with pytest.raises(discord.HTTPException):
-                await bot_utils._send_with_retry(mock_ctx, send, max_attempts=3)
+                await bot_utils.send_with_retry(mock_ctx, send, max_attempts=3)
         assert send.await_count == 3
         # Notice sent at most once even across multiple failed attempts
         assert mock_ctx.send.call_count == 1
@@ -1183,6 +1183,6 @@ class TestSendWithRetry:
         mock_ctx.send.side_effect = _make_http_exception(500)
         send = AsyncMock(side_effect=[_make_http_exception(500), "ok"])
         with patch("src.bot.tools.bot_utils.asyncio.sleep", new_callable=AsyncMock):
-            result = await bot_utils._send_with_retry(mock_ctx, send)
+            result = await bot_utils.send_with_retry(mock_ctx, send)
         assert result == "ok"
         assert send.await_count == 2

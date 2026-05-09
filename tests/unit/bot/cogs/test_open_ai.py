@@ -28,7 +28,7 @@ def mock_bot():
 @pytest.fixture
 def openai_cog(mock_bot):
     """Create an OpenAi cog instance."""
-    with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, patch("src.bot.cogs.open_ai.OpenAI"):
+    with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, patch("src.bot.cogs.open_ai.AsyncOpenAI"):
         mock_settings.return_value = MagicMock(openai_api_key="test-key", openai_model="gpt-3.5-turbo")
         return OpenAi(mock_bot)
 
@@ -79,7 +79,7 @@ class TestOpenAi:
 
     def test_init(self, mock_bot):
         """Test OpenAi cog initialization."""
-        with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, patch("src.bot.cogs.open_ai.OpenAI"):
+        with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, patch("src.bot.cogs.open_ai.AsyncOpenAI"):
             mock_settings.return_value = MagicMock(openai_api_key="test-key", openai_model="gpt-3.5-turbo")
             cog = OpenAi(mock_bot)
             assert cog.bot == mock_bot
@@ -140,7 +140,7 @@ class TestOpenAi:
 
         # Mock the client instance directly
         mock_client = MagicMock()
-        mock_client.chat.completions.create.return_value = mock_openai_response
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
         result = await openai_cog._get_ai_response("What is Python?")
@@ -173,7 +173,7 @@ class TestOpenAi:
 
         # Mock the client instance directly
         mock_client = MagicMock()
-        mock_client.chat.completions.create.return_value = mock_openai_response
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
         result = await openai_cog._get_ai_response("Test message")
@@ -250,7 +250,7 @@ class TestOpenAi:
 
         # Mock the client instance directly
         mock_client = MagicMock()
-        mock_client.chat.completions.create.return_value = mock_openai_response
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
         await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="Test question")
@@ -303,7 +303,7 @@ class TestOpenAi:
 
         # Mock the client instance directly
         mock_client = MagicMock()
-        mock_client.chat.completions.create.return_value = mock_openai_response
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
         await openai_cog._get_ai_response("Test message")
@@ -323,7 +323,7 @@ class TestOpenAi:
 
         # Mock the client instance directly
         mock_client = MagicMock()
-        mock_client.chat.completions.create.return_value = mock_openai_response
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
         await openai_cog._get_ai_response("Test message")
@@ -348,7 +348,7 @@ class TestOpenAi:
         """Test the setup function."""
         from src.bot.cogs.open_ai import setup
 
-        with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, patch("src.bot.cogs.open_ai.OpenAI"):
+        with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, patch("src.bot.cogs.open_ai.AsyncOpenAI"):
             mock_settings.return_value = MagicMock(openai_api_key="test-key", openai_model="gpt-3.5-turbo")
             await setup(mock_bot)
 
@@ -414,7 +414,7 @@ class TestOpenAi:
 
         # Mock the client instance directly
         mock_client = MagicMock()
-        mock_client.chat.completions.create.return_value = mock_response
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
         openai_cog._openai_client = mock_client
 
         result = await openai_cog._get_ai_response("Test message")
