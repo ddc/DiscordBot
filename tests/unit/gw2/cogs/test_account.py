@@ -1,7 +1,5 @@
 """Comprehensive tests for GW2 account cog."""
 
-import asyncio
-import discord
 import pytest
 from src.gw2.cogs.account import GW2Account, account
 from src.gw2.constants import gw2_messages
@@ -408,100 +406,6 @@ class TestAccountSetup:
         assert isinstance(cog_instance, GW2Account)
 
 
-class TestKeepTypingAlive:
-    """Test cases for the _keep_typing_alive helper function."""
-
-    @pytest.fixture
-    def mock_ctx(self):
-        """Create a mock context with async typing."""
-        ctx = MagicMock()
-        ctx.message = MagicMock()
-        ctx.message.channel = MagicMock()
-        ctx.message.channel.typing = AsyncMock()
-        return ctx
-
-    @pytest.mark.asyncio
-    async def test_keep_typing_normal_operation(self, mock_ctx):
-        """Test that typing() is called and loop exits when event is set."""
-        from src.gw2.cogs.account import _keep_typing_alive
-
-        stop_event = asyncio.Event()
-
-        # Immediately set the event so the while loop exits on first check
-        stop_event.set()
-
-        await _keep_typing_alive(mock_ctx, stop_event)
-
-        # The while condition is checked first; since it's already set, the loop body never runs
-        mock_ctx.message.channel.typing.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_keep_typing_calls_typing_then_stops(self, mock_ctx):
-        """Test that typing() is called at least once before event is set."""
-        from src.gw2.cogs.account import _keep_typing_alive
-
-        stop_event = asyncio.Event()
-        call_count = 0
-
-        original_typing = mock_ctx.message.channel.typing
-
-        async def typing_side_effect():
-            nonlocal call_count
-            call_count += 1
-            # Set the stop event after first typing call
-            stop_event.set()
-
-        mock_ctx.message.channel.typing = AsyncMock(side_effect=typing_side_effect)
-
-        with patch("src.gw2.cogs.account.asyncio.sleep", new_callable=AsyncMock):
-            await _keep_typing_alive(mock_ctx, stop_event)
-
-        assert call_count >= 1
-
-    @pytest.mark.asyncio
-    async def test_keep_typing_cancelled_error_propagates(self, mock_ctx):
-        """Test that CancelledError is re-raised from the outer handler."""
-        from src.gw2.cogs.account import _keep_typing_alive
-
-        stop_event = asyncio.Event()
-
-        # Make typing raise CancelledError
-        mock_ctx.message.channel.typing = AsyncMock(side_effect=asyncio.CancelledError)
-
-        with pytest.raises(asyncio.CancelledError):
-            await _keep_typing_alive(mock_ctx, stop_event)
-
-    @pytest.mark.asyncio
-    async def test_keep_typing_http_exception_breaks_loop(self, mock_ctx):
-        """Test that discord.HTTPException causes the loop to break gracefully."""
-        from src.gw2.cogs.account import _keep_typing_alive
-
-        stop_event = asyncio.Event()
-
-        mock_response = MagicMock(status=500)
-        mock_ctx.message.channel.typing = AsyncMock(side_effect=discord.HTTPException(mock_response, "server error"))
-
-        # Should not raise, just break out of loop
-        await _keep_typing_alive(mock_ctx, stop_event)
-
-        mock_ctx.message.channel.typing.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_keep_typing_forbidden_breaks_loop(self, mock_ctx):
-        """Test that discord.Forbidden causes the loop to break gracefully."""
-        from src.gw2.cogs.account import _keep_typing_alive
-
-        stop_event = asyncio.Event()
-
-        mock_response = MagicMock(status=403)
-        mock_ctx.message.channel.typing = AsyncMock(side_effect=discord.Forbidden(mock_response, "forbidden"))
-
-        # Forbidden is a subclass of HTTPException, so it is caught too
-        await _keep_typing_alive(mock_ctx, stop_event)
-
-        mock_ctx.message.channel.typing.assert_called_once()
-
-
 class TestFetchGuildInfoStandalone:
     """Test cases for the _fetch_guild_info_standalone helper function."""
 
@@ -606,9 +510,6 @@ class TestAccountCommandFullPaths:
             patch("src.gw2.cogs.account.Gw2Client") as mock_client,
             patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
             patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
-            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
-            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
-            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
         ):
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
@@ -621,12 +522,6 @@ class TestAccountCommandFullPaths:
                 ]
             )
 
-            mock_stop_event = MagicMock()
-            mock_event_cls.return_value = mock_stop_event
-
-            mock_task = MagicMock()
-            mock_create_task.return_value = mock_task
-
             await account(mock_ctx)
 
             # ctx.send was called for the progress embed
@@ -637,10 +532,6 @@ class TestAccountCommandFullPaths:
 
             # progress_msg.delete was called to remove the progress message
             progress_msg.delete.assert_called_once()
-
-            # The stop event was set and typing task was cancelled
-            mock_stop_event.set.assert_called_once()
-            mock_task.cancel.assert_called_once()
 
             # Verify API calls
             assert mock_client_instance.call_api.call_count == 2
@@ -687,9 +578,6 @@ class TestAccountCommandFullPaths:
             patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal,
             patch("src.gw2.cogs.account.Gw2Client") as mock_client,
             patch("src.gw2.cogs.account.bot_utils.send_error_msg") as mock_error_msg,
-            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
-            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
-            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
         ):
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
@@ -698,19 +586,10 @@ class TestAccountCommandFullPaths:
             # First call_api (account) raises, after progress msg and typing task created
             mock_client_instance.call_api = AsyncMock(side_effect=RuntimeError("API exploded"))
 
-            mock_stop_event = MagicMock()
-            mock_event_cls.return_value = mock_stop_event
-            mock_task = MagicMock()
-            mock_create_task.return_value = mock_task
-
             await account(mock_ctx)
 
             mock_error_msg.assert_called_once()
             mock_ctx.bot.log.error.assert_called_once()
-
-            # Stop event and task cleanup should have been called in the except block
-            mock_stop_event.set.assert_called_once()
-            mock_task.cancel.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_account_command_all_permissions(self, mock_ctx, sample_account_data_no_guilds, sample_world_data):
@@ -728,9 +607,6 @@ class TestAccountCommandFullPaths:
             patch("src.gw2.cogs.account.Gw2Client") as mock_client,
             patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
             patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
-            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
-            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
-            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
             patch(
                 "src.gw2.cogs.account.gw2_utils.calculate_user_achiev_points",
                 new_callable=AsyncMock,
@@ -752,11 +628,6 @@ class TestAccountCommandFullPaths:
                     pvp_data,  # pvp/stats (gathered)
                 ]
             )
-
-            mock_stop_event = MagicMock()
-            mock_event_cls.return_value = mock_stop_event
-            mock_task = MagicMock()
-            mock_create_task.return_value = mock_task
 
             await account(mock_ctx)
 
@@ -795,9 +666,6 @@ class TestAccountCommandFullPaths:
             patch("src.gw2.cogs.account.Gw2Client") as mock_client,
             patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
             patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
-            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
-            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
-            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
         ):
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
@@ -810,11 +678,6 @@ class TestAccountCommandFullPaths:
                     Exception("characters API failed"),  # characters call fails
                 ]
             )
-
-            mock_stop_event = MagicMock()
-            mock_event_cls.return_value = mock_stop_event
-            mock_task = MagicMock()
-            mock_create_task.return_value = mock_task
 
             await account(mock_ctx)
 
@@ -862,9 +725,6 @@ class TestAccountCommandFullPaths:
             patch("src.gw2.cogs.account.Gw2Client") as mock_client,
             patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
             patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
-            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
-            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
-            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
         ):
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
@@ -878,11 +738,6 @@ class TestAccountCommandFullPaths:
                     guild_data_2,  # guild/{guild-id-2}
                 ]
             )
-
-            mock_stop_event = MagicMock()
-            mock_event_cls.return_value = mock_stop_event
-            mock_task = MagicMock()
-            mock_create_task.return_value = mock_task
 
             await account(mock_ctx)
 
@@ -936,9 +791,6 @@ class TestAccountCommandFullPaths:
             patch("src.gw2.cogs.account.Gw2Client") as mock_client,
             patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
             patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
-            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
-            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
-            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
             patch(
                 "src.gw2.cogs.account._fetch_guild_info_standalone",
                 new_callable=AsyncMock,
@@ -955,11 +807,6 @@ class TestAccountCommandFullPaths:
                     sample_world_data,
                 ]
             )
-
-            mock_stop_event = MagicMock()
-            mock_event_cls.return_value = mock_stop_event
-            mock_task = MagicMock()
-            mock_create_task.return_value = mock_task
 
             await account(mock_ctx)
 
@@ -997,9 +844,6 @@ class TestAccountCommandFullPaths:
             patch("src.gw2.cogs.account.Gw2Client") as mock_client,
             patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
             patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
-            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
-            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
-            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
         ):
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
@@ -1011,11 +855,6 @@ class TestAccountCommandFullPaths:
                     sample_world_data,
                 ]
             )
-
-            mock_stop_event = MagicMock()
-            mock_event_cls.return_value = mock_stop_event
-            mock_task = MagicMock()
-            mock_create_task.return_value = mock_task
 
             await account(mock_ctx)
 
@@ -1049,9 +888,6 @@ class TestAccountCommandFullPaths:
             patch("src.gw2.cogs.account.Gw2Client") as mock_client,
             patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
             patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
-            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
-            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
-            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
         ):
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
@@ -1063,11 +899,6 @@ class TestAccountCommandFullPaths:
                     sample_world_data,
                 ]
             )
-
-            mock_stop_event = MagicMock()
-            mock_event_cls.return_value = mock_stop_event
-            mock_task = MagicMock()
-            mock_create_task.return_value = mock_task
 
             await account(mock_ctx)
 
@@ -1111,9 +942,6 @@ class TestAccountCommandFullPaths:
             patch("src.gw2.cogs.account.Gw2Client") as mock_client,
             patch("src.gw2.cogs.account.bot_utils.send_embed") as mock_send_embed,
             patch("src.gw2.cogs.account.bot_utils.get_current_date_time_str_long", return_value="2024-01-01 12:00:00"),
-            patch("src.gw2.cogs.account._keep_typing_alive", new=MagicMock()),
-            patch("src.gw2.cogs.account.asyncio.create_task") as mock_create_task,
-            patch("src.gw2.cogs.account.asyncio.Event") as mock_event_cls,
         ):
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=api_key_data)
 
@@ -1125,11 +953,6 @@ class TestAccountCommandFullPaths:
                     sample_world_data,
                 ]
             )
-
-            mock_stop_event = MagicMock()
-            mock_event_cls.return_value = mock_stop_event
-            mock_task = MagicMock()
-            mock_create_task.return_value = mock_task
 
             await account(mock_ctx)
 

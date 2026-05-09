@@ -11,23 +11,6 @@ from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 
 
-async def _keep_typing_alive(ctx, stop_event):
-    """Helper to keep Discord typing indicator alive during long operations."""
-    try:
-        while not stop_event.is_set():
-            try:
-                await ctx.message.channel.typing()
-                await asyncio.sleep(4)  # Renew every 4 seconds (Discord typing lasts ~5s)
-            except asyncio.CancelledError:
-                raise  # Re-raise CancelledError
-            except discord.HTTPException, discord.Forbidden:
-                # Handle Discord API errors gracefully and stop the loop
-                break
-    except asyncio.CancelledError:
-        # Clean up and re-raise CancelledError as required
-        raise
-
-
 async def _fetch_guild_info_standalone(gw2_api, guild_id, api_key, ctx):
     """Helper to fetch individual guild information."""
     try:
@@ -83,10 +66,6 @@ async def account(ctx):
     if "account" not in permissions:
         return await bot_utils.send_error_msg(ctx, gw2_messages.API_KEY_NO_PERMISSION, True)
 
-    # Initialize variables for cleanup
-    stop_typing = None
-    typing_task = None
-
     try:
         # Send progress message as embed
         color = ctx.bot.settings["gw2"]["EmbedColor"]
@@ -95,11 +74,7 @@ async def account(ctx):
             color=color,
         )
         progress_embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.display_avatar.url)
-        progress_msg = await ctx.send(embed=progress_embed)
-
-        # Start background typing keeper
-        stop_typing = asyncio.Event()
-        typing_task = asyncio.create_task(_keep_typing_alive(ctx, stop_typing))
+        progress_msg = await bot_utils.send_with_retry(ctx, ctx.send, embed=progress_embed)
 
         # Fetch basic account info and server info in parallel
         account_task = gw2_api.call_api("account", api_key)
@@ -251,23 +226,11 @@ async def account(ctx):
             text=f"{bot_utils.get_current_date_time_str_long()} UTC",
         )
 
-        # Stop the background typing task
-        stop_typing.set()
-        typing_task.cancel()
-
         # Clean up progress message and send final result
         await progress_msg.delete()
         await bot_utils.send_embed(ctx, embed)
 
     except Exception as e:
-        # Stop the background typing task if it exists
-        if stop_typing is not None and typing_task is not None:
-            try:
-                stop_typing.set()
-                typing_task.cancel()
-            except AttributeError, RuntimeError:
-                # Handle cases where task is already done or event is invalid
-                pass
         await bot_utils.send_error_msg(ctx, e)
         return ctx.bot.log.error(ctx, e)
 
