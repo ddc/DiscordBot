@@ -58,11 +58,9 @@ def mock_ctx():
 
 @pytest.fixture
 def mock_openai_response():
-    """Create a mock OpenAI response."""
+    """Create a mock OpenAI Responses API response."""
     response = MagicMock()
-    response.choices = [MagicMock()]
-    response.choices[0].message = MagicMock()
-    response.choices[0].message.content = "This is a mock AI response from OpenAI."
+    response.output_text = "This is a mock AI response from OpenAI."
     return response
 
 
@@ -98,7 +96,7 @@ class TestOpenAi:
         with patch.object(openai_cog, "_get_ai_response", return_value="AI response here"):
             await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="What is Python?")
 
-            mock_ctx.message.channel.typing.assert_called_once()
+            mock_ctx.send.assert_called_once()  # progress message was sent
             mock_send_embed.assert_called_once()
 
             # Check embed properties
@@ -118,7 +116,7 @@ class TestOpenAi:
         with patch.object(openai_cog, "_get_ai_response", side_effect=Exception("API Error")):
             await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="What is Python?")
 
-            mock_ctx.message.channel.typing.assert_called_once()
+            mock_ctx.send.assert_called_once()  # progress message was sent
             mock_send_embed.assert_called_once()
 
             # Check error embed properties
@@ -140,7 +138,7 @@ class TestOpenAi:
 
         # Mock the client instance directly
         mock_client = MagicMock()
-        mock_client.chat.completions.create = AsyncMock(return_value=mock_openai_response)
+        mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
         result = await openai_cog._get_ai_response("What is Python?")
@@ -148,19 +146,16 @@ class TestOpenAi:
         assert result == "This is a mock AI response from OpenAI."
 
         # Verify OpenAI API call
-        mock_client.chat.completions.create.assert_called_once()
-        call_args = mock_client.chat.completions.create.call_args
+        mock_client.responses.create.assert_called_once()
+        call_args = mock_client.responses.create.call_args
 
         assert call_args[1]["model"] == "gpt-3.5-turbo"
-        assert call_args[1]["max_completion_tokens"] == 1000
-        assert "temperature" not in call_args[1]
-
-        # Verify message types and content
-        messages = call_args[1]["messages"]
-        assert len(messages) == 2
-        assert messages[0]["role"] == "system"
-        assert messages[1]["role"] == "user"
-        assert messages[1]["content"] == "What is Python?"
+        assert call_args[1]["max_output_tokens"] is None
+        assert call_args[1]["instructions"] == openai_cog._instructions
+        assert call_args[1]["input"] == "What is Python?"
+        # Reasoning effort and web search are enabled
+        assert call_args[1]["reasoning"]["effort"] == "xhigh"
+        assert call_args[1]["tools"][0]["type"] == "web_search"
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.get_bot_settings")
@@ -169,11 +164,11 @@ class TestOpenAi:
     ):
         """Test _get_ai_response strips leading/trailing spaces."""
         mock_get_settings.return_value = mock_bot_settings
-        mock_openai_response.choices[0].message.content = "  Response with spaces  "
+        mock_openai_response.output_text = "  Response with spaces  "
 
         # Mock the client instance directly
         mock_client = MagicMock()
-        mock_client.chat.completions.create = AsyncMock(return_value=mock_openai_response)
+        mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
         result = await openai_cog._get_ai_response("Test message")
@@ -250,13 +245,13 @@ class TestOpenAi:
 
         # Mock the client instance directly
         mock_client = MagicMock()
-        mock_client.chat.completions.create = AsyncMock(return_value=mock_openai_response)
+        mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
         await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="Test question")
 
         # Verify correct model was used
-        call_args = mock_client.chat.completions.create.call_args
+        call_args = mock_client.responses.create.call_args
         assert call_args[1]["model"] == "gpt-4"
 
     @pytest.mark.asyncio
@@ -303,15 +298,14 @@ class TestOpenAi:
 
         # Mock the client instance directly
         mock_client = MagicMock()
-        mock_client.chat.completions.create = AsyncMock(return_value=mock_openai_response)
+        mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
         await openai_cog._get_ai_response("Test message")
 
-        messages = mock_client.chat.completions.create.call_args[1]["messages"]
-        system_message = messages[0]
-        expected_content = "You are a helpful AI assistant. Provide clear, concise, and accurate responses."
-        assert system_message["content"] == expected_content
+        call_args = mock_client.responses.create.call_args[1]
+        assert call_args["instructions"] == openai_cog._instructions
+        assert call_args["input"] == "Test message"
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.get_bot_settings")
@@ -323,25 +317,38 @@ class TestOpenAi:
 
         # Mock the client instance directly
         mock_client = MagicMock()
-        mock_client.chat.completions.create = AsyncMock(return_value=mock_openai_response)
+        mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
         await openai_cog._get_ai_response("Test message")
 
-        call_args = mock_client.chat.completions.create.call_args[1]
-        assert call_args["max_completion_tokens"] == 1000
+        call_args = mock_client.responses.create.call_args[1]
+        assert call_args["max_output_tokens"] is None
+        assert call_args["reasoning"]["effort"] == "xhigh"
+        assert call_args["tools"][0]["type"] == "web_search"
         assert "temperature" not in call_args
         assert call_args["model"] == "gpt-3.5-turbo"
 
     @patch("src.bot.cogs.open_ai.bot_utils.get_current_date_time_str_long")
     def test_create_ai_embeds_footer(self, mock_get_datetime, openai_cog, mock_ctx):
-        """Test that embed footer contains correct timestamp and model name."""
+        """Test that embed footer contains model, duration, and timestamp."""
         mock_get_datetime.return_value = "2023-01-01 12:00:00"
 
-        embeds = openai_cog._create_ai_embeds(mock_ctx, "Test", discord.Color.blue())
+        embeds = openai_cog._create_ai_embeds(mock_ctx, "Test", discord.Color.blue(), elapsed=20.0)
 
-        assert embeds[0].footer.text == "gpt-3.5-turbo | 2023-01-01 12:00:00 UTC"
+        assert embeds[0].footer.text == "gpt-3.5-turbo | 20s | 2023-01-01 12:00:00 UTC"
         mock_get_datetime.assert_called_once()
+
+    def test_format_duration_milliseconds(self, openai_cog):
+        """Sub-second durations are shown in milliseconds."""
+        assert openai_cog._format_duration(0.005) == "5ms"
+        assert openai_cog._format_duration(0.5) == "500ms"
+
+    def test_format_duration_seconds(self, openai_cog):
+        """Durations of one second or more are shown in whole seconds."""
+        assert openai_cog._format_duration(1.0) == "1s"
+        assert openai_cog._format_duration(20.4) == "20s"
+        assert openai_cog._format_duration(119.6) == "120s"
 
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
@@ -406,15 +413,13 @@ class TestOpenAi:
         """Test _get_ai_response with empty response from OpenAI."""
         mock_get_settings.return_value = mock_bot_settings
 
-        # Mock empty response
+        # Mock empty response (whitespace only)
         mock_response = MagicMock()
-        mock_response.choices = [MagicMock()]
-        mock_response.choices[0].message = MagicMock()
-        mock_response.choices[0].message.content = "   "  # Only whitespace
+        mock_response.output_text = "   "
 
         # Mock the client instance directly
         mock_client = MagicMock()
-        mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
+        mock_client.responses.create = AsyncMock(return_value=mock_response)
         openai_cog._openai_client = mock_client
 
         result = await openai_cog._get_ai_response("Test message")
@@ -473,7 +478,8 @@ class TestOpenAi:
         with patch.object(openai_cog, "_get_ai_response", return_value=long_response):
             await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="Long question")
 
-            mock_ctx.send.assert_called_once()
-            call_kwargs = mock_ctx.send.call_args[1]
+            # ctx.send called twice: progress message, then the paginated first page
+            assert mock_ctx.send.call_count == 2
+            call_kwargs = mock_ctx.send.call_args[1]  # last call == paginated send
             assert "embed" in call_kwargs
             assert "view" in call_kwargs
