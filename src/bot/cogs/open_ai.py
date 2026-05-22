@@ -1,8 +1,11 @@
 import discord
+import time
 from discord.ext import commands
 from openai import AsyncOpenAI
-from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
-from src.bot.constants.settings import get_bot_settings
+from openai.types.responses import WebSearchToolParam
+from openai.types.shared import ReasoningEffort
+from openai.types.shared_params import Reasoning
+from src.bot.constants.settings import BotSettings, get_bot_settings
 from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils
 from src.bot.tools.cooldowns import CoolDowns
@@ -12,9 +15,15 @@ class OpenAi(commands.Cog):
     """OpenAI-powered commands for AI assistance and text generation."""
 
     def __init__(self, bot: Bot) -> None:
-        self.bot = bot
-        self._bot_settings = get_bot_settings()
+        self.bot: Bot = bot
+        self._bot_settings: BotSettings = get_bot_settings()
         self._openai_client: AsyncOpenAI = AsyncOpenAI(api_key=self._bot_settings.openai_api_key)
+        self._effort: ReasoningEffort = "xhigh"
+        self._instructions: str = (
+            "You are a helpful AI assistant. When answering factual questions, use web search and base your "
+            "answer only on information directly supported by the sources. Do not invent or extrapolate specific "
+            "numbers, statistics, or breakdowns that the sources do not explicitly state. Cite the source URL(s)."
+        )
 
     @commands.command()
     @commands.cooldown(1, CoolDowns.OpenAI.value, commands.BucketType.user)
@@ -26,8 +35,17 @@ class OpenAi(commands.Cog):
             ai Write a haiku about programming
             ai Explain quantum computing in simple terms
         """
-        await ctx.message.channel.typing()
+        # Reasoning + web search can take a couple of minutes, so show a progress
+        # message immediately so the user knows the bot is working (not stuck).
+        progress_embed = discord.Embed(
+            description="🔄 **Please wait, I'm thinking and searching the web for an accurate answer...** "
+            "(this may take a moment)",
+            color=discord.Color.blurple(),
+        )
+        progress_embed.set_author(name=ctx.author.display_name, icon_url=getattr(ctx.author.avatar, "url", None))
+        progress_msg = await bot_utils.send_with_retry(ctx, ctx.send, embed=progress_embed)
 
+        start = time.monotonic()
         try:
             response_text = await self._get_ai_response(msg_text)
             color = discord.Color.green()
@@ -36,8 +54,15 @@ class OpenAi(commands.Cog):
             self.bot.log.error(f"OpenAI API error: {e}")
             color = discord.Color.red()
             description = f"Sorry, I encountered an error: {e}"
+        elapsed = time.monotonic() - start
 
-        embeds = self._create_ai_embeds(ctx, description, color)
+        # Remove the progress message before sending the final answer.
+        try:
+            await progress_msg.delete()
+        except discord.HTTPException:
+            pass
+
+        embeds = self._create_ai_embeds(ctx, description, color, elapsed)
         if len(embeds) == 1:
             await bot_utils.send_embed(ctx, embeds[0], False)
         else:
@@ -46,30 +71,32 @@ class OpenAi(commands.Cog):
 
     async def _get_ai_response(self, message: str) -> str:
         """Get response from OpenAI API."""
-        model = self._bot_settings.openai_model
 
-        # Create properly typed messages for OpenAI API
-        messages: list[ChatCompletionSystemMessageParam | ChatCompletionUserMessageParam] = [
-            ChatCompletionSystemMessageParam(
-                role="system",
-                content="You are a helpful AI assistant. Provide clear, concise, and accurate responses.",
-            ),
-            ChatCompletionUserMessageParam(role="user", content=message),
-        ]
-
-        # Use the correct OpenAI API endpoint (async — does not block the event loop)
-        response = await self._openai_client.chat.completions.create(
-            model=model,
-            messages=messages,
-            max_completion_tokens=1000,
+        response = await self._openai_client.responses.create(
+            instructions=self._instructions,
+            model=self._bot_settings.openai_model,
+            reasoning=Reasoning(effort=self._effort),
+            tools=[WebSearchToolParam(type="web_search")],
+            max_output_tokens=None,
+            input=message,
         )
 
-        content = response.choices[0].message.content
+        content = response.output_text
         return content.strip() if content else ""
 
-    def _create_ai_embeds(self, ctx: commands.Context, description: str, color: discord.Color) -> list[discord.Embed]:
+    @staticmethod
+    def _format_duration(seconds: float) -> str:
+        """Format an elapsed duration as e.g. '5ms' (sub-second) or '20s'."""
+        if seconds < 1:
+            return f"{round(seconds * 1000)}ms"
+        return f"{round(seconds)}s"
+
+    def _create_ai_embeds(
+        self, ctx: commands.Context, description: str, color: discord.Color, elapsed: float = 0.0
+    ) -> list[discord.Embed]:
         """Create formatted embed(s) for AI response, paginating if needed."""
         model = self._bot_settings.openai_model
+        duration = self._format_duration(elapsed)
         max_length = 2000
         chunks = []
 
@@ -92,7 +119,7 @@ class OpenAi(commands.Cog):
                 name=ctx.author.display_name,
                 icon_url=getattr(ctx.author.avatar, "url", None),
             )
-            footer_text = f"{model} | {bot_utils.get_current_date_time_str_long()} UTC"
+            footer_text = f"{model} | {duration} | {bot_utils.get_current_date_time_str_long()} UTC"
             if len(chunks) > 1:
                 footer_text = f"Page {i + 1}/{len(chunks)} | {footer_text}"
             embed.set_footer(
