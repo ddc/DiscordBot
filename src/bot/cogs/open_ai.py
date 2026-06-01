@@ -19,7 +19,8 @@ class OpenAi(commands.Cog):
         self._bot_settings: BotSettings = get_bot_settings()
         self._openai_client: AsyncOpenAI = AsyncOpenAI(api_key=self._bot_settings.openai_api_key)
         self._effort: ReasoningEffort = "xhigh"
-        self._instructions: str = (
+        self._instructions: str = "You are a helpful AI assistant."
+        self._instructions_web: str = (
             "You are a helpful AI assistant. When answering factual questions, use web search and base your "
             "answer only on information directly supported by the sources. Do not invent or extrapolate specific "
             "numbers, statistics, or breakdowns that the sources do not explicitly state. Cite the source URL(s)."
@@ -28,18 +29,37 @@ class OpenAi(commands.Cog):
     @commands.command()
     @commands.cooldown(1, CoolDowns.OpenAI.value, commands.BucketType.user)
     async def ai(self, ctx: commands.Context, *, msg_text: str) -> None:
-        """Ask OpenAI for assistance with any question or task.
+        """Ask OpenAI for a direct answer (no web search).
 
         Usage:
             ai What is Python?
             ai Write a haiku about programming
             ai Explain quantum computing in simple terms
         """
-        # Reasoning + web search can take a couple of minutes, so show a progress
+        await self._run_ai(ctx, msg_text, use_web=False)
+
+    @commands.command()
+    @commands.cooldown(1, CoolDowns.OpenAI.value, commands.BucketType.user)
+    async def aiweb(self, ctx: commands.Context, *, msg_text: str) -> None:
+        """Ask OpenAI to search the web before answering — best for current/factual info.
+
+        Usage:
+            aiweb What's the latest news about <topic>
+            aiweb How many support gems does Path of Exile 2 have
+        """
+        await self._run_ai(ctx, msg_text, use_web=True)
+
+    async def _run_ai(self, ctx: commands.Context, msg_text: str, use_web: bool) -> None:
+        """Shared body for the `ai` and `aiweb` commands."""
+        # Reasoning (and web search) can take a couple of minutes, so show a progress
         # message immediately so the user knows the bot is working (not stuck).
+        progress_text = (
+            "Please wait, I'm thinking and searching the web for an accurate answer..."
+            if use_web
+            else "Please wait, I'm thinking..."
+        )
         progress_embed = discord.Embed(
-            description="🔄 **Please wait, I'm thinking and searching the web for an accurate answer...** "
-            "(this may take a moment)",
+            description=f"🔄 **{progress_text}** (this may take a moment)",
             color=discord.Color.blurple(),
         )
         progress_embed.set_author(name=ctx.author.display_name, icon_url=getattr(ctx.author.avatar, "url", None))
@@ -47,7 +67,7 @@ class OpenAi(commands.Cog):
 
         start = time.monotonic()
         try:
-            response_text = await self._get_ai_response(msg_text)
+            response_text = await self._get_ai_response(msg_text, use_web=use_web)
             color = discord.Color.green()
             description = response_text
         except Exception as e:
@@ -69,14 +89,21 @@ class OpenAi(commands.Cog):
             view = bot_utils.EmbedPaginatorView(embeds, ctx.author.id)
             await view.send_and_save(ctx)
 
-    async def _get_ai_response(self, message: str) -> str:
-        """Get response from OpenAI API."""
+    async def _get_ai_response(self, message: str, use_web: bool) -> str:
+        """Get response from OpenAI API.
+
+        use_web: when True, enables the built-in web_search tool and uses the
+        web-grounded instructions. When False, the model answers from its own
+        knowledge with plain instructions.
+        """
+        instructions = self._instructions_web if use_web else self._instructions
+        tools: list[WebSearchToolParam] = [WebSearchToolParam(type="web_search")] if use_web else []
 
         response = await self._openai_client.responses.create(
-            instructions=self._instructions,
+            instructions=instructions,
             model=self._bot_settings.openai_model,
             reasoning=Reasoning(effort=self._effort),
-            tools=[WebSearchToolParam(type="web_search")],
+            tools=tools,
             max_output_tokens=None,
             input=message,
         )

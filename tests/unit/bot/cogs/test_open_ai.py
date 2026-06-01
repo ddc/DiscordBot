@@ -109,6 +109,39 @@ class TestOpenAi:
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.get_bot_settings")
     @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
+    async def test_aiweb_command_success(
+        self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings
+    ):
+        """`aiweb` runs the shared flow with use_web=True (web search enabled)."""
+        mock_get_settings.return_value = mock_bot_settings
+
+        with patch.object(openai_cog, "_get_ai_response", return_value="web answer") as mock_get_response:
+            await openai_cog.aiweb.callback(openai_cog, mock_ctx, msg_text="Latest news")
+
+            mock_get_response.assert_awaited_once_with("Latest news", use_web=True)
+            mock_ctx.send.assert_called_once()  # progress message
+            mock_send_embed.assert_called_once()
+            embed = mock_send_embed.call_args[0][1]
+            assert embed.description == "web answer"
+            assert embed.color == discord.Color.green()
+
+    @pytest.mark.asyncio
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
+    async def test_ai_command_uses_plain_path(
+        self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings
+    ):
+        """`ai` routes through _get_ai_response with use_web=False."""
+        mock_get_settings.return_value = mock_bot_settings
+
+        with patch.object(openai_cog, "_get_ai_response", return_value="plain answer") as mock_get_response:
+            await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="What is Python?")
+
+            mock_get_response.assert_awaited_once_with("What is Python?", use_web=False)
+
+    @pytest.mark.asyncio
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
     async def test_ai_command_error(self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings):
         """Test AI command with OpenAI API error."""
         mock_get_settings.return_value = mock_bot_settings
@@ -141,7 +174,7 @@ class TestOpenAi:
         mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
-        result = await openai_cog._get_ai_response("What is Python?")
+        result = await openai_cog._get_ai_response("What is Python?", use_web=False)
 
         assert result == "This is a mock AI response from OpenAI."
 
@@ -151,11 +184,31 @@ class TestOpenAi:
 
         assert call_args[1]["model"] == "gpt-3.5-turbo"
         assert call_args[1]["max_output_tokens"] is None
+        # Plain (no web search) uses the plain instructions and no tools
         assert call_args[1]["instructions"] == openai_cog._instructions
         assert call_args[1]["input"] == "What is Python?"
-        # Reasoning effort and web search are enabled
         assert call_args[1]["reasoning"]["effort"] == "xhigh"
+        assert call_args[1]["tools"] == []
+
+    @pytest.mark.asyncio
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    async def test_get_ai_response_web_success(
+        self, mock_get_settings, openai_cog, mock_bot_settings, mock_openai_response
+    ):
+        """Web variant: uses web-grounded instructions and the web_search tool."""
+        mock_get_settings.return_value = mock_bot_settings
+
+        mock_client = MagicMock()
+        mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
+        openai_cog._openai_client = mock_client
+
+        result = await openai_cog._get_ai_response("What is Python?", use_web=True)
+
+        assert result == "This is a mock AI response from OpenAI."
+        call_args = mock_client.responses.create.call_args
+        assert call_args[1]["instructions"] == openai_cog._instructions_web
         assert call_args[1]["tools"][0]["type"] == "web_search"
+        assert call_args[1]["reasoning"]["effort"] == "xhigh"
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.get_bot_settings")
@@ -171,7 +224,7 @@ class TestOpenAi:
         mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
-        result = await openai_cog._get_ai_response("Test message")
+        result = await openai_cog._get_ai_response("Test message", use_web=False)
 
         assert result == "Response with spaces"
 
@@ -301,7 +354,7 @@ class TestOpenAi:
         mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
-        await openai_cog._get_ai_response("Test message")
+        await openai_cog._get_ai_response("Test message", use_web=False)
 
         call_args = mock_client.responses.create.call_args[1]
         assert call_args["instructions"] == openai_cog._instructions
@@ -320,12 +373,12 @@ class TestOpenAi:
         mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
-        await openai_cog._get_ai_response("Test message")
+        await openai_cog._get_ai_response("Test message", use_web=False)
 
         call_args = mock_client.responses.create.call_args[1]
         assert call_args["max_output_tokens"] is None
         assert call_args["reasoning"]["effort"] == "xhigh"
-        assert call_args["tools"][0]["type"] == "web_search"
+        assert call_args["tools"] == []  # plain path has no tools
         assert "temperature" not in call_args
         assert call_args["model"] == "gpt-3.5-turbo"
 
@@ -422,7 +475,7 @@ class TestOpenAi:
         mock_client.responses.create = AsyncMock(return_value=mock_response)
         openai_cog._openai_client = mock_client
 
-        result = await openai_cog._get_ai_response("Test message")
+        result = await openai_cog._get_ai_response("Test message", use_web=False)
 
         assert result == ""  # Should strip to empty string
 
