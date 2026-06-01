@@ -26,6 +26,16 @@ class BotSettings(BaseSettings):
     openai_model: str = Field(default="gpt-5.5", description="https://developers.openai.com/api/docs/models")
     openai_api_key: str | None = Field(default=None)
 
+    # Anthropic (Claude)
+    anthropic_model: str = Field(
+        default="claude-opus-4-8", description="https://docs.anthropic.com/en/docs/about-claude/models"
+    )
+    anthropic_api_key: str | None = Field(default=None)
+
+    # Google (Gemini)
+    gemini_model: str = Field(default="gemini-flash-latest", description="https://ai.google.dev/gemini-api/docs/models")
+    gemini_api_key: str | None = Field(default=None)
+
     # Cooldowns
     admin_cooldown: int = Field(default=20)
     config_cooldown: int = Field(default=20)

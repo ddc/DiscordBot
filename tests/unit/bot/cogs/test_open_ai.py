@@ -28,8 +28,20 @@ def mock_bot():
 @pytest.fixture
 def openai_cog(mock_bot):
     """Create an OpenAi cog instance."""
-    with patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings, patch("src.bot.cogs.open_ai.AsyncOpenAI"):
-        mock_settings.return_value = MagicMock(openai_api_key="test-key", openai_model="gpt-3.5-turbo")
+    with (
+        patch("src.bot.cogs.open_ai.get_bot_settings") as mock_settings,
+        patch("src.bot.cogs.open_ai.AsyncOpenAI"),
+        patch("src.bot.cogs.open_ai.AsyncAnthropic"),
+        patch("src.bot.cogs.open_ai.genai.Client"),
+    ):
+        mock_settings.return_value = MagicMock(
+            openai_api_key="test-key",
+            openai_model="gpt-3.5-turbo",
+            anthropic_api_key="test-anthropic-key",
+            anthropic_model="claude-test",
+            gemini_api_key="test-gemini-key",
+            gemini_model="gemini-test",
+        )
         return OpenAi(mock_bot)
 
 
@@ -93,8 +105,8 @@ class TestOpenAi:
         """Test successful AI command execution."""
         mock_get_settings.return_value = mock_bot_settings
 
-        with patch.object(openai_cog, "_get_ai_response", return_value="AI response here"):
-            await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="What is Python?")
+        with patch.object(openai_cog, "_get_openai_response", return_value="AI response here"):
+            await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="What is Python?")
 
             mock_ctx.send.assert_called_once()  # progress message was sent
             mock_send_embed.assert_called_once()
@@ -115,8 +127,8 @@ class TestOpenAi:
         """`aiweb` runs the shared flow with use_web=True (web search enabled)."""
         mock_get_settings.return_value = mock_bot_settings
 
-        with patch.object(openai_cog, "_get_ai_response", return_value="web answer") as mock_get_response:
-            await openai_cog.aiweb.callback(openai_cog, mock_ctx, msg_text="Latest news")
+        with patch.object(openai_cog, "_get_openai_response", return_value="web answer") as mock_get_response:
+            await openai_cog.gptweb.callback(openai_cog, mock_ctx, msg_text="Latest news")
 
             mock_get_response.assert_awaited_once_with("Latest news", use_web=True)
             mock_ctx.send.assert_called_once()  # progress message
@@ -131,13 +143,192 @@ class TestOpenAi:
     async def test_ai_command_uses_plain_path(
         self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings
     ):
-        """`ai` routes through _get_ai_response with use_web=False."""
+        """`ai` routes through _get_openai_response with use_web=False."""
         mock_get_settings.return_value = mock_bot_settings
 
-        with patch.object(openai_cog, "_get_ai_response", return_value="plain answer") as mock_get_response:
-            await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="What is Python?")
+        with patch.object(openai_cog, "_get_openai_response", return_value="plain answer") as mock_get_response:
+            await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="What is Python?")
 
             mock_get_response.assert_awaited_once_with("What is Python?", use_web=False)
+
+    @pytest.mark.asyncio
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
+    async def test_claude_command_routes_to_anthropic_plain(
+        self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings
+    ):
+        """`claude` runs _get_claude_response with use_web=False."""
+        mock_get_settings.return_value = mock_bot_settings
+        with patch.object(openai_cog, "_get_claude_response", return_value="claude answer") as mock_get_response:
+            await openai_cog.claude.callback(openai_cog, mock_ctx, msg_text="hi")
+            mock_get_response.assert_awaited_once_with("hi", use_web=False)
+            mock_send_embed.assert_called_once()
+
+    @pytest.mark.asyncio
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
+    async def test_claudeweb_command_routes_to_anthropic_web(
+        self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings
+    ):
+        """`claudeweb` runs _get_claude_response with use_web=True."""
+        mock_get_settings.return_value = mock_bot_settings
+        with patch.object(openai_cog, "_get_claude_response", return_value="claude web answer") as mock_get_response:
+            await openai_cog.claudeweb.callback(openai_cog, mock_ctx, msg_text="news")
+            mock_get_response.assert_awaited_once_with("news", use_web=True)
+
+    @pytest.mark.asyncio
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
+    async def test_gemini_command_routes_to_gemini_plain(
+        self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings
+    ):
+        """`gemini` runs _get_gemini_response with use_web=False."""
+        mock_get_settings.return_value = mock_bot_settings
+        with patch.object(openai_cog, "_get_gemini_response", return_value="gemini answer") as mock_get_response:
+            await openai_cog.gemini.callback(openai_cog, mock_ctx, msg_text="hi")
+            mock_get_response.assert_awaited_once_with("hi", use_web=False)
+
+    @pytest.mark.asyncio
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
+    async def test_geminiweb_command_routes_to_gemini_web(
+        self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings
+    ):
+        """`geminiweb` runs _get_gemini_response with use_web=True."""
+        mock_get_settings.return_value = mock_bot_settings
+        with patch.object(openai_cog, "_get_gemini_response", return_value="gemini web answer") as mock_get_response:
+            await openai_cog.geminiweb.callback(openai_cog, mock_ctx, msg_text="news")
+            mock_get_response.assert_awaited_once_with("news", use_web=True)
+
+    @pytest.mark.asyncio
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
+    async def test_progress_delete_failure_is_tolerated(
+        self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings
+    ):
+        """If progress_msg.delete() raises discord.HTTPException, _run_chat still posts the answer."""
+        import discord
+
+        mock_get_settings.return_value = mock_bot_settings
+        # Make ctx.send return a message whose .delete() raises HTTPException.
+        progress_msg = MagicMock()
+        progress_msg.delete = AsyncMock(side_effect=discord.HTTPException(MagicMock(), "boom"))
+        mock_ctx.send = AsyncMock(return_value=progress_msg)
+
+        with patch.object(openai_cog, "_get_openai_response", return_value="hi"):
+            await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="hi")
+
+        # Final answer was still sent via send_embed despite the delete failure.
+        mock_send_embed.assert_called_once()
+        # And we attempted the delete.
+        progress_msg.delete.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
+    async def test_footer_carries_active_provider_model(
+        self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings
+    ):
+        """Embed footer reflects the active provider's model, not OpenAI's by default."""
+        mock_get_settings.return_value = mock_bot_settings
+        with patch.object(openai_cog, "_get_claude_response", return_value="claude says hi"):
+            await openai_cog.claude.callback(openai_cog, mock_ctx, msg_text="hi")
+
+        embed = mock_send_embed.call_args[0][1]
+        # mock_bot_settings.anthropic_model = "claude-test" (per the openai_cog fixture)
+        assert "claude-test" in embed.footer.text
+
+    @pytest.mark.asyncio
+    @patch("src.bot.cogs.open_ai.get_bot_settings")
+    @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
+    async def test_progress_message_text_differs_by_use_web(
+        self, mock_send_embed, mock_get_settings, openai_cog, mock_ctx, mock_bot_settings
+    ):
+        """Web-enabled commands show 'searching the web' in the progress embed; plain ones don't."""
+        mock_get_settings.return_value = mock_bot_settings
+
+        with patch.object(openai_cog, "_get_openai_response", return_value="x"):
+            # Plain: progress text should NOT mention web search.
+            await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="hi")
+            plain_embed = mock_ctx.send.call_args[1]["embed"]
+            assert "searching the web" not in plain_embed.description.lower()
+
+            mock_ctx.send.reset_mock()
+            mock_send_embed.reset_mock()
+
+            # Web: progress text SHOULD mention web search.
+            await openai_cog.gptweb.callback(openai_cog, mock_ctx, msg_text="hi")
+            web_embed = mock_ctx.send.call_args[1]["embed"]
+            assert "searching the web" in web_embed.description.lower()
+
+    @pytest.mark.asyncio
+    async def test_dispatch_unknown_provider_raises(self, openai_cog):
+        """_dispatch raises ValueError on unknown provider."""
+        with pytest.raises(ValueError):
+            await openai_cog._dispatch("notaprovider", "hi", False)
+
+    @pytest.mark.asyncio
+    async def test_get_claude_response_concatenates_text_blocks(self, openai_cog):
+        """_get_claude_response joins text blocks and strips."""
+        block_text = MagicMock(type="text", text="part one ")
+        block_tool = MagicMock(type="tool_use", text="ignored")
+        block_text2 = MagicMock(type="text", text="part two")
+        mock_response = MagicMock(content=[block_text, block_tool, block_text2])
+        openai_cog._anthropic_client = MagicMock()
+        openai_cog._anthropic_client.messages.create = AsyncMock(return_value=mock_response)
+
+        result = await openai_cog._get_claude_response("hi", use_web=False)
+
+        assert result == "part one part two"
+        call_args = openai_cog._anthropic_client.messages.create.call_args[1]
+        assert call_args["model"] == "claude-test"
+        assert call_args["system"] == openai_cog._instructions
+        assert call_args["tools"] == []
+        assert call_args["messages"] == [{"role": "user", "content": "hi"}]
+
+    @pytest.mark.asyncio
+    async def test_get_claude_response_web_enables_tool(self, openai_cog):
+        """use_web=True enables the web_search server tool and uses web instructions."""
+        block_text = MagicMock(type="text", text="ok")
+        mock_response = MagicMock(content=[block_text])
+        openai_cog._anthropic_client = MagicMock()
+        openai_cog._anthropic_client.messages.create = AsyncMock(return_value=mock_response)
+
+        await openai_cog._get_claude_response("hi", use_web=True)
+
+        call_args = openai_cog._anthropic_client.messages.create.call_args[1]
+        assert call_args["tools"] == [{"type": "web_search_20250305", "name": "web_search"}]
+        assert call_args["system"] == openai_cog._instructions_web
+
+    @pytest.mark.asyncio
+    async def test_get_gemini_response_plain(self, openai_cog):
+        """Plain Gemini call has no tools and uses plain instructions."""
+        mock_response = MagicMock(text="gemini reply  ")
+        openai_cog._gemini_client = MagicMock()
+        openai_cog._gemini_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+
+        result = await openai_cog._get_gemini_response("hi", use_web=False)
+
+        assert result == "gemini reply"
+        call_args = openai_cog._gemini_client.aio.models.generate_content.call_args[1]
+        assert call_args["model"] == "gemini-test"
+        assert call_args["contents"] == "hi"
+        # tools is absent in plain mode
+        assert "tools" not in call_args["config"].model_dump(exclude_none=True) or call_args["config"].tools is None
+
+    @pytest.mark.asyncio
+    async def test_get_gemini_response_web_adds_google_search_tool(self, openai_cog):
+        """use_web=True attaches a GoogleSearch tool in the config."""
+        mock_response = MagicMock(text="ok")
+        openai_cog._gemini_client = MagicMock()
+        openai_cog._gemini_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+
+        await openai_cog._get_gemini_response("hi", use_web=True)
+
+        call_args = openai_cog._gemini_client.aio.models.generate_content.call_args[1]
+        # The config carries a tool that has a non-None google_search attribute.
+        assert call_args["config"].tools is not None
+        assert any(getattr(t, "google_search", None) is not None for t in call_args["config"].tools)
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.get_bot_settings")
@@ -146,8 +337,8 @@ class TestOpenAi:
         """Test AI command with OpenAI API error."""
         mock_get_settings.return_value = mock_bot_settings
 
-        with patch.object(openai_cog, "_get_ai_response", side_effect=Exception("API Error")):
-            await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="What is Python?")
+        with patch.object(openai_cog, "_get_openai_response", side_effect=Exception("API Error")):
+            await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="What is Python?")
 
             mock_ctx.send.assert_called_once()  # progress message was sent
             mock_send_embed.assert_called_once()
@@ -163,10 +354,10 @@ class TestOpenAi:
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.get_bot_settings")
-    async def test_get_ai_response_success(
+    async def test_get_openai_response_success(
         self, mock_get_settings, openai_cog, mock_bot_settings, mock_openai_response
     ):
-        """Test successful _get_ai_response method."""
+        """Test successful _get_openai_response method."""
         mock_get_settings.return_value = mock_bot_settings
 
         # Mock the client instance directly
@@ -174,7 +365,7 @@ class TestOpenAi:
         mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
-        result = await openai_cog._get_ai_response("What is Python?", use_web=False)
+        result = await openai_cog._get_openai_response("What is Python?", use_web=False)
 
         assert result == "This is a mock AI response from OpenAI."
 
@@ -192,7 +383,7 @@ class TestOpenAi:
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.get_bot_settings")
-    async def test_get_ai_response_web_success(
+    async def test_get_openai_response_web_success(
         self, mock_get_settings, openai_cog, mock_bot_settings, mock_openai_response
     ):
         """Web variant: uses web-grounded instructions and the web_search tool."""
@@ -202,7 +393,7 @@ class TestOpenAi:
         mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
-        result = await openai_cog._get_ai_response("What is Python?", use_web=True)
+        result = await openai_cog._get_openai_response("What is Python?", use_web=True)
 
         assert result == "This is a mock AI response from OpenAI."
         call_args = mock_client.responses.create.call_args
@@ -212,10 +403,10 @@ class TestOpenAi:
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.get_bot_settings")
-    async def test_get_ai_response_with_leading_trailing_spaces(
+    async def test_get_openai_response_with_leading_trailing_spaces(
         self, mock_get_settings, openai_cog, mock_bot_settings, mock_openai_response
     ):
-        """Test _get_ai_response strips leading/trailing spaces."""
+        """Test _get_openai_response strips leading/trailing spaces."""
         mock_get_settings.return_value = mock_bot_settings
         mock_openai_response.output_text = "  Response with spaces  "
 
@@ -224,7 +415,7 @@ class TestOpenAi:
         mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
-        result = await openai_cog._get_ai_response("Test message", use_web=False)
+        result = await openai_cog._get_openai_response("Test message", use_web=False)
 
         assert result == "Response with spaces"
 
@@ -301,7 +492,7 @@ class TestOpenAi:
         mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
-        await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="Test question")
+        await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="Test question")
 
         # Verify correct model was used
         call_args = mock_client.responses.create.call_args
@@ -317,8 +508,8 @@ class TestOpenAi:
         mock_get_settings.return_value = mock_bot_settings
         long_question = "What is " + "very " * 1000 + "long question?"
 
-        with patch.object(openai_cog, "_get_ai_response", return_value="Short answer"):
-            await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text=long_question)
+        with patch.object(openai_cog, "_get_openai_response", return_value="Short answer"):
+            await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text=long_question)
 
             mock_send_embed.assert_called_once()
             embed = mock_send_embed.call_args[0][1]
@@ -334,8 +525,8 @@ class TestOpenAi:
         mock_get_settings.return_value = mock_bot_settings
         special_question = "What is 2+2? 🤔 And émojis & spéciál chars?"
 
-        with patch.object(openai_cog, "_get_ai_response", return_value="4! 😊"):
-            await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text=special_question)
+        with patch.object(openai_cog, "_get_openai_response", return_value="4! 😊"):
+            await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text=special_question)
 
             mock_send_embed.assert_called_once()
             embed = mock_send_embed.call_args[0][1]
@@ -343,7 +534,7 @@ class TestOpenAi:
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.get_bot_settings")
-    async def test_get_ai_response_system_message_content(
+    async def test_get_openai_response_system_message_content(
         self, mock_get_settings, openai_cog, mock_bot_settings, mock_openai_response
     ):
         """Test that system message has correct content."""
@@ -354,7 +545,7 @@ class TestOpenAi:
         mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
-        await openai_cog._get_ai_response("Test message", use_web=False)
+        await openai_cog._get_openai_response("Test message", use_web=False)
 
         call_args = mock_client.responses.create.call_args[1]
         assert call_args["instructions"] == openai_cog._instructions
@@ -362,7 +553,7 @@ class TestOpenAi:
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.get_bot_settings")
-    async def test_get_ai_response_api_parameters(
+    async def test_get_openai_response_api_parameters(
         self, mock_get_settings, openai_cog, mock_bot_settings, mock_openai_response
     ):
         """Test that OpenAI API is called with correct parameters."""
@@ -373,7 +564,7 @@ class TestOpenAi:
         mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
-        await openai_cog._get_ai_response("Test message", use_web=False)
+        await openai_cog._get_openai_response("Test message", use_web=False)
 
         call_args = mock_client.responses.create.call_args[1]
         assert call_args["max_output_tokens"] is None
@@ -432,13 +623,13 @@ class TestOpenAi:
         mock_get_settings.return_value = mock_bot_settings
         test_error = Exception("Test API Error")
 
-        with patch.object(openai_cog, "_get_ai_response", side_effect=test_error):
-            await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="Test question")
+        with patch.object(openai_cog, "_get_openai_response", side_effect=test_error):
+            await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="Test question")
 
             # Verify error was logged with correct message
             openai_cog.bot.log.error.assert_called_once()
             log_call = openai_cog.bot.log.error.call_args[0][0]
-            assert "OpenAI API error:" in log_call
+            assert "API error:" in log_call  # provider-prefixed
             assert "Test API Error" in log_call
 
     @pytest.mark.asyncio
@@ -450,8 +641,8 @@ class TestOpenAi:
         """Test that send_embed is called with correct parameters."""
         mock_get_settings.return_value = mock_bot_settings
 
-        with patch.object(openai_cog, "_get_ai_response", return_value="Test response"):
-            await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="Test question")
+        with patch.object(openai_cog, "_get_openai_response", return_value="Test response"):
+            await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="Test question")
 
             # Verify send_embed was called with ctx, embed, and False
             mock_send_embed.assert_called_once()
@@ -462,8 +653,8 @@ class TestOpenAi:
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.get_bot_settings")
-    async def test_get_ai_response_empty_response(self, mock_get_settings, openai_cog, mock_bot_settings):
-        """Test _get_ai_response with empty response from OpenAI."""
+    async def test_get_openai_response_empty_response(self, mock_get_settings, openai_cog, mock_bot_settings):
+        """Test _get_openai_response with empty response from OpenAI."""
         mock_get_settings.return_value = mock_bot_settings
 
         # Mock empty response (whitespace only)
@@ -475,7 +666,7 @@ class TestOpenAi:
         mock_client.responses.create = AsyncMock(return_value=mock_response)
         openai_cog._openai_client = mock_client
 
-        result = await openai_cog._get_ai_response("Test message", use_web=False)
+        result = await openai_cog._get_openai_response("Test message", use_web=False)
 
         assert result == ""  # Should strip to empty string
 
@@ -528,8 +719,8 @@ class TestOpenAi:
         mock_dal_class.return_value = mock_dal
         long_response = "a" * 3000
 
-        with patch.object(openai_cog, "_get_ai_response", return_value=long_response):
-            await openai_cog.ai.callback(openai_cog, mock_ctx, msg_text="Long question")
+        with patch.object(openai_cog, "_get_openai_response", return_value=long_response):
+            await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="Long question")
 
             # ctx.send called twice: progress message, then the paginated first page
             assert mock_ctx.send.call_count == 2
