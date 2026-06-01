@@ -41,7 +41,7 @@ COPY --chmod=555 .env ${WORKDIR}
 
 RUN set -ex && \
     mkdir -p "${LOG_DIRECTORY}" && \
-    uv sync --frozen --no-dev && \
+    uv sync --frozen --no-dev --no-build && \
     uv cache clean && \
     chown -R botuser:botuser "${WORKDIR}"
 

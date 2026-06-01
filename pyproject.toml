@@ -1,6 +1,6 @@
 [project]
 name = "DiscordBot"
-version = "3.0.15"
+version = "3.0.16"
 description = "A simple Discord bot with OpenAI support and server administration tools"
 urls.Repository = "https://github.com/ddc/DiscordBot"
 urls.Homepage = "https://ddc.github.io/DiscordBot"
@@ -44,11 +44,11 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "coverage>=7.14.0",
+    "coverage>=7.14.1",
     "poethepoet>=0.46.0",
-    "pytest-asyncio>=1.3.0",
-    "ruff>=0.15.14",
-    "testcontainers[postgres]>=4.14.2",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.15.15",
+    "testcontainers[postgres]>=4.15.0rc2",
 ]
 
 [tool.poe.tasks]
