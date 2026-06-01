@@ -2,7 +2,7 @@
 set -euo pipefail
 
 PROJECT_USERNAME=ddc
-PROJECT_DIR=/opt/DiscordBot
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 pushd "$PROJECT_DIR" > /dev/null
 
