@@ -1,6 +1,6 @@
 [project]
 name = "DiscordBot"
-version = "3.0.16"
+version = "3.0.17"
 description = "A simple Discord bot with OpenAI support and server administration tools"
 urls.Repository = "https://github.com/ddc/DiscordBot"
 urls.Homepage = "https://ddc.github.io/DiscordBot"
@@ -31,10 +31,12 @@ classifiers = [
 requires-python = ">=3.14"
 dependencies = [
   "alembic>=1.18.4",
+  "anthropic>=0.105.2",
   "beautifulsoup4>=4.14.3",
   "better-profanity>=0.7.0",
   "ddcdatabases[postgres]>=4.0.1",
   "discord-py>=2.7.1",
+  "google-genai>=2.7.0",
   "gTTS>=2.5.4",
   "openai>=2.38.0",
   "PyNaCl>=1.6.2",

@@ -1,6 +1,9 @@
 import discord
 import time
+from anthropic import AsyncAnthropic
 from discord.ext import commands
+from google import genai
+from google.genai import types as genai_types
 from openai import AsyncOpenAI
 from openai.types.responses import WebSearchToolParam
 from openai.types.shared import ReasoningEffort
@@ -12,12 +15,14 @@ from src.bot.tools.cooldowns import CoolDowns
 
 
 class OpenAi(commands.Cog):
-    """OpenAI-powered commands for AI assistance and text generation."""
+    """LLM chat commands (OpenAI / Anthropic Claude / Google Gemini) with optional web search."""
 
     def __init__(self, bot: Bot) -> None:
         self.bot: Bot = bot
         self._bot_settings: BotSettings = get_bot_settings()
         self._openai_client: AsyncOpenAI = AsyncOpenAI(api_key=self._bot_settings.openai_api_key)
+        self._anthropic_client: AsyncAnthropic = AsyncAnthropic(api_key=self._bot_settings.anthropic_api_key)
+        self._gemini_client: genai.Client = genai.Client(api_key=self._bot_settings.gemini_api_key)
         self._effort: ReasoningEffort = "xhigh"
         self._instructions: str = "You are a helpful AI assistant."
         self._instructions_web: str = (
@@ -26,33 +31,54 @@ class OpenAi(commands.Cog):
             "numbers, statistics, or breakdowns that the sources do not explicitly state. Cite the source URL(s)."
         )
 
-    @commands.command()
-    @commands.cooldown(1, CoolDowns.OpenAI.value, commands.BucketType.user)
-    async def ai(self, ctx: commands.Context, *, msg_text: str) -> None:
-        """Ask OpenAI for a direct answer (no web search).
-
-        Usage:
-            ai What is Python?
-            ai Write a haiku about programming
-            ai Explain quantum computing in simple terms
-        """
-        await self._run_ai(ctx, msg_text, use_web=False)
+    # ─────────────────────────── Commands ───────────────────────────
 
     @commands.command()
+    @commands.guild_only()
     @commands.cooldown(1, CoolDowns.OpenAI.value, commands.BucketType.user)
-    async def aiweb(self, ctx: commands.Context, *, msg_text: str) -> None:
-        """Ask OpenAI to search the web before answering — best for current/factual info.
+    async def gpt(self, ctx: commands.Context, *, msg_text: str) -> None:
+        """Ask OpenAI's GPT model for a direct answer (no web search)."""
+        await self._run_chat(ctx, msg_text, provider="openai", use_web=False)
 
-        Usage:
-            aiweb What's the latest news about <topic>
-            aiweb How many support gems does Path of Exile 2 have
-        """
-        await self._run_ai(ctx, msg_text, use_web=True)
+    @commands.command()
+    @commands.guild_only()
+    @commands.cooldown(1, CoolDowns.OpenAI.value, commands.BucketType.user)
+    async def gptweb(self, ctx: commands.Context, *, msg_text: str) -> None:
+        """Ask OpenAI's GPT model with web search enabled — for current/factual info."""
+        await self._run_chat(ctx, msg_text, provider="openai", use_web=True)
 
-    async def _run_ai(self, ctx: commands.Context, msg_text: str, use_web: bool) -> None:
-        """Shared body for the `ai` and `aiweb` commands."""
-        # Reasoning (and web search) can take a couple of minutes, so show a progress
-        # message immediately so the user knows the bot is working (not stuck).
+    @commands.command()
+    @commands.guild_only()
+    @commands.cooldown(1, CoolDowns.OpenAI.value, commands.BucketType.user)
+    async def claude(self, ctx: commands.Context, *, msg_text: str) -> None:
+        """Ask Anthropic's Claude model for a direct answer (no web search)."""
+        await self._run_chat(ctx, msg_text, provider="anthropic", use_web=False)
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.cooldown(1, CoolDowns.OpenAI.value, commands.BucketType.user)
+    async def claudeweb(self, ctx: commands.Context, *, msg_text: str) -> None:
+        """Ask Anthropic's Claude model with web search enabled — for current/factual info."""
+        await self._run_chat(ctx, msg_text, provider="anthropic", use_web=True)
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.cooldown(1, CoolDowns.OpenAI.value, commands.BucketType.user)
+    async def gemini(self, ctx: commands.Context, *, msg_text: str) -> None:
+        """Ask Google's Gemini model for a direct answer (no web search)."""
+        await self._run_chat(ctx, msg_text, provider="gemini", use_web=False)
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.cooldown(1, CoolDowns.OpenAI.value, commands.BucketType.user)
+    async def geminiweb(self, ctx: commands.Context, *, msg_text: str) -> None:
+        """Ask Google's Gemini model with Google Search grounding enabled."""
+        await self._run_chat(ctx, msg_text, provider="gemini", use_web=True)
+
+    # ─────────────────────────── Shared flow ───────────────────────────
+
+    async def _run_chat(self, ctx: commands.Context, msg_text: str, provider: str, use_web: bool) -> None:
+        """Send progress message, dispatch to provider, time, post answer."""
         progress_text = (
             "Please wait, I'm thinking and searching the web for an accurate answer..."
             if use_web
@@ -67,38 +93,50 @@ class OpenAi(commands.Cog):
 
         start = time.monotonic()
         try:
-            response_text = await self._get_ai_response(msg_text, use_web=use_web)
+            response_text = await self._dispatch(provider, msg_text, use_web)
             color = discord.Color.green()
             description = response_text
         except Exception as e:
-            self.bot.log.error(f"OpenAI API error: {e}")
+            self.bot.log.error(f"{provider} API error: {e}")
             color = discord.Color.red()
             description = f"Sorry, I encountered an error: {e}"
         elapsed = time.monotonic() - start
 
-        # Remove the progress message before sending the final answer.
         try:
             await progress_msg.delete()
         except discord.HTTPException:
             pass
 
-        embeds = self._create_ai_embeds(ctx, description, color, elapsed)
+        model = self._model_for(provider)
+        embeds = self._create_ai_embeds(ctx, description, color, elapsed, model)
         if len(embeds) == 1:
             await bot_utils.send_embed(ctx, embeds[0], False)
         else:
             view = bot_utils.EmbedPaginatorView(embeds, ctx.author.id)
             await view.send_and_save(ctx)
 
-    async def _get_ai_response(self, message: str, use_web: bool) -> str:
-        """Get response from OpenAI API.
+    async def _dispatch(self, provider: str, message: str, use_web: bool) -> str:
+        if provider == "openai":
+            return await self._get_openai_response(message, use_web=use_web)
+        if provider == "anthropic":
+            return await self._get_claude_response(message, use_web=use_web)
+        if provider == "gemini":
+            return await self._get_gemini_response(message, use_web=use_web)
+        raise ValueError(f"Unknown provider: {provider}")
 
-        use_web: when True, enables the built-in web_search tool and uses the
-        web-grounded instructions. When False, the model answers from its own
-        knowledge with plain instructions.
-        """
+    def _model_for(self, provider: str) -> str:
+        return {
+            "openai": self._bot_settings.openai_model,
+            "anthropic": self._bot_settings.anthropic_model,
+            "gemini": self._bot_settings.gemini_model,
+        }[provider]
+
+    # ─────────────────────────── Provider calls ───────────────────────────
+
+    async def _get_openai_response(self, message: str, use_web: bool) -> str:
+        """Call OpenAI's Responses API with optional web_search tool."""
         instructions = self._instructions_web if use_web else self._instructions
         tools: list[WebSearchToolParam] = [WebSearchToolParam(type="web_search")] if use_web else []
-
         response = await self._openai_client.responses.create(
             instructions=instructions,
             model=self._bot_settings.openai_model,
@@ -107,9 +145,43 @@ class OpenAi(commands.Cog):
             max_output_tokens=None,
             input=message,
         )
-
         content = response.output_text
         return content.strip() if content else ""
+
+    async def _get_claude_response(self, message: str, use_web: bool) -> str:
+        """Call Anthropic Messages API with optional web_search server tool."""
+        instructions = self._instructions_web if use_web else self._instructions
+        tools = [{"type": "web_search_20250305", "name": "web_search"}] if use_web else []
+        response = await self._anthropic_client.messages.create(
+            model=self._bot_settings.anthropic_model,
+            max_tokens=4096,
+            system=instructions,
+            messages=[{"role": "user", "content": message}],
+            tools=tools,
+        )
+        # Concatenate all text blocks (web search may interleave tool-use blocks).
+        text_parts = [
+            getattr(block, "text", "") for block in response.content if getattr(block, "type", None) == "text"
+        ]
+        content = "".join(text_parts).strip()
+        return content
+
+    async def _get_gemini_response(self, message: str, use_web: bool) -> str:
+        """Call Google Gemini with optional Google Search grounding."""
+        instructions = self._instructions_web if use_web else self._instructions
+        config_kwargs: dict = {"system_instruction": instructions}
+        if use_web:
+            config_kwargs["tools"] = [genai_types.Tool(google_search=genai_types.GoogleSearch())]
+        config = genai_types.GenerateContentConfig(**config_kwargs)
+        response = await self._gemini_client.aio.models.generate_content(
+            model=self._bot_settings.gemini_model,
+            contents=message,
+            config=config,
+        )
+        content = response.text or ""
+        return content.strip()
+
+    # ─────────────────────────── Embed formatting ───────────────────────────
 
     @staticmethod
     def _format_duration(seconds: float) -> str:
@@ -119,13 +191,19 @@ class OpenAi(commands.Cog):
         return f"{round(seconds)}s"
 
     def _create_ai_embeds(
-        self, ctx: commands.Context, description: str, color: discord.Color, elapsed: float = 0.0
+        self,
+        ctx: commands.Context,
+        description: str,
+        color: discord.Color,
+        elapsed: float = 0.0,
+        model: str | None = None,
     ) -> list[discord.Embed]:
-        """Create formatted embed(s) for AI response, paginating if needed."""
-        model = self._bot_settings.openai_model
+        """Create formatted embed(s) for an AI response, paginating if needed."""
+        if model is None:
+            model = self._bot_settings.openai_model
         duration = self._format_duration(elapsed)
         max_length = 2000
-        chunks = []
+        chunks: list[str] = []
 
         while description:
             if len(description) <= max_length:
