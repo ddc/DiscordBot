@@ -2,13 +2,13 @@
 <!-- List the key changes -->
 
 ## Type of Change
-- [ ] Bug fix
 - [ ] New feature
+- [ ] Bug fix
 - [ ] Breaking change (existing functionality affected)
-- [ ] Refactoring (no functional changes)
-- [ ] Documentation
+- [ ] Refactoring/Optimization (no functional changes)
 - [ ] CI/CD or build configuration
-- [ ] Dependencies update
+- [ ] Dependency updates
+- [ ] Documentation
 - [ ] Other
 
 ## Testing
