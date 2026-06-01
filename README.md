@@ -23,7 +23,7 @@
     <a href="https://actions-badge.atrox.dev/ddc/DiscordBot/goto?ref=master"><img src="https://img.shields.io/endpoint.svg?url=https%3A//actions-badge.atrox.dev/ddc/DiscordBot/badge?ref=master&label=build&logo=github&style=plastic" alt="Build Status"/></a>
 </p>
 
-<p align="center">A simple <a href="https://discord.com">Discord</a> bot with OpenAI support and server administration tools.<br>This bot serves as a starting point (template) for building other bots.</p>
+<p align="center">A simple <a href="https://discord.com">Discord</a> bot with multi-provider AI commands (OpenAI / Claude / Gemini) and server administration tools.<br>This bot serves as a starting point (template) for building other bots.</p>
 
 
 # Table of Contents
@@ -32,7 +32,7 @@
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Commands](#commands)
-  - [OpenAI](#openai-commands)
+  - [AI / LLM](#ai--llm-commands)
   - [Admin/Mod](#adminmod-commands)
   - [Config](#config-commands)
   - [Custom Commands](#custom-commands)
@@ -50,7 +50,7 @@
 - 
 
 # Features
-- OpenAI integration for AI-powered responses
+- Multi-provider AI commands (OpenAI / Anthropic Claude / Google Gemini) with optional web search
 - Guild Wars 2 API integration (accounts, WvW, sessions, wiki)
 - Server administration and moderation tools
 - Custom commands, profanity filtering, and text-to-speech
@@ -62,7 +62,9 @@
 # Prerequisites
 - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
 - A [Discord Bot Token](https://discord.com/developers/applications)
-- _(Optional)_ An [OpenAI API Key](https://platform.openai.com/api-keys) for AI commands
+- _(Optional)_ An [OpenAI API Key](https://platform.openai.com/api-keys) for `gpt` / `gptweb` commands
+- _(Optional)_ An [Anthropic API Key](https://console.anthropic.com/) for `claude` / `claudeweb` commands
+- _(Optional)_ A [Google AI Studio Key](https://aistudio.google.com/apikey) for `gemini` / `geminiweb` commands (free tier available)
 - _(Optional)_ A [Guild Wars 2 API Key](https://account.arena.net/applications) for GW2 commands
 
 
@@ -84,8 +86,10 @@ Edit the `.env` file and set the required values:
 # Required
 BOT_TOKEN=your_discord_bot_token
 
-# Optional
-OPENAI_API_KEY=your_openai_api_key
+# Optional — any of the AI providers (you can configure one, two, or all three)
+BOT_OPENAI_API_KEY=your_openai_api_key
+BOT_ANTHROPIC_API_KEY=your_anthropic_api_key
+BOT_GEMINI_API_KEY=your_google_ai_studio_key
 
 # Database
 POSTGRESQL_HOST=postgres
@@ -140,11 +144,17 @@ All configuration is done through environment variables in the `.env` file.
 | `BOT_EXCLUSIVE_USERS`     |                   | Restrict bot to specific users (comma-separated IDs)       |
 | `BOT_BG_ACTIVITY_TIMER`   | `0`               | Background activity rotation timer (seconds, 0 = disabled) |
 
-## OpenAI Settings
-| Variable           | Default       | Description         |
-|:-------------------|:--------------|:--------------------|
-| `OPENAI_API_KEY`   |               | OpenAI API key      |
-| `BOT_OPENAI_MODEL` | `gpt-5.4`     | OpenAI model to use |
+## AI Provider Settings
+Configure any subset of the three providers — commands for unconfigured providers will return an error embed and the rest will still work.
+
+| Variable                | Default                 | Description                              |
+|:------------------------|:------------------------|:-----------------------------------------|
+| `BOT_OPENAI_API_KEY`    |                         | OpenAI API key (powers `gpt`, `gptweb`)  |
+| `BOT_OPENAI_MODEL`      | `gpt-5.5`               | OpenAI model name                        |
+| `BOT_ANTHROPIC_API_KEY` |                         | Anthropic API key (powers `claude`, `claudeweb`) |
+| `BOT_ANTHROPIC_MODEL`   | `claude-opus-4-8`       | Anthropic model name                     |
+| `BOT_GEMINI_API_KEY`    |                         | Google AI Studio key (powers `gemini`, `geminiweb`) |
+| `BOT_GEMINI_MODEL`      | `gemini-flash-latest`   | Gemini model name (rolling-latest alias) |
 
 ## PostgreSQL Settings
 | Variable              | Default               | Description       |
@@ -169,10 +179,19 @@ See [.env.example](.env.example) for the complete list of configuration options 
 
 # Commands
 
-## OpenAI Commands
-| Command        | Description                                      |
-|:---------------|:-------------------------------------------------|
-| `ai <message>` | Ask OpenAI for assistance, response as embed     |
+## AI / LLM Commands
+Six commands across three providers. The `*web` variants enable the provider's built-in web search (OpenAI `web_search`, Anthropic `web_search`, Google Search grounding) for current/factual questions. The plain variants answer from training only — faster, cheaper, no live data.
+
+All AI commands are channel-only (they cannot be invoked in DMs).
+
+| Command               | Provider          | Web search |
+|:----------------------|:------------------|:-----------|
+| `gpt <message>`       | OpenAI            | no         |
+| `gptweb <message>`    | OpenAI            | yes        |
+| `claude <message>`    | Anthropic Claude  | no         |
+| `claudeweb <message>` | Anthropic Claude  | yes        |
+| `gemini <message>`    | Google Gemini     | no         |
+| `geminiweb <message>` | Google Gemini     | yes        |
 
 ## Admin/Mod Commands
 | Command                    | Description                     |
