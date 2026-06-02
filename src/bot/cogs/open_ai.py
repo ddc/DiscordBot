@@ -1,6 +1,8 @@
+import asyncio
 import discord
 import time
 from anthropic import AsyncAnthropic
+from collections.abc import Awaitable, Callable
 from discord.ext import commands
 from google import genai
 from google.genai import types as genai_types
@@ -93,7 +95,10 @@ class OpenAi(commands.Cog):
 
         start = time.monotonic()
         try:
-            response_text = await self._dispatch(provider, msg_text, use_web)
+            response_text = await self._call_provider_with_retry(
+                lambda: self._dispatch(provider, msg_text, use_web),
+                progress_msg,
+            )
             color = discord.Color.green()
             description = response_text
         except Exception as e:
@@ -130,6 +135,65 @@ class OpenAi(commands.Cog):
             "anthropic": self._bot_settings.anthropic_model,
             "gemini": self._bot_settings.gemini_model,
         }[provider]
+
+    # ─────────────────────────── Retry-on-transient ───────────────────────────
+
+    _TRANSIENT_STATUSES = frozenset({429, 500, 502, 503, 504})
+
+    @staticmethod
+    def _is_transient_provider_error(e: BaseException) -> bool:
+        """True for retry-worthy HTTP errors from any of the three LLM SDKs.
+
+        Anthropic and OpenAI expose `.status_code` on their `APIStatusError` types;
+        google-genai uses `.code` on `ClientError`/`ServerError`. We duck-type
+        across both attribute names to avoid SDK-specific isinstance checks.
+        """
+        s = getattr(e, "status_code", None)
+        if isinstance(s, int) and s in OpenAi._TRANSIENT_STATUSES:
+            return True
+        c = getattr(e, "code", None)
+        if isinstance(c, int) and c in OpenAi._TRANSIENT_STATUSES:
+            return True
+        return False
+
+    async def _call_provider_with_retry(
+        self,
+        coro_factory: Callable[[], Awaitable[str]],
+        progress_msg: discord.Message | None,
+        *,
+        max_attempts: int = 2,
+        base_delay: float = 2.0,
+    ) -> str:
+        """Run `coro_factory()` with one retry on transient provider errors.
+
+        On the first transient failure, edits `progress_msg` to a "retrying"
+        embed and sleeps `base_delay` seconds, then tries again. Non-transient
+        errors and the final-attempt failure propagate.
+        """
+        notified = False
+        for attempt in range(1, max_attempts + 1):
+            try:
+                return await coro_factory()
+            except Exception as e:
+                if not self._is_transient_provider_error(e) or attempt >= max_attempts:
+                    raise
+                self.bot.log.warning(
+                    f"Transient provider error, retrying in {base_delay:.1f}s "
+                    f"(attempt {attempt}/{max_attempts - 1}): {e}"
+                )
+                if not notified and progress_msg is not None:
+                    try:
+                        retry_embed = discord.Embed(
+                            description="🔄 **Provider hiccup — retrying...** (this may take a moment)",
+                            color=discord.Color.orange(),
+                        )
+                        await progress_msg.edit(embed=retry_embed)
+                        notified = True
+                    except discord.HTTPException:
+                        pass
+                await asyncio.sleep(base_delay)
+        # Unreachable: the loop above either returns or raises.
+        raise RuntimeError("retry loop exited without returning")  # pragma: no cover
 
     # ─────────────────────────── Provider calls ───────────────────────────
 

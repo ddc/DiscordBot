@@ -261,6 +261,137 @@ class TestOpenAi:
             web_embed = mock_ctx.send.call_args[1]["embed"]
             assert "searching the web" in web_embed.description.lower()
 
+    # ─────────────────────────── Retry-on-transient ───────────────────────────
+
+    def test_is_transient_provider_error_status_code(self, openai_cog):
+        """Detects transient HTTP errors via .status_code (Anthropic/OpenAI shape)."""
+        for code in (429, 500, 502, 503, 504):
+            e = MagicMock(spec=Exception)
+            e.status_code = code
+            assert openai_cog._is_transient_provider_error(e) is True
+
+    def test_is_transient_provider_error_code_attr(self, openai_cog):
+        """Detects transient HTTP errors via .code (google-genai shape)."""
+
+        class GenaiLike(Exception):
+            def __init__(self, code):
+                self.code = code
+
+        for code in (429, 503):
+            assert openai_cog._is_transient_provider_error(GenaiLike(code)) is True
+
+    def test_is_transient_provider_error_non_transient(self, openai_cog):
+        """4xx (non-429) and bare exceptions are NOT transient."""
+        for code in (400, 401, 403, 404):
+            e = MagicMock(spec=Exception)
+            e.status_code = code
+            assert openai_cog._is_transient_provider_error(e) is False
+        # Bare exception with no status attrs is not transient.
+        assert openai_cog._is_transient_provider_error(Exception("plain")) is False
+
+    @pytest.mark.asyncio
+    async def test_call_provider_with_retry_success_first_attempt_no_edit(self, openai_cog):
+        """Happy path: factory succeeds first try, progress_msg is not touched."""
+        progress = MagicMock()
+        progress.edit = AsyncMock()
+        factory = AsyncMock(return_value="ok")
+
+        result = await openai_cog._call_provider_with_retry(factory, progress)
+
+        assert result == "ok"
+        factory.assert_awaited_once()
+        progress.edit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_call_provider_with_retry_retries_on_transient(self, openai_cog):
+        """503 once, then success — total one retry, progress edited to 'retrying'."""
+
+        class Transient(Exception):
+            status_code = 503
+
+        factory = AsyncMock(side_effect=[Transient("overloaded"), "ok"])
+        progress = MagicMock()
+        progress.edit = AsyncMock()
+
+        with patch("src.bot.cogs.open_ai.asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+            result = await openai_cog._call_provider_with_retry(factory, progress, base_delay=0.01)
+
+        assert result == "ok"
+        assert factory.await_count == 2
+        progress.edit.assert_awaited_once()
+        edit_kwargs = progress.edit.call_args[1]
+        assert "retrying" in edit_kwargs["embed"].description.lower()
+        mock_sleep.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_call_provider_with_retry_does_not_retry_on_non_transient(self, openai_cog):
+        """4xx (non-429) — raise immediately, no retry, no progress edit."""
+
+        class HardFail(Exception):
+            status_code = 400
+
+        factory = AsyncMock(side_effect=HardFail("bad request"))
+        progress = MagicMock()
+        progress.edit = AsyncMock()
+
+        with pytest.raises(HardFail):
+            await openai_cog._call_provider_with_retry(factory, progress)
+
+        factory.assert_awaited_once()
+        progress.edit.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_call_provider_with_retry_exhausts_then_raises(self, openai_cog):
+        """All attempts transient — final raises, progress edited once."""
+
+        class Transient(Exception):
+            status_code = 503
+
+        factory = AsyncMock(side_effect=Transient("overloaded"))
+        progress = MagicMock()
+        progress.edit = AsyncMock()
+
+        with patch("src.bot.cogs.open_ai.asyncio.sleep", new_callable=AsyncMock):
+            with pytest.raises(Transient):
+                await openai_cog._call_provider_with_retry(factory, progress, max_attempts=2)
+
+        assert factory.await_count == 2
+        # Edit fires exactly once even across multiple failed attempts.
+        progress.edit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_call_provider_with_retry_edit_failure_is_tolerated(self, openai_cog):
+        """If editing the progress message fails, retry still happens silently."""
+        import discord
+
+        class Transient(Exception):
+            status_code = 503
+
+        factory = AsyncMock(side_effect=[Transient("x"), "ok"])
+        progress = MagicMock()
+        progress.edit = AsyncMock(side_effect=discord.HTTPException(MagicMock(), "no edit"))
+
+        with patch("src.bot.cogs.open_ai.asyncio.sleep", new_callable=AsyncMock):
+            result = await openai_cog._call_provider_with_retry(factory, progress, base_delay=0.01)
+
+        assert result == "ok"
+        assert factory.await_count == 2
+
+    @pytest.mark.asyncio
+    async def test_call_provider_with_retry_no_progress_msg(self, openai_cog):
+        """progress_msg=None is allowed; retry still works, just no edit attempt."""
+
+        class Transient(Exception):
+            status_code = 503
+
+        factory = AsyncMock(side_effect=[Transient("x"), "ok"])
+
+        with patch("src.bot.cogs.open_ai.asyncio.sleep", new_callable=AsyncMock):
+            result = await openai_cog._call_provider_with_retry(factory, None, base_delay=0.01)
+
+        assert result == "ok"
+        assert factory.await_count == 2
+
     @pytest.mark.asyncio
     async def test_dispatch_unknown_provider_raises(self, openai_cog):
         """_dispatch raises ValueError on unknown provider."""

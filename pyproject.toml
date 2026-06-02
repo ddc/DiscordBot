@@ -14,8 +14,10 @@ maintainers = [
 ]
 keywords = [
   "python", "python3", "python-3",
-  "DiscordBot", "discord-bot", "bot",
-  "discord-py", "discord-py-bot", "discord"
+  "bot", "discord",
+  "DiscordBot", "discord-bot",
+  "discordpy", "discord-py", "discord-py-bot",
+
 ]
 classifiers = [
   "Topic :: Communications :: Chat",
@@ -60,12 +62,27 @@ snyk-container.shell = "docker build -t discordbot:snyk-scan . && snyk container
 snyk.sequence = ["snyk-export", { shell = "uv pip install pip && snyk test --file=requirements.txt && snyk code test; uv pip uninstall pip" }, "snyk-container"]
 profile = "uv run python -m cProfile -o cprofile_unit.prof -m pytest tests/unit"
 profile-integration = "uv run python -m cProfile -o cprofile_integration.prof -m pytest tests/integration"
-test.sequence = [{ shell = "uv run coverage run -m pytest tests/unit" }, { shell = "uv run coverage report" }, { shell = "uv run coverage xml" }]
-test-integration = "uv run pytest tests/integration"
 hadolint.shell = "docker run --rm -i -v $(pwd)/.hadolint.yml:/.config/hadolint.yml:ro hadolint/hadolint < Dockerfile"
 test-docker = "uv run pytest tests/docker"
-tests.sequence = ["linter", "hadolint", "test-docker", "test", "test-integration"]
-updatedev.sequence = ["linter", {shell = "uv lock --upgrade && uv sync --all-extras --all-groups"}]
+test-unit.sequence = [
+  { shell = "uv run coverage erase" },
+  { shell = "uv run coverage run --append -m pytest tests/unit" },
+  { shell = "uv run coverage report" },
+  { shell = "uv run coverage xml" },
+]
+test-integration.sequence = [
+  { shell = "uv run coverage run --append -m pytest tests/integration" },
+  { shell = "uv run coverage report" },
+]
+tests.sequence = [
+  "linter", "hadolint", "test-docker",
+  { shell = "uv run coverage erase" },
+  { shell = "uv run coverage run --append -m pytest tests/unit" },
+  { shell = "uv run coverage run --append -m pytest tests/integration" },
+  { shell = "uv run coverage report" },
+  { shell = "uv run coverage xml" },
+]
+updatedev.sequence = [{ shell = "uv lock --upgrade && uv sync --all-extras --all-groups" }, "snyk-export"]
 migration = "uv run --frozen alembic upgrade head"
 
 [tool.pytest.ini_options]
@@ -78,6 +95,13 @@ markers = [
   "docker: Docker and compose file tests",
   "gw2_api: marks tests that require GW2 API access",
 ]
+filterwarnings = [
+  # discord.py uses asyncio.iscoroutinefunction (deprecated in Python 3.16).
+  "ignore:'asyncio.iscoroutinefunction' is deprecated:DeprecationWarning",
+  # google-genai uses _UnionGenericAlias (deprecated in Python 3.17).
+  "ignore:'_UnionGenericAlias' is deprecated:DeprecationWarning",
+]
+
 [tool.coverage.run]
 omit = [
   "tests/*",
