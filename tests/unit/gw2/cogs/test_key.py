@@ -813,3 +813,277 @@ class TestKeySetup:
         mock_bot.add_cog.assert_called_once()
         cog_instance = mock_bot.add_cog.call_args[0][0]
         assert isinstance(cog_instance, GW2Key)
+
+
+class TestInteractionHelpers:
+    """Cover the Interaction branches of _get_user_id / _send_success / _send_error."""
+
+    def test_get_user_id_from_interaction(self):
+        import discord
+        from src.gw2.cogs.key import _get_user_id
+
+        interaction = MagicMock(spec=discord.Interaction)
+        interaction.user.id = 42
+        assert _get_user_id(interaction) == 42
+
+    @pytest.mark.asyncio
+    async def test_send_success_via_interaction_followup(self):
+        import discord
+        from src.gw2.cogs.key import _send_success
+
+        interaction = MagicMock(spec=discord.Interaction)
+        interaction.followup.send = AsyncMock()
+
+        await _send_success(interaction, "yay", 0x00FF00)
+
+        interaction.followup.send.assert_awaited_once()
+        kwargs = interaction.followup.send.call_args[1]
+        assert isinstance(kwargs["embed"], discord.Embed)
+        assert kwargs["embed"].description == "yay"
+        assert kwargs["ephemeral"] is True
+
+    @pytest.mark.asyncio
+    async def test_send_error_via_interaction_followup(self):
+        import discord
+        from src.gw2.cogs.key import _send_error
+
+        interaction = MagicMock(spec=discord.Interaction)
+        interaction.followup.send = AsyncMock()
+
+        await _send_error(interaction, "boom")
+
+        interaction.followup.send.assert_awaited_once()
+        kwargs = interaction.followup.send.call_args[1]
+        assert isinstance(kwargs["embed"], discord.Embed)
+        assert kwargs["embed"].color == discord.Color.red()
+        assert "boom" in kwargs["embed"].description
+        assert kwargs["ephemeral"] is True
+
+
+class TestApiKeyModal:
+    """Cover ApiKeyModal init + on_submit dispatch (add vs update)."""
+
+    @pytest.fixture
+    def mock_bot(self):
+        bot = MagicMock()
+        bot.db_session = MagicMock()
+        bot.log = MagicMock()
+        bot.settings = {"gw2": {"EmbedColor": 0x00FF00}}
+        return bot
+
+    def test_init_stores_attrs(self, mock_bot):
+        from src.gw2.cogs.key import ApiKeyModal
+
+        modal = ApiKeyModal(mock_bot, "add", "!")
+        assert modal.bot is mock_bot
+        assert modal.mode == "add"
+        assert modal.prefix == "!"
+
+    @pytest.mark.asyncio
+    async def test_on_submit_add_mode_calls_process_add_key(self, mock_bot):
+        import discord
+        from src.gw2.cogs.key import ApiKeyModal
+
+        modal = ApiKeyModal(mock_bot, "add", "!")
+        modal.api_key_input = MagicMock()
+        modal.api_key_input.value = "  test-key  "  # whitespace stripped by code
+
+        interaction = MagicMock(spec=discord.Interaction)
+        interaction.response.defer = AsyncMock()
+
+        with patch("src.gw2.cogs.key._process_add_key", new_callable=AsyncMock) as mock_add:
+            await modal.on_submit(interaction)
+
+            interaction.response.defer.assert_awaited_once_with(ephemeral=True)
+            mock_add.assert_awaited_once_with(interaction, "test-key", mock_bot, "!")
+
+    @pytest.mark.asyncio
+    async def test_on_submit_update_mode_calls_process_update_key(self, mock_bot):
+        import discord
+        from src.gw2.cogs.key import ApiKeyModal
+
+        modal = ApiKeyModal(mock_bot, "update", "!")
+        modal.api_key_input = MagicMock()
+        modal.api_key_input.value = "newkey"
+
+        interaction = MagicMock(spec=discord.Interaction)
+        interaction.response.defer = AsyncMock()
+
+        with patch("src.gw2.cogs.key._process_update_key", new_callable=AsyncMock) as mock_upd:
+            await modal.on_submit(interaction)
+
+            mock_upd.assert_awaited_once_with(interaction, "newkey", mock_bot, "!")
+
+
+class TestApiKeyView:
+    """Cover ApiKeyView init, button-callback, and on_timeout paths."""
+
+    @pytest.fixture
+    def mock_bot(self):
+        bot = MagicMock()
+        bot.settings = {"gw2": {"EmbedColor": 0x00FF00}}
+        return bot
+
+    def test_init_stores_attrs(self, mock_bot):
+        from src.gw2.cogs.key import ApiKeyView
+
+        view = ApiKeyView(mock_bot, "add", "!")
+        assert view.bot is mock_bot
+        assert view.mode == "add"
+        assert view.prefix == "!"
+        assert view.message is None
+        assert view.timeout == 300
+
+    @pytest.mark.asyncio
+    async def test_enter_key_button_sends_modal(self, mock_bot):
+        import discord
+        from src.gw2.cogs.key import ApiKeyView
+
+        view = ApiKeyView(mock_bot, "update", "?")
+        interaction = MagicMock(spec=discord.Interaction)
+        interaction.response.send_modal = AsyncMock()
+
+        await view.enter_key.callback(interaction)
+
+        interaction.response.send_modal.assert_awaited_once()
+        modal_arg = interaction.response.send_modal.call_args[0][0]
+        assert modal_arg.mode == "update"
+        assert modal_arg.prefix == "?"
+        assert modal_arg.bot is mock_bot
+
+    @pytest.mark.asyncio
+    async def test_on_timeout_disables_children_and_edits(self, mock_bot):
+        from src.gw2.cogs.key import ApiKeyView
+
+        view = ApiKeyView(mock_bot, "add", "!")
+        view.message = MagicMock()
+        view.message.edit = AsyncMock()
+
+        await view.on_timeout()
+
+        # All button children disabled.
+        assert all(item.disabled for item in view.children)
+        view.message.edit.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_on_timeout_no_message_skips_edit(self, mock_bot):
+        from src.gw2.cogs.key import ApiKeyView
+
+        view = ApiKeyView(mock_bot, "add", "!")
+        view.message = None  # Never sent
+        # Should not raise.
+        await view.on_timeout()
+        assert all(item.disabled for item in view.children)
+
+    @pytest.mark.asyncio
+    async def test_on_timeout_edit_failure_is_swallowed(self, mock_bot):
+        import discord
+        from src.gw2.cogs.key import ApiKeyView
+
+        view = ApiKeyView(mock_bot, "add", "!")
+        view.message = MagicMock()
+        view.message.edit = AsyncMock(side_effect=discord.NotFound(MagicMock(), "gone"))
+        # Should not raise — caught by except.
+        await view.on_timeout()
+        view.message.edit.assert_awaited_once()
+
+
+class TestAddCommandInteractivePath:
+    """Cover the `add` command's no-api-key branch (modal/view + DM notification)."""
+
+    @pytest.fixture
+    def mock_ctx(self):
+        ctx = MagicMock()
+        ctx.bot = MagicMock()
+        ctx.bot.settings = {"gw2": {"EmbedColor": 0x00FF00}}
+        ctx.prefix = "!"
+        ctx.author = MagicMock()
+        ctx.author.send = AsyncMock()
+        ctx.send = AsyncMock()
+        ctx.message = MagicMock()
+        ctx.message.author = ctx.author
+        return ctx
+
+    @pytest.mark.asyncio
+    async def test_add_without_key_in_channel_sends_dm_and_channel_notification(self, mock_ctx):
+        sent_message = MagicMock()
+        mock_ctx.author.send.return_value = sent_message
+
+        with patch("src.gw2.cogs.key.bot_utils.is_private_message", return_value=False):
+            await add.callback(mock_ctx, api_key=None)
+
+        # DM was sent with the view.
+        mock_ctx.author.send.assert_awaited_once()
+        dm_kwargs = mock_ctx.author.send.call_args[1]
+        assert "view" in dm_kwargs
+        from src.gw2.cogs.key import ApiKeyView
+
+        assert isinstance(dm_kwargs["view"], ApiKeyView)
+        assert dm_kwargs["view"].mode == "add"
+        assert dm_kwargs["view"].message is sent_message
+
+        # Channel-side notification was posted.
+        mock_ctx.send.assert_awaited_once()
+        notif_embed = mock_ctx.send.call_args[1]["embed"]
+        assert "DM" in notif_embed.description
+
+    @pytest.mark.asyncio
+    async def test_add_without_key_in_dm_skips_channel_notification(self, mock_ctx):
+        sent_message = MagicMock()
+        mock_ctx.author.send.return_value = sent_message
+
+        with patch("src.gw2.cogs.key.bot_utils.is_private_message", return_value=True):
+            await add.callback(mock_ctx, api_key=None)
+
+        # DM message sent.
+        mock_ctx.author.send.assert_awaited_once()
+        # NO channel notification (we're already in DM).
+        mock_ctx.send.assert_not_called()
+
+
+class TestUpdateCommandInteractivePath:
+    """Cover the `update` command's no-api-key branch (modal/view + DM notification)."""
+
+    @pytest.fixture
+    def mock_ctx(self):
+        ctx = MagicMock()
+        ctx.bot = MagicMock()
+        ctx.bot.settings = {"gw2": {"EmbedColor": 0x00FF00}}
+        ctx.prefix = "!"
+        ctx.author = MagicMock()
+        ctx.author.send = AsyncMock()
+        ctx.send = AsyncMock()
+        ctx.message = MagicMock()
+        ctx.message.author = ctx.author
+        return ctx
+
+    @pytest.mark.asyncio
+    async def test_update_without_key_in_channel_sends_dm_and_channel_notification(self, mock_ctx):
+        sent_message = MagicMock()
+        mock_ctx.author.send.return_value = sent_message
+
+        with patch("src.gw2.cogs.key.bot_utils.is_private_message", return_value=False):
+            await update.callback(mock_ctx, api_key=None)
+
+        mock_ctx.author.send.assert_awaited_once()
+        dm_kwargs = mock_ctx.author.send.call_args[1]
+        from src.gw2.cogs.key import ApiKeyView
+
+        assert isinstance(dm_kwargs["view"], ApiKeyView)
+        assert dm_kwargs["view"].mode == "update"
+        assert dm_kwargs["view"].message is sent_message
+
+        mock_ctx.send.assert_awaited_once()
+        notif_embed = mock_ctx.send.call_args[1]["embed"]
+        assert "DM" in notif_embed.description
+
+    @pytest.mark.asyncio
+    async def test_update_without_key_in_dm_skips_channel_notification(self, mock_ctx):
+        sent_message = MagicMock()
+        mock_ctx.author.send.return_value = sent_message
+
+        with patch("src.gw2.cogs.key.bot_utils.is_private_message", return_value=True):
+            await update.callback(mock_ctx, api_key=None)
+
+        mock_ctx.author.send.assert_awaited_once()
+        mock_ctx.send.assert_not_called()
