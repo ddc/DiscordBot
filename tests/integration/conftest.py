@@ -30,7 +30,7 @@ from src.bot.constants import variables
 
 @pytest.fixture(scope="session")
 def postgres_container():
-    from testcontainers.postgres import PostgresContainer
+    from testcontainers.community.postgres import PostgresContainer
 
     with PostgresContainer("postgres:latest", driver=None) as pg:
         yield pg

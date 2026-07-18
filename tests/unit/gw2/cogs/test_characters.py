@@ -209,7 +209,7 @@ class TestCharactersCommand:
                     new_callable=AsyncMock,
                     return_value=AsyncMock(),
                 ) as mock_progress:
-                    with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.characters.bot_utils.send_paginated_embed") as mock_send:
                         with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
                             mock_time.return_value = "2025-01-01 12:00:00"
                             await characters(mock_ctx)
@@ -266,7 +266,7 @@ class TestCharactersCommand:
                     new_callable=AsyncMock,
                     return_value=AsyncMock(),
                 ) as mock_progress:
-                    with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.characters.bot_utils.send_paginated_embed") as mock_send:
                         with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
                             mock_time.return_value = "2025-01-01 12:00:00"
                             await characters(mock_ctx)
@@ -308,7 +308,7 @@ class TestCharactersCommand:
                     new_callable=AsyncMock,
                     return_value=AsyncMock(),
                 ) as mock_progress:
-                    with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.characters.bot_utils.send_paginated_embed") as mock_send:
                         with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
                             mock_time.return_value = "2025-01-01 12:00:00"
                             await characters(mock_ctx)
@@ -382,7 +382,7 @@ class TestCharactersCommand:
                     new_callable=AsyncMock,
                     return_value=AsyncMock(),
                 ) as mock_progress:
-                    with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.characters.bot_utils.send_paginated_embed") as mock_send:
                         with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
                             mock_time.return_value = "2025-01-01 12:00:00"
                             await characters(mock_ctx)
@@ -432,7 +432,7 @@ class TestCharactersCommand:
                     new_callable=AsyncMock,
                     return_value=AsyncMock(),
                 ) as mock_progress:
-                    with patch("src.gw2.cogs.characters.bot_utils.send_embed") as mock_send:
+                    with patch("src.gw2.cogs.characters.bot_utils.send_paginated_embed") as mock_send:
                         with patch("src.gw2.cogs.characters.bot_utils.get_current_date_time_str_long") as mock_time:
                             mock_time.return_value = "2025-01-01 12:00:00"
                             await characters(mock_ctx)

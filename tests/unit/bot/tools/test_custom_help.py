@@ -183,7 +183,7 @@ class TestCustomHelpCommandInit:
         assert isinstance(cmd.paginator, commands.Paginator)
         assert cmd.paginator.prefix == "```"
         assert cmd.paginator.suffix == "```"
-        assert cmd.paginator.max_size == 2000
+        assert cmd.paginator.max_size == 1000
 
     def test_init_custom_paginator(self):
         """Test initialization with custom paginator preserves it."""

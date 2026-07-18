@@ -77,6 +77,26 @@ class OpenAi(commands.Cog):
         """Ask Google's Gemini model with Google Search grounding enabled."""
         await self._run_chat(ctx, msg_text, provider="gemini", use_web=True)
 
+    @commands.command()
+    async def ai(self, ctx: commands.Context, *, msg_text: str | None = None) -> None:
+        """Deprecated — lists the current AI commands to use instead."""
+        prefix = ctx.prefix
+        available = [
+            (f"{prefix}gpt", "Ask OpenAI's GPT model for a direct answer (no web search)."),
+            (f"{prefix}gptweb", "Ask OpenAI's GPT model with web search enabled — for current/factual info."),
+            (f"{prefix}claude", "Ask Anthropic's Claude model for a direct answer (no web search)."),
+            (f"{prefix}claudeweb", "Ask Anthropic's Claude model with web search enabled — for current/factual info."),
+            (f"{prefix}gemini", "Ask Google's Gemini model for a direct answer (no web search)."),
+            (f"{prefix}geminiweb", "Ask Google's Gemini model with Google Search grounding enabled."),
+        ]
+        embed = discord.Embed(
+            description="This command has changed, please use the following:",
+            color=discord.Color.blurple(),
+        )
+        for name, desc in available:
+            embed.add_field(name=name, value=desc, inline=False)
+        await bot_utils.send_embed(ctx, embed)
+
     # ─────────────────────────── Shared flow ───────────────────────────
 
     async def _run_chat(self, ctx: commands.Context, msg_text: str, provider: str, use_web: bool) -> None:
@@ -266,7 +286,7 @@ class OpenAi(commands.Cog):
         if model is None:
             model = self._bot_settings.openai_model
         duration = self._format_duration(elapsed)
-        max_length = 2000
+        max_length = 1000
         chunks: list[str] = []
 
         while description:

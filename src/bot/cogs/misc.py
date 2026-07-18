@@ -151,10 +151,8 @@ class Misc(commands.Cog):
         stats = self._calculate_server_stats(server)
 
         # Format creation date
-        now = bot_utils.get_current_date_time()
         created_str = bot_utils.convert_datetime_to_str_long(server.created_at)
-        days_ago = (now - server.created_at).days
-        created_at = f"Created {created_str}. That's over {days_ago} days ago!"
+        created_at = f"Created {created_str}."
 
         embed = discord.Embed(description=created_at)
         self._add_server_info_fields(embed, server, stats)
@@ -369,11 +367,7 @@ class Misc(commands.Cog):
     @staticmethod
     def _get_user_info(guild: discord.Guild, user: discord.Member) -> dict:
         """Get comprehensive user information."""
-        now = bot_utils.get_current_date_time()
         joined_at = user.joined_at
-
-        since_created = (now - user.created_at).days
-        since_joined = (now - joined_at).days
 
         user_joined = joined_at.strftime("%d %b %Y %H:%M")
         user_created = user.created_at.strftime("%d %b %Y %H:%M")
@@ -384,8 +378,8 @@ class Misc(commands.Cog):
         roles_str = ", ".join(roles_list) if roles_list else "None"
 
         return {
-            "created_on": f"{user_created}\n({since_created} days ago)",
-            "joined_on": f"{user_joined}\n({since_joined} days ago)",
+            "created_on": user_created,
+            "joined_on": user_joined,
             "member_number": member_number,
             "roles": roles_str,
             "user_id": user.id,

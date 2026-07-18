@@ -517,24 +517,24 @@ class TestEmbedPaginatorView:
         assert call_kwargs["embed"] is pages[1]
 
     @pytest.mark.asyncio
-    async def test_next_button_rejects_non_author(self):
-        """Test non-author clicking next gets ephemeral rejection."""
+    async def test_next_button_allows_non_author(self):
+        """Test any user (not just the invoker) can advance the pagination."""
         pages = self._make_embed_pages(2)
         view = EmbedPaginatorView(pages, author_id=42)
         interaction = MagicMock()
         interaction.user.id = 999
         interaction.response = AsyncMock()
 
-        await view.next_button.callback(interaction)
+        with patch.object(view, "_save_current_page", new_callable=AsyncMock):
+            await view.next_button.callback(interaction)
 
-        assert view.current_page == 0  # unchanged
-        interaction.response.send_message.assert_called_once_with(
-            "Only the command invoker can use these buttons.", ephemeral=True
-        )
+        assert view.current_page == 1  # advanced
+        interaction.response.edit_message.assert_called_once()
+        interaction.response.send_message.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_previous_button_rejects_non_author(self):
-        """Test non-author clicking previous gets ephemeral rejection."""
+    async def test_previous_button_allows_non_author(self):
+        """Test any user (not just the invoker) can go back a page."""
         pages = self._make_embed_pages(2)
         view = EmbedPaginatorView(pages, author_id=42)
         view.current_page = 1
@@ -543,12 +543,12 @@ class TestEmbedPaginatorView:
         interaction.user.id = 999
         interaction.response = AsyncMock()
 
-        await view.previous_button.callback(interaction)
+        with patch.object(view, "_save_current_page", new_callable=AsyncMock):
+            await view.previous_button.callback(interaction)
 
-        assert view.current_page == 1  # unchanged
-        interaction.response.send_message.assert_called_once_with(
-            "Only the command invoker can use these buttons.", ephemeral=True
-        )
+        assert view.current_page == 0  # went back
+        interaction.response.edit_message.assert_called_once()
+        interaction.response.send_message.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_page_indicator_defers(self):

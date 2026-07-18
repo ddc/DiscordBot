@@ -91,7 +91,7 @@ async def characters(ctx):
             icon_url=ctx.bot.user.display_avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC"
         )
         await progress_msg.delete()
-        await bot_utils.send_embed(ctx, embed)
+        await bot_utils.send_paginated_embed(ctx, embed)
 
     except Exception as e:
         await progress_msg.delete()
