@@ -52,8 +52,8 @@ class CustomHelpCommand(commands.DefaultHelpCommand):
     """Custom help command that sends DM notifications to the channel."""
 
     def __init__(self, **options):
-        # Increase page size for bigger window
-        options.setdefault("paginator", commands.Paginator(prefix="```", suffix="```", max_size=2000))
+        # Smaller page size so boxes are shorter with more pages
+        options.setdefault("paginator", commands.Paginator(prefix="```", suffix="```", max_size=1000))
         super().__init__(**options)
 
     async def send_bot_help(self, mapping):

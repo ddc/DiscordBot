@@ -24,6 +24,8 @@ jobs:
     needs: lint
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -37,20 +39,17 @@ jobs:
         run: uv sync --locked --all-extras --all-groups
 
       - name: Run tests with coverage
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 2
           max_attempts: 3
           command: uv run --no-sync poe test-unit
           shell: bash
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-
-      - name: Upload test results to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          report_type: test_results
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v7
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   integration-test:
     name: Integration Tests
@@ -71,7 +70,7 @@ jobs:
         run: uv sync --locked --all-extras --all-groups
 
       - name: Run integration tests
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 3
           max_attempts: 3

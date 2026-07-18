@@ -17,7 +17,7 @@
     <a href="https://github.com/ddc/DiscordBot/releases/latest"><img src="https://img.shields.io/github/v/release/ddc/DiscordBot?style=plastic&logo=github&logoColor=white" alt="Release"/></a>
     <br>
     <a href="https://github.com/ddc/DiscordBot/issues"><img src="https://img.shields.io/github/issues/ddc/DiscordBot?style=plastic&logo=github&logoColor=white" alt="issues"/></a>
-    <a href="https://codecov.io/gh/ddc/DiscordBot"><img src="https://img.shields.io/codecov/c/github/ddc/DiscordBot?token=E942EZII4Q&style=plastic&logo=codecov" alt="codecov"/></a>
+    <a href="https://sonarcloud.io/component_measures?id=ddc_DiscordBot&metric=coverage"><img src="https://img.shields.io/sonar/coverage/ddc_DiscordBot?server=https%3A%2F%2Fsonarcloud.io&style=plastic&logo=sonarqubecloud&logoColor=white" alt="SonarCloud Coverage"/></a>
     <a href="https://sonarcloud.io/dashboard?id=ddc_DiscordBot"><img src="https://img.shields.io/sonar/quality_gate/ddc_DiscordBot?server=https%3A%2F%2Fsonarcloud.io&style=plastic&logo=sonarqubecloud&logoColor=white" alt="Quality Gate Status"/></a>
     <a href="https://github.com/ddc/DiscordBot/actions/workflows/workflow.yml"><img src="https://img.shields.io/github/actions/workflow/status/ddc/DiscordBot/workflow.yml?style=plastic&logo=github&logoColor=white&label=CI%2FCD%20Pipeline" alt="CI/CD Pipeline"/></a>
     <a href="https://actions-badge.atrox.dev/ddc/DiscordBot/goto?ref=master"><img src="https://img.shields.io/endpoint.svg?url=https%3A//actions-badge.atrox.dev/ddc/DiscordBot/badge?ref=master&label=build&logo=github&style=plastic" alt="Build Status"/></a>

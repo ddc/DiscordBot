@@ -700,22 +700,24 @@ class TestEmbedPaginatorView:
         interaction.response.edit_message.assert_called_once_with(embed=pages[1], view=view)
 
     @pytest.mark.asyncio
-    async def test_next_button_wrong_user(self):
-        """Test next_button rejects non-invoker."""
+    async def test_next_button_allows_any_user(self):
+        """Test next_button lets any user (not just the invoker) advance the page."""
         pages = self._make_pages()
         view = EmbedPaginatorView(pages, author_id=42)
         interaction = MagicMock()
         interaction.user.id = 999
         interaction.response = AsyncMock()
 
-        await view.next_button.callback(interaction)
+        with patch.object(view, "_save_current_page", new_callable=AsyncMock):
+            await view.next_button.callback(interaction)
 
-        assert view.current_page == 0  # Unchanged
-        interaction.response.send_message.assert_called_once()
+        assert view.current_page == 1  # advanced
+        interaction.response.edit_message.assert_called_once()
+        interaction.response.send_message.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_previous_button_wrong_user(self):
-        """Test previous_button rejects non-invoker."""
+    async def test_previous_button_allows_any_user(self):
+        """Test previous_button lets any user (not just the invoker) go back."""
         pages = self._make_pages()
         view = EmbedPaginatorView(pages, author_id=42)
         view.current_page = 1
@@ -723,10 +725,12 @@ class TestEmbedPaginatorView:
         interaction.user.id = 999
         interaction.response = AsyncMock()
 
-        await view.previous_button.callback(interaction)
+        with patch.object(view, "_save_current_page", new_callable=AsyncMock):
+            await view.previous_button.callback(interaction)
 
-        assert view.current_page == 1  # Unchanged
-        interaction.response.send_message.assert_called_once()
+        assert view.current_page == 0  # went back
+        interaction.response.edit_message.assert_called_once()
+        interaction.response.send_message.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_page_indicator_defers(self):

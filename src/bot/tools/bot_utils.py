@@ -281,10 +281,6 @@ class EmbedPaginatorView(discord.ui.View):
     async def previous_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self._load_from_db(interaction):
             return
-        if interaction.user.id != self.author_id:
-            return await interaction.response.send_message(
-                "Only the command invoker can use these buttons.", ephemeral=True
-            )
         self.current_page -= 1
         self._update_buttons()
         await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
@@ -298,10 +294,6 @@ class EmbedPaginatorView(discord.ui.View):
     async def next_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self._load_from_db(interaction):
             return
-        if interaction.user.id != self.author_id:
-            return await interaction.response.send_message(
-                "Only the command invoker can use these buttons.", ephemeral=True
-            )
         self.current_page += 1
         self._update_buttons()
         await interaction.response.edit_message(embed=self.pages[self.current_page], view=self)
@@ -322,8 +314,9 @@ async def send_paginated_embed(ctx, embed: discord.Embed, max_fields: int = 25) 
     total_fields = len(embed.fields)
     pages = []
 
+    total_pages = (total_fields + max_fields - 1) // max_fields
     for i in range(0, total_fields, max_fields):
-        page_embed = discord.Embed(color=color, description=embed.description)
+        page_embed = discord.Embed(color=color, title=embed.title, description=embed.description)
         if embed.author:
             page_embed.set_author(name=embed.author.name, icon_url=embed.author.icon_url)
         if embed.thumbnail:
@@ -333,8 +326,13 @@ async def send_paginated_embed(ctx, embed: discord.Embed, max_fields: int = 25) 
             page_embed.add_field(name=field.name, value=field.value, inline=field.inline)
 
         page_number = (i // max_fields) + 1
-        total_pages = (total_fields + max_fields - 1) // max_fields
-        page_embed.set_footer(text=f"Page {page_number}/{total_pages}")
+        page_text = f"Page {page_number}/{total_pages}"
+        if embed.footer and embed.footer.text:
+            page_text = f"{embed.footer.text} | {page_text}"
+        page_embed.set_footer(
+            text=page_text,
+            icon_url=embed.footer.icon_url if embed.footer else None,
+        )
         pages.append(page_embed)
 
     if len(pages) == 1:
