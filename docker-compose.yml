@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
     container_name: discordbot_alembic
     restart: always
+    init: true
     env_file: .env
     environment:
       DOCKER_BUILDKIT: 1
@@ -12,8 +13,9 @@ services:
       - postgres_network
     command: ["sh", "-c", "uv run --frozen --no-sync alembic upgrade head && touch /tmp/alembic_done && sleep infinity"]
     healthcheck:
-      test: ["CMD", "sh", "-c", "test -f /tmp/alembic_done"]
-      interval: 5s
+      test: ["CMD", "test", "-f", "/tmp/alembic_done"]
+      start_interval: 5s
+      interval: 60s
       timeout: 5s
       retries: 12
       start_period: 120s

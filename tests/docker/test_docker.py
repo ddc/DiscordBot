@@ -50,10 +50,11 @@ class TestComposeConfig:
 
 class TestDockerfileStructure:
     def test_multistage_build(self, project_root):
-        """Dockerfile has both python-base and final stages."""
+        """Dockerfile has both python-base and final stages, final reusing python-base's venv."""
         content = (project_root / "Dockerfile").read_text()
         assert "AS python-base" in content, "Missing python-base stage"
-        assert "FROM python-base AS final" in content, "Missing final stage"
+        assert "AS final" in content, "Missing final stage"
+        assert "COPY --from=python-base" in content, "Final stage must copy artifacts from python-base"
 
 
 class TestDockerBuild:
