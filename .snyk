@@ -17,4 +17,3 @@ ignore:
     - '*':
         reason: certifi is used as a dependency, not modified - MPL-2.0 is compatible with MIT
         expires: 2027-03-20T00:00:00.000Z
-
