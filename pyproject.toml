@@ -1,6 +1,6 @@
 [project]
 name = "DiscordBot"
-version = "3.0.18"
+version = "3.0.19"
 description = "A simple Discord bot with multi-provider AI commands (OpenAI / Claude / Gemini) and server administration tools"
 urls.Repository = "https://github.com/ddc/DiscordBot"
 urls.Homepage = "https://ddc.github.io/DiscordBot"
@@ -30,34 +30,34 @@ classifiers = [
   "Intended Audience :: Developers",
   "Natural Language :: English",
 ]
-requires-python = ">=3.14.6"
+requires-python = ">=3.14.7"
 dependencies = [
-  "alembic>=1.18.5",
-  "anthropic>=0.117.0",
+  "alembic>=1.19.1",
+  "anthropic>=0.122.0",
   "beautifulsoup4>=4.15.0",
   "better-profanity>=0.7.0",
-  "ddcdatabases[postgres]>=4.0.1",
+  "ddcdatabases[postgres]>=5.0.0",
   "discord-py>=2.7.1",
-  "google-genai>=2.12.1",
+  "google-genai>=2.18.1",
   "gTTS>=2.5.4",
-  "openai>=2.46.0",
+  "openai>=3.2.0",
   "PyNaCl>=1.6.2",
-  "pythonLogs>=7.0.1",
+  "pythonLogs>=7.0.2",
   "uuid-utils>=0.17.0",
 ]
 
 [dependency-groups]
 dev = [
-    "coverage>=7.15.2",
+    "coverage>=7.15.4",
     "poethepoet>=0.48.0",
     "pytest-asyncio>=1.4.0",
-    "ruff>=0.15.22",
-    "testcontainers[postgres]>=4.15.0rc4",
+    "ruff>=0.16.3",
+    "testcontainers[postgres]>=4.15.0",
 ]
 
 [tool.poe.tasks]
 linter.shell = "uv run ruff check --fix . && uv run ruff format ."
-snyk-export.shell = "rm -f requirements.txt && uv export --no-hashes --no-annotate --format requirements-txt > requirements.txt && uvx pre-commit run --all-files || uvx pre-commit run --all-files"
+snyk-export.shell = "uv export --no-hashes --no-annotate --format requirements-txt > requirements.txt && uvx pre-commit run --all-files || uvx pre-commit run --all-files"
 snyk-container.shell = "docker build -t discordbot:snyk-scan . && snyk container test discordbot:snyk-scan --file=Dockerfile; docker rmi discordbot:snyk-scan"
 snyk.sequence = ["snyk-export", { shell = "uv pip install pip && snyk test --file=requirements.txt && snyk code test; uv pip uninstall pip" }, "snyk-container"]
 profile = "uv run python -m cProfile -o cprofile_unit.prof -m pytest tests/unit"
