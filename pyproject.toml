@@ -95,9 +95,7 @@ markers = [
   "gw2_api: marks tests that require GW2 API access",
 ]
 filterwarnings = [
-  # discord.py uses asyncio.iscoroutinefunction (deprecated in Python 3.16).
   "ignore:'asyncio.iscoroutinefunction' is deprecated:DeprecationWarning",
-  # google-genai uses _UnionGenericAlias (deprecated in Python 3.17).
   "ignore:'_UnionGenericAlias' is deprecated:DeprecationWarning",
 ]
 
