@@ -9,6 +9,7 @@ Create Date: 2023-11-22 21:37:13.445078
 from alembic import op
 from collections.abc import Sequence
 from ddcdatabases.postgresql import get_postgresql_settings
+from sqlalchemy.schema import CreateSchema, DropSchema
 
 revision: str = "0001"
 down_revision: str | None = None
@@ -31,11 +32,11 @@ def upgrade() -> None:
     # Create each non-public schema
     for s in _schemas:
         if s != "public":
-            op.execute(f"CREATE SCHEMA IF NOT EXISTS {s}")
+            op.execute(CreateSchema(s, if_not_exists=True))
 
 
 def downgrade() -> None:
     op.execute("DROP FUNCTION IF EXISTS updated_at_column_func")
     for s in _schemas:
         if s != "public":
-            op.execute(f"DROP SCHEMA IF EXISTS {s} CASCADE")
+            op.execute(DropSchema(s, if_exists=True, cascade=True))

@@ -3,7 +3,7 @@ from alembic.script import ScriptDirectory
 from ddcdatabases import get_postgresql_settings
 from logging.config import fileConfig
 from sqlalchemy import create_engine, engine_from_config, pool, text
-from sqlalchemy.schema import SchemaItem
+from sqlalchemy.schema import CreateSchema, SchemaItem
 from src.bot.constants.settings import get_bot_settings
 from src.database.models import BotBase
 from typing import Any, Literal
@@ -113,7 +113,7 @@ def run_migrations_offline() -> None:
     with context.begin_transaction():
         for s in _schemas:
             if s != "public":
-                context.execute(f"CREATE SCHEMA IF NOT EXISTS {s}")
+                context.execute(CreateSchema(s, if_not_exists=True))
         context.run_migrations()
 
 
@@ -133,7 +133,7 @@ def run_migrations_online() -> None:
     with connectable.connect() as connection:
         for s in _schemas:
             if s != "public":
-                connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {s}"))
+                connection.execute(CreateSchema(s, if_not_exists=True))
         connection.commit()
 
         context.configure(

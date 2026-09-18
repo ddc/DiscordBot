@@ -27,8 +27,8 @@ def upgrade() -> None:
         sa.Column("profession", sa.String(), nullable=False),
         sa.Column("start", sa.Integer(), nullable=False),
         sa.Column("end", sa.Integer(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), server_default=sa.text("(now() at time zone 'utc')"), nullable=False),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("(now() at time zone 'utc')"), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), server_default=sa.func.timezone("utc", sa.func.now()), nullable=False),
+        sa.Column("created_at", sa.DateTime(), server_default=sa.func.timezone("utc", sa.func.now()), nullable=False),
         sa.ForeignKeyConstraint(
             ["session_id"],
             ["gw2.gw2_sessions.id"],
