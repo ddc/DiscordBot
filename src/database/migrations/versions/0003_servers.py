@@ -29,8 +29,8 @@ def upgrade() -> None:
         sa.Column("block_invis_members", sa.Boolean(), server_default="0", nullable=False),
         sa.Column("bot_word_reactions", sa.Boolean(), server_default="1", nullable=False),
         sa.Column("updated_by", sa.BigInteger(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), server_default=sa.text("(now() at time zone 'utc')"), nullable=False),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("(now() at time zone 'utc')"), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), server_default=sa.func.timezone("utc", sa.func.now()), nullable=False),
+        sa.Column("created_at", sa.DateTime(), server_default=sa.func.timezone("utc", sa.func.now()), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("id"),
     )

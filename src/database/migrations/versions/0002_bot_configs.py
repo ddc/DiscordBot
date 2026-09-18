@@ -26,8 +26,8 @@ def upgrade() -> None:
         sa.Column("author_id", sa.BigInteger(), server_default=variables.AUTHOR_ID, nullable=False),
         sa.Column("url", sa.String(), server_default=variables.BOT_WEBPAGE_URL, nullable=False),
         sa.Column("description", sa.String(), server_default=variables.DESCRIPTION, nullable=False),
-        sa.Column("updated_at", sa.DateTime(), server_default=sa.text("(now() at time zone 'utc')"), nullable=False),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.text("(now() at time zone 'utc')"), nullable=False),
+        sa.Column("updated_at", sa.DateTime(), server_default=sa.func.timezone("utc", sa.func.now()), nullable=False),
+        sa.Column("created_at", sa.DateTime(), server_default=sa.func.timezone("utc", sa.func.now()), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("id"),
     )

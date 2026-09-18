@@ -21,7 +21,7 @@ services:
         - postgres_network
     command: >
       bash -c "
-        docker-entrypoint.sh postgres &
+        docker-entrypoint.sh postgres -c log_min_messages=warning -c log_statement=ddl -c log_min_duration_statement=1000 -c log_hostname=off &
         until pg_isready -U ${POSTGRESQL_USER} -h localhost; do sleep 1; done;
         PGPASSWORD=${POSTGRESQL_PASSWORD} psql -U ${POSTGRESQL_USER} -d postgres -tc \"SELECT 1 FROM pg_database WHERE datname = '${POSTGRESQL_DATABASE}'\" | grep -q 1 || PGPASSWORD=${POSTGRESQL_PASSWORD} psql -U ${POSTGRESQL_USER} -d postgres -c \"CREATE DATABASE ${POSTGRESQL_DATABASE}\";
         wait
