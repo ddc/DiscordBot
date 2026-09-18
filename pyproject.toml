@@ -17,7 +17,6 @@ keywords = [
   "bot", "discord",
   "DiscordBot", "discord-bot",
   "discordpy", "discord-py", "discord-py-bot",
-
 ]
 classifiers = [
   "Topic :: Communications :: Chat",
