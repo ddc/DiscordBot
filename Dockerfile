@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # Build stage: resolves the virtualenv. Only .venv reaches the final image
 # ---------------------------------------------------------------------------
-FROM python:3.14.7-alpine3.24 AS python-base
+FROM python:3.15.2-alpine3.24 AS python-base
 
 LABEL Description="DiscordBot"
 
@@ -25,7 +25,7 @@ RUN set -ex && \
 # ---------------------------------------------------------------------------
 # Final stage: clean base
 # ---------------------------------------------------------------------------
-FROM python:3.14.7-alpine3.24 AS final
+FROM python:3.15.2-alpine3.24 AS final
 
 LABEL Description="DiscordBot"
 

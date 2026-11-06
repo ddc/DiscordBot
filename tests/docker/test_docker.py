@@ -65,7 +65,7 @@ class TestDockerBuild:
 
 class TestDockerSmoke:
     def test_python_available(self, docker_build):
-        """Python is available and is 3.14.x in the base image."""
+        """Python is available and is 3.15.x in the base image."""
         result = subprocess.run(
             [_DOCKER, "run", "--rm", docker_build, "python", "--version"],
             capture_output=True,
@@ -73,7 +73,7 @@ class TestDockerSmoke:
             timeout=30,
         )
         assert result.returncode == 0, f"python --version failed:\n{result.stderr}"
-        assert "3.14" in result.stdout, f"Expected Python 3.14, got: {result.stdout}"
+        assert "3.15" in result.stdout, f"Expected Python 3.15, got: {result.stdout}"
 
     def test_uv_available(self, docker_build):
         """uv is available in the base image."""
