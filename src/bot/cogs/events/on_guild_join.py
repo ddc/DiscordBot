@@ -12,7 +12,7 @@ class WelcomeMessageBuilder:
     @staticmethod
     def build_welcome_message(bot_name: str, prefix: str, games_included: str) -> str:
         """Build the welcome message text."""
-        return messages.guild_join_bot_message(bot_name, prefix, games_included)
+        return messages.GuildJoin.bot_message(bot_name, prefix, games_included)
 
     @staticmethod
     def build_welcome_embed(bot: Bot, message: str) -> discord.Embed:

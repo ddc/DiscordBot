@@ -101,7 +101,6 @@ class TestConfigListCommand:
                     call_kwargs = mock_ctx.author.send.call_args[1]
                     embed = call_kwargs["embed"]
                     assert "TestGuild" in embed.author.name
-                    # Session is ON, so green_text should be used for the field value
                     session_field = embed.fields[0]
                     assert "ON" in session_field.value
 
@@ -145,9 +144,7 @@ class TestConfigListCommand:
             with patch("src.gw2.cogs.config.chat_formatting.green_text", return_value="ON"):
                 with patch("src.gw2.cogs.config.chat_formatting.red_text", return_value="OFF"):
                     await config_list(mock_ctx)
-                    # DM sent
                     mock_ctx.author.send.assert_called_once()
-                    # Channel notification sent
                     mock_ctx.send.assert_called_once()
                     notification_kwargs = mock_ctx.send.call_args[1]
                     notification_embed = notification_kwargs["embed"]
@@ -328,15 +325,12 @@ class TestGW2ConfigView:
         """Create a GW2ConfigView instance."""
         with patch("discord.ui.view.View.__init__", return_value=None):
             view = GW2ConfigView(mock_ctx, server_config)
-            # Manually set up what View.__init__ would set
             view._children = []
             view._View__timeout = 300
-            # Create a mock toggle_session button
             view.toggle_session = MagicMock()
             view.toggle_session.style = discord.ButtonStyle.secondary
             view.toggle_session.disabled = False
             view.toggle_session.callback = AsyncMock()
-            # Add it to children
             view._children.append(view.toggle_session)
             view.message = MagicMock()
             view.message.edit = AsyncMock()
@@ -356,7 +350,6 @@ class TestGW2ConfigView:
     async def test_handle_update_wrong_user_ephemeral_message(self, config_view, mock_ctx):
         """Test _handle_update sends ephemeral message when wrong user interacts."""
         interaction = MagicMock()
-        # Create a different user that is != ctx.author
         different_user = MagicMock()
         different_user.id = 99999
         interaction.user = different_user
@@ -407,19 +400,14 @@ class TestGW2ConfigView:
                 with patch("src.gw2.cogs.config.chat_formatting.red_text", return_value="OFF"):
                     await config_view._handle_update(interaction, button, "session", "Session Tracking")
 
-                    # Verify defer was called
                     interaction.response.defer.assert_called_once()
-                    # Verify database update
                     mock_instance.update_gw2_session_config.assert_called_once_with(
                         99999,
                         False,
-                        12345,  # Toggle from True to False
+                        12345,
                     )
-                    # Verify config was toggled
                     assert config_view.server_config["session"] is False
-                    # Verify _updating was reset
                     assert config_view._updating is False
-                    # Verify success message was sent
                     assert interaction.edit_original_response.call_count == 2
 
     @pytest.mark.asyncio
@@ -442,10 +430,8 @@ class TestGW2ConfigView:
             )
             await config_view._handle_update(interaction, button, "session", "Session Tracking")
 
-            # Verify error message was sent
             last_call = interaction.edit_original_response.call_args
             assert "Discord error" in last_call[1]["content"]
-            # Verify _updating was reset
             assert config_view._updating is False
 
     @pytest.mark.asyncio
@@ -464,12 +450,9 @@ class TestGW2ConfigView:
             mock_instance.update_gw2_session_config = AsyncMock(side_effect=Exception("Database connection error"))
             await config_view._handle_update(interaction, button, "session", "Session Tracking")
 
-            # Verify error was logged
             mock_ctx.bot.log.error.assert_called()
-            # Verify error message was sent
             last_call = interaction.edit_original_response.call_args
             assert "Error updating configuration" in last_call[1]["content"]
-            # Verify _updating was reset
             assert config_view._updating is False
 
     @pytest.mark.asyncio
@@ -479,7 +462,6 @@ class TestGW2ConfigView:
         interaction.user = mock_ctx.author
         interaction.response = MagicMock()
         interaction.response.defer = AsyncMock()
-        # First call for processing state works, second call raises
         interaction.edit_original_response = AsyncMock(side_effect=[None, Exception("Edit failed")])
 
         button = MagicMock()
@@ -487,15 +469,12 @@ class TestGW2ConfigView:
         with patch("src.gw2.cogs.config.Gw2ConfigsDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.update_gw2_session_config = AsyncMock(side_effect=Exception("DB error"))
-            # Should not raise - the inner exception is caught
             await config_view._handle_update(interaction, button, "session", "Session Tracking")
-            # Verify _updating was reset even with double failure
             assert config_view._updating is False
 
     @pytest.mark.asyncio
     async def test_restore_buttons(self, config_view):
         """Test _restore_buttons restores button states."""
-        # Disable all buttons first
         for item in config_view.children:
             if hasattr(item, "disabled"):
                 item.disabled = True
@@ -503,12 +482,10 @@ class TestGW2ConfigView:
         config_view.server_config["session"] = True
         await config_view._restore_buttons()
 
-        # Check buttons are re-enabled
         for item in config_view.children:
             if hasattr(item, "disabled"):
                 assert item.disabled is False
 
-        # Check toggle_session style is success (session is True)
         assert config_view.toggle_session.style == discord.ButtonStyle.success
 
     @pytest.mark.asyncio
@@ -571,7 +548,6 @@ class TestGW2ConfigView:
         button = MagicMock()
 
         with patch.object(view, "_handle_update", new_callable=AsyncMock) as mock_handle:
-            # Call the actual toggle_session function directly (it's a decorated method)
             await GW2ConfigView.toggle_session(view, interaction, button)
             mock_handle.assert_called_once_with(
                 interaction,
@@ -597,7 +573,6 @@ class TestGW2ConfigView:
         mock_response.status = 404
         config_view.message.edit = AsyncMock(side_effect=discord.NotFound(mock_response, "Not found"))
 
-        # Should not raise
         await config_view.on_timeout()
 
         for item in config_view.children:
@@ -610,7 +585,6 @@ class TestGW2ConfigView:
         mock_response.status = 500
         config_view.message.edit = AsyncMock(side_effect=discord.HTTPException(mock_response, "Server error"))
 
-        # Should not raise
         await config_view.on_timeout()
 
         for item in config_view.children:
@@ -621,9 +595,6 @@ class TestGW2ConfigView:
         """Test on_timeout when message is None."""
         config_view.message = None
 
-        # Should raise AttributeError but it is caught by discord.NotFound/HTTPException handler
-        # Actually the code tries self.message.edit which would raise AttributeError
-        # Let's verify it raises as the code doesn't handle None message
         with pytest.raises(AttributeError):
             await config_view.on_timeout()
 
@@ -642,7 +613,6 @@ class TestGW2ConfigView:
         original_edit = interaction.edit_original_response
 
         async def capture_disabled_state(*args, **kwargs):
-            # Capture button states when edit is first called (processing state)
             if not buttons_disabled_during_processing:
                 for item in config_view.children:
                     if hasattr(item, "disabled"):
@@ -657,7 +627,6 @@ class TestGW2ConfigView:
                 with patch("src.gw2.cogs.config.chat_formatting.red_text", return_value="OFF"):
                     await config_view._handle_update(interaction, button, "session", "Session Tracking")
 
-        # Verify all buttons were disabled during processing
         for disabled_state in buttons_disabled_during_processing:
             assert disabled_state is True
 

@@ -78,7 +78,6 @@ class TestBotInit:
         """Verify settings is a dict populated by _load_settings."""
         bot, *_ = self._create_bot()
         assert isinstance(bot.settings, dict)
-        # _load_settings is called, so it should have 'bot' and 'gw2' keys
         assert "bot" in bot.settings
         assert "gw2" in bot.settings
 
@@ -168,19 +167,20 @@ class TestLoadSettings:
         mock_get_bot.side_effect = RuntimeError("settings load failure")
 
         log = MagicMock()
+        bot_kwargs = {
+            "command_prefix": "!",
+            "intents": discord.Intents.default(),
+            "aiosession": MagicMock(),
+            "db_session": MagicMock(),
+            "log": log,
+        }
 
         with pytest.raises(RuntimeError, match="settings load failure"):
-            Bot(
-                command_prefix="!",
-                intents=discord.Intents.default(),
-                aiosession=MagicMock(),
-                db_session=MagicMock(),
-                log=log,
-            )
+            Bot(**bot_kwargs)
 
         log.error.assert_called_once()
         error_msg = log.error.call_args[0][0]
-        assert messages.BOT_LOAD_SETTINGS_FAILED in error_msg
+        assert messages.Bot.LOAD_SETTINGS_FAILED in error_msg
 
     @patch("src.bot.discord_bot.profanity")
     @patch("src.bot.discord_bot.get_gw2_settings")
@@ -332,7 +332,7 @@ class TestSetupHook:
         await bot.setup_hook()
 
         mock_bot_utils.load_cogs.assert_awaited_once_with(bot)
-        log.info.assert_any_call(messages.BOT_LOADED_ALL_COGS_SUCCESS)
+        log.info.assert_any_call(messages.Bot.LOADED_ALL_COGS_SUCCESS)
 
     @pytest.mark.asyncio
     @patch("src.bot.discord_bot.profanity")
@@ -365,4 +365,4 @@ class TestSetupHook:
 
         log.error.assert_called()
         error_msg = log.error.call_args[0][0]
-        assert messages.BOT_LOAD_COGS_FAILED in error_msg
+        assert messages.Bot.LOAD_COGS_FAILED in error_msg

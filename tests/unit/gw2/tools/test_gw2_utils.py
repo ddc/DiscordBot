@@ -4,7 +4,7 @@ import discord
 import pytest
 from datetime import datetime, timedelta
 from src.gw2.constants.gw2_currencies import WALLET_DISPLAY_NAMES, WALLET_MAPPING
-from src.gw2.constants.gw2_messages import GW2_FULL_NAME
+from src.gw2.constants.gw2_messages import Gw2
 from src.gw2.tools.gw2_exceptions import APIConnectionError
 from src.gw2.tools.gw2_utils import (
     TimeObject,
@@ -230,15 +230,13 @@ class TestCalculateEarnedPoints:
 
         result = _calculate_earned_points(user_achievements, achievement_data)
 
-        # Achievement 1: current=10 >= count=5 (10pts) + current=10 >= count=10 (20pts) = 30
-        # Achievement 2: current=5 >= count=3 (5pts) + current=5 < count=8 = 5
         assert result == 35
 
     def test_missing_achievement_in_lookup(self):
         """Test that unknown achievement IDs are skipped."""
         user_achievements = [
             {"id": 1, "current": 10, "repeated": 0},
-            {"id": 999, "current": 5, "repeated": 0},  # Not in data
+            {"id": 999, "current": 5, "repeated": 0},
         ]
         achievement_data = [
             {"id": 1, "tiers": [{"count": 5, "points": 10}]},
@@ -246,7 +244,6 @@ class TestCalculateEarnedPoints:
 
         result = _calculate_earned_points(user_achievements, achievement_data)
 
-        # Only achievement 1 contributes: 10 points
         assert result == 10
 
     def test_empty_user_achievements(self):
@@ -271,7 +268,6 @@ class TestCalculateEarnedPoints:
 
         result = _calculate_earned_points(user_achievements, achievement_data)
 
-        # earned_ap will compute: tier points (5) + base*repeats (5*2) = 15, capped at max_ap(ach, repeats=2)=50
         assert result == 15
 
 
@@ -310,7 +306,7 @@ class TestCalculateUserAchievPoints:
 
                     result = await calculate_user_achiev_points(mock_ctx, sample_user_achievements, sample_account_data)
 
-                    assert result == 225  # 100 + 50 + 75
+                    assert result == 225
                     mock_fetch.assert_called_once()
                     mock_calc.assert_called_once()
 
@@ -334,9 +330,6 @@ class TestEarnedAp:
         user_progress = {"current": 12, "repeated": 0}
 
         result = earned_ap(achievement, user_progress)
-        # Tiers completed: count=5 (10pts) + count=10 (20pts) = 30
-        # max_ap(achievement, repeats=0) = sum of tiers = 60 (since repeatable=False, returns sum)
-        # min(30, 60) = 30
         assert result == 30
 
     def test_earned_ap_with_repeats(self):
@@ -348,11 +341,6 @@ class TestEarnedAp:
         user_progress = {"current": 6, "repeated": 2}
 
         result = earned_ap(achievement, user_progress)
-        # Tier points: 10 (current=6 >= count=5)
-        # max_ap(achievement) without repeatable = sum of tiers = 10
-        # earned += 10 * 2 = 20 => total earned = 30
-        # max_possible = max_ap(achievement, repeats=2) = point_cap = 100
-        # min(30, 100) = 30
         assert result == 30
 
     def test_earned_ap_capped_at_max(self):
@@ -364,11 +352,6 @@ class TestEarnedAp:
         user_progress = {"current": 5, "repeated": 3}
 
         result = earned_ap(achievement, user_progress)
-        # Tier: 10 (current=5 >= count=1)
-        # max_ap(achievement) = 10 (sum of tiers)
-        # earned += 10 * 3 = 30 => total = 40
-        # max_possible = max_ap(achievement, 3) = point_cap = 15
-        # min(40, 15) = 15
         assert result == 15
 
     def test_earned_ap_no_current_progress(self):
@@ -377,7 +360,6 @@ class TestEarnedAp:
         user_progress = {"repeated": 0}
 
         result = earned_ap(achievement, user_progress)
-        # current defaults to 0, 0 < 5, no tier points earned
         assert result == 0
 
 
@@ -468,9 +450,8 @@ class TestGetWorldId:
                 ]
             )
 
-            # Partial match: "jade" should match "jade quarry" first
             result = await get_world_id(mock_bot, "jade")
-            assert result in (1006, 1007)  # Either Jade world is valid
+            assert result in (1006, 1007)
 
     @pytest.mark.asyncio
     async def test_get_world_id_not_found(self, mock_bot):
@@ -640,7 +621,7 @@ class TestCheckGw2GameActivity:
 
         gw2_activity = MagicMock()
         gw2_activity.type = discord.ActivityType.playing
-        gw2_activity.name = GW2_FULL_NAME
+        gw2_activity.name = Gw2.FULL_NAME
 
         before.activities = []
         after.activities = [gw2_activity]
@@ -658,7 +639,7 @@ class TestCheckGw2GameActivity:
 
         gw2_activity = MagicMock()
         gw2_activity.type = discord.ActivityType.playing
-        gw2_activity.name = GW2_FULL_NAME
+        gw2_activity.name = Gw2.FULL_NAME
 
         before.activities = [gw2_activity]
         after.activities = []
@@ -676,7 +657,7 @@ class TestCheckGw2GameActivity:
 
         gw2_activity = MagicMock()
         gw2_activity.type = discord.ActivityType.playing
-        gw2_activity.name = GW2_FULL_NAME
+        gw2_activity.name = Gw2.FULL_NAME
 
         before.activities = [gw2_activity]
         after.activities = [gw2_activity]
@@ -710,7 +691,7 @@ class TestCheckGw2GameActivity:
 
         custom_activity = MagicMock()
         custom_activity.type = discord.ActivityType.custom
-        custom_activity.name = GW2_FULL_NAME
+        custom_activity.name = Gw2.FULL_NAME
 
         before.activities = [custom_activity]
         after.activities = [custom_activity]
@@ -749,7 +730,6 @@ class TestHandleGw2ActivityChange:
 
             await _handle_gw2_activity_change(mock_bot, mock_member, "start")
 
-            # Should not proceed to Gw2KeyDal
             with patch("src.gw2.tools.gw2_utils.Gw2KeyDal") as mock_key_dal:
                 mock_key_dal.assert_not_called()
 
@@ -821,7 +801,6 @@ class TestHandleGw2ActivityChange:
                 nonlocal call_count
                 call_count += 1
                 if call_count == 1:
-                    # Simulate end event arriving during start processing
                     _processing_sessions[member.id]["pending"] = "end"
 
             mock_execute.side_effect = side_effect
@@ -843,7 +822,6 @@ class TestHandleGw2ActivityChange:
                 nonlocal call_count
                 call_count += 1
                 if call_count == 1:
-                    # Simulate: end queued during start processing
                     _processing_sessions[member.id]["pending"] = "end"
 
             mock_execute.side_effect = side_effect
@@ -851,20 +829,17 @@ class TestHandleGw2ActivityChange:
             await _handle_gw2_activity_change(mock_bot, mock_member, "start")
 
             assert mock_execute.call_count == 2
-            # Second call should be "end" (pending action)
             mock_execute.assert_any_call(mock_bot, mock_member, "end")
             assert mock_member.id not in _processing_sessions
 
     @pytest.mark.asyncio
     async def test_concurrent_call_queues_different_action(self, mock_bot, mock_member):
         """Test that a concurrent call with a different action queues it."""
-        # Simulate a start session already being processed
         _processing_sessions[mock_member.id] = {"current": "start", "pending": None}
 
         try:
             await _handle_gw2_activity_change(mock_bot, mock_member, "end")
 
-            # The end action should be queued as pending
             assert _processing_sessions[mock_member.id]["pending"] == "end"
         finally:
             _processing_sessions.pop(mock_member.id, None)
@@ -872,13 +847,11 @@ class TestHandleGw2ActivityChange:
     @pytest.mark.asyncio
     async def test_duplicate_current_action_is_dropped(self, mock_bot, mock_member):
         """Test that a duplicate of the currently running action is dropped."""
-        # Simulate a start session already being processed
         _processing_sessions[mock_member.id] = {"current": "start", "pending": None}
 
         try:
             await _handle_gw2_activity_change(mock_bot, mock_member, "start")
 
-            # Duplicate should be ignored, pending stays None
             assert _processing_sessions[mock_member.id]["pending"] is None
             mock_bot.log.debug.assert_called_with(f"Duplicate 'start' event for user {mock_member.id}, ignoring")
         finally:
@@ -887,13 +860,11 @@ class TestHandleGw2ActivityChange:
     @pytest.mark.asyncio
     async def test_duplicate_pending_action_is_dropped(self, mock_bot, mock_member):
         """Test that a duplicate of an already-pending action is dropped."""
-        # Simulate start running with end already pending
         _processing_sessions[mock_member.id] = {"current": "start", "pending": "end"}
 
         try:
             await _handle_gw2_activity_change(mock_bot, mock_member, "end")
 
-            # Duplicate should be ignored, pending stays "end"
             assert _processing_sessions[mock_member.id]["pending"] == "end"
             mock_bot.log.debug.assert_called_with(f"Duplicate 'end' event for user {mock_member.id}, ignoring")
         finally:
@@ -1125,13 +1096,13 @@ class TestGetUserStats:
         """Test successful user stats retrieval with legacy wvw_rank."""
         account_data = {"name": "TestUser.1234", "wvw_rank": 50}
         wallet_data = [
-            {"id": 1, "value": 50000},  # gold
-            {"id": 2, "value": 100000},  # karma
-            {"id": 3, "value": 25},  # laurels
+            {"id": 1, "value": 50000},
+            {"id": 2, "value": 100000},
+            {"id": 3, "value": 25},
         ]
         achievements_data = [
-            {"id": 283, "current": 150},  # players
-            {"id": 291, "current": 42},  # camps
+            {"id": 283, "current": 150},
+            {"id": 291, "current": 42},
         ]
 
         with patch("src.gw2.tools.gw2_utils.Gw2Client") as mock_client_class:
@@ -1179,8 +1150,8 @@ class TestGetUserStats:
             {"id": 26, "value": 60},
             {"id": 31, "value": 70},
             {"id": 36, "value": 80},
-            {"id": 23, "value": 150},  # spirit_shards
-            {"id": 45, "value": 2000},  # volatile_magic
+            {"id": 23, "value": 150},
+            {"id": 45, "value": 2000},
         ]
         achievements_data = []
 
@@ -1241,11 +1212,11 @@ class TestUpdateWalletStats:
         """Test that new wallet IDs (spirit shards, volatile magic, etc.) update stats."""
         user_stats = self._make_user_stats()
         wallet_data = [
-            {"id": 23, "value": 150},  # spirit_shards
-            {"id": 18, "value": 42},  # transmutation_charges
-            {"id": 45, "value": 2000},  # volatile_magic
-            {"id": 32, "value": 800},  # unbound_magic
-            {"id": 4, "value": 400},  # gems
+            {"id": 23, "value": 150},
+            {"id": 18, "value": 42},
+            {"id": 45, "value": 2000},
+            {"id": 32, "value": 800},
+            {"id": 4, "value": 400},
         ]
 
         _update_wallet_stats(user_stats, wallet_data)
@@ -1260,13 +1231,12 @@ class TestUpdateWalletStats:
         """Test that unknown wallet IDs are ignored."""
         user_stats = self._make_user_stats()
         wallet_data = [
-            {"id": 999, "value": 50000},  # Unknown ID
-            {"id": 888, "value": 30000},  # Unknown ID
+            {"id": 999, "value": 50000},
+            {"id": 888, "value": 30000},
         ]
 
         _update_wallet_stats(user_stats, wallet_data)
 
-        # All should remain at 0
         assert user_stats["gold"] == 0
         assert user_stats["karma"] == 0
 
@@ -1282,9 +1252,9 @@ class TestUpdateWalletStats:
         """Test with a mix of known and unknown wallet IDs."""
         user_stats = self._make_user_stats()
         wallet_data = [
-            {"id": 1, "value": 10000},  # Known - gold
-            {"id": 999, "value": 5000},  # Unknown
-            {"id": 2, "value": 20000},  # Known - karma
+            {"id": 1, "value": 10000},
+            {"id": 999, "value": 5000},
+            {"id": 2, "value": 20000},
         ]
 
         _update_wallet_stats(user_stats, wallet_data)
@@ -1344,7 +1314,7 @@ class TestUpdateAchievementStats:
         """Test achievement data without 'current' field defaults to 0."""
         user_stats = {"players": 0, "yaks_scorted": 0, "yaks": 0, "camps": 0, "castles": 0, "towers": 0, "keeps": 0}
         achievements_data = [
-            {"id": 283},  # No 'current' key
+            {"id": 283},
         ]
 
         _update_achievement_stats(user_stats, achievements_data)
@@ -1917,7 +1887,7 @@ class TestActivityHelpers:
     def test_is_gw2_activity_detected_after(self):
         """Test _is_gw2_activity_detected with GW2 in after activity."""
         mock_activity = MagicMock()
-        mock_activity.name = GW2_FULL_NAME
+        mock_activity.name = Gw2.FULL_NAME
 
         result = _is_gw2_activity_detected(None, mock_activity)
         assert result is True
@@ -1979,7 +1949,6 @@ class TestCreateInitialUserStats:
         assert result["castles"] == 0
         assert result["towers"] == 0
         assert result["keeps"] == 0
-        # New currencies
         assert result["spirit_shards"] == 0
         assert result["transmutation_charges"] == 0
         assert result["volatile_magic"] == 0
@@ -2029,7 +1998,6 @@ class TestCreateInitialUserStats:
 
         result = _create_initial_user_stats(account_data)
 
-        # 0 is falsy, so it falls back to wvw_rank
         assert result["wvw_rank"] == 50
 
 

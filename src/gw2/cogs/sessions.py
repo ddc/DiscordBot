@@ -6,7 +6,7 @@ from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharDeathsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
 from src.gw2.cogs.gw2 import GuildWars2
-from src.gw2.constants import gw2_messages
+from src.gw2.constants import gw2_messages, gw2_variables
 from src.gw2.constants.gw2_currencies import WALLET_DISPLAY_NAMES
 from src.gw2.tools import gw2_utils
 from src.gw2.tools.gw2_client import Gw2Client
@@ -42,96 +42,43 @@ async def session(ctx):
     gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
     rs_api_key = await gw2_key_dal.get_api_key_by_user(user_id)
     if not rs_api_key:
-        msg = gw2_messages.NO_API_KEY
-        msg += gw2_messages.key_add_info_help(ctx.prefix)
-        msg += gw2_messages.key_more_info_help(ctx.prefix)
+        msg = gw2_messages.Key.NO_API_KEY
+        msg += gw2_messages.Key.add_info_help(ctx.prefix)
+        msg += gw2_messages.Key.more_info_help(ctx.prefix)
         return await bot_utils.send_error_msg(ctx, msg)
 
     gw2_configs = Gw2ConfigsDal(ctx.bot.db_session, ctx.bot.log)
     rs_gw2_sc = await gw2_configs.get_gw2_server_configs(ctx.guild.id)
-    if len(rs_gw2_sc) == 0 or (len(rs_gw2_sc) > 0 and not rs_gw2_sc[0]["session"]):
-        return await bot_utils.send_warning_msg(ctx, gw2_messages.session_not_active(ctx.prefix))
+    if not rs_gw2_sc or not rs_gw2_sc[0]["session"]:
+        return await bot_utils.send_warning_msg(ctx, gw2_messages.Session.not_active(ctx.prefix))
 
     api_key = rs_api_key[0]["key"]
     gw2_server = rs_api_key[0]["server"]
-    key_permissions = rs_api_key[0]["permissions"]
-    account = True
-    wallet = True
-    progression = True
-    characters = True
 
-    if "account" not in key_permissions:
-        account = False
-    if "wallet" not in key_permissions:
-        wallet = False
-    if "progression" not in key_permissions:
-        progression = False
-    if "characters" not in key_permissions:
-        characters = False
-
-    if not any([account, wallet, progression, characters]):
-        error_msg = f"{gw2_messages.SESSION_MISSING_PERMISSIONS_TITLE}:\n"
-        error_msg += "- account is OK\n" if account is True else "- account is MISSING\n"
-        error_msg += "- characters is OK\n" if characters is True else "- characters is MISSING\n"
-        error_msg += "- progression is OK\n" if progression is True else "- progression is MISSING\n"
-        error_msg += "- wallet is OK\n" if wallet is True else "- wallet is MISSING\n"
-        error_msg += (
-            f"{gw2_messages.ADD_RIGHT_API_KEY_PERMISSIONS}\n"
-            f"{gw2_messages.key_add_info_help(ctx.prefix)}"
-            f"{gw2_messages.key_more_info_help(ctx.prefix)}"
-        )
-        return await bot_utils.send_error_msg(ctx, error_msg)
+    permissions_error = _missing_permissions_msg(ctx, rs_api_key[0]["permissions"])
+    if permissions_error:
+        return await bot_utils.send_error_msg(ctx, permissions_error)
 
     gw2_session_dal = Gw2SessionsDal(ctx.bot.db_session, ctx.bot.log)
     rs_session = await gw2_session_dal.get_user_last_session(user_id)
     if not rs_session:
-        return await bot_utils.send_error_msg(ctx, gw2_messages.USER_NO_SESSION_FOUND)
-
-    rs_start = rs_session[0]["start"]
-    rs_end = rs_session[0]["end"]
-    is_live_snapshot = False
+        return await bot_utils.send_error_msg(ctx, gw2_messages.Session.NO_SESSION_FOUND)
 
     is_playing = _is_user_playing_gw2(ctx)
-
-    if rs_end is None:
-        if is_playing:
-            # User is still playing - fetch live snapshot from API without saving to DB
-            progress_msg = await gw2_utils.send_progress_embed(ctx)
-            live_stats = await gw2_utils.get_user_stats(ctx.bot, api_key)
-            if not live_stats:
-                await progress_msg.delete()
-                return await gw2_utils.send_msg(ctx, gw2_messages.SESSION_IN_PROGRESS)
-            live_stats["date"] = bot_utils.convert_datetime_to_str_short(bot_utils.get_current_date_time())
-            rs_end = live_stats
-            is_live_snapshot = True
-        elif gw2_utils.is_session_ending(user_id):
-            # Background end_session is still waiting for the API cache to refresh
-            remaining = gw2_utils.get_session_end_remaining_seconds(user_id)
-            msg = gw2_messages.SESSION_END_PROCESSING
-            if remaining is not None and remaining > 0:
-                m = remaining // 60
-                s = remaining % 60
-                time_str = f"{m}m {s}s" if m > 0 else f"{s}s"
-                msg += f"\n{gw2_messages.WAITING_TIME}: `{time_str}`"
-            return await bot_utils.send_warning_msg(ctx, msg)
-        else:
-            # End data missing, user stopped playing, no background task - finalize now
-            progress_msg = await gw2_utils.send_progress_embed(ctx)
-            await gw2_utils.end_session(ctx.bot, ctx.message.author, api_key, skip_delay=True)
-            rs_session = await gw2_session_dal.get_user_last_session(user_id)
-            if not rs_session or rs_session[0]["end"] is None:
-                await progress_msg.delete()
-                return await bot_utils.send_error_msg(ctx, gw2_messages.SESSION_BOT_STILL_UPDATING)
-            rs_start = rs_session[0]["start"]
-            rs_end = rs_session[0]["end"]
+    if rs_session[0]["end"] is None:
+        resolved = await _resolve_open_session(ctx, gw2_session_dal, rs_session, api_key, user_id, is_playing)
+        if resolved is None:
+            return None  # a reply was already sent
+        rs_session, rs_end, is_live_snapshot, progress_msg = resolved
     else:
+        rs_end = rs_session[0]["end"]
+        is_live_snapshot = False
         progress_msg = await gw2_utils.send_progress_embed(
             ctx, "Please wait, I'm fetching your session data... (this may take a moment)"
         )
+    rs_start = rs_session[0]["start"]
 
     try:
-        color = ctx.bot.settings["gw2"]["EmbedColor"]
-
         # Use JSONB date fields for session duration
         start_time = bot_utils.convert_str_to_datetime_short(rs_start["date"])
         end_time = bot_utils.convert_str_to_datetime_short(rs_end["date"])
@@ -143,52 +90,17 @@ async def session(ctx):
             m = "minute" if wait_time == "1" else "minutes"
             await progress_msg.delete()
             return await gw2_utils.send_msg(
-                ctx, f"{gw2_messages.SESSION_BOT_STILL_UPDATING}\n {gw2_messages.WAITING_TIME}: `{wait_time} {m}`"
+                ctx,
+                f"{gw2_messages.Session.BOT_STILL_UPDATING}\n {gw2_messages.Session.WAITING_TIME}: `{wait_time} {m}`",
             )
 
-        acc_name = rs_session[0]["acc_name"]
-        session_date = rs_start["date"].split()[0]
-        title_suffix = " (Live)" if is_live_snapshot else ""
-        embed = discord.Embed(color=color)
-        embed.set_author(
-            name=f"{ctx.message.author.display_name}'s {gw2_messages.SESSION_TITLE} ({session_date}){title_suffix}",
-            icon_url=ctx.message.author.display_avatar.url,
+        embed = _build_session_embed(
+            ctx, rs_session[0]["acc_name"], gw2_server, rs_start, time_passed, is_live_snapshot
         )
-        embed.add_field(name=gw2_messages.ACCOUNT_NAME, value=chat_formatting.inline(acc_name))
-        embed.add_field(name=gw2_messages.SERVER, value=chat_formatting.inline(gw2_server))
-
-        # Play time from DB timestamps (session duration)
-        play_time_str = gw2_utils.format_seconds_to_time(int(time_passed.timedelta.total_seconds()))
-        embed.add_field(name=gw2_messages.PLAY_TIME, value=chat_formatting.inline(play_time_str))
-
-        # Gold (special formatting)
-        _add_gold_field(embed, rs_start, rs_end)
-
-        # Deaths
-        if is_live_snapshot:
-            char_deaths = await _build_live_char_deaths(ctx, api_key, user_id)
-        else:
-            gw2_session_chars_dal = Gw2SessionCharDeathsDal(ctx.bot.db_session, ctx.bot.log)
-            char_deaths = await gw2_session_chars_dal.get_char_deaths(user_id)
-        if char_deaths:
-            _add_deaths_field(embed, char_deaths)
-
-        # WvW achievement-based stats
-        _add_wvw_stats(embed, rs_start, rs_end)
-
-        # All wallet currencies (except gold, handled above)
-        _add_wallet_currency_fields(embed, rs_start, rs_end)
-
-        footer_text = f"{bot_utils.get_current_date_time_str_long()} UTC"
-        if is_live_snapshot:
-            footer_text += f"\n{gw2_messages.SESSION_USER_STILL_PLAYING}"
-        embed.set_footer(
-            icon_url=ctx.bot.user.avatar.url if ctx.bot.user.avatar else None,
-            text=footer_text,
-        )
+        await _add_session_stat_fields(ctx, embed, api_key, user_id, rs_start, rs_end, is_live_snapshot)
 
         if not is_live_snapshot and is_playing:
-            still_playing_msg = f"{ctx.message.author.mention}\n {gw2_messages.SESSION_USER_STILL_PLAYING}"
+            still_playing_msg = f"{ctx.message.author.mention}\n {gw2_messages.Session.USER_STILL_PLAYING}"
             await gw2_utils.end_session(ctx.bot, ctx.message.author, api_key, skip_delay=True)
             await ctx.send(still_playing_msg)
 
@@ -201,6 +113,103 @@ async def session(ctx):
     return None
 
 
+def _missing_permissions_msg(ctx, key_permissions) -> str | None:
+    """Return an error message when the key has none of the session permissions, else None."""
+    perms = {name: name in key_permissions for name in ("account", "characters", "progression", "wallet")}
+    if any(perms.values()):
+        return None
+
+    error_msg = f"{gw2_messages.Session.MISSING_PERMISSIONS_TITLE}:\n"
+    error_msg += "".join(f"- {name} is {'OK' if ok else 'MISSING'}\n" for name, ok in perms.items())
+    error_msg += (
+        f"{gw2_messages.Session.ADD_RIGHT_API_KEY_PERMISSIONS}\n"
+        f"{gw2_messages.Key.add_info_help(ctx.prefix)}"
+        f"{gw2_messages.Key.more_info_help(ctx.prefix)}"
+    )
+    return error_msg
+
+
+async def _resolve_open_session(ctx, gw2_session_dal, rs_session, api_key, user_id, is_playing):
+    """Get end data for a session whose end hasn't been recorded yet.
+
+    Returns (rs_session, rs_end, is_live_snapshot, progress_msg), or None when a reply was already sent.
+    """
+    if is_playing:
+        # User is still playing - fetch live snapshot from API without saving to DB
+        progress_msg = await gw2_utils.send_progress_embed(ctx)
+        live_stats = await gw2_utils.get_user_stats(ctx.bot, api_key)
+        if not live_stats:
+            await progress_msg.delete()
+            await gw2_utils.send_msg(ctx, gw2_messages.Session.IN_PROGRESS)
+            return None
+        live_stats["date"] = bot_utils.convert_datetime_to_str_short(bot_utils.get_current_date_time())
+        return rs_session, live_stats, True, progress_msg
+
+    if gw2_utils.is_session_ending(user_id):
+        # Background end_session is still waiting for the API cache to refresh
+        await bot_utils.send_warning_msg(ctx, _session_ending_msg(user_id))
+        return None
+
+    # End data missing, user stopped playing, no background task - finalize now
+    progress_msg = await gw2_utils.send_progress_embed(ctx)
+    await gw2_utils.end_session(ctx.bot, ctx.message.author, api_key, skip_delay=True)
+    rs_session = await gw2_session_dal.get_user_last_session(user_id)
+    if not rs_session or rs_session[0]["end"] is None:
+        await progress_msg.delete()
+        await bot_utils.send_error_msg(ctx, gw2_messages.Session.BOT_STILL_UPDATING)
+        return None
+    return rs_session, rs_session[0]["end"], False, progress_msg
+
+
+def _session_ending_msg(user_id: int) -> str:
+    msg = gw2_messages.Session.END_PROCESSING
+    remaining = gw2_utils.get_session_end_remaining_seconds(user_id)
+    if remaining is not None and remaining > 0:
+        m, s = divmod(remaining, 60)
+        time_str = f"{m}m {s}s" if m > 0 else f"{s}s"
+        msg += f"\n{gw2_messages.Session.WAITING_TIME}: `{time_str}`"
+    return msg
+
+
+def _build_session_embed(ctx, acc_name, gw2_server, rs_start, time_passed, is_live_snapshot) -> discord.Embed:
+    session_date = rs_start["date"].split()[0]
+    title_suffix = " (Live)" if is_live_snapshot else ""
+    embed = discord.Embed(color=ctx.bot.settings["gw2"]["EmbedColor"])
+    embed.set_author(
+        name=f"{ctx.message.author.display_name}'s {gw2_messages.Session.TITLE} ({session_date}){title_suffix}",
+        icon_url=ctx.message.author.display_avatar.url,
+    )
+    embed.add_field(name=gw2_messages.Session.ACCOUNT_NAME, value=chat_formatting.inline(acc_name))
+    embed.add_field(name=gw2_messages.Session.SERVER, value=chat_formatting.inline(gw2_server))
+
+    # Play time from DB timestamps (session duration)
+    play_time_str = gw2_utils.format_seconds_to_time(int(time_passed.timedelta.total_seconds()))
+    embed.add_field(name=gw2_messages.Session.PLAY_TIME, value=chat_formatting.inline(play_time_str))
+
+    footer_text = f"{bot_utils.get_current_date_time_str_long()} UTC"
+    if is_live_snapshot:
+        footer_text += f"\n{gw2_messages.Session.USER_STILL_PLAYING}"
+    embed.set_footer(icon_url=ctx.bot.user.avatar.url if ctx.bot.user.avatar else None, text=footer_text)
+    return embed
+
+
+async def _add_session_stat_fields(ctx, embed, api_key, user_id, rs_start, rs_end, is_live_snapshot) -> None:
+    """Add gold, deaths, WvW and wallet diffs between session start and end."""
+    _add_gold_field(embed, rs_start, rs_end)
+
+    if is_live_snapshot:
+        char_deaths = await _build_live_char_deaths(ctx, api_key, user_id)
+    else:
+        gw2_session_chars_dal = Gw2SessionCharDeathsDal(ctx.bot.db_session, ctx.bot.log)
+        char_deaths = await gw2_session_chars_dal.get_char_deaths(user_id)
+    if char_deaths:
+        _add_deaths_field(embed, char_deaths)
+
+    _add_wvw_stats(embed, rs_start, rs_end)
+    # All wallet currencies (except gold, handled above)
+    _add_wallet_currency_fields(embed, rs_start, rs_end)
+
+
 def _is_user_playing_gw2(ctx) -> bool:
     """Check if the user is currently playing GW2 by checking all activities."""
     if isinstance(ctx.channel, discord.DMChannel):
@@ -211,7 +220,7 @@ def _is_user_playing_gw2(ctx) -> bool:
     for activity in member.activities:
         if (
             activity.type is not discord.ActivityType.custom
-            and gw2_messages.GW2_FULL_NAME.lower() in str(activity.name).lower()
+            and gw2_messages.Gw2.FULL_NAME.lower() in str(activity.name).lower()
         ):
             return True
     return False
@@ -226,7 +235,7 @@ async def _build_live_char_deaths(ctx, api_key: str, user_id: int) -> list[dict]
 
     try:
         gw2_api = Gw2Client(ctx.bot)
-        characters_data = await gw2_api.call_api("characters?ids=all", api_key)
+        characters_data = await gw2_api.call_api(f"{gw2_variables.API_CHARACTERS}?ids=all", api_key)
     except Exception:
         return None
 
@@ -284,7 +293,7 @@ def _add_deaths_field(embed: discord.Embed, char_deaths: list[dict]) -> None:
         if len(value) > 1020:
             value = value[:1017] + "..."
         embed.add_field(
-            name=gw2_messages.TIMES_YOU_DIED,
+            name=gw2_messages.Session.TIMES_YOU_DIED,
             value=chat_formatting.inline(value),
             inline=False,
         )
@@ -293,14 +302,14 @@ def _add_deaths_field(embed: discord.Embed, char_deaths: list[dict]) -> None:
 def _add_wvw_stats(embed: discord.Embed, rs_start: dict, rs_end: dict) -> None:
     """Add WvW achievement-based stats to embed."""
     wvw_fields = [
-        ("wvw_rank", gw2_messages.WVW_RANKS),
-        ("yaks", gw2_messages.YAKS_KILLED),
-        ("yaks_scorted", gw2_messages.YAKS_SCORTED),
-        ("players", gw2_messages.PLAYERS_KILLED),
-        ("keeps", gw2_messages.KEEPS_CAPTURED),
-        ("towers", gw2_messages.TOWERS_CAPTURED),
-        ("camps", gw2_messages.CAMPS_CAPTURED),
-        ("castles", gw2_messages.SMC_CAPTURED),
+        ("wvw_rank", gw2_messages.Session.WVW_RANKS),
+        ("yaks", gw2_messages.Session.YAKS_KILLED),
+        ("yaks_scorted", gw2_messages.Session.YAKS_ESCORTED),
+        ("players", gw2_messages.Session.PLAYERS_KILLED),
+        ("keeps", gw2_messages.Session.KEEPS_CAPTURED),
+        ("towers", gw2_messages.Session.TOWERS_CAPTURED),
+        ("camps", gw2_messages.Session.CAMPS_CAPTURED),
+        ("castles", gw2_messages.Session.SMC_CAPTURED),
     ]
 
     for stat_key, field_name in wvw_fields:

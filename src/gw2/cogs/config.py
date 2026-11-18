@@ -43,16 +43,18 @@ async def config_list(ctx):
     guild_icon_url = ctx.guild.icon.url if ctx.guild.icon else None
     embed.set_thumbnail(url=guild_icon_url)
     embed.set_author(
-        name=f"{gw2_messages.CONFIG_TITLE} {ctx.guild.name}",
+        name=f"{gw2_messages.Config.TITLE} {ctx.guild.name}",
         icon_url=guild_icon_url,
     )
-    embed.set_footer(text=gw2_messages.config_more_info(ctx.prefix))
+    embed.set_footer(text=gw2_messages.Config.more_info(ctx.prefix))
 
     gw2_configs = Gw2ConfigsDal(ctx.bot.db_session, ctx.bot.log)
     rs = await gw2_configs.get_gw2_server_configs(ctx.guild.id)
     on = chat_formatting.green_text("ON")
     off = chat_formatting.red_text("OFF")
-    embed.add_field(name=gw2_messages.USER_SESSION_TITLE, value=f"{on}" if rs[0]["session"] else f"{off}", inline=False)
+    embed.add_field(
+        name=gw2_messages.Config.USER_SESSION_TITLE, value=f"{on}" if rs[0]["session"] else f"{off}", inline=False
+    )
 
     # Create interactive view with buttons
     view = GW2ConfigView(ctx, rs[0])
@@ -89,11 +91,11 @@ async def config_session(ctx, subcommand_passed: str):
         case "on" | "ON":
             new_status = True
             color = discord.Color.green()
-            msg = gw2_messages.SESSION_ACTIVATED
+            msg = gw2_messages.Config.SESSION_ACTIVATED
         case "off" | "OFF":
             new_status = False
             color = discord.Color.red()
-            msg = gw2_messages.SESSION_DEACTIVATED
+            msg = gw2_messages.Config.SESSION_DEACTIVATED
         case _:
             raise commands.BadArgument(message="BadArgument")
 
@@ -212,17 +214,17 @@ class GW2ConfigView(discord.ui.View):
         guild_icon_url = self.ctx.guild.icon.url if self.ctx.guild.icon else None
         embed.set_thumbnail(url=guild_icon_url)
         embed.set_author(
-            name=f"{gw2_messages.CONFIG_TITLE} {self.ctx.guild.name}",
+            name=f"{gw2_messages.Config.TITLE} {self.ctx.guild.name}",
             icon_url=guild_icon_url,
         )
-        embed.set_footer(text=gw2_messages.config_more_info(self.ctx.prefix))
+        embed.set_footer(text=gw2_messages.Config.more_info(self.ctx.prefix))
 
         # Format status indicators
         on = chat_formatting.green_text("ON")
         off = chat_formatting.red_text("OFF")
 
         embed.add_field(
-            name=gw2_messages.USER_SESSION_TITLE,
+            name=gw2_messages.Config.USER_SESSION_TITLE,
             value=f"{on}" if self.server_config["session"] else f"{off}",
             inline=False,
         )

@@ -66,8 +66,9 @@ async def test_delete_user_api_key(db_session, log):
 async def test_unique_user_constraint(db_session, log):
     dal = Gw2KeyDal(db_session, log)
     await dal.insert_api_key(_make_key_args())
+    duplicate_user_args = _make_key_args(api_key="DIFFERENT-KEY")
     with pytest.raises(IntegrityError):
-        await dal.insert_api_key(_make_key_args(api_key="DIFFERENT-KEY"))
+        await dal.insert_api_key(duplicate_user_args)
 
 
 async def test_get_api_key_returns_empty_for_missing(db_session, log):

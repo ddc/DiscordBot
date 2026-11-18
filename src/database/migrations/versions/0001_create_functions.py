@@ -25,7 +25,7 @@ def upgrade() -> None:
         CREATE or REPLACE FUNCTION updated_at_column_func()
             RETURNS TRIGGER LANGUAGE plpgsql AS $$
             BEGIN
-                NEW.updated_at = now() at time zone 'utc';
+                NEW.updated_at = now();
                 return NEW;
             END $$;
     """)

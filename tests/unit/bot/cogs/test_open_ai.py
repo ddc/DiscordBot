@@ -2,8 +2,6 @@
 
 import discord
 import pytest
-
-# Mock problematic imports before importing the module
 import sys
 from discord.ext import commands
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -108,10 +106,9 @@ class TestOpenAi:
         with patch.object(openai_cog, "_get_openai_response", return_value="AI response here"):
             await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="What is Python?")
 
-            mock_ctx.send.assert_called_once()  # progress message was sent
+            mock_ctx.send.assert_called_once()
             mock_send_embed.assert_called_once()
 
-            # Check embed properties
             embed = mock_send_embed.call_args[0][1]
             assert embed.color == discord.Color.green()
             assert embed.description == "AI response here"
@@ -131,7 +128,7 @@ class TestOpenAi:
             await openai_cog.gptweb.callback(openai_cog, mock_ctx, msg_text="Latest news")
 
             mock_get_response.assert_awaited_once_with("Latest news", use_web=True)
-            mock_ctx.send.assert_called_once()  # progress message
+            mock_ctx.send.assert_called_once()
             mock_send_embed.assert_called_once()
             embed = mock_send_embed.call_args[0][1]
             assert embed.description == "web answer"
@@ -210,7 +207,6 @@ class TestOpenAi:
         import discord
 
         mock_get_settings.return_value = mock_bot_settings
-        # Make ctx.send return a message whose .delete() raises HTTPException.
         progress_msg = MagicMock()
         progress_msg.delete = AsyncMock(side_effect=discord.HTTPException(MagicMock(), "boom"))
         mock_ctx.send = AsyncMock(return_value=progress_msg)
@@ -218,9 +214,7 @@ class TestOpenAi:
         with patch.object(openai_cog, "_get_openai_response", return_value="hi"):
             await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="hi")
 
-        # Final answer was still sent via send_embed despite the delete failure.
         mock_send_embed.assert_called_once()
-        # And we attempted the delete.
         progress_msg.delete.assert_awaited_once()
 
     @pytest.mark.asyncio
@@ -235,7 +229,6 @@ class TestOpenAi:
             await openai_cog.claude.callback(openai_cog, mock_ctx, msg_text="hi")
 
         embed = mock_send_embed.call_args[0][1]
-        # mock_bot_settings.anthropic_model = "claude-test" (per the openai_cog fixture)
         assert "claude-test" in embed.footer.text
 
     @pytest.mark.asyncio
@@ -248,7 +241,6 @@ class TestOpenAi:
         mock_get_settings.return_value = mock_bot_settings
 
         with patch.object(openai_cog, "_get_openai_response", return_value="x"):
-            # Plain: progress text should NOT mention web search.
             await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="hi")
             plain_embed = mock_ctx.send.call_args[1]["embed"]
             assert "searching the web" not in plain_embed.description.lower()
@@ -256,12 +248,9 @@ class TestOpenAi:
             mock_ctx.send.reset_mock()
             mock_send_embed.reset_mock()
 
-            # Web: progress text SHOULD mention web search.
             await openai_cog.gptweb.callback(openai_cog, mock_ctx, msg_text="hi")
             web_embed = mock_ctx.send.call_args[1]["embed"]
             assert "searching the web" in web_embed.description.lower()
-
-    # ─────────────────────────── Retry-on-transient ───────────────────────────
 
     def test_is_transient_provider_error_status_code(self, openai_cog):
         """Detects transient HTTP errors via .status_code (Anthropic/OpenAI shape)."""
@@ -286,7 +275,6 @@ class TestOpenAi:
             e = MagicMock(spec=Exception)
             e.status_code = code
             assert openai_cog._is_transient_provider_error(e) is False
-        # Bare exception with no status attrs is not transient.
         assert openai_cog._is_transient_provider_error(Exception("plain")) is False
 
     @pytest.mark.asyncio
@@ -356,7 +344,6 @@ class TestOpenAi:
                 await openai_cog._call_provider_with_retry(factory, progress, max_attempts=2)
 
         assert factory.await_count == 2
-        # Edit fires exactly once even across multiple failed attempts.
         progress.edit.assert_awaited_once()
 
     @pytest.mark.asyncio
@@ -444,7 +431,6 @@ class TestOpenAi:
         call_args = openai_cog._gemini_client.aio.models.generate_content.call_args[1]
         assert call_args["model"] == "gemini-test"
         assert call_args["contents"] == "hi"
-        # tools is absent in plain mode
         assert "tools" not in call_args["config"].model_dump(exclude_none=True) or call_args["config"].tools is None
 
     @pytest.mark.asyncio
@@ -457,7 +443,6 @@ class TestOpenAi:
         await openai_cog._get_gemini_response("hi", use_web=True)
 
         call_args = openai_cog._gemini_client.aio.models.generate_content.call_args[1]
-        # The config carries a tool that has a non-None google_search attribute.
         assert call_args["config"].tools is not None
         assert any(getattr(t, "google_search", None) is not None for t in call_args["config"].tools)
 
@@ -471,16 +456,14 @@ class TestOpenAi:
         with patch.object(openai_cog, "_get_openai_response", side_effect=Exception("API Error")):
             await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="What is Python?")
 
-            mock_ctx.send.assert_called_once()  # progress message was sent
+            mock_ctx.send.assert_called_once()
             mock_send_embed.assert_called_once()
 
-            # Check error embed properties
             embed = mock_send_embed.call_args[0][1]
             assert embed.color == discord.Color.red()
             assert "Sorry, I encountered an error" in embed.description
             assert "API Error" in embed.description
 
-            # Verify error was logged
             openai_cog.bot.log.error.assert_called_once()
 
     @pytest.mark.asyncio
@@ -491,7 +474,6 @@ class TestOpenAi:
         """Test successful _get_openai_response method."""
         mock_get_settings.return_value = mock_bot_settings
 
-        # Mock the client instance directly
         mock_client = MagicMock()
         mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
@@ -500,13 +482,11 @@ class TestOpenAi:
 
         assert result == "This is a mock AI response from OpenAI."
 
-        # Verify OpenAI API call
         mock_client.responses.create.assert_called_once()
         call_args = mock_client.responses.create.call_args
 
         assert call_args[1]["model"] == "gpt-3.5-turbo"
         assert call_args[1]["max_output_tokens"] is None
-        # Plain (no web search) uses the plain instructions and no tools
         assert call_args[1]["instructions"] == openai_cog._instructions
         assert call_args[1]["input"] == "What is Python?"
         assert call_args[1]["reasoning"]["effort"] == "xhigh"
@@ -541,7 +521,6 @@ class TestOpenAi:
         mock_get_settings.return_value = mock_bot_settings
         mock_openai_response.output_text = "  Response with spaces  "
 
-        # Mock the client instance directly
         mock_client = MagicMock()
         mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
@@ -566,7 +545,7 @@ class TestOpenAi:
 
     def test_create_ai_embeds_long_description(self, openai_cog, mock_ctx):
         """Test _create_ai_embeds with description exceeding 1000 characters paginates."""
-        long_description = "a" * 2010  # Exceeds 1000-character page limit
+        long_description = "a" * 2010
         color = discord.Color.green()
 
         embeds = openai_cog._create_ai_embeds(mock_ctx, long_description, color)
@@ -626,17 +605,14 @@ class TestOpenAi:
     @patch("src.bot.cogs.open_ai.bot_utils.send_embed")
     async def test_ai_command_with_different_models(self, mock_send_embed, openai_cog, mock_ctx, mock_openai_response):
         """Test AI command with different OpenAI models."""
-        # Test with GPT-4 - set model directly on the cog's stored settings
         openai_cog._bot_settings.openai_model = "gpt-4"
 
-        # Mock the client instance directly
         mock_client = MagicMock()
         mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
 
         await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="Test question")
 
-        # Verify correct model was used
         call_args = mock_client.responses.create.call_args
         assert call_args[1]["model"] == "gpt-4"
 
@@ -682,7 +658,6 @@ class TestOpenAi:
         """Test that system message has correct content."""
         mock_get_settings.return_value = mock_bot_settings
 
-        # Mock the client instance directly
         mock_client = MagicMock()
         mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
@@ -701,7 +676,6 @@ class TestOpenAi:
         """Test that OpenAI API is called with correct parameters."""
         mock_get_settings.return_value = mock_bot_settings
 
-        # Mock the client instance directly
         mock_client = MagicMock()
         mock_client.responses.create = AsyncMock(return_value=mock_openai_response)
         openai_cog._openai_client = mock_client
@@ -711,7 +685,7 @@ class TestOpenAi:
         call_args = mock_client.responses.create.call_args[1]
         assert call_args["max_output_tokens"] is None
         assert call_args["reasoning"]["effort"] == "xhigh"
-        assert call_args["tools"] == []  # plain path has no tools
+        assert call_args["tools"] == []
         assert "temperature" not in call_args
         assert call_args["model"] == "gpt-3.5-turbo"
 
@@ -768,10 +742,9 @@ class TestOpenAi:
         with patch.object(openai_cog, "_get_openai_response", side_effect=test_error):
             await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="Test question")
 
-            # Verify error was logged with correct message
             openai_cog.bot.log.error.assert_called_once()
             log_call = openai_cog.bot.log.error.call_args[0][0]
-            assert "API error:" in log_call  # provider-prefixed
+            assert "API error:" in log_call
             assert "Test API Error" in log_call
 
     @pytest.mark.asyncio
@@ -786,12 +759,11 @@ class TestOpenAi:
         with patch.object(openai_cog, "_get_openai_response", return_value="Test response"):
             await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="Test question")
 
-            # Verify send_embed was called with ctx, embed, and False
             mock_send_embed.assert_called_once()
             call_args = mock_send_embed.call_args[0]
-            assert call_args[0] == mock_ctx  # ctx
-            assert isinstance(call_args[1], discord.Embed)  # embed
-            assert call_args[2] is False  # dm parameter
+            assert call_args[0] == mock_ctx
+            assert isinstance(call_args[1], discord.Embed)
+            assert call_args[2] is False
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.open_ai.get_bot_settings")
@@ -799,18 +771,16 @@ class TestOpenAi:
         """Test _get_openai_response with empty response from OpenAI."""
         mock_get_settings.return_value = mock_bot_settings
 
-        # Mock empty response (whitespace only)
         mock_response = MagicMock()
         mock_response.output_text = "   "
 
-        # Mock the client instance directly
         mock_client = MagicMock()
         mock_client.responses.create = AsyncMock(return_value=mock_response)
         openai_cog._openai_client = mock_client
 
         result = await openai_cog._get_openai_response("Test message", use_web=False)
 
-        assert result == ""  # Should strip to empty string
+        assert result == ""
 
     def test_create_ai_embeds_edge_case_997_chars(self, openai_cog, mock_ctx):
         """Test _create_ai_embeds with exactly 997 characters returns single page."""
@@ -836,7 +806,6 @@ class TestOpenAi:
 
     def test_create_ai_embeds_splits_on_newline(self, openai_cog, mock_ctx):
         """Test _create_ai_embeds splits on newline boundary when possible."""
-        # Create text with a newline near the 1000 char boundary
         first_part = "a" * 990
         second_part = "b" * 100
         description = first_part + "\n" + second_part
@@ -864,8 +833,7 @@ class TestOpenAi:
         with patch.object(openai_cog, "_get_openai_response", return_value=long_response):
             await openai_cog.gpt.callback(openai_cog, mock_ctx, msg_text="Long question")
 
-            # ctx.send called twice: progress message, then the paginated first page
             assert mock_ctx.send.call_count == 2
-            call_kwargs = mock_ctx.send.call_args[1]  # last call == paginated send
+            call_kwargs = mock_ctx.send.call_args[1]
             assert "embed" in call_kwargs
             assert "view" in call_kwargs

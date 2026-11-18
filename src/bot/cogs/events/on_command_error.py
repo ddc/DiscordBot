@@ -46,7 +46,7 @@ class ErrorMessageBuilder:
         if hasattr(error, "args") and len(error.args) > 0:
             error_msg = error.args[0]
             if "Command raised an exception" in str(error_msg):
-                return error_msg.split(f"{messages.COMMAND_RAISED_EXCEPTION}:")[1]
+                return error_msg.split(f"{messages.CommandError.RAISED_EXCEPTION}:")[1]
             return str(error_msg)
         elif hasattr(error, "original") and hasattr(error.original, "args"):
             return str(error.original.args[0])
@@ -55,21 +55,21 @@ class ErrorMessageBuilder:
     @staticmethod
     def build_command_not_found(context: ErrorContext) -> str:
         """Build message for command not found error."""
-        return f"{messages.COMMAND_NOT_FOUND}:\n`{context.command}`"
+        return f"{messages.CommandError.NOT_FOUND}:\n`{context.command}`"
 
     @staticmethod
     def build_missing_argument(context: ErrorContext) -> str:
         """Build message for missing required argument error."""
-        return f"{messages.MISSING_REQUIRED_ARGUMENT_HELP_MESSAGE}: `{context.help_command}`"
+        return f"{messages.CommandError.MISSING_REQUIRED_ARGUMENT_HELP}: `{context.help_command}`"
 
     @staticmethod
     def build_check_failure(context: ErrorContext) -> str:
         """Build message for check failure error."""
         match context.error_msg:
             case msg if "not admin" in msg:
-                return f"{messages.NOT_ADMIN_USE_COMMAND}: `{context.command}`"
+                return f"{messages.CommandError.NOT_ADMIN}: `{context.command}`"
             case msg if "not owner" in msg:
-                return f"{messages.BOT_OWNERS_ONLY_COMMAND}: `{context.command}`"
+                return f"{messages.CommandError.OWNERS_ONLY}: `{context.command}`"
             case _:
                 return context.error_msg
 
@@ -77,47 +77,47 @@ class ErrorMessageBuilder:
     def build_bad_argument(context: ErrorContext) -> str:
         """Build message for bad argument error."""
         if "bot_prefix" in context.error_msg:
-            base_msg = f"{messages.PREFIXES_CHOICE}: {' '.join(variables.ALLOWED_PREFIXES)}"
+            base_msg = f"{messages.CommandError.PREFIXES_CHOICE}: {' '.join(variables.ALLOWED_PREFIXES)}"
         elif "Gw2ConfigServer" in context.error_msg:
             base_msg = (
-                f"{gw2_messages.GW2_SERVER_NOT_FOUND}: `{context.bad_argument}`\n"
-                f"{gw2_messages.GW2_SERVER_MORE_INFO}: `{context.ctx.prefix}gw2 worlds`"
+                f"{gw2_messages.CommandError.SERVER_NOT_FOUND}: `{context.bad_argument}`\n"
+                f"{gw2_messages.CommandError.SERVER_MORE_INFO}: `{context.ctx.prefix}gw2 worlds`"
             )
         else:
-            base_msg = f"{messages.UNKNOWN_OPTION}: `{context.bad_argument}`"
+            base_msg = f"{messages.CommandError.UNKNOWN_OPTION}: `{context.bad_argument}`"
 
-        return f"{base_msg}\n{messages.HELP_COMMAND_MORE_INFO}: `{context.help_command}`"
+        return f"{base_msg}\n{messages.CommandError.HELP_MORE_INFO}: `{context.help_command}`"
 
     @staticmethod
     def build_command_invoke_error(context: ErrorContext) -> str:
         """Build message for command invoke error."""
         error_conditions = {
-            ("Cannot send messages to this user", "status code: 403"): messages.DIRECT_MESSAGES_DISABLED,
-            ("Missing Permissions",): f"{messages.NO_PERMISSION_EXECUTE_COMMAND}: `{context.command}`",
+            ("Cannot send messages to this user", "status code: 403"): messages.CommandError.DIRECT_MESSAGES_DISABLED,
+            ("Missing Permissions",): f"{messages.CommandError.NO_PERMISSION}: `{context.command}`",
             (
                 "NoOptionError",
-            ): f"{messages.NO_OPTION_FOUND}: `{context.error_msg.split()[7] if len(context.error_msg.split()) > 7 else 'unknown'}`",
+            ): f"{messages.CommandError.NO_OPTION_FOUND}: `{context.error_msg.split()[7] if len(context.error_msg.split()) > 7 else 'unknown'}`",
             ("GW2 API",): (
                 str(context.error_msg).split(",")[1].strip().split("?")[0]
                 if "," in str(context.error_msg) and len(str(context.error_msg).split(",")) > 1
                 else str(context.error_msg)
             ),
-            ("No text to send to TTS API",): messages.INVALID_MESSAGE,
+            ("No text to send to TTS API",): messages.CommandError.INVALID_MESSAGE,
         }
 
         for conditions, message in error_conditions.items():
             if any(condition in context.error_msg for condition in conditions):
                 base_msg = message
-                return f"{base_msg}\n{messages.HELP_COMMAND_MORE_INFO}: `{context.help_command}`"
+                return f"{base_msg}\n{messages.CommandError.HELP_MORE_INFO}: `{context.help_command}`"
 
-        return f"{messages.COMMAND_INTERNAL_ERROR}: `{context.command}`\n{messages.CONTACT_ADMIN}"
+        return f"{messages.CommandError.INTERNAL_ERROR}: `{context.command}`\n{messages.CommandError.CONTACT_ADMIN}"
 
     @staticmethod
     def build_forbidden_error(context: ErrorContext) -> str:
         """Build message for forbidden error."""
         if "Cannot execute action on a DM channel" in context.error_msg:
-            return messages.DM_CANNOT_EXECUTE_COMMAND
-        return messages.PRIVILEGE_LOW
+            return messages.CommandError.DM_CANNOT_EXECUTE
+        return messages.CommandError.PRIVILEGE_LOW
 
 
 class Errors(commands.Cog):
@@ -232,7 +232,7 @@ class Errors(commands.Cog):
 
     async def _handle_too_many_arguments(self, context: ErrorContext, should_log: bool) -> None:
         """Handle TooManyArguments error."""
-        error_msg = f"{messages.COMMAND_ERROR}!\n {messages.HELP_COMMAND_MORE_INFO}: `{context.help_command}`"
+        error_msg = f"{messages.CommandError.ERROR}!\n {messages.CommandError.HELP_MORE_INFO}: `{context.help_command}`"
         await self._send_error_message(context.ctx, error_msg, should_log)
 
     async def _handle_forbidden(self, context: ErrorContext, should_log: bool) -> None:

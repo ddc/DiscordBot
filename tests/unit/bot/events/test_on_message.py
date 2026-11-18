@@ -1,6 +1,5 @@
 """Comprehensive tests for the OnMessage event cog."""
 
-# Mock problematic imports before importing the module
 import discord
 import pytest
 import sys
@@ -27,7 +26,6 @@ def mock_bot():
     """Create a mock bot instance."""
     bot = AsyncMock()
     bot.log = MagicMock()
-    # Ensure log methods are not coroutines
     bot.log.error = MagicMock()
     bot.db_session = MagicMock()
     bot.user = MagicMock()
@@ -37,12 +35,9 @@ def mock_bot():
     bot.settings = {
         "bot": {"BotReactionWords": ["bad", "ugly"], "ExclusiveUsers": None, "AllowedDMCommands": ["help", "info"]}
     }
-    # Make get_command a regular method, not async
     bot.get_command = MagicMock()
     bot.process_commands = AsyncMock()
-    # Ensure add_cog doesn't return a coroutine
     bot.add_cog = AsyncMock(return_value=None)
-    # Mock the event decorator to prevent coroutine issues
     bot.event = MagicMock(side_effect=lambda func: func)
     return bot
 
@@ -81,14 +76,12 @@ def mock_ctx():
     ctx.message.channel = MagicMock()
     ctx.message.channel.typing = AsyncMock()
     ctx.message.channel.send = AsyncMock()
-    # Make sure message.author.send is also async
     ctx.message.author.send = AsyncMock()
 
     ctx.prefix = "!"
     ctx.invoked_with = "testcommand"
     ctx.send = AsyncMock()
 
-    # Setup ctx.bot with proper mock configuration for bot_utils
     ctx.bot = AsyncMock()
     ctx.bot.log = MagicMock()
     ctx.bot.log.error = MagicMock()
@@ -240,7 +233,7 @@ class TestProfanityFilter:
 
         result = await filter_obj.check_and_censor(mock_ctx)
 
-        assert result is True  # Should still return True even with error
+        assert result is True
 
 
 class TestCustomReactionHandler:
@@ -319,13 +312,13 @@ class TestCustomReactionHandler:
         """Test reaction response for 'stupid'."""
         reaction_words = ["stupid", "retard"]
         response = CustomReactionHandler._get_reaction_response("you are stupid", reaction_words)
-        assert response == messages.BOT_REACT_STUPID
+        assert response == messages.Messages.BOT_REACT_STUPID
 
     def test_get_reaction_response_retard(self):
         """Test reaction response for 'retard'."""
         reaction_words = ["stupid", "retard"]
         response = CustomReactionHandler._get_reaction_response("you are retard", reaction_words)
-        assert response == messages.BOT_REACT_RETARD
+        assert response == messages.Messages.BOT_REACT_RETARD
 
     def test_get_reaction_response_default(self):
         """Test default reaction response."""
@@ -382,7 +375,6 @@ class TestDMMessageHandler:
         handler = DMMessageHandler(mock_bot)
         handler.reaction_handler.check_and_react = AsyncMock(return_value=False)
 
-        # Create a proper mock command with help attribute
         mock_command = MagicMock()
         mock_command.help = "Owner help text"
         mock_bot.get_command.return_value = mock_command
@@ -584,8 +576,6 @@ class TestOnMessage:
 
         await handler._send_owner_help(mock_ctx)
 
-        # Since ctx.message.author and ctx.author are the same object,
-        # both calls go to the same send method, so call_count should be 2
         assert mock_ctx.message.author.send.call_count == 2
         assert mock_ctx.author.send.call_count == 2
 

@@ -16,10 +16,6 @@ from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharDeathsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
 
-# =============================================================================
-# BotConfigsDal Tests
-# =============================================================================
-
 
 class TestBotConfigsDal:
     """Test cases for BotConfigsDal."""
@@ -103,11 +99,6 @@ class TestBotConfigsDal:
         mock_dal.db_utils.fetchvalue.return_value = None
         result = await mock_dal.get_bot_prefix()
         assert result is None
-
-
-# =============================================================================
-# CustomCommandsDal Tests
-# =============================================================================
 
 
 class TestCustomCommandsDal:
@@ -219,11 +210,6 @@ class TestCustomCommandsDal:
         mock_dal.db_utils.fetchall.return_value = []
         result = await mock_dal.get_command(server_id=12345, cmd_name="nonexistent")
         assert result is None
-
-
-# =============================================================================
-# DiceRollsDal Tests
-# =============================================================================
 
 
 class TestDiceRollsDal:
@@ -385,11 +371,6 @@ class TestDiceRollsDal:
         assert results == []
 
 
-# =============================================================================
-# ProfanityFilterDal Tests
-# =============================================================================
-
-
 class TestProfanityFilterDal:
     """Test cases for ProfanityFilterDal."""
 
@@ -482,11 +463,6 @@ class TestProfanityFilterDal:
         mock_dal.db_utils.fetchall.return_value = []
         results = await mock_dal.get_profanity_filter_channel(channel_id=00000)
         assert results == []
-
-
-# =============================================================================
-# ServersDal Tests
-# =============================================================================
 
 
 class TestServersDal:
@@ -685,11 +661,6 @@ class TestServersDal:
         assert result == expected
 
 
-# =============================================================================
-# Gw2ConfigsDal Tests
-# =============================================================================
-
-
 class TestGw2ConfigsDal:
     """Test cases for Gw2ConfigsDal."""
 
@@ -765,11 +736,6 @@ class TestGw2ConfigsDal:
         mock_dal.db_utils.fetchall.return_value = []
         results = await mock_dal.get_gw2_server_configs(server_id=99999)
         assert results == []
-
-
-# =============================================================================
-# Gw2KeyDal Tests
-# =============================================================================
 
 
 class TestGw2KeyDal:
@@ -901,11 +867,6 @@ class TestGw2KeyDal:
         assert results == []
 
 
-# =============================================================================
-# Gw2SessionCharDeathsDal Tests
-# =============================================================================
-
-
 class TestGw2SessionCharDeathsDal:
     """Test cases for Gw2SessionCharDeathsDal."""
 
@@ -995,11 +956,6 @@ class TestGw2SessionCharDeathsDal:
         assert results == []
 
 
-# =============================================================================
-# Gw2SessionsDal Tests
-# =============================================================================
-
-
 class TestGw2SessionsDal:
     """Test cases for Gw2SessionsDal."""
 
@@ -1035,7 +991,6 @@ class TestGw2SessionsDal:
             "gold": 100,
         }
         await mock_dal.insert_start_session(session)
-        # Should call execute twice (delete sessions, delete chars) then insert once
         assert mock_dal.db_utils.execute.call_count == 2
         mock_dal.db_utils.insert.assert_called_once()
 
@@ -1048,9 +1003,6 @@ class TestGw2SessionsDal:
             "gold": 200,
         }
         result = await mock_dal.insert_start_session(session)
-        # The method creates a Gw2Sessions instance and returns stmt.id.
-        # Since Gw2Sessions is a real SQLAlchemy model, the id will be None
-        # until flushed/committed by the database. The method still returns it.
         assert mock_dal.db_utils.insert.call_count == 1
         assert mock_dal.db_utils.execute.call_count == 2
 

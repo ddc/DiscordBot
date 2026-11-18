@@ -56,7 +56,6 @@ class TestCheckIsAdmin:
         """Test that check_is_admin returns a decorator function."""
         result = Checks.check_is_admin()
 
-        # Should be a callable (decorator)
         assert callable(result)
 
     def test_check_is_admin_predicate_success(self):
@@ -64,12 +63,10 @@ class TestCheckIsAdmin:
         decorator = Checks.check_is_admin()
         assert callable(decorator)
 
-        # Test that the decorator can be applied
         @decorator
         def dummy_command(ctx):
             return "success"
 
-        # Verify the decorator added command checks
         assert hasattr(dummy_command, "__commands_checks__")
         assert len(dummy_command.__commands_checks__) > 0
 
@@ -80,40 +77,33 @@ class TestCheckIsAdmin:
 
         decorator = Checks.check_is_admin()
 
-        # Extract the predicate function from the decorator
-        # commands.check stores the predicate in the decorator's first argument
         if hasattr(decorator, "__wrapped__"):
             predicate = decorator.__wrapped__
         else:
-            # Get the predicate from the closure
             predicate = decorator.__closure__[0].cell_contents if decorator.__closure__ else None
 
         if predicate and callable(predicate):
             ctx = MagicMock()
             ctx.message.author = MagicMock()
 
-            # Should raise CheckFailure
             with pytest.raises(commands.CheckFailure) as exc_info:
                 predicate(ctx)
 
             assert "User is not an administrator" in str(exc_info.value)
             mock_is_admin.assert_called_once_with(ctx.message.author)
         else:
-            # If we can't access the predicate, just verify the decorator exists
             assert callable(decorator)
 
     @patch("src.bot.tools.checks.commands.check")
     @patch("src.bot.tools.checks.bot_utils.is_member_admin")
     def test_check_is_admin_uses_commands_check(self, mock_is_admin, mock_commands_check):
         """Test that check_is_admin uses commands.check."""
-        mock_commands_check.return_value = lambda f: f  # Return identity function
+        mock_commands_check.return_value = lambda f: f
 
         Checks.check_is_admin()
 
-        # Verify commands.check was called
         mock_commands_check.assert_called_once()
 
-        # Verify the predicate function was passed to commands.check
         predicate_func = mock_commands_check.call_args[0][0]
         assert callable(predicate_func)
 
@@ -124,11 +114,9 @@ class TestCheckIsAdmin:
         def test_command(ctx):
             return "command executed"
 
-        # Verify the decorator was applied
         assert hasattr(test_command, "__commands_checks__")
         assert len(test_command.__commands_checks__) > 0
 
-        # The check should be a function
         check_func = test_command.__commands_checks__[0]
         assert callable(check_func)
 
@@ -140,7 +128,6 @@ class TestCheckIsBotOwner:
         """Test that check_is_bot_owner returns a decorator function."""
         decorator = Checks.check_is_bot_owner()
 
-        # Should be a callable (decorator)
         assert callable(decorator)
 
     def test_check_is_bot_owner_predicate_success(self):
@@ -148,12 +135,10 @@ class TestCheckIsBotOwner:
         decorator = Checks.check_is_bot_owner()
         assert callable(decorator)
 
-        # Test that the decorator can be applied
         @decorator
         def dummy_command(ctx):
             return "success"
 
-        # Verify the decorator added command checks
         assert hasattr(dummy_command, "__commands_checks__")
         assert len(dummy_command.__commands_checks__) > 0
 
@@ -164,39 +149,33 @@ class TestCheckIsBotOwner:
 
         decorator = Checks.check_is_bot_owner()
 
-        # Extract the predicate function from the decorator
         if hasattr(decorator, "__wrapped__"):
             predicate = decorator.__wrapped__
         else:
-            # Get the predicate from the closure
             predicate = decorator.__closure__[0].cell_contents if decorator.__closure__ else None
 
         if predicate and callable(predicate):
             ctx = MagicMock()
             ctx.message.author = MagicMock()
 
-            # Should raise CheckFailure
             with pytest.raises(commands.CheckFailure) as exc_info:
                 predicate(ctx)
 
             assert "User is not the bot owner" in str(exc_info.value)
             mock_is_owner.assert_called_once_with(ctx, ctx.message.author)
         else:
-            # If we can't access the predicate, just verify the decorator exists
             assert callable(decorator)
 
     @patch("src.bot.tools.checks.commands.check")
     @patch("src.bot.tools.checks.bot_utils.is_bot_owner")
     def test_check_is_bot_owner_uses_commands_check(self, mock_is_owner, mock_commands_check):
         """Test that check_is_bot_owner uses commands.check."""
-        mock_commands_check.return_value = lambda f: f  # Return identity function
+        mock_commands_check.return_value = lambda f: f
 
         Checks.check_is_bot_owner()
 
-        # Verify commands.check was called
         mock_commands_check.assert_called_once()
 
-        # Verify the predicate function was passed to commands.check
         predicate_func = mock_commands_check.call_args[0][0]
         assert callable(predicate_func)
 
@@ -207,11 +186,9 @@ class TestCheckIsBotOwner:
         def test_command(ctx):
             return "command executed"
 
-        # Verify the decorator was applied
         assert hasattr(test_command, "__commands_checks__")
         assert len(test_command.__commands_checks__) > 0
 
-        # The check should be a function
         check_func = test_command.__commands_checks__[0]
         assert callable(check_func)
 
@@ -221,7 +198,6 @@ class TestChecksIntegration:
 
     def test_checks_is_static_class(self):
         """Test that Checks methods are static."""
-        # Should be able to call without instantiation
         admin_decorator = Checks.check_is_admin()
         owner_decorator = Checks.check_is_bot_owner()
 
@@ -236,7 +212,6 @@ class TestChecksIntegration:
         def test_command(ctx):
             return "command executed"
 
-        # Should have both checks
         assert hasattr(test_command, "__commands_checks__")
         assert len(test_command.__commands_checks__) == 2
 
@@ -248,7 +223,6 @@ class TestChecksIntegration:
         def test_command(ctx):
             return "success"
 
-        # Should have both checks
         assert hasattr(test_command, "__commands_checks__")
         assert len(test_command.__commands_checks__) == 2
 
@@ -260,7 +234,6 @@ class TestChecksIntegration:
         def test_command(ctx):
             return "command"
 
-        # Should have both checks
         assert hasattr(test_command, "__commands_checks__")
         assert len(test_command.__commands_checks__) == 2
 
@@ -272,7 +245,6 @@ class TestChecksIntegration:
         def test_command(ctx):
             return "command"
 
-        # Should have both checks
         assert hasattr(test_command, "__commands_checks__")
         assert len(test_command.__commands_checks__) == 2
 
@@ -282,18 +254,14 @@ class TestChecksErrorMessages:
 
     def test_admin_check_error_message_content(self):
         """Test the error message creation logic."""
-        # Test the error message by importing the predicate directly
         from src.bot.tools.checks import Checks
 
-        # Since we can't easily test the predicate, just verify the decorator works
         assert callable(Checks.check_is_admin())
 
     def test_owner_check_error_message_content(self):
         """Test the error message creation logic."""
-        # Test the error message by importing the predicate directly
         from src.bot.tools.checks import Checks
 
-        # Since we can't easily test the predicate, just verify the decorator works
         assert callable(Checks.check_is_bot_owner())
 
     def test_error_messages_are_different(self):
@@ -301,7 +269,6 @@ class TestChecksErrorMessages:
         admin_decorator = Checks.check_is_admin()
         owner_decorator = Checks.check_is_bot_owner()
 
-        # Verify they are different functions
         assert admin_decorator != owner_decorator
         assert callable(admin_decorator)
         assert callable(owner_decorator)
@@ -319,7 +286,6 @@ class TestChecksEdgeCases:
         def test_command(ctx):
             return "success"
 
-        # Verify decorator was applied
         assert hasattr(test_command, "__commands_checks__")
 
     def test_owner_check_with_none_context(self):
@@ -331,7 +297,6 @@ class TestChecksEdgeCases:
         def test_command(ctx):
             return "success"
 
-        # Verify decorator was applied
         assert hasattr(test_command, "__commands_checks__")
 
     def test_decorator_preserves_function_metadata(self):
@@ -342,10 +307,8 @@ class TestChecksEdgeCases:
             """Test command docstring."""
             return "success"
 
-        # Function name should be preserved (though it might be wrapped)
         assert "test_command" in test_command.__name__ or "wrapper" in test_command.__name__
 
-        # Should have check attributes
         assert hasattr(test_command, "__commands_checks__")
 
     def test_multiple_applications_of_same_decorator(self):
@@ -357,7 +320,6 @@ class TestChecksEdgeCases:
         def test_command(ctx):
             return "success"
 
-        # Should have multiple identical checks
         assert hasattr(test_command, "__commands_checks__")
         assert len(test_command.__commands_checks__) == 2
 
@@ -369,10 +331,8 @@ class TestChecksTyping:
         """Test that check_is_admin returns the correct type."""
         decorator = Checks.check_is_admin()
 
-        # Should be a callable that can decorate functions
         assert callable(decorator)
 
-        # Should be able to decorate a function
         @decorator
         def test_func():
             pass
@@ -383,10 +343,8 @@ class TestChecksTyping:
         """Test that check_is_bot_owner returns the correct type."""
         decorator = Checks.check_is_bot_owner()
 
-        # Should be a callable that can decorate functions
         assert callable(decorator)
 
-        # Should be able to decorate a function
         @decorator
         def test_func():
             pass
@@ -395,11 +353,9 @@ class TestChecksTyping:
 
     def test_static_method_accessibility(self):
         """Test that static methods can be accessed without instantiation."""
-        # Should be able to access methods without creating instance
         assert callable(Checks.check_is_admin)
         assert callable(Checks.check_is_bot_owner)
 
-        # Should be able to call them
         admin_decorator = Checks.check_is_admin()
         owner_decorator = Checks.check_is_bot_owner()
 
@@ -414,7 +370,6 @@ class TestCheckPredicateRaisesCheckFailure:
     def test_admin_predicate_raises_check_failure(self, mock_is_admin):
         """Test that admin predicate raises CheckFailure when user is not admin (line 23)."""
 
-        # Apply the decorator to extract the predicate via __commands_checks__
         @Checks.check_is_admin()
         async def dummy(ctx):
             pass

@@ -20,6 +20,7 @@ class GuildWars2(commands.Cog):
             gw2 key remove - Remove your API key
             gw2 account - Show account information
             gw2 characters - Show character information
+            gw2 daily [daily | weekly | special] - Wizard's Vault objectives
             gw2 session - Show last game session
             gw2 worlds [na | eu] - List all worlds
             gw2 wiki <search> - Search the GW2 wiki

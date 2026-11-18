@@ -5,6 +5,7 @@ from discord.ext import commands
 from gtts import gTTS
 from io import BytesIO
 from src.bot.constants import messages, variables
+from src.bot.constants.settings import get_bot_settings
 from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils, chat_formatting
 from src.bot.tools.cooldowns import CoolDowns
@@ -50,7 +51,7 @@ class Misc(commands.Cog):
         processed_text = self._process_tts_text(ctx, tts_text)
 
         if not processed_text:
-            return await bot_utils.send_error_msg(ctx, messages.INVALID_MESSAGE)
+            return await bot_utils.send_error_msg(ctx, messages.CommandError.INVALID_MESSAGE)
 
         mp3_buffer = BytesIO()
         try:
@@ -60,7 +61,7 @@ class Misc(commands.Cog):
 
             await ctx.send(file=discord.File(mp3_buffer, display_filename))
         except AssertionError:
-            await bot_utils.send_error_msg(ctx, messages.INVALID_MESSAGE)
+            await bot_utils.send_error_msg(ctx, messages.CommandError.INVALID_MESSAGE)
         finally:
             mp3_buffer.close()
 
@@ -124,9 +125,9 @@ class Misc(commands.Cog):
         invite_categories = self._categorize_invites(active_invites)
 
         if not any(invite_categories.values()):
-            return await bot_utils.send_msg(ctx, chat_formatting.inline(messages.NO_INVITES))
+            return await bot_utils.send_msg(ctx, chat_formatting.inline(messages.Misc.NO_INVITES))
 
-        embed = discord.Embed(title=messages.INVITE_TITLE)
+        embed = discord.Embed(title=messages.Misc.INVITE_TITLE)
         embed.set_thumbnail(url=server.icon.url)
 
         self._add_invite_fields(embed, invite_categories)
@@ -220,7 +221,7 @@ class Misc(commands.Cog):
         author = self.bot.get_user(self.bot.owner_id)
         python_version = f"Python {'.'.join(map(str, sys.version_info[:3]))}"
         games_included = self._get_games_included(variables.GAMES_INCLUDED)
-        dev_info_msg = messages.dev_info_msg(variables.BOT_WEBPAGE_URL, variables.DISCORDPY_URL)
+        dev_info_msg = messages.Misc.dev_info(variables.BOT_WEBPAGE_URL, variables.DISCORDPY_URL)
 
         bot_stats = bot_utils.get_bot_stats(self.bot)
 
@@ -287,13 +288,10 @@ class Misc(commands.Cog):
     @staticmethod
     def _process_custom_emoji(word: str) -> str:
         """Process custom emoji to readable format."""
-        try:
-            emoji_parts = word.split(":")
-            if len(emoji_parts) >= 3 and len(emoji_parts[2].rstrip(">")) >= 18:
-                return emoji_parts[1]
-            return word
-        except IndexError, ValueError:
-            return word
+        emoji_parts = word.split(":")
+        if len(emoji_parts) >= 3 and len(emoji_parts[2].rstrip(">")) >= 18:
+            return emoji_parts[1]
+        return word
 
     @staticmethod
     def _categorize_invites(invites: list) -> dict[str, list[str]]:
@@ -319,17 +317,17 @@ class Misc(commands.Cog):
         """Add invite category fields to embed."""
         if categories["unlimited"]:
             embed.add_field(
-                name=f"{messages.UNLIMITED_INVITES} ({len(categories['unlimited'])})",
+                name=f"{messages.Misc.UNLIMITED_INVITES} ({len(categories['unlimited'])})",
                 value="\n".join(categories["unlimited"][:5]),
             )
         if categories["limited"]:
             embed.add_field(
-                name=f"{messages.TEMPORARY_INVITES} ({len(categories['limited'])})",
+                name=f"{messages.Misc.TEMPORARY_INVITES} ({len(categories['limited'])})",
                 value="\n".join(categories["limited"]),
             )
         if categories["revoked"]:
             embed.add_field(
-                name=f"{messages.REVOKED_INVITES} ({len(categories['revoked'])})",
+                name=f"{messages.Misc.REVOKED_INVITES} ({len(categories['revoked'])})",
                 value="\n".join(categories["revoked"]),
             )
 
@@ -397,15 +395,15 @@ class Misc(commands.Cog):
                 case _:
                     return str(user.status)
         elif user.status == discord.Status.dnd:
-            return messages.DO_NOT_DISTURB
+            return messages.Misc.DO_NOT_DISTURB
         else:
             return str(user.status)
 
     @staticmethod
     def _add_user_info_fields(embed: discord.Embed, user_info: dict) -> None:
         """Add user information fields to embed."""
-        embed.add_field(name=messages.JOINED_DISCORD_ON, value=user_info["created_on"])
-        embed.add_field(name=messages.JOINED_THIS_SERVER_ON, value=user_info["joined_on"])
+        embed.add_field(name=messages.Misc.JOINED_DISCORD_ON, value=user_info["created_on"])
+        embed.add_field(name=messages.Misc.JOINED_THIS_SERVER_ON, value=user_info["joined_on"])
         embed.add_field(name="Roles", value=user_info["roles"], inline=False)
         embed.set_footer(
             text=f"Member #{user_info['member_number']} | "
@@ -427,12 +425,17 @@ class Misc(commands.Cog):
         embed.add_field(name="Users", value=stats["users"])
         embed.add_field(name="Channels", value=stats["channels"])
 
+        bot_settings = get_bot_settings()
+        embed.add_field(name="Anthropic", value=bot_settings.anthropic_model)
+        embed.add_field(name="OpenAI", value=bot_settings.openai_model)
+        embed.add_field(name="Google", value=bot_settings.gemini_model)
+
         if games:
             embed.add_field(name="Games Included", value=games, inline=False)
 
         embed.add_field(name="Download", value=f"[Version {variables.VERSION}]({variables.BOT_WEBPAGE_URL})")
         embed.add_field(name="Donations", value=f"[Paypal]({variables.PAYPAL_URL})")
-        embed.add_field(name="Help", value=f"{messages.LIST_COMMAND_CATEGORIES}: `{prefix}help`", inline=False)
+        embed.add_field(name="Help", value=f"{messages.Misc.LIST_COMMAND_CATEGORIES}: `{prefix}help`", inline=False)
 
     @staticmethod
     def _get_games_included(games_tuple: tuple[str, ...]) -> str | None:
@@ -444,17 +447,6 @@ class Misc(commands.Cog):
             return games_tuple[0]
         else:
             return " ".join(f"({game})" for game in games_tuple)
-
-    # @commands.command()
-    # async def test(self, ctx):
-    #     """(test)"""
-    #
-    #     msg = "test"
-    #     color = discord.Color.red()
-    #     embed = discord.Embed(color=color, description=msg)
-    #     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.avatar.url)
-    #     embed.set_footer(icon_url=ctx.bot.user.avatar.url, text=f"{bot_utils.get_current_date_time_str_long()} UTC")
-    #     await bot_utils.send_embed(ctx, embed, True)
 
 
 async def setup(bot: Bot) -> None:

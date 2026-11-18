@@ -112,15 +112,12 @@ class TestProfanityFilterHTTPException:
         mock_bot.profanity.censor.return_value = "#### world"
         filter_obj = ProfanityFilter(mock_bot)
 
-        # First call succeeds (sends censored text), second call raises HTTPException (embed),
-        # third call is the fallback text mention
         call_count = [0]
         original_side_effect = None
 
         async def send_side_effect(*args, **kwargs):
             call_count[0] += 1
             if call_count[0] == 2:
-                # The embed send raises HTTPException
                 raise discord.HTTPException(MagicMock(), "Embed failed")
             return MagicMock()
 
@@ -130,11 +127,10 @@ class TestProfanityFilterHTTPException:
 
         assert result is True
         mock_delete.assert_called_once_with(mock_ctx)
-        # Should have 3 calls: censored text, failed embed, fallback mention
         assert mock_ctx.message.channel.send.call_count == 3
         fallback_call = mock_ctx.message.channel.send.call_args_list[2]
         assert mock_ctx.message.author.mention in fallback_call[0][0]
-        assert messages.MESSAGE_CENSURED in fallback_call[0][0]
+        assert messages.Messages.MESSAGE_CENSURED in fallback_call[0][0]
 
 
 class TestDMMessageHandlerProcess:
@@ -150,7 +146,6 @@ class TestDMMessageHandlerProcess:
 
         await handler.process(mock_dm_ctx, is_command=False)
 
-        # Should send dm_not_allowed embed since not owner
         mock_dm_ctx.message.author.send.assert_called_once()
 
     @pytest.mark.asyncio
@@ -177,7 +172,6 @@ class TestDMMessageHandlerNonCommand:
         await handler._handle_dm_non_command(mock_dm_ctx)
 
         handler.reaction_handler.check_and_react.assert_called_once_with(mock_dm_ctx.message)
-        # Should NOT send any DM messages since we returned early
         mock_dm_ctx.message.author.send.assert_not_called()
 
     @pytest.mark.asyncio
@@ -195,7 +189,6 @@ class TestDMMessageHandlerNonCommand:
         await handler._handle_dm_non_command(mock_dm_ctx)
 
         mock_is_owner.assert_called_once_with(mock_dm_ctx, mock_dm_ctx.message.author)
-        # Should send embed and then owner command help
         assert mock_dm_ctx.message.author.send.call_count >= 1
 
     @pytest.mark.asyncio
@@ -214,7 +207,6 @@ class TestDMMessageHandlerNonCommand:
             if mock_dm_ctx.message.author.send.call_args[0]
             else None
         )
-        # Verify it was called (the embed contains NO_DM_MESSAGES)
 
 
 class TestDMMessageHandlerCommand:
@@ -286,7 +278,7 @@ class TestDMMessageHandlerSendMethods:
         mock_dm_ctx.message.author.send.assert_called_once()
         embed_sent = mock_dm_ctx.message.author.send.call_args[1]["embed"]
         assert embed_sent.color == discord.Color.red()
-        assert messages.DM_COMMAND_NOT_ALLOWED in embed_sent.description
+        assert messages.Messages.DM_COMMAND_NOT_ALLOWED in embed_sent.description
 
     @pytest.mark.asyncio
     async def test_send_command_not_allowed(self, mock_bot, mock_dm_ctx):
@@ -299,9 +291,9 @@ class TestDMMessageHandlerSendMethods:
         mock_dm_ctx.message.author.send.assert_called_once()
         embed_sent = mock_dm_ctx.message.author.send.call_args[1]["embed"]
         assert embed_sent.color == discord.Color.red()
-        assert messages.DM_COMMAND_NOT_ALLOWED in embed_sent.description
+        assert messages.Messages.DM_COMMAND_NOT_ALLOWED in embed_sent.description
         assert len(embed_sent.fields) == 1
-        assert messages.DM_COMMANDS_ALLOW_LIST in embed_sent.fields[0].name
+        assert messages.Messages.DM_COMMANDS_ALLOW_LIST in embed_sent.fields[0].name
 
     @pytest.mark.asyncio
     async def test_send_dm_not_allowed(self, mock_bot, mock_dm_ctx):
@@ -313,7 +305,7 @@ class TestDMMessageHandlerSendMethods:
         mock_dm_ctx.message.author.send.assert_called_once()
         embed_sent = mock_dm_ctx.message.author.send.call_args[1]["embed"]
         assert embed_sent.color == discord.Color.red()
-        assert messages.NO_DM_MESSAGES in embed_sent.description
+        assert messages.Messages.NO_DM_MESSAGES in embed_sent.description
 
     @pytest.mark.asyncio
     async def test_send_owner_help(self, mock_bot, mock_dm_ctx):
@@ -323,21 +315,14 @@ class TestDMMessageHandlerSendMethods:
         mock_owner_cmd.help = "Owner command detailed help"
         mock_bot.get_command.return_value = mock_owner_cmd
 
-        # Use separate mocks for message.author.send and ctx.author.send
-        # In the actual code: ctx.message.author.send(embed=embed) then ctx.author.send(box(help))
-        # Since mock_dm_ctx.message.author and mock_dm_ctx.author are the same mock,
-        # we verify all calls on the same send method
         await handler._send_owner_help(mock_dm_ctx)
 
         mock_bot.get_command.assert_called_once_with("owner")
-        # Both calls go to the same mock since ctx.message.author == ctx.author in DM
-        # First call: embed with OWNER_DM_BOT_MESSAGE
-        # Second call: box(owner_command.help)
         assert mock_dm_ctx.message.author.send.call_count == 2
         first_call = mock_dm_ctx.message.author.send.call_args_list[0]
         embed_sent = first_call[1]["embed"]
         assert embed_sent.color == discord.Color.green()
-        assert messages.OWNER_DM_BOT_MESSAGE in embed_sent.description
+        assert messages.Messages.OWNER_DM_BOT_MESSAGE in embed_sent.description
         second_call = mock_dm_ctx.message.author.send.call_args_list[1]
         assert "Owner command detailed help" in second_call[0][0]
 
@@ -356,7 +341,7 @@ class TestServerMessageHandlerProcess:
         handler = ServerMessageHandler(mock_bot)
         await handler.process(mock_ctx, is_command=False)
 
-        mock_bot.log.warning.assert_called_once_with(messages.GET_CONFIGS_ERROR)
+        mock_bot.log.warning.assert_called_once_with(messages.CustomCommand.GET_CONFIGS_ERROR)
         mock_bot.process_commands.assert_not_called()
 
     @pytest.mark.asyncio
@@ -370,7 +355,7 @@ class TestServerMessageHandlerProcess:
         handler = ServerMessageHandler(mock_bot)
         await handler.process(mock_ctx, is_command=True)
 
-        mock_bot.log.warning.assert_called_once_with(messages.GET_CONFIGS_ERROR)
+        mock_bot.log.warning.assert_called_once_with(messages.CustomCommand.GET_CONFIGS_ERROR)
         mock_bot.process_commands.assert_called_once_with(mock_ctx.message)
 
     @pytest.mark.asyncio
@@ -388,7 +373,6 @@ class TestServerMessageHandlerProcess:
 
         await handler.process(mock_ctx, is_command=False)
 
-        # No profanity check or reactions since both are off
         mock_bot.process_commands.assert_not_called()
 
     @pytest.mark.asyncio
@@ -442,7 +426,6 @@ class TestServerMessageHandlerInvisibleMember:
 
         mock_delete.assert_called_once_with(mock_ctx)
         mock_ctx.message.author.send.assert_called_once()
-        # Falls back to ctx.send with embed
         mock_ctx.send.assert_called_once()
         embed_sent = mock_ctx.send.call_args[1]["embed"]
         assert embed_sent.color == discord.Color.red()
@@ -467,7 +450,6 @@ class TestServerMessageHandlerInvisibleMember:
         await handler._handle_invisible_member(mock_ctx)
 
         mock_delete.assert_called_once_with(mock_ctx)
-        # Should try DM first, then channel embed (fails), then mention text
         assert mock_ctx.send.call_count == 2
         fallback_call = mock_ctx.send.call_args_list[1]
         assert mock_ctx.message.author.mention in fallback_call[0][0]
@@ -486,8 +468,6 @@ class TestServerMessageHandlerNonCommand:
         await handler._handle_server_non_command(mock_ctx, configs)
 
         handler.profanity_filter.check_and_censor.assert_called_once_with(mock_ctx)
-        # Reaction handler should NOT be called since profanity was censored
-        # (confirmed by absence of check_and_react call)
 
     @pytest.mark.asyncio
     async def test_profanity_filter_off_bot_reactions_active(self, mock_bot, mock_ctx):
@@ -629,7 +609,6 @@ class TestOnMessageCogEvent:
         """When message has no content, returns early (lines 377-378)."""
         cog = OnMessage(mock_bot)
 
-        # Get the registered on_message function
         on_message_func = mock_bot.event.call_args[0][0]
 
         message = MagicMock()
@@ -672,11 +651,10 @@ class TestOnMessageCogEvent:
         mock_ctx = MagicMock()
         mock_ctx.author = MagicMock()
         mock_ctx.author.bot = False
-        mock_ctx.prefix = None  # Not a command
+        mock_ctx.prefix = None
         mock_ctx.channel = dm_channel
         mock_bot.get_context = AsyncMock(return_value=mock_ctx)
 
-        # Mock the dm_handler
         cog.dm_handler.process = AsyncMock()
 
         await on_message_func(message)
@@ -696,11 +674,10 @@ class TestOnMessageCogEvent:
         mock_ctx = MagicMock()
         mock_ctx.author = MagicMock()
         mock_ctx.author.bot = False
-        mock_ctx.prefix = "!"  # Is a command
+        mock_ctx.prefix = "!"
         mock_ctx.channel = server_channel
         mock_bot.get_context = AsyncMock(return_value=mock_ctx)
 
-        # Mock the server_handler
         cog.server_handler.process = AsyncMock()
 
         await on_message_func(message)
@@ -720,7 +697,7 @@ class TestOnMessageCogEvent:
         mock_ctx = MagicMock()
         mock_ctx.author = MagicMock()
         mock_ctx.author.bot = False
-        mock_ctx.prefix = "!"  # Is a command
+        mock_ctx.prefix = "!"
         mock_ctx.channel = dm_channel
         mock_bot.get_context = AsyncMock(return_value=mock_ctx)
 
@@ -752,7 +729,6 @@ class TestServerMessageHandlerBlockInvisible:
         await handler.process(mock_ctx, is_command=True)
 
         mock_delete.assert_called_once_with(mock_ctx)
-        # Should not process commands when invisible is blocked
         mock_bot.process_commands.assert_not_called()
 
     @pytest.mark.asyncio
@@ -777,7 +753,6 @@ class TestServerMessageHandlerBlockInvisible:
         handler = ServerMessageHandler(mock_bot)
         await handler.process(mock_ctx, is_command=True)
 
-        # Should process commands since member is online
         mock_bot.process_commands.assert_called_once_with(mock_ctx.message)
 
 
@@ -795,7 +770,7 @@ class TestExclusiveUsersCheckerExtra:
     @pytest.mark.asyncio
     async def test_exclusive_users_single_id_match(self, mock_bot, mock_ctx):
         """When ExclusiveUsers is a single int matching user, returns True."""
-        mock_bot.settings["bot"]["ExclusiveUsers"] = 67890  # matches mock_ctx.message.author.id
+        mock_bot.settings["bot"]["ExclusiveUsers"] = 67890
 
         result = await ExclusiveUsersChecker.check_exclusive_users(mock_bot, mock_ctx)
         assert result is True

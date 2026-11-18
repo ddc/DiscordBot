@@ -1,6 +1,5 @@
 """Comprehensive tests for member join, member remove, and user update event cogs."""
 
-# Mock problematic imports before importing the module
 import discord
 import pytest
 import sys
@@ -56,11 +55,6 @@ def mock_member():
     return member
 
 
-# ============================================================
-# Tests for on_member_join.py - WelcomeMessageBuilder
-# ============================================================
-
-
 class TestWelcomeMessageBuilder:
     """Test cases for WelcomeMessageBuilder class."""
 
@@ -81,7 +75,7 @@ class TestWelcomeMessageBuilder:
         assert result.color == discord.Color.green()
         assert result.description == str(mock_member)
         assert result.thumbnail.url == mock_member.avatar.url
-        assert result.author.name == messages.JOINED_THE_SERVER
+        assert result.author.name == messages.MemberJoin.JOINED_THE_SERVER
         assert result.footer.text == "2023-06-15 10:30:00 UTC"
         assert result.footer.icon_url == mock_bot.user.avatar.url
 
@@ -97,7 +91,6 @@ class TestWelcomeMessageBuilder:
         assert isinstance(result, discord.Embed)
         assert result.color == discord.Color.green()
         assert result.description == str(mock_member)
-        # Thumbnail should not be set when avatar is None
         assert result.thumbnail.url is None
 
     @patch("src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long")
@@ -108,7 +101,6 @@ class TestWelcomeMessageBuilder:
 
         result = builder.create_join_embed(mock_member)
 
-        # Should return fallback embed
         assert isinstance(result, discord.Embed)
         assert result.color == discord.Color.green()
         assert "joined the server!" in result.description
@@ -122,7 +114,7 @@ class TestWelcomeMessageBuilder:
 
         result = builder.create_join_message(mock_member)
 
-        expected = f"TestUser {messages.JOINED_THE_SERVER}\n2023-06-15 10:30:00"
+        expected = f"TestUser {messages.MemberJoin.JOINED_THE_SERVER}\n2023-06-15 10:30:00"
         assert result == expected
 
     @patch("src.bot.cogs.events.on_member_join.bot_utils.get_current_date_time_str_long")
@@ -135,11 +127,6 @@ class TestWelcomeMessageBuilder:
 
         assert result == "TestUser joined the server!"
         mock_bot.log.error.assert_called_once()
-
-
-# ============================================================
-# Tests for on_member_join.py - MemberJoinHandler
-# ============================================================
 
 
 class TestMemberJoinHandler:
@@ -178,7 +165,6 @@ class TestMemberJoinHandler:
         await handler.process_member_join(mock_member)
 
         mock_dal.get_server.assert_called_once_with(mock_member.guild.id)
-        # Should not log info about sending welcome message
         mock_bot.log.info.assert_not_called()
 
     @pytest.mark.asyncio
@@ -250,11 +236,6 @@ class TestMemberJoinHandler:
         assert "Failed to send welcome message" in mock_bot.log.error.call_args[0][0]
 
 
-# ============================================================
-# Tests for on_member_join.py - OnMemberJoin
-# ============================================================
-
-
 class TestOnMemberJoin:
     """Test cases for OnMemberJoin cog."""
 
@@ -277,11 +258,6 @@ class TestOnMemberJoin:
         assert added_cog.bot == mock_bot
 
 
-# ============================================================
-# Tests for on_member_remove.py - FarewellMessageBuilder
-# ============================================================
-
-
 class TestFarewellMessageBuilder:
     """Test cases for FarewellMessageBuilder class."""
 
@@ -302,7 +278,7 @@ class TestFarewellMessageBuilder:
         assert result.color == discord.Color.red()
         assert result.description == str(mock_member)
         assert result.thumbnail.url == mock_member.avatar.url
-        assert result.author.name == messages.LEFT_THE_SERVER
+        assert result.author.name == messages.MemberRemove.LEFT_THE_SERVER
         assert result.footer.text == "2023-06-15 10:30:00 UTC"
         assert result.footer.icon_url == mock_bot.user.avatar.url
 
@@ -318,7 +294,6 @@ class TestFarewellMessageBuilder:
         assert isinstance(result, discord.Embed)
         assert result.color == discord.Color.red()
         assert result.description == str(mock_member)
-        # Thumbnail should not be set when avatar is None
         assert result.thumbnail.url is None
 
     @patch("src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long")
@@ -329,7 +304,6 @@ class TestFarewellMessageBuilder:
 
         result = builder.create_leave_embed(mock_member)
 
-        # Should return fallback embed
         assert isinstance(result, discord.Embed)
         assert result.color == discord.Color.red()
         assert "left the server!" in result.description
@@ -343,7 +317,7 @@ class TestFarewellMessageBuilder:
 
         result = builder.create_leave_message(mock_member)
 
-        expected = f"TestUser {messages.LEFT_THE_SERVER}\n2023-06-15 10:30:00"
+        expected = f"TestUser {messages.MemberRemove.LEFT_THE_SERVER}\n2023-06-15 10:30:00"
         assert result == expected
 
     @patch("src.bot.cogs.events.on_member_remove.bot_utils.get_current_date_time_str_long")
@@ -356,11 +330,6 @@ class TestFarewellMessageBuilder:
 
         assert result == "TestUser left the server!"
         mock_bot.log.error.assert_called_once()
-
-
-# ============================================================
-# Tests for on_member_remove.py - MemberLeaveHandler
-# ============================================================
 
 
 class TestMemberLeaveHandler:
@@ -376,12 +345,11 @@ class TestMemberLeaveHandler:
     @patch("src.bot.cogs.events.on_member_remove.ServersDal")
     async def test_process_member_leave_bot_is_member(self, mock_dal_class, mock_bot, mock_member):
         """Test process_member_leave when the bot itself is the member leaving."""
-        mock_member.id = mock_bot.user.id  # Same ID as bot
+        mock_member.id = mock_bot.user.id
 
         handler = MemberLeaveHandler(mock_bot)
         await handler.process_member_leave(mock_member)
 
-        # Should return early, not call ServersDal
         mock_dal_class.assert_not_called()
 
     @pytest.mark.asyncio
@@ -411,7 +379,6 @@ class TestMemberLeaveHandler:
         await handler.process_member_leave(mock_member)
 
         mock_dal.get_server.assert_called_once_with(mock_member.guild.id)
-        # Should not log info about sending farewell message
         mock_bot.log.info.assert_not_called()
 
     @pytest.mark.asyncio
@@ -483,11 +450,6 @@ class TestMemberLeaveHandler:
         assert "Failed to send farewell message" in mock_bot.log.error.call_args[0][0]
 
 
-# ============================================================
-# Tests for on_member_remove.py - OnMemberRemove
-# ============================================================
-
-
 class TestOnMemberRemove:
     """Test cases for OnMemberRemove cog."""
 
@@ -508,11 +470,6 @@ class TestOnMemberRemove:
         added_cog = mock_bot.add_cog.call_args[0][0]
         assert isinstance(added_cog, OnMemberRemove)
         assert added_cog.bot == mock_bot
-
-
-# ============================================================
-# Tests for on_user_update.py - OnUserUpdate
-# ============================================================
 
 
 class TestOnUserUpdate:
@@ -545,10 +502,8 @@ class TestOnUserUpdate:
 
         cog = OnUserUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_user_update(before, after)
 
-        # Should not process bot users
         mock_get_embed.assert_not_called()
 
     @pytest.mark.asyncio
@@ -564,7 +519,6 @@ class TestOnUserUpdate:
         embed = discord.Embed()
         mock_get_embed.return_value = embed
 
-        # Setup before/after with different avatars
         before = MagicMock()
         before.avatar = MagicMock()
         before.avatar.url = "https://example.com/old_avatar.png"
@@ -585,22 +539,18 @@ class TestOnUserUpdate:
         guild.id = 67890
         after.mutual_guilds = [guild]
 
-        # Setup database mock
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = {"msg_on_member_update": True}
 
         cog = OnUserUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_user_update(before, after)
 
-        # Verify embed has avatar field
         field_names = [f.name for f in embed.fields]
-        assert messages.NEW_AVATAR in field_names
+        assert messages.UserUpdate.NEW_AVATAR in field_names
         assert embed.thumbnail.url == after.avatar.url
 
-        # Verify message was sent
         mock_send_msg.assert_called_once()
 
     @pytest.mark.asyncio
@@ -616,8 +566,6 @@ class TestOnUserUpdate:
         embed = discord.Embed()
         mock_get_embed.return_value = embed
 
-        # Setup before/after with different names
-        # Use the same avatar object so avatar comparison shows no change
         shared_avatar = MagicMock()
         shared_avatar.url = "https://example.com/avatar.png"
 
@@ -639,22 +587,18 @@ class TestOnUserUpdate:
         guild.id = 67890
         after.mutual_guilds = [guild]
 
-        # Setup database mock
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = {"msg_on_member_update": True}
 
         cog = OnUserUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_user_update(before, after)
 
-        # Verify embed has name fields
         field_names = [f.name for f in embed.fields]
-        assert messages.PREVIOUS_NAME in field_names
-        assert messages.NEW_NAME in field_names
+        assert messages.GuildUpdate.PREVIOUS_NAME in field_names
+        assert messages.UserUpdate.NEW_NAME in field_names
 
-        # Verify message was sent
         mock_send_msg.assert_called_once()
 
     @pytest.mark.asyncio
@@ -670,8 +614,6 @@ class TestOnUserUpdate:
         embed = discord.Embed()
         mock_get_embed.return_value = embed
 
-        # Setup before/after with different discriminators
-        # Use the same avatar object so avatar comparison shows no change
         shared_avatar = MagicMock()
         shared_avatar.url = "https://example.com/avatar.png"
 
@@ -693,22 +635,18 @@ class TestOnUserUpdate:
         guild.id = 67890
         after.mutual_guilds = [guild]
 
-        # Setup database mock
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = {"msg_on_member_update": True}
 
         cog = OnUserUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_user_update(before, after)
 
-        # Verify embed has discriminator fields
         field_names = [f.name for f in embed.fields]
-        assert messages.PREVIOUS_DISCRIMINATOR in field_names
-        assert messages.NEW_DISCRIMINATOR in field_names
+        assert messages.UserUpdate.PREVIOUS_DISCRIMINATOR in field_names
+        assert messages.UserUpdate.NEW_DISCRIMINATOR in field_names
 
-        # Verify message was sent
         mock_send_msg.assert_called_once()
 
     @pytest.mark.asyncio
@@ -724,8 +662,6 @@ class TestOnUserUpdate:
         embed = discord.Embed()
         mock_get_embed.return_value = embed
 
-        # Setup before/after with identical values
-        # Use the same avatar object so before.avatar == after.avatar is True
         shared_avatar = MagicMock()
         shared_avatar.url = "https://example.com/avatar.png"
 
@@ -745,20 +681,12 @@ class TestOnUserUpdate:
 
         cog = OnUserUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_user_update(before, after)
 
-        # Verify no fields were added
         assert len(embed.fields) == 0
 
-        # Should not send any message
         mock_send_msg.assert_not_called()
         mock_dal_class.assert_not_called()
-
-
-# ============================================================
-# Tests for on_member_join.py - Inner event function (lines 138-142)
-# ============================================================
 
 
 class TestOnMemberJoinEvent:
@@ -802,7 +730,6 @@ class TestOnMemberJoinEvent:
         cog = OnMemberJoin(mock_bot)
 
         with patch.object(cog.join_handler, "process_member_join", new_callable=AsyncMock) as mock_process:
-            # Call the listener method directly
             await cog.on_member_join(mock_member)
             mock_process.assert_called_once_with(mock_member)
             mock_bot.log.info.assert_called_once()
@@ -816,15 +743,9 @@ class TestOnMemberJoinEvent:
         with patch.object(
             cog.join_handler, "process_member_join", new_callable=AsyncMock, side_effect=RuntimeError("fail")
         ):
-            # Call the listener method directly
             await cog.on_member_join(mock_member)
             mock_bot.log.error.assert_called_once()
             assert "Critical error" in mock_bot.log.error.call_args[0][0]
-
-
-# ============================================================
-# Tests for on_member_remove.py - Inner event function (lines 143-147)
-# ============================================================
 
 
 class TestOnMemberRemoveEvent:
@@ -868,7 +789,6 @@ class TestOnMemberRemoveEvent:
         cog = OnMemberRemove(mock_bot)
 
         with patch.object(cog.leave_handler, "process_member_leave", new_callable=AsyncMock) as mock_process:
-            # Call the listener method directly
             await cog.on_member_remove(mock_member)
             mock_process.assert_called_once_with(mock_member)
             mock_bot.log.info.assert_called_once()
@@ -882,7 +802,6 @@ class TestOnMemberRemoveEvent:
         with patch.object(
             cog.leave_handler, "process_member_leave", new_callable=AsyncMock, side_effect=RuntimeError("fail")
         ):
-            # Call the listener method directly
             await cog.on_member_remove(mock_member)
             mock_bot.log.error.assert_called_once()
             assert "Critical error" in mock_bot.log.error.call_args[0][0]

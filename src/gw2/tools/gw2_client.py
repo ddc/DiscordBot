@@ -24,7 +24,7 @@ class Gw2Client:
         """checks if apy key is valid"""
 
         try:
-            api_req_key_info = await self.call_api("tokeninfo", api_key)
+            api_req_key_info = await self.call_api(gw2_variables.API_TOKENINFO, api_key)
         except APIError as e:
             return e
 
@@ -109,26 +109,26 @@ class Gw2Client:
     def _handle_400_error(self, status, err_msg, init_msg):
         """Handle 400 Bad Request errors."""
         if err_msg == "invalid key":
-            raise APIInvalidKey(self.bot, f"({status}) {gw2_messages.INVALID_APIKEY_MSG}")
-        raise APIBadRequest(self.bot, f"({init_msg}) {gw2_messages.API_DOWN}")
+            raise APIInvalidKey(self.bot, f"({status}) {gw2_messages.Api.INVALID_KEY}")
+        raise APIBadRequest(self.bot, f"({init_msg}) {gw2_messages.Api.DOWN}")
 
     def _handle_403_error(self, status, err_msg, init_msg):
         """Handle 403 Forbidden errors."""
         if err_msg == "invalid key":
-            raise APIInvalidKey(self.bot, f"({status}) {gw2_messages.INVALID_APIKEY_MSG}")
-        raise APIForbidden(self.bot, f"({init_msg}) {gw2_messages.API_ACCESS_DENIED}")
+            raise APIInvalidKey(self.bot, f"({status}) {gw2_messages.Api.INVALID_KEY}")
+        raise APIForbidden(self.bot, f"({init_msg}) {gw2_messages.Api.ACCESS_DENIED}")
 
     def _handle_404_error(self, status, endpoint):
         """Handle 404 Not Found errors."""
-        raise APINotFound(self.bot, f"({status})({endpoint.split('?')[0]}) {gw2_messages.API_NOT_FOUND}")
+        raise APINotFound(self.bot, f"({status})({endpoint.split('?')[0]}) {gw2_messages.Api.NOT_FOUND}")
 
     def _handle_429_error(self, init_msg):
         """Handle 429 Too Many Requests errors."""
-        raise APIConnectionError(self.bot, f"({init_msg}) {gw2_messages.API_REQUEST_REACHED}")
+        raise APIConnectionError(self.bot, f"({init_msg}) {gw2_messages.Api.REQUEST_LIMIT_REACHED}")
 
     def _handle_502_504_error(self, init_msg):
         """Handle 502 Bad Gateway and 504 Gateway Timeout errors."""
-        raise APIInactiveError(self.bot, f"({init_msg}) {gw2_messages.API_DOWN}")
+        raise APIInactiveError(self.bot, f"({init_msg}) {gw2_messages.Api.DOWN}")
 
     def _handle_503_error(self, init_msg, err_msg):
         """Handle 503 Service Unavailable errors."""
@@ -138,4 +138,4 @@ class Gw2Client:
         """Handle other HTTP error statuses."""
         if not err_msg:
             err_msg = str(response.reason)
-        raise APIConnectionError(self.bot, f"{gw2_messages.API_ERROR} ({init_msg})({err_msg})")
+        raise APIConnectionError(self.bot, f"{gw2_messages.Api.ERROR} ({init_msg})({err_msg})")

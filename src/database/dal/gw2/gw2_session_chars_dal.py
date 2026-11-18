@@ -28,6 +28,7 @@ class Gw2SessionCharDeathsDal:
                 update(Gw2SessionCharDeaths)
                 .where(
                     Gw2SessionCharDeaths.session_id == session_id,
+                    Gw2SessionCharDeaths.user_id == user_id,
                     Gw2SessionCharDeaths.name == char["name"],
                 )
                 .values(end=char["deaths"])

@@ -16,7 +16,7 @@ class TestGW2CoolDowns:
             cooldown = getattr(GW2CoolDowns, cooldown_name)
             assert isinstance(cooldown.value, tuple)
             assert isinstance(cooldown.value[0], int)
-            assert cooldown.value[0] > 0  # All cooldowns should be positive
+            assert cooldown.value[0] > 0
 
     def test_cooldown_str_representation(self):
         """Test that cooldowns can be converted to strings."""
@@ -43,7 +43,6 @@ class TestGW2CoolDowns:
         from src.bot.constants import variables
         from src.gw2.tools.gw2_cooldowns import _gw2_settings
 
-        # In non-debug mode, values should come from GW2 settings
         if not variables.DEBUG:
             assert GW2CoolDowns.Account.value[0] == _gw2_settings.account_cooldown
             assert GW2CoolDowns.ApiKeys.value[0] == _gw2_settings.api_keys_cooldown
@@ -55,7 +54,6 @@ class TestGW2CoolDowns:
             assert GW2CoolDowns.Worlds.value[0] == _gw2_settings.worlds_cooldown
             assert GW2CoolDowns.Wvw.value[0] == _gw2_settings.wvw_cooldown
         else:
-            # In debug mode, all cooldowns should be 1 second
             assert GW2CoolDowns.Account.value[0] == 1
             assert GW2CoolDowns.ApiKeys.value[0] == 1
             assert GW2CoolDowns.Characters.value[0] == 1
@@ -69,7 +67,6 @@ class TestGW2CoolDowns:
     def test_all_cooldowns_have_reasonable_values(self):
         """Test that all cooldown values are within reasonable ranges."""
         for cooldown in GW2CoolDowns:
-            # All cooldowns should be between 1 second and 1 day (86400 seconds)
             assert 1 <= cooldown.value[0] <= 86400
 
     def test_session_cooldown_is_longest(self):
@@ -77,7 +74,6 @@ class TestGW2CoolDowns:
         from src.bot.constants import variables
 
         if not variables.DEBUG:
-            # Session cooldown should typically be the longest
             session_cooldown = GW2CoolDowns.Session.value[0]
             other_cooldowns = [
                 GW2CoolDowns.Account.value[0],
@@ -90,7 +86,6 @@ class TestGW2CoolDowns:
                 GW2CoolDowns.Wvw.value[0],
             ]
 
-            # Session should be >= all others (allows for equal values)
             for other_value in other_cooldowns:
                 assert session_cooldown >= other_value
 
@@ -102,6 +97,5 @@ class TestGW2CoolDowns:
             assert isinstance(cooldown.value, tuple)
             assert isinstance(cooldown.value[0], int)
 
-        # Should have all expected cooldowns
         expected_names = {"Account", "ApiKeys", "Characters", "Config", "Daily", "Misc", "Session", "Worlds", "Wvw"}
         assert cooldown_names == expected_names

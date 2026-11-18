@@ -14,7 +14,6 @@ class TestColorsEnum:
         """Test that Colors enum has expected Discord color values."""
         colors = bot_utils.Colors
 
-        # Test a few key colors
         assert colors.black.value == discord.Color.default()
         assert colors.red.value == discord.Color.red()
         assert colors.green.value == discord.Color.green()
@@ -85,13 +84,10 @@ class TestServerUtilities:
 
         await bot_utils.insert_server(mock_bot, mock_server)
 
-        # Verify DAL was created with correct parameters
         mock_servers_dal.assert_called_once_with(mock_bot.db_session, mock_bot.log)
 
-        # Verify server insertion was called
         mock_dal.insert_server.assert_called_once_with(12345, "Test Server")
 
-        # Verify GW2 configs were inserted
         mock_gw2_insert.assert_called_once_with(mock_bot, mock_server)
 
     @patch("src.bot.tools.bot_utils.BackGroundTasks")
@@ -104,10 +100,8 @@ class TestServerUtilities:
 
         bot_utils.init_background_tasks(mock_bot)
 
-        # Verify BackGroundTasks was created
         mock_bg_tasks_class.assert_called_once_with(mock_bot)
 
-        # Verify task was created
         mock_bot.loop.create_task.assert_called_once()
 
     def test_init_background_tasks_disabled(self, mock_bot):
@@ -125,7 +119,6 @@ class TestServerUtilities:
 
             bot_utils.init_background_tasks(mock_bot)
 
-            # Verify no task was created
             mock_bot.loop.create_task.assert_not_called()
 
 
@@ -148,14 +141,12 @@ class TestCogLoading:
         ):
             await bot_utils.load_cogs(mock_bot)
 
-            # Verify extensions were loaded
             expected_extensions = ["src.bot.cogs.test_cog", "src.bot.events.test_event"]
 
             assert mock_bot.load_extension.call_count == 2
             actual_calls = [call[0][0] for call in mock_bot.load_extension.call_args_list]
             assert actual_calls == expected_extensions
 
-            # Verify debug logging
             assert mock_bot.log.debug.call_count >= 2
 
     @pytest.mark.asyncio
@@ -165,15 +156,12 @@ class TestCogLoading:
             "src.bot.tools.bot_utils.variables.ALL_COGS",
             ["src/bot/cogs/working_cog.py", "src/bot/cogs/broken_cog.py"],
         ):
-            # Make second cog fail to load
             mock_bot.load_extension.side_effect = [None, Exception("Failed to load")]
 
             await bot_utils.load_cogs(mock_bot)
 
-            # Verify both extensions were attempted
             assert mock_bot.load_extension.call_count == 2
 
-            # Verify error was logged
             mock_bot.log.error.assert_called()
             error_calls = [call[0][0] for call in mock_bot.log.error.call_args_list]
             assert any("src.bot.cogs.broken_cog" in call for call in error_calls)
@@ -204,7 +192,6 @@ class TestCommandUtilities:
 
         result = await bot_utils.invoke_subcommand(mock_ctx, "test")
 
-        # Should return the subcommand and not send help
         assert result == mock_subcommand
         mock_send_help.assert_not_called()
         mock_ctx.message.channel.typing.assert_called_once()
@@ -218,7 +205,6 @@ class TestCommandUtilities:
 
         result = await bot_utils.invoke_subcommand(mock_ctx, "test")
 
-        # Should send help for the command
         assert result is None
         mock_send_help.assert_called_once_with(mock_ctx, mock_ctx.command)
 
@@ -233,7 +219,6 @@ class TestCommandUtilities:
 
         result = await bot_utils.invoke_subcommand(mock_ctx, "testcommand")
 
-        # Should get command from bot and send help
         assert result is None
         mock_ctx.bot.get_command.assert_called_once_with("testcommand")
         mock_send_help.assert_called_once_with(mock_ctx, mock_bot_command)
@@ -418,7 +403,7 @@ class TestPermissionChecks:
     def test_is_member_admin_no_permissions(self):
         """Test is_member_admin with member without guild_permissions."""
         member = MagicMock()
-        del member.guild_permissions  # Remove the attribute
+        del member.guild_permissions
 
         result = bot_utils.is_member_admin(member)
         assert result is False
@@ -478,7 +463,7 @@ class TestChannelUtilities:
     def test_is_private_message_guild(self):
         """Test is_private_message with guild channel."""
         ctx = MagicMock()
-        ctx.channel = MagicMock()  # Not a DMChannel
+        ctx.channel = MagicMock()
 
         result = bot_utils.is_private_message(ctx)
         assert result is False
@@ -557,7 +542,7 @@ class TestMemberUtilities:
     def test_get_object_member_by_str_found_by_name(self):
         """Test get_object_member_by_str finding member by name."""
         ctx = MagicMock()
-        ctx.channel = MagicMock()  # Not a DMChannel
+        ctx.channel = MagicMock()
 
         member1 = MagicMock()
         member1.name = "TestUser"
@@ -601,7 +586,7 @@ class TestMemberUtilities:
 
         ctx.guild.members = [member]
 
-        result = bot_utils.get_object_member_by_str(ctx, "testnick")  # Case-insensitive
+        result = bot_utils.get_object_member_by_str(ctx, "testnick")
         assert result == member
 
     def test_get_object_member_by_str_not_found(self):
@@ -689,7 +674,6 @@ class TestSystemChannelUtilities:
         await bot_utils.send_msg_to_system_channel(mock_log, mock_server, mock_embed, "Plain message")
 
         assert mock_channel.send.call_count == 2
-        # First call with embed, second with plain message
         mock_channel.send.assert_any_call(embed=mock_embed)
         mock_channel.send.assert_any_call("Plain message")
         mock_log.error.assert_called_once()
@@ -703,7 +687,6 @@ class TestColorSettings:
         result = bot_utils.get_color_settings("random")
 
         assert isinstance(result, discord.Color)
-        # Should be a valid color (value between 0 and 16777215)
         assert 0 <= result.value <= 16777215
 
     def test_get_color_settings_named_color(self):
@@ -735,7 +718,6 @@ class TestColorSettings:
 
         result = bot_utils.get_color_settings("random")
 
-        # Should create a valid color
         assert isinstance(result, discord.Color)
         assert result.value == int("ABCDEF", 16)
 
@@ -747,7 +729,6 @@ class TestBotStats:
         """Test get_bot_stats with basic bot setup."""
         bot = MagicMock()
 
-        # Setup users
         user1 = MagicMock()
         user1.bot = False
         user2 = MagicMock()
@@ -756,14 +737,12 @@ class TestBotStats:
         user3.bot = False
         bot.users = [user1, user2, user3]
 
-        # Setup guilds with channels
         guild = MagicMock()
         text_channel = MagicMock(spec=discord.TextChannel)
         voice_channel = MagicMock(spec=discord.VoiceChannel)
         guild.channels = [text_channel, voice_channel]
         bot.guilds = [guild]
 
-        # Mock start_time
         mock_start_time = MagicMock()
         bot.start_time = mock_start_time
 
@@ -799,7 +778,6 @@ class TestBotStats:
         bot.users = []
         bot.start_time = MagicMock()
 
-        # Guild 1: 2 text, 1 voice
         guild1 = MagicMock()
         guild1.channels = [
             MagicMock(spec=discord.TextChannel),
@@ -807,7 +785,6 @@ class TestBotStats:
             MagicMock(spec=discord.VoiceChannel),
         ]
 
-        # Guild 2: 1 text, 2 voice
         guild2 = MagicMock()
         guild2.channels = [
             MagicMock(spec=discord.TextChannel),

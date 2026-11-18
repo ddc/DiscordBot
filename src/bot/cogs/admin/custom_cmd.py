@@ -48,7 +48,7 @@ async def add_custom_command(ctx: commands.Context, *, subcommand_passed: str) -
     args = subcommand_passed.split()
     if len(args) < 2:
         help_msg = (
-            f"{messages.MISSING_REQUIRED_ARGUMENT_HELP_MESSAGE}: "
+            f"{messages.CommandError.MISSING_REQUIRED_ARGUMENT_HELP}: "
             f"{chat_formatting.inline(f'{ctx.prefix}help admin cc add')}"
         )
         return await bot_utils.send_error_msg(ctx, help_msg)
@@ -58,12 +58,12 @@ async def add_custom_command(ctx: commands.Context, *, subcommand_passed: str) -
 
     # Validate command name length
     if len(new_cmd_name) > 20:
-        return await bot_utils.send_error_msg(ctx, messages.COMMAND_LENGHT_ERROR)
+        return await bot_utils.send_error_msg(ctx, messages.CustomCommand.LENGTH_ERROR)
 
     # Check for conflicts with existing bot commands
     existing_commands = {cmd.name.lower() for cmd in ctx.bot.commands}
     if new_cmd_name.lower() in existing_commands:
-        error_msg = f"`{ctx.prefix}{new_cmd_name}` {messages.ALREADY_A_STANDARD_COMMAND}."
+        error_msg = f"`{ctx.prefix}{new_cmd_name}` {messages.CustomCommand.ALREADY_A_STANDARD_COMMAND}."
         return await bot_utils.send_error_msg(ctx, error_msg)
 
     # Check if command already exists
@@ -72,14 +72,14 @@ async def add_custom_command(ctx: commands.Context, *, subcommand_passed: str) -
 
     if existing_command:
         warning_msg = (
-            f"{messages.COMMAND_ALREADY_EXISTS}: `{ctx.prefix}{new_cmd_name}`\n"
+            f"{messages.CustomCommand.ALREADY_EXISTS}: `{ctx.prefix}{new_cmd_name}`\n"
             f"To edit: `{ctx.prefix}admin cc edit {new_cmd_name} <text>`"
         )
         return await bot_utils.send_warning_msg(ctx, warning_msg)
 
     # Add new command
     await commands_dal.insert_command(ctx.guild.id, ctx.author.id, new_cmd_name, new_cmd_description)
-    success_msg = f"{messages.CUSTOM_COMMAND_ADDED}:\n`{ctx.prefix}{new_cmd_name}`"
+    success_msg = f"{messages.CustomCommand.ADDED}:\n`{ctx.prefix}{new_cmd_name}`"
     await bot_utils.send_msg(ctx, success_msg)
     return None
 
@@ -100,7 +100,7 @@ async def edit_custom_command(ctx: commands.Context, *, subcommand_passed: str) 
     args = subcommand_passed.split()
     if len(args) < 2:
         help_msg = (
-            f"{messages.MISSING_REQUIRED_ARGUMENT_HELP_MESSAGE}: "
+            f"{messages.CommandError.MISSING_REQUIRED_ARGUMENT_HELP}: "
             f"{chat_formatting.inline(f'{ctx.prefix}help admin cc edit')}"
         )
         return await bot_utils.send_error_msg(ctx, help_msg)
@@ -113,17 +113,17 @@ async def edit_custom_command(ctx: commands.Context, *, subcommand_passed: str) 
     server_commands = await commands_dal.get_all_server_commands(ctx.guild.id)
 
     if not server_commands:
-        return await bot_utils.send_error_msg(ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
+        return await bot_utils.send_error_msg(ctx, messages.CustomCommand.NO_COMMANDS_FOUND)
 
     # Check if command exists
     command_names = {cmd["name"] for cmd in server_commands}
     if cmd_name not in command_names:
-        error_msg = f"{messages.COMMAND_NOT_FOUND}:\n`{ctx.prefix}{cmd_name}`"
+        error_msg = f"{messages.CommandError.NOT_FOUND}:\n`{ctx.prefix}{cmd_name}`"
         return await bot_utils.send_error_msg(ctx, error_msg)
 
     # Update command
     await commands_dal.update_command_description(ctx.guild.id, ctx.author.id, cmd_name, new_cmd_description)
-    success_msg = f"{messages.CUSTOM_COMMAND_EDITED}:\n`{ctx.prefix}{cmd_name}`"
+    success_msg = f"{messages.CustomCommand.EDITED}:\n`{ctx.prefix}{cmd_name}`"
     await bot_utils.send_msg(ctx, success_msg)
     return None
 
@@ -143,19 +143,17 @@ async def remove_custom_command(ctx: commands.Context, cmd_name: str) -> None:
     server_commands = await commands_dal.get_all_server_commands(ctx.guild.id)
 
     if not server_commands:
-        return await bot_utils.send_warning_msg(ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
+        return await bot_utils.send_warning_msg(ctx, messages.CustomCommand.NO_COMMANDS_FOUND)
 
     # Check if command exists
     command_names = {cmd["name"] for cmd in server_commands}
     if cmd_name not in command_names:
-        error_msg = (
-            f"{messages.CUSTOM_COMMAND_UNABLE_REMOVE}\n{messages.COMMAND_NOT_FOUND}: {chat_formatting.inline(cmd_name)}"
-        )
+        error_msg = f"{messages.CustomCommand.UNABLE_REMOVE}\n{messages.CommandError.NOT_FOUND}: {chat_formatting.inline(cmd_name)}"
         return await bot_utils.send_error_msg(ctx, error_msg)
 
     # Remove command
     await commands_dal.delete_server_command(ctx.guild.id, cmd_name)
-    success_msg = f"{messages.CUSTOM_COMMAND_REMOVED}:\n`{ctx.prefix}{cmd_name}`"
+    success_msg = f"{messages.CustomCommand.REMOVED}:\n`{ctx.prefix}{cmd_name}`"
     await bot_utils.send_msg(ctx, success_msg)
     return None
 
@@ -174,11 +172,11 @@ async def remove_all_custom_commands(ctx: commands.Context) -> None:
     server_commands = await commands_dal.get_all_server_commands(ctx.guild.id)
 
     if not server_commands:
-        return await bot_utils.send_error_msg(ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
+        return await bot_utils.send_error_msg(ctx, messages.CustomCommand.NO_COMMANDS_FOUND)
 
     # Remove all commands
     await commands_dal.delete_all_commands(ctx.guild.id)
-    await bot_utils.send_msg(ctx, messages.CUSTOM_COMMAND_ALL_REMOVED)
+    await bot_utils.send_msg(ctx, messages.CustomCommand.ALL_REMOVED)
     return None
 
 
@@ -196,7 +194,7 @@ async def list_custom_commands(ctx: commands.Context) -> None:
     server_commands = await commands_dal.get_all_server_commands(ctx.guild.id)
 
     if not server_commands:
-        return await bot_utils.send_warning_msg(ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
+        return await bot_utils.send_warning_msg(ctx, messages.CustomCommand.NO_COMMANDS_FOUND)
 
     # Format command data
     command_list = []
@@ -216,7 +214,7 @@ async def list_custom_commands(ctx: commands.Context) -> None:
     # Create embed
     embed = discord.Embed()
     guild_icon_url = ctx.guild.icon.url if ctx.guild.icon else None
-    embed.set_author(name=messages.CUSTOM_COMMANDS_SERVER, icon_url=guild_icon_url)
+    embed.set_author(name=messages.CustomCommand.COMMANDS_SERVER, icon_url=guild_icon_url)
 
     embed.add_field(name="Command", value=chat_formatting.inline("\n".join(command_list)))
     embed.add_field(name="Created by", value=chat_formatting.inline("\n".join(author_list)))

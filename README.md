@@ -248,15 +248,16 @@ All AI commands are channel-only (they cannot be invoked in DMs).
 | `owner botdescription <new description>` | Update bot description          |
 
 ## GW2 Commands
-| Command             | Description                               |
-|:--------------------|:------------------------------------------|
-| `gw2 account`       | Display your GW2 account information      |
-| `gw2 characters`    | Display your GW2 characters information   |
-| `gw2 session`       | Display your last game session data       |
-| `gw2 worlds na`     | List all NA worlds with WvW tier          |
-| `gw2 worlds eu`     | List all EU worlds with WvW tier          |
-| `gw2 wiki <search>` | Search the Guild Wars 2 wiki              |
-| `gw2 info <search>` | Information about a given name/skill/rune |
+| Command                       | Description                               |
+|:------------------------------|:------------------------------------------|
+| `gw2 account`                 | Display your GW2 account information      |
+| `gw2 characters`              | Display your GW2 characters information   |
+| `gw2 daily [weekly, special]` | Wizard's Vault objectives and progress    |
+| `gw2 session`                 | Display your last game session data       |
+| `gw2 worlds na`               | List all NA worlds with WvW tier          |
+| `gw2 worlds eu`               | List all EU worlds with WvW tier          |
+| `gw2 wiki <search>`           | Search the Guild Wars 2 wiki              |
+| `gw2 info <search>`           | Information about a given name/skill/rune |
 
 ## GW2 Config Commands
 | Command                        | Description                           |

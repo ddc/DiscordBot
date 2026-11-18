@@ -13,7 +13,6 @@ class TestBotSettings:
         """Test that settings have the expected structure and types."""
         settings = BotSettings()
 
-        # Test that all expected fields exist
         assert hasattr(settings, "prefix")
         assert hasattr(settings, "token")
         assert hasattr(settings, "openai_model")
@@ -23,7 +22,6 @@ class TestBotSettings:
         assert hasattr(settings, "embed_color")
         assert hasattr(settings, "admin_cooldown")
 
-        # Test types are correct (allowing for None due to Optional)
         assert isinstance(settings.prefix, (str, type(None)))
         assert isinstance(settings.token, (str, type(None)))
         assert isinstance(settings.openai_model, (str, type(None)))
@@ -56,13 +54,11 @@ class TestBotSettings:
         with patch.dict(os.environ, env_vars, clear=True):
             settings = BotSettings()
 
-            # Basic settings
             assert settings.prefix == ">>"
             assert settings.token == "test_token_123"
             assert settings.openai_model == "gpt-4"
             assert settings.openai_api_key == "test_api_key"
 
-            # Bot configuration
             assert settings.bg_activity_timer == 300
             assert settings.allowed_dm_commands == "owner, test"
             assert settings.bot_reaction_words == "test, words"
@@ -70,7 +66,6 @@ class TestBotSettings:
             assert settings.embed_owner_color == "red"
             assert settings.exclusive_users == "user1, user2"
 
-            # Cooldowns
             assert settings.admin_cooldown == 30
             assert settings.config_cooldown == 25
             assert settings.custom_cmd_cooldown == 15
@@ -90,12 +85,10 @@ class TestBotSettings:
         with patch.dict(os.environ, env_vars, clear=True):
             settings = BotSettings()
 
-            # Overridden values
             assert settings.prefix == "?"
             assert settings.token == "partial_token"
             assert settings.admin_cooldown == 35
 
-            # Default values for non-overridden fields
             assert settings.embed_color == "green"
             assert settings.config_cooldown == 20
             assert settings.owner_cooldown == 5
@@ -111,12 +104,10 @@ class TestBotSettings:
         with patch.dict(os.environ, env_vars, clear=True):
             settings = BotSettings()
 
-            # Empty strings should be preserved
             assert settings.prefix == ""
             assert settings.allowed_dm_commands == ""
             assert settings.exclusive_users == ""
 
-            # Other defaults should remain
             assert settings.embed_color == "green"
             assert settings.admin_cooldown == 20
 
@@ -128,8 +119,7 @@ class TestBotSettings:
         }
 
         with patch.dict(os.environ, env_vars, clear=True):
-            # This should raise a ValidationError for invalid integers
-            with pytest.raises(ValueError):  # Pydantic will raise validation error
+            with pytest.raises(ValueError):
                 BotSettings()
 
     def test_zero_values_are_preserved(self):
@@ -153,16 +143,12 @@ class TestGetBotSettings:
 
     def test_get_bot_settings_caching(self):
         """Test that get_bot_settings uses caching properly."""
-        # Clear the cache
         get_bot_settings.cache_clear()
 
-        # First call
         settings1 = get_bot_settings()
 
-        # Second call should use cache
         settings2 = get_bot_settings()
 
-        # Should return the same instance
         assert settings1 is settings2
 
     def test_settings_function_returns_botssettings(self):
@@ -172,15 +158,12 @@ class TestGetBotSettings:
 
     def test_settings_with_actual_env_file(self):
         """Test settings behavior when .env file might exist."""
-        # This test runs with whatever environment is available
         settings = get_bot_settings()
 
-        # Just verify the structure is correct
         assert hasattr(settings, "prefix")
         assert hasattr(settings, "token")
         assert hasattr(settings, "admin_cooldown")
         assert hasattr(settings, "embed_color")
 
-        # Verify types
         assert isinstance(settings.prefix, (str, type(None)))
         assert isinstance(settings.admin_cooldown, (int, type(None)))

@@ -9,8 +9,16 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 class BotBase(AsyncAttrs, DeclarativeBase):
     """Base model class with common timestamp fields."""
 
-    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.timezone("utc", func.now()))
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.timezone("utc", func.now()))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
 
 
 # Auto-import all model modules to register them with SQLAlchemy

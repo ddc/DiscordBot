@@ -114,7 +114,7 @@ class TestWorldsNACommand:
 
     @pytest.mark.asyncio
     async def test_worlds_na_successful_with_na_worlds(self, mock_ctx):
-        """Test worlds_na adds fields for NA worlds (wid < 2001)."""
+        """Test worlds_na adds fields for NA worlds (wid < 2000)."""
         worlds_ids = [
             {"id": 1001, "name": "Anvil Rock", "population": "High"},
             {"id": 1002, "name": "Borlis Pass", "population": "Medium"},
@@ -138,7 +138,7 @@ class TestWorldsNACommand:
 
     @pytest.mark.asyncio
     async def test_worlds_na_skips_eu_worlds(self, mock_ctx):
-        """Test worlds_na skips worlds with id > 2001 (EU worlds)."""
+        """Test worlds_na skips worlds with id >= 2000 (EU worlds)."""
         worlds_ids = [
             {"id": 1001, "name": "Anvil Rock", "population": "High"},
             {"id": 2002, "name": "Desolation", "population": "Full"},
@@ -155,7 +155,6 @@ class TestWorldsNACommand:
                 with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_na(mock_ctx)
                     embed = mock_send.call_args[0][1]
-                    # Only NA world should be added
                     assert len(embed.fields) == 1
                     assert embed.fields[0].name == "Anvil Rock"
 
@@ -180,7 +179,6 @@ class TestWorldsNACommand:
                     warning_msg = mock_ctx.bot.log.warning.call_args[0][0]
                     assert "Anvil Rock" in warning_msg
                     assert "1001" in warning_msg
-                    # Second world should still be processed
                     embed = mock_send.call_args[0][1]
                     assert len(embed.fields) == 1
                     assert embed.fields[0].name == "Borlis Pass"
@@ -302,7 +300,7 @@ class TestWorldsEUCommand:
 
     @pytest.mark.asyncio
     async def test_worlds_eu_successful_with_eu_worlds(self, mock_ctx):
-        """Test worlds_eu adds fields for EU worlds (wid > 2001)."""
+        """Test worlds_eu adds fields for EU worlds (wid >= 2000)."""
         worlds_ids = [
             {"id": 2002, "name": "Desolation", "population": "Full"},
             {"id": 2003, "name": "Gandara", "population": "VeryHigh"},
@@ -325,8 +323,26 @@ class TestWorldsEUCommand:
                     assert "Full" in embed.fields[0].value
 
     @pytest.mark.asyncio
+    async def test_worlds_eu_includes_world_2001(self, mock_ctx):
+        """World 2001 (Fissure of Woe) is the first EU world and must not be dropped."""
+        worlds_ids = [
+            {"id": 1001, "name": "Anvil Rock", "population": "High"},
+            {"id": 2001, "name": "Fissure of Woe", "population": "Full"},
+        ]
+
+        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
+            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
+            mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
+            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
+                mock_client.return_value.call_api = AsyncMock(return_value={"id": "2-1"})
+                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
+                    await worlds_eu(mock_ctx)
+                    embed = mock_send.call_args[0][1]
+                    assert [f.name for f in embed.fields] == ["Fissure of Woe"]
+
+    @pytest.mark.asyncio
     async def test_worlds_eu_skips_na_worlds(self, mock_ctx):
-        """Test worlds_eu skips worlds with id < 2001 (NA worlds)."""
+        """Test worlds_eu skips worlds with id < 2000 (NA worlds)."""
         worlds_ids = [
             {"id": 1001, "name": "Anvil Rock", "population": "High"},
             {"id": 2002, "name": "Desolation", "population": "Full"},
@@ -343,7 +359,6 @@ class TestWorldsEUCommand:
                 with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_eu(mock_ctx)
                     embed = mock_send.call_args[0][1]
-                    # Only EU world should be added
                     assert len(embed.fields) == 1
                     assert embed.fields[0].name == "Desolation"
 
@@ -528,7 +543,7 @@ class TestEmbedPaginatorView:
         with patch.object(view, "_save_current_page", new_callable=AsyncMock):
             await view.next_button.callback(interaction)
 
-        assert view.current_page == 1  # advanced
+        assert view.current_page == 1
         interaction.response.edit_message.assert_called_once()
         interaction.response.send_message.assert_not_called()
 
@@ -546,7 +561,7 @@ class TestEmbedPaginatorView:
         with patch.object(view, "_save_current_page", new_callable=AsyncMock):
             await view.previous_button.callback(interaction)
 
-        assert view.current_page == 0  # went back
+        assert view.current_page == 0
         interaction.response.edit_message.assert_called_once()
         interaction.response.send_message.assert_not_called()
 
@@ -701,11 +716,11 @@ class TestSendPaginatedWorldsEmbed:
         mock_dal.insert_embed_pages = AsyncMock()
         mock_dal_class.return_value = mock_dal
 
-        embed = self._make_embed_with_fields(30, description=gw2_messages.NA_SERVERS_TITLE)
+        embed = self._make_embed_with_fields(30, description=gw2_messages.Worlds.NA_SERVERS_TITLE)
         await _send_paginated_worlds_embed(mock_ctx, embed)
         call_kwargs = mock_ctx.send.call_args[1]
         sent_embed = call_kwargs["embed"]
-        assert sent_embed.description == gw2_messages.NA_SERVERS_TITLE
+        assert sent_embed.description == gw2_messages.Worlds.NA_SERVERS_TITLE
 
     @pytest.mark.asyncio
     @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
@@ -832,11 +847,10 @@ class TestSendPaginatedWorldsEmbedEdgeCases:
 
     @pytest.mark.asyncio
     async def test_worlds_na_exact_2001_boundary(self, mock_ctx):
-        """Test worlds_na does not include world ID exactly at 2001."""
+        """Test worlds_na does not include world 2001 (first EU world)."""
         worlds_ids = [
             {"id": 2001, "name": "Boundary World", "population": "High"},
         ]
-        # wid=2001 is NOT < 2001, so NA should NOT add it
         matches_data = {"id": "2-1"}
 
         with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
@@ -848,28 +862,6 @@ class TestSendPaginatedWorldsEmbedEdgeCases:
                 with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
                     await worlds_na(mock_ctx)
                     embed = mock_send.call_args[0][1]
-                    # 2001 is NOT < 2001, so should not be added to NA embed
-                    assert len(embed.fields) == 0
-
-    @pytest.mark.asyncio
-    async def test_worlds_eu_exact_2001_boundary(self, mock_ctx):
-        """Test worlds_eu does not include world ID exactly at 2001."""
-        worlds_ids = [
-            {"id": 2001, "name": "Boundary World", "population": "High"},
-        ]
-        # wid=2001 is NOT > 2001, so EU should NOT add it
-        matches_data = {"id": "2-1"}
-
-        with patch("src.gw2.cogs.worlds.gw2_utils") as mock_utils:
-            mock_utils.send_progress_embed = AsyncMock(return_value=AsyncMock())
-            mock_utils.get_worlds_ids = AsyncMock(return_value=(True, worlds_ids))
-            with patch("src.gw2.cogs.worlds.Gw2Client") as mock_client:
-                mock_client_instance = mock_client.return_value
-                mock_client_instance.call_api = AsyncMock(return_value=matches_data)
-                with patch("src.gw2.cogs.worlds._send_paginated_worlds_embed", new_callable=AsyncMock) as mock_send:
-                    await worlds_eu(mock_ctx)
-                    embed = mock_send.call_args[0][1]
-                    # 2001 is NOT > 2001, so should not be added to EU embed
                     assert len(embed.fields) == 0
 
 

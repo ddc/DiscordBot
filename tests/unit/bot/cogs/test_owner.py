@@ -2,8 +2,6 @@
 
 import discord
 import pytest
-
-# Mock problematic imports before importing the module
 import sys
 from discord.ext import commands
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -31,7 +29,6 @@ def mock_bot():
     bot.description = "Test bot description"
     bot.settings = {"bot": {"EmbedOwnerColor": discord.Color.gold()}}
 
-    # Mock guilds for activity update tests
     mock_guild = MagicMock()
     mock_guild.me = MagicMock()
     mock_guild.me.activity = MagicMock()
@@ -98,7 +95,6 @@ class TestOwner:
         mock_invoke.assert_called_once_with(mock_ctx, "owner")
         assert result == "mock_command"
 
-    # Test prefix change command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.owner.BotConfigsDal")
     @patch("src.bot.cogs.owner.bot_utils.send_embed")
@@ -112,12 +108,11 @@ class TestOwner:
         mock_ctx.message.channel.typing.assert_called_once()
         mock_dal.update_bot_prefix.assert_called_once_with("$")
 
-        # Verify bot prefix was updated
         assert owner_cog.bot.command_prefix == "$"
 
         mock_send_embed.assert_called_once()
         embed = mock_send_embed.call_args[0][1]
-        assert messages.BOT_PREFIX_CHANGED in embed.description
+        assert messages.Owner.PREFIX_CHANGED in embed.description
         assert "$" in embed.description
 
     @pytest.mark.asyncio
@@ -140,7 +135,6 @@ class TestOwner:
 
         await owner_cog.owner_change_prefix.callback(owner_cog, mock_ctx, new_prefix="%")
 
-        # Verify activity was updated
         owner_cog.bot.change_presence.assert_called_once()
         activity_call = owner_cog.bot.change_presence.call_args[1]["activity"]
         assert isinstance(activity_call, discord.Game)
@@ -152,17 +146,14 @@ class TestOwner:
     async def test_owner_change_prefix_no_activity(self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx):
         """Test prefix change when bot has no activity."""
         owner_cog.bot.user.activity = None
-        # Also need to set the guild's activity to None since that's what the method checks
         owner_cog.bot.guilds[0].me.activity = None
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
 
         await owner_cog.owner_change_prefix.callback(owner_cog, mock_ctx, new_prefix="&")
 
-        # Should not call change_presence when no activity
         owner_cog.bot.change_presence.assert_not_called()
 
-        # But should still update prefix
         assert owner_cog.bot.command_prefix == "&"
         mock_send_embed.assert_called_once()
 
@@ -171,18 +162,15 @@ class TestOwner:
     @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_change_prefix_non_playing_activity(self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx):
         """Test prefix change when bot has non-playing activity."""
-        # Set the guild's bot member activity type to listening (not playing)
         owner_cog.bot.guilds[0].me.activity.type = discord.ActivityType.listening
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
 
         await owner_cog.owner_change_prefix.callback(owner_cog, mock_ctx, new_prefix="?")
 
-        # Should not update activity for non-playing activities
         owner_cog.bot.change_presence.assert_not_called()
         mock_send_embed.assert_called_once()
 
-    # Test description update command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.owner.BotConfigsDal")
     @patch("src.bot.cogs.owner.bot_utils.delete_message")
@@ -201,15 +189,13 @@ class TestOwner:
         mock_ctx.message.channel.typing.assert_called_once()
         mock_dal.update_bot_description.assert_called_once_with(new_desc)
 
-        # Verify bot description was updated
         assert owner_cog.bot.description == new_desc
 
         mock_send_embed.assert_called_once()
         embed = mock_send_embed.call_args[0][1]
-        assert messages.BOT_DESCRIPTION_CHANGED in embed.description
+        assert messages.Owner.DESCRIPTION_CHANGED in embed.description
         assert new_desc in embed.description
 
-    # Test servers list command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.owner.ServersDal")
     @patch("src.bot.cogs.owner.bot_utils.send_embed")
@@ -227,10 +213,9 @@ class TestOwner:
 
         embed = mock_send_embed.call_args[0][1]
         assert embed.author.name == "TestBot"
-        assert len(embed.fields) == 2  # ID and Name fields
+        assert len(embed.fields) == 2
         assert embed.footer.text == "Total servers: 3"
 
-        # Check that dm=True is passed
         assert mock_send_embed.call_args[0][2] is True
 
     @pytest.mark.asyncio
@@ -248,9 +233,7 @@ class TestOwner:
         embed = mock_send_embed.call_args[0][1]
         assert "No servers found in database" in embed.description
 
-        # Check that dm=True is passed
         assert mock_send_embed.call_args[0][2] is True
-        # Result should be the return value of send_embed (AsyncMock)
         assert result == mock_send_embed.return_value
 
     @pytest.mark.asyncio
@@ -258,7 +241,6 @@ class TestOwner:
     @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_servers_many_servers(self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx):
         """Test servers list with more than 25 servers (pagination)."""
-        # Create 30 mock servers
         many_servers = [{"id": i, "name": f"Server {i}"} for i in range(30)]
 
         mock_dal = AsyncMock()
@@ -269,19 +251,17 @@ class TestOwner:
 
         embed = mock_send_embed.call_args[0][1]
 
-        # Check that only 25 servers + "..." are shown
         id_field = next(field for field in embed.fields if field.name == "ID")
         name_field = next(field for field in embed.fields if field.name == "Name")
 
         id_lines = id_field.value.split("\n")
         name_lines = name_field.value.split("\n")
 
-        assert len(id_lines) == 26  # 25 servers + "..."
-        assert len(name_lines) == 26  # 25 servers + "..."
+        assert len(id_lines) == 26
+        assert len(name_lines) == 26
         assert id_lines[-1] == "..."
         assert name_lines[-1] == "..."
 
-        # Footer should still show total count
         assert embed.footer.text == "Total servers: 30"
 
     @pytest.mark.asyncio
@@ -303,7 +283,6 @@ class TestOwner:
         assert embed.author.icon_url is None
         assert embed.author.name == "TestBot"
 
-    # Test helper methods
     @pytest.mark.asyncio
     async def test_update_bot_activity_prefix_with_activity(self, owner_cog):
         """Test _update_bot_activity_prefix with existing activity."""
@@ -314,13 +293,11 @@ class TestOwner:
         assert isinstance(activity_call, discord.Game)
         assert activity_call.name == "Test Game | $help"
 
-        # Check status and activity parameters
         assert owner_cog.bot.change_presence.call_args[1]["status"] == discord.Status.online
 
     @pytest.mark.asyncio
     async def test_update_bot_activity_prefix_no_activity(self, owner_cog):
         """Test _update_bot_activity_prefix with no activity."""
-        # Set the guild's bot member activity to None
         owner_cog.bot.guilds[0].me.activity = None
 
         await owner_cog._update_bot_activity_prefix("$")
@@ -330,7 +307,6 @@ class TestOwner:
     @pytest.mark.asyncio
     async def test_update_bot_activity_prefix_wrong_activity_type(self, owner_cog):
         """Test _update_bot_activity_prefix with wrong activity type."""
-        # Set the guild's bot member activity type to listening (not playing)
         owner_cog.bot.guilds[0].me.activity.type = discord.ActivityType.listening
 
         await owner_cog._update_bot_activity_prefix("$")
@@ -340,7 +316,6 @@ class TestOwner:
     @pytest.mark.asyncio
     async def test_update_bot_activity_prefix_no_bot_user_activity_attr(self, owner_cog):
         """Test _update_bot_activity_prefix when guild's bot member is None."""
-        # Set the guild's bot member to None
         owner_cog.bot.guilds[0].me = None
 
         await owner_cog._update_bot_activity_prefix("$")
@@ -405,7 +380,6 @@ class TestOwner:
     @patch("src.bot.cogs.owner.bot_utils.send_embed")
     async def test_owner_servers_exactly_25_servers(self, mock_send_embed, mock_dal_class, owner_cog, mock_ctx):
         """Test servers list with exactly 25 servers (edge case)."""
-        # Create exactly 25 mock servers
         servers_25 = [{"id": i, "name": f"Server {i}"} for i in range(25)]
 
         mock_dal = AsyncMock()
@@ -416,7 +390,6 @@ class TestOwner:
 
         embed = mock_send_embed.call_args[0][1]
 
-        # Should not truncate with exactly 25 servers
         id_field = next(field for field in embed.fields if field.name == "ID")
         name_field = next(field for field in embed.fields if field.name == "Name")
 
@@ -432,12 +405,10 @@ class TestOwner:
     async def test_update_bot_activity_prefix_complex_game_name(self, owner_cog):
         """Test _update_bot_activity_prefix with complex game name containing pipe."""
         owner_cog.bot.user.activity.name = "Complex | Game | Name | !help"
-        # Also need to set the guild's activity name since that's what the method checks
         owner_cog.bot.guilds[0].me.activity.name = "Complex | Game | Name | !help"
 
         await owner_cog._update_bot_activity_prefix("$")
 
-        # Should only take the first part before the first pipe
         activity_call = owner_cog.bot.change_presence.call_args[1]["activity"]
         assert activity_call.name == "Complex | $help"
 
@@ -481,11 +452,9 @@ class TestOwner:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
 
-        # Test that invalid prefixes (not in ALLOWED_PREFIXES) are rejected
         with pytest.raises(commands.BadArgument):
-            await owner_cog.owner_change_prefix.callback(owner_cog, mock_ctx, new_prefix="#")  # Not allowed
+            await owner_cog.owner_change_prefix.callback(owner_cog, mock_ctx, new_prefix="#")
 
-        # This should work - "!" is allowed
         await owner_cog.owner_change_prefix.callback(owner_cog, mock_ctx, new_prefix="!")
         mock_send_embed.assert_called()
 
@@ -493,7 +462,6 @@ class TestOwner:
     async def test_update_bot_activity_prefix_with_no_pipe_in_activity(self, owner_cog):
         """Test _update_bot_activity_prefix when activity name has no pipe."""
         owner_cog.bot.user.activity.name = "SimpleGameName"
-        # Also need to set the guild's activity name since that's what the method checks
         owner_cog.bot.guilds[0].me.activity.name = "SimpleGameName"
 
         await owner_cog._update_bot_activity_prefix("$")

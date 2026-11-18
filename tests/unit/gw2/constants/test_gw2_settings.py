@@ -14,11 +14,9 @@ class TestGw2Settings:
         with patch.dict(os.environ, {}, clear=True):
             settings = Gw2Settings()
 
-            # GW2 configuration
             assert settings.embed_color == "green"
             assert settings.api_version == 2
 
-            # GW2 cooldowns
             assert settings.account_cooldown == 20
             assert settings.api_keys_cooldown == 20
             assert settings.characters_cooldown == 20
@@ -48,11 +46,9 @@ class TestGw2Settings:
         with patch.dict(os.environ, env_vars, clear=True):
             settings = Gw2Settings()
 
-            # GW2 configuration
             assert settings.embed_color == "blue"
             assert settings.api_version == 3
 
-            # GW2 cooldowns
             assert settings.account_cooldown == 30
             assert settings.api_keys_cooldown == 25
             assert settings.characters_cooldown == 15
@@ -75,13 +71,11 @@ class TestGw2Settings:
         with patch.dict(os.environ, env_vars, clear=True):
             settings = Gw2Settings()
 
-            # Overridden values
             assert settings.embed_color == "red"
             assert settings.api_version == 1
             assert settings.session_cooldown == 90
             assert settings.wvw_cooldown == 30
 
-            # Default values for non-overridden fields
             assert settings.account_cooldown == 20
             assert settings.api_keys_cooldown == 20
             assert settings.characters_cooldown == 20
@@ -97,10 +91,8 @@ class TestGw2Settings:
         with patch.dict(os.environ, env_vars, clear=True):
             settings = Gw2Settings()
 
-            # Empty string should be preserved
             assert settings.embed_color == ""
 
-            # Other defaults should remain
             assert settings.account_cooldown == 20
             assert settings.session_cooldown == 60
 
@@ -112,8 +104,7 @@ class TestGw2Settings:
         }
 
         with patch.dict(os.environ, env_vars, clear=True):
-            # This should raise a ValidationError for invalid integers
-            with pytest.raises(ValueError):  # Pydantic will raise validation error
+            with pytest.raises(ValueError):
                 Gw2Settings()
 
     def test_zero_values_are_preserved(self):
@@ -149,7 +140,7 @@ class TestGw2Settings:
         env_vars = {
             "GW2_SESSION_COOLDOWN": "3600",
             "GW2_ACCOUNT_COOLDOWN": "86400",
-        }  # 1 hour  # 1 day
+        }
 
         with patch.dict(os.environ, env_vars, clear=True):
             settings = Gw2Settings()
@@ -205,16 +196,12 @@ class TestGetGw2Settings:
 
     def test_get_gw2_settings_caching(self):
         """Test that get_gw2_settings uses caching properly."""
-        # Clear the cache
         get_gw2_settings.cache_clear()
 
-        # First call
         settings1 = get_gw2_settings()
 
-        # Second call should use cache
         settings2 = get_gw2_settings()
 
-        # Should return the same instance
         assert settings1 is settings2
 
     def test_settings_instance_type(self):
@@ -224,16 +211,13 @@ class TestGetGw2Settings:
 
     def test_settings_with_actual_env_file(self):
         """Test settings behavior when .env file might exist."""
-        # This test runs with whatever environment is available
         settings = get_gw2_settings()
 
-        # Just verify the structure is correct
         assert hasattr(settings, "embed_color")
         assert hasattr(settings, "api_version")
         assert hasattr(settings, "account_cooldown")
         assert hasattr(settings, "session_cooldown")
 
-        # Verify types
         assert isinstance(settings.embed_color, (str, type(None)))
         assert isinstance(settings.api_version, (int, type(None)))
         assert isinstance(settings.account_cooldown, (int, type(None)))
@@ -242,27 +226,24 @@ class TestGetGw2Settings:
     def test_gw2_vs_bot_prefix_isolation(self):
         """Test that GW2 settings only respond to GW2_ prefixed env vars."""
         env_vars = {
-            "BOT_EMBED_COLOR": "bot_color",  # Should not affect GW2 settings
-            "GW2_EMBED_COLOR": "gw2_color",  # Should affect GW2 settings
-            "BOT_COOLDOWN": "100",  # Should not affect GW2 settings
-            "GW2_SESSION_COOLDOWN": "200",  # Should affect GW2 settings
+            "BOT_EMBED_COLOR": "bot_color",
+            "GW2_EMBED_COLOR": "gw2_color",
+            "BOT_COOLDOWN": "100",
+            "GW2_SESSION_COOLDOWN": "200",
         }
 
         with patch.dict(os.environ, env_vars, clear=True):
             settings = Gw2Settings()
 
-            # Should use GW2_ prefixed values
             assert settings.embed_color == "gw2_color"
             assert settings.session_cooldown == 200
 
-            # Should use defaults for non-GW2 prefixed values
-            assert settings.account_cooldown == 20  # Default, not affected by BOT_COOLDOWN
+            assert settings.account_cooldown == 20
 
     def test_api_version_affects_api_uri(self):
         """Test that changing API version affects the constructed API URI."""
         from src.gw2.constants import gw2_variables
 
-        # Test that API_URI contains the version from settings
         expected_version = get_gw2_settings().api_version
         expected_uri = f"https://api.guildwars2.com/v{expected_version}"
         assert gw2_variables.API_URI == expected_uri

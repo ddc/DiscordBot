@@ -50,7 +50,7 @@ class OnMemberUpdate(commands.Cog):
 
     def _create_member_embed(self, member):
         """Create the base embed and message for member updates."""
-        msg = [f"{messages.PROFILE_CHANGES}:\n\n"]
+        msg = [f"{messages.MemberUpdate.PROFILE_CHANGES}:\n\n"]
 
         # Create a simple context-like object for get_embed
         class SimpleContext:
@@ -78,9 +78,9 @@ class OnMemberUpdate(commands.Cog):
         """Handle member nickname changes."""
         if before.nick != after.nick:
             if before.nick is not None:
-                embed.add_field(name=messages.PREVIOUS_NICKNAME, value=str(before.nick))
-            embed.add_field(name=messages.NEW_NICKNAME, value=str(after.nick))
-            msg.append(f"{messages.NEW_NICKNAME}: `{after.nick}`\n")
+                embed.add_field(name=messages.MemberUpdate.PREVIOUS_NICKNAME, value=str(before.nick))
+            embed.add_field(name=messages.MemberUpdate.NEW_NICKNAME, value=str(after.nick))
+            msg.append(f"{messages.MemberUpdate.NEW_NICKNAME}: `{after.nick}`\n")
 
     def _handle_role_changes(self, before, after, embed, msg):
         """Handle member role changes."""
@@ -93,14 +93,14 @@ class OnMemberUpdate(commands.Cog):
         """Add previous roles field to embed if roles existed."""
         if before_member.roles is not None:
             role_names = ", ".join([role.name for role in before_member.roles])
-            embed.add_field(name=messages.PREVIOUS_ROLES, value=role_names)
+            embed.add_field(name=messages.MemberUpdate.PREVIOUS_ROLES, value=role_names)
 
     @staticmethod
     def _add_new_roles_field(after_member, embed, msg):
         """Add new roles field to embed and message."""
         role_names = ", ".join([role.name for role in after_member.roles])
-        embed.add_field(name=messages.NEW_ROLES, value=role_names)
-        msg.append(f"{messages.NEW_ROLES}: `{role_names}`\n")
+        embed.add_field(name=messages.MemberUpdate.NEW_ROLES, value=role_names)
+        msg.append(f"{messages.MemberUpdate.NEW_ROLES}: `{role_names}`\n")
 
     async def _send_notification_if_enabled(self, member, embed, msg):
         """Send notification if changes were detected and notifications are enabled."""

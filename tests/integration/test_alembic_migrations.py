@@ -3,9 +3,6 @@ from sqlalchemy import text
 
 pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
 
-# ──────────────────────────────────────────────────────────────────────
-# Helpers
-# ──────────────────────────────────────────────────────────────────────
 
 EXPECTED_PUBLIC_TABLES = [
     "bot_configs",
@@ -54,11 +51,6 @@ async def _execute(db_session, stmt):
     await db.execute(stmt)
 
 
-# ──────────────────────────────────────────────────────────────────────
-# 0001 — Functions & schema
-# ──────────────────────────────────────────────────────────────────────
-
-
 async def test_updated_at_function_exists(db_session):
     rows = await _fetch_rows(
         db_session,
@@ -74,11 +66,6 @@ async def test_gw2_schema_exists(db_session):
         text("SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'gw2'"),
     )
     assert len(rows) == 1
-
-
-# ──────────────────────────────────────────────────────────────────────
-# All tables created
-# ──────────────────────────────────────────────────────────────────────
 
 
 async def test_all_public_tables_exist(db_session):
@@ -140,11 +127,6 @@ async def test_alembic_version_at_head(db_session):
     assert rows[0]["version_num"] == "0011"
 
 
-# ──────────────────────────────────────────────────────────────────────
-# 0002 — bot_configs columns & seed data
-# ──────────────────────────────────────────────────────────────────────
-
-
 async def test_bot_configs_columns(db_session):
     rows = await _fetch_rows(
         db_session,
@@ -194,11 +176,6 @@ async def test_bot_configs_insert_and_read(db_session):
     assert rows[0]["created_at"] is not None
 
 
-# ──────────────────────────────────────────────────────────────────────
-# 0003 — servers columns, defaults & indexes
-# ──────────────────────────────────────────────────────────────────────
-
-
 async def test_servers_columns(db_session):
     rows = await _fetch_rows(
         db_session,
@@ -218,12 +195,23 @@ async def test_servers_columns(db_session):
     assert cols["updated_by"]["is_nullable"] == "YES"
 
 
-async def test_servers_index_exists(db_session):
+async def test_servers_id_has_only_primary_key_index(db_session):
     rows = await _fetch_rows(
         db_session,
-        text("SELECT indexname FROM pg_indexes WHERE tablename = 'servers' AND indexname = 'ix_servers_id'"),
+        text("SELECT indexname FROM pg_indexes WHERE schemaname = 'public' AND tablename = 'servers'"),
     )
-    assert len(rows) == 1
+    assert [r["indexname"] for r in rows] == ["servers_pkey"]
+
+
+async def test_embed_pages_message_id_has_single_unique_index(db_session):
+    rows = await _fetch_rows(
+        db_session,
+        text(
+            "SELECT indexname FROM pg_indexes "
+            "WHERE schemaname = 'public' AND tablename = 'embed_pages' AND indexdef LIKE '%(message_id)%'"
+        ),
+    )
+    assert [r["indexname"] for r in rows] == ["ix_embed_pages_message_id"]
 
 
 async def test_servers_insert_and_read_defaults(db_session):
@@ -245,11 +233,6 @@ async def test_servers_insert_and_read_defaults(db_session):
     assert row["block_invis_members"] is False
     assert row["bot_word_reactions"] is True
     assert row["updated_by"] is None
-
-
-# ──────────────────────────────────────────────────────────────────────
-# 0004 — custom_commands FK, index & cascade
-# ──────────────────────────────────────────────────────────────────────
 
 
 async def test_custom_commands_fk_to_servers(db_session):
@@ -312,11 +295,6 @@ async def test_custom_commands_cascade_delete(db_session):
     assert len(rows) == 0
 
 
-# ──────────────────────────────────────────────────────────────────────
-# 0005 — profanity_filters
-# ──────────────────────────────────────────────────────────────────────
-
-
 async def test_profanity_filters_columns(db_session):
     rows = await _fetch_rows(
         db_session,
@@ -364,11 +342,6 @@ async def test_profanity_filters_cascade_delete(db_session):
     assert len(rows) == 0
 
 
-# ──────────────────────────────────────────────────────────────────────
-# 0006 — dice_rolls indexes
-# ──────────────────────────────────────────────────────────────────────
-
-
 async def test_dice_rolls_indexes(db_session):
     rows = await _fetch_rows(
         db_session,
@@ -411,11 +384,6 @@ async def test_dice_rolls_cascade_delete(db_session):
     assert len(rows) == 0
 
 
-# ──────────────────────────────────────────────────────────────────────
-# 0007 — gw2_keys unique constraint (gw2 schema)
-# ──────────────────────────────────────────────────────────────────────
-
-
 async def test_gw2_keys_user_id_unique(db_session):
     rows = await _fetch_rows(
         db_session,
@@ -443,11 +411,6 @@ async def test_gw2_keys_insert_and_read(db_session):
     assert len(rows) == 1
     assert rows[0]["gw2_acc_name"] == "Acc.1234"
     assert rows[0]["key"] == "KEY-ABC"
-
-
-# ──────────────────────────────────────────────────────────────────────
-# 0008 — gw2_configs FK + unique server_id (gw2 schema)
-# ──────────────────────────────────────────────────────────────────────
 
 
 async def test_gw2_configs_fk_and_unique(db_session):
@@ -490,11 +453,6 @@ async def test_gw2_configs_cascade_delete(db_session):
     assert len(rows) == 0
 
 
-# ──────────────────────────────────────────────────────────────────────
-# 0009 — gw2_sessions JSONB columns (gw2 schema)
-# ──────────────────────────────────────────────────────────────────────
-
-
 async def test_gw2_sessions_jsonb_columns(db_session):
     rows = await _fetch_rows(
         db_session,
@@ -531,11 +489,6 @@ async def test_gw2_sessions_insert_and_read_jsonb(db_session):
     assert rows[0]["id"] is not None
 
 
-# ──────────────────────────────────────────────────────────────────────
-# 0010 — gw2_session_char_deaths FK & columns (gw2 schema)
-# ──────────────────────────────────────────────────────────────────────
-
-
 async def test_gw2_session_char_deaths_fk_to_sessions(db_session):
     rows = await _fetch_rows(
         db_session,
@@ -570,7 +523,6 @@ async def test_gw2_session_char_deaths_columns(db_session):
     assert "end" in cols
     assert cols["end"]["data_type"] == "integer"
     assert cols["end"]["is_nullable"] == "YES"
-    # No deaths or boolean columns from old schema
     assert "deaths" not in cols
 
 
@@ -606,11 +558,6 @@ async def test_gw2_session_char_deaths_insert_and_read(db_session):
     assert rows[0]["end"] is None
 
 
-# ──────────────────────────────────────────────────────────────────────
-# Trigger functionality — updated_at auto-updates
-# ──────────────────────────────────────────────────────────────────────
-
-
 async def test_updated_at_trigger_fires_on_update(db_session):
     """Verify the updated_at_column_func trigger actually updates the timestamp."""
     await _execute(db_session, text("INSERT INTO servers (id, name) VALUES (10010, 'Trigger Test')"))
@@ -620,7 +567,6 @@ async def test_updated_at_trigger_fires_on_update(db_session):
     )
     original_ts = rows_before[0]["updated_at"]
 
-    # Small delay then update
     await _execute(
         db_session,
         text("UPDATE servers SET name = 'Trigger Test Updated' WHERE id = 10010"),
@@ -631,3 +577,20 @@ async def test_updated_at_trigger_fires_on_update(db_session):
     )
     new_ts = rows_after[0]["updated_at"]
     assert new_ts >= original_ts
+
+
+async def test_raw_sql_inserts_get_uuidv7_ids(db_session):
+    await _execute(db_session, text("INSERT INTO servers (id, name) VALUES (10011, 'UUID Server')"))
+    await _execute(
+        db_session,
+        text("INSERT INTO custom_commands (server_id, name, description) VALUES (10011, 'uuid', 'v7 check')"),
+    )
+    rows = await _fetch_rows(
+        db_session,
+        text(
+            "SELECT uuid_extract_version(id) AS v FROM custom_commands WHERE server_id = 10011 "
+            "UNION ALL SELECT uuid_extract_version(id) FROM bot_configs"
+        ),
+    )
+    assert rows
+    assert {r["v"] for r in rows} == {7}

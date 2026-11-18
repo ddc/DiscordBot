@@ -1,6 +1,5 @@
 """Comprehensive tests for the OnGuildUpdate event cog."""
 
-# Mock problematic imports before importing the module
 import pytest
 import sys
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -16,13 +15,11 @@ def mock_bot():
     """Create a mock bot instance."""
     bot = AsyncMock()
     bot.log = MagicMock()
-    # Ensure log methods are not coroutines
     bot.log.error = MagicMock()
     bot.db_session = MagicMock()
     bot.user = MagicMock()
     bot.user.avatar = MagicMock()
     bot.user.avatar.url = "https://example.com/bot_avatar.png"
-    # Ensure add_cog doesn't return a coroutine
     bot.add_cog = AsyncMock(return_value=None)
     return bot
 
@@ -111,33 +108,26 @@ class TestOnGuildUpdate:
         """Test on_guild_update with icon change."""
         mock_get_embed.return_value = mock_embed
         mock_datetime.return_value = "2023-01-01 12:00:00"
-        # Mock embed fields to simulate having fields after add_field is called
-        mock_embed.fields = [MagicMock()]  # Simulate one field added
+        mock_embed.fields = [MagicMock()]
 
-        # Setup database mock
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = {"msg_on_server_update": True}
 
-        # Set different icons
         mock_guild_before.icon.url = "https://example.com/old_icon.png"
         mock_guild.icon.url = "https://example.com/new_icon.png"
-        mock_guild_before.name = mock_guild.name  # Same name
-        mock_guild_before.owner_id = mock_guild.owner_id  # Same owner
+        mock_guild_before.name = mock_guild.name
+        mock_guild_before.owner_id = mock_guild.owner_id
 
         cog = OnGuildUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_guild_update(mock_guild_before, mock_guild)
 
-        # Verify embed setup
         mock_embed.set_footer.assert_called_with(icon_url=mock_bot.user.avatar.url, text="2023-01-01 12:00:00 UTC")
 
-        # Verify icon change handling
         mock_embed.set_thumbnail.assert_called_with(url=mock_guild.icon.url)
-        mock_embed.add_field.assert_called_with(name=messages.NEW_SERVER_ICON, value="")
+        mock_embed.add_field.assert_called_with(name=messages.GuildUpdate.NEW_SERVER_ICON, value="")
 
-        # Verify message sent
         mock_send_msg.assert_called_once()
 
     @pytest.mark.asyncio
@@ -159,30 +149,24 @@ class TestOnGuildUpdate:
         """Test on_guild_update with name change."""
         mock_get_embed.return_value = mock_embed
         mock_datetime.return_value = "2023-01-01 12:00:00"
-        # Mock embed fields to simulate having fields after add_field is called
-        mock_embed.fields = [MagicMock()]  # Simulate one field added
+        mock_embed.fields = [MagicMock()]
 
-        # Setup database mock
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = {"msg_on_server_update": True}
 
-        # Set different names
         mock_guild_before.name = "Old Test Server"
         mock_guild.name = "New Test Server"
-        mock_guild_before.icon.url = mock_guild.icon.url  # Same icon
-        mock_guild_before.owner_id = mock_guild.owner_id  # Same owner
+        mock_guild_before.icon.url = mock_guild.icon.url
+        mock_guild_before.owner_id = mock_guild.owner_id
 
         cog = OnGuildUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_guild_update(mock_guild_before, mock_guild)
 
-        # Verify name change handling
-        mock_embed.add_field.assert_any_call(name=messages.PREVIOUS_NAME, value="Old Test Server")
-        mock_embed.add_field.assert_any_call(name=messages.NEW_SERVER_NAME, value="New Test Server")
+        mock_embed.add_field.assert_any_call(name=messages.GuildUpdate.PREVIOUS_NAME, value="Old Test Server")
+        mock_embed.add_field.assert_any_call(name=messages.GuildUpdate.NEW_SERVER_NAME, value="New Test Server")
 
-        # Verify message sent
         mock_send_msg.assert_called_once()
 
     @pytest.mark.asyncio
@@ -204,31 +188,27 @@ class TestOnGuildUpdate:
         """Test on_guild_update with owner change."""
         mock_get_embed.return_value = mock_embed
         mock_datetime.return_value = "2023-01-01 12:00:00"
-        # Mock embed fields to simulate having fields after add_field is called
-        mock_embed.fields = [MagicMock()]  # Simulate one field added
+        mock_embed.fields = [MagicMock()]
 
-        # Setup database mock
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = {"msg_on_server_update": True}
 
-        # Set different owners
         mock_guild_before.owner_id = 54321
         mock_guild.owner_id = 98765
-        mock_guild_before.name = mock_guild.name  # Same name
-        mock_guild_before.icon.url = mock_guild.icon.url  # Same icon
+        mock_guild_before.name = mock_guild.name
+        mock_guild_before.icon.url = mock_guild.icon.url
 
         cog = OnGuildUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_guild_update(mock_guild_before, mock_guild)
 
-        # Verify owner change handling
         mock_embed.set_thumbnail.assert_called_with(url=mock_guild.icon.url)
-        mock_embed.add_field.assert_any_call(name=messages.PREVIOUS_SERVER_OWNER, value=str(mock_guild_before.owner))
-        mock_embed.add_field.assert_any_call(name=messages.NEW_SERVER_OWNER, value=str(mock_guild.owner))
+        mock_embed.add_field.assert_any_call(
+            name=messages.GuildUpdate.PREVIOUS_SERVER_OWNER, value=str(mock_guild_before.owner)
+        )
+        mock_embed.add_field.assert_any_call(name=messages.GuildUpdate.NEW_SERVER_OWNER, value=str(mock_guild.owner))
 
-        # Verify message sent
         mock_send_msg.assert_called_once()
 
     @pytest.mark.asyncio
@@ -242,25 +222,20 @@ class TestOnGuildUpdate:
         mock_get_embed.return_value = mock_embed
         mock_datetime.return_value = "2023-01-01 12:00:00"
 
-        # Setup database mock
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = {"msg_on_server_update": True}
 
-        # Set same values for both before and after
         mock_guild_before.name = mock_guild.name
         mock_guild_before.icon.url = mock_guild.icon.url
         mock_guild_before.owner_id = mock_guild.owner_id
 
-        # Mock empty fields list
         mock_embed.fields = []
 
         cog = OnGuildUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_guild_update(mock_guild_before, mock_guild)
 
-        # Should not send a message if no changes
         mock_dal.get_server.assert_not_called()
 
     @pytest.mark.asyncio
@@ -283,26 +258,21 @@ class TestOnGuildUpdate:
         mock_get_embed.return_value = mock_embed
         mock_datetime.return_value = "2023-01-01 12:00:00"
 
-        # Setup database mock with disabled notifications
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = {"msg_on_server_update": False}
 
-        # Set different names to trigger change detection
         mock_guild_before.name = "Old Test Server"
         mock_guild.name = "New Test Server"
         mock_guild_before.icon.url = mock_guild.icon.url
         mock_guild_before.owner_id = mock_guild.owner_id
 
-        # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
         cog = OnGuildUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_guild_update(mock_guild_before, mock_guild)
 
-        # Should not send message if notifications disabled
         mock_send_msg.assert_not_called()
 
     @pytest.mark.asyncio
@@ -323,26 +293,21 @@ class TestOnGuildUpdate:
         mock_get_embed.return_value = mock_embed
         mock_datetime.return_value = "2023-01-01 12:00:00"
 
-        # Setup database mock with no config
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = None
 
-        # Set different names to trigger change detection
         mock_guild_before.name = "Old Test Server"
         mock_guild.name = "New Test Server"
         mock_guild_before.icon.url = mock_guild.icon.url
         mock_guild_before.owner_id = mock_guild.owner_id
 
-        # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
         cog = OnGuildUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_guild_update(mock_guild_before, mock_guild)
 
-        # Should get server config but not send message
         mock_dal.get_server.assert_called_once_with(mock_guild.id)
 
     @pytest.mark.asyncio
@@ -361,7 +326,6 @@ class TestOnGuildUpdate:
         mock_get_embed.return_value = mock_embed
         mock_datetime.return_value = "2023-01-01 12:00:00"
 
-        # Set bot to have no avatar
         mock_bot.user.avatar = None
         mock_guild_before.name = "Old Test Server"
         mock_guild.name = "New Test Server"
@@ -370,10 +334,8 @@ class TestOnGuildUpdate:
 
         cog = OnGuildUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_guild_update(mock_guild_before, mock_guild)
 
-        # Should set footer with None icon_url
         mock_embed.set_footer.assert_called_with(icon_url=None, text="2023-01-01 12:00:00 UTC")
 
     @pytest.mark.asyncio
@@ -394,26 +356,21 @@ class TestOnGuildUpdate:
         mock_get_embed.return_value = mock_embed
         mock_datetime.return_value = "2023-01-01 12:00:00"
 
-        # Setup database mock to raise exception
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.side_effect = Exception("Database error")
 
-        # Set different names to trigger change detection
         mock_guild_before.name = "Old Test Server"
         mock_guild.name = "New Test Server"
         mock_guild_before.icon.url = mock_guild.icon.url
         mock_guild_before.owner_id = mock_guild.owner_id
 
-        # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
         cog = OnGuildUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_guild_update(mock_guild_before, mock_guild)
 
-        # Should log error
         mock_bot.log.error.assert_called()
         error_call = mock_bot.log.error.call_args[0][0]
         assert "Failed to send guild update notification" in error_call
@@ -422,15 +379,12 @@ class TestOnGuildUpdate:
     @patch("src.bot.cogs.events.on_guild_update.bot_utils.get_embed")
     async def test_on_guild_update_general_error(self, mock_get_embed, mock_bot, mock_guild_before, mock_guild):
         """Test on_guild_update with general error."""
-        # Setup embed to raise exception
         mock_get_embed.side_effect = Exception("General error")
 
         cog = OnGuildUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_guild_update(mock_guild_before, mock_guild)
 
-        # Should log error
         mock_bot.log.error.assert_called()
         error_call = mock_bot.log.error.call_args[0][0]
         assert "Error in on_guild_update" in error_call
@@ -455,31 +409,25 @@ class TestOnGuildUpdate:
         """Test on_guild_update with icon URL changed."""
         mock_get_embed.return_value = mock_embed
         mock_datetime.return_value = "2023-01-01 12:00:00"
-        # Mock embed fields to simulate having fields after add_field is called
-        mock_embed.fields = [MagicMock()]  # Simulate one field added
+        mock_embed.fields = [MagicMock()]
 
-        # Setup database mock
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = {"msg_on_server_update": True}
 
-        # Set guild to have different icon URL
         mock_guild_before.icon.url = "https://example.com/old_icon.png"
         mock_guild.icon = MagicMock()
-        mock_guild.icon.url = "https://example.com/new_icon.png"  # Different URL to trigger change
+        mock_guild.icon.url = "https://example.com/new_icon.png"
         mock_guild_before.name = mock_guild.name
         mock_guild_before.owner_id = mock_guild.owner_id
 
-        # Mock fields being added
         mock_embed.fields = [MagicMock()]
 
         cog = OnGuildUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_guild_update(mock_guild_before, mock_guild)
 
-        # Should handle icon change
-        mock_embed.add_field.assert_called_with(name=messages.NEW_SERVER_ICON, value="")
+        mock_embed.add_field.assert_called_with(name=messages.GuildUpdate.NEW_SERVER_ICON, value="")
         mock_send_msg.assert_called_once()
 
     @pytest.mark.asyncio
@@ -491,10 +439,8 @@ class TestOnGuildUpdate:
         """Test on_guild_update with null name before."""
         mock_get_embed.return_value = mock_embed
         mock_datetime.return_value = "2023-01-01 12:00:00"
-        # Mock embed fields to simulate having fields after add_field is called
-        mock_embed.fields = [MagicMock()]  # Simulate one field added
+        mock_embed.fields = [MagicMock()]
 
-        # Set before name to None
         mock_guild_before.name = None
         mock_guild.name = "New Test Server"
         mock_guild_before.icon.url = mock_guild.icon.url
@@ -502,11 +448,9 @@ class TestOnGuildUpdate:
 
         cog = OnGuildUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_guild_update(mock_guild_before, mock_guild)
 
-        # Should only add new name field (not previous)
-        mock_embed.add_field.assert_called_with(name=messages.NEW_SERVER_NAME, value="New Test Server")
+        mock_embed.add_field.assert_called_with(name=messages.GuildUpdate.NEW_SERVER_NAME, value="New Test Server")
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.events.on_guild_update.bot_utils.get_embed")
@@ -523,10 +467,8 @@ class TestOnGuildUpdate:
         """Test on_guild_update with null owner_id before."""
         mock_get_embed.return_value = mock_embed
         mock_datetime.return_value = "2023-01-01 12:00:00"
-        # Mock embed fields to simulate having fields after add_field is called
-        mock_embed.fields = [MagicMock()]  # Simulate one field added
+        mock_embed.fields = [MagicMock()]
 
-        # Set before owner_id to None
         mock_guild_before.owner_id = None
         mock_guild.owner_id = 98765
         mock_guild_before.name = mock_guild.name
@@ -534,8 +476,6 @@ class TestOnGuildUpdate:
 
         cog = OnGuildUpdate(mock_bot)
 
-        # Call the listener method directly
         await cog.on_guild_update(mock_guild_before, mock_guild)
 
-        # Should only add new owner field (not previous)
-        mock_embed.add_field.assert_called_with(name=messages.NEW_SERVER_OWNER, value=str(mock_guild.owner))
+        mock_embed.add_field.assert_called_with(name=messages.GuildUpdate.NEW_SERVER_OWNER, value=str(mock_guild.owner))

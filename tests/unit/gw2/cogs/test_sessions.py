@@ -14,7 +14,7 @@ from src.gw2.cogs.sessions import (
 )
 from src.gw2.constants import gw2_messages
 from src.gw2.constants.gw2_currencies import WALLET_DISPLAY_NAMES
-from src.gw2.constants.gw2_messages import GW2_FULL_NAME
+from src.gw2.constants.gw2_messages import Gw2
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
@@ -212,8 +212,6 @@ class TestSessionCommand:
 
         return SessionRunner()
 
-    # === Error path tests ===
-
     @pytest.mark.asyncio
     async def test_session_no_api_key(self, mock_ctx):
         """Test session command when user has no API key."""
@@ -222,7 +220,7 @@ class TestSessionCommand:
             with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                 await session(mock_ctx)
                 mock_error.assert_called_once()
-                assert gw2_messages.NO_API_KEY in mock_error.call_args[0][1]
+                assert gw2_messages.Key.NO_API_KEY in mock_error.call_args[0][1]
 
     @pytest.mark.asyncio
     async def test_session_not_active_in_config(self, mock_ctx, sample_api_key_data):
@@ -285,7 +283,6 @@ class TestSessionCommand:
                     with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                         await session(mock_ctx)
                         mock_error.assert_called_once()
-                        # Error sent to channel (not via DM)
                         assert len(mock_error.call_args[0]) == 2
 
     @pytest.mark.asyncio
@@ -297,7 +294,6 @@ class TestSessionCommand:
             with patch("src.gw2.cogs.sessions.Gw2ConfigsDal") as mock_configs:
                 mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
                 with patch("src.gw2.cogs.sessions.Gw2SessionsDal") as mock_sessions_dal:
-                    # end_session is called but fails, so re-fetch still returns None end
                     mock_sessions_dal.return_value.get_user_last_session = AsyncMock(return_value=session_data)
                     with patch("src.gw2.cogs.sessions.gw2_utils.end_session", new_callable=AsyncMock):
                         with patch(
@@ -308,7 +304,7 @@ class TestSessionCommand:
                             with patch("src.gw2.cogs.sessions.bot_utils.send_error_msg") as mock_error:
                                 await session(mock_ctx)
                                 mock_error.assert_called_once()
-                                assert gw2_messages.SESSION_BOT_STILL_UPDATING in str(mock_error.call_args[0][1])
+                                assert gw2_messages.Session.BOT_STILL_UPDATING in str(mock_error.call_args[0][1])
 
     @pytest.mark.asyncio
     async def test_session_end_date_is_none_auto_completes(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -336,7 +332,6 @@ class TestSessionCommand:
         ):
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
             mock_configs.return_value.get_gw2_server_configs = AsyncMock(return_value=[{"session": True}])
-            # First call returns no end, second call (after end_session) returns with end
             mock_sessions_dal.return_value.get_user_last_session = AsyncMock(
                 side_effect=[session_no_end, session_with_end]
             )
@@ -353,7 +348,7 @@ class TestSessionCommand:
         session_data = [{"acc_name": "TestUser.1234", "start": {}, "end": None}]
         gw2_activity = MagicMock()
         gw2_activity.type = discord.ActivityType.playing
-        gw2_activity.name = GW2_FULL_NAME
+        gw2_activity.name = Gw2.FULL_NAME
         mock_ctx.message.author.activities = (gw2_activity,)
         with patch("src.gw2.cogs.sessions.Gw2KeyDal") as mock_dal:
             mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
@@ -372,7 +367,7 @@ class TestSessionCommand:
                             with patch("src.gw2.cogs.sessions.gw2_utils.send_msg") as mock_send:
                                 await session(mock_ctx)
                                 mock_send.assert_called_once()
-                                assert gw2_messages.SESSION_IN_PROGRESS in mock_send.call_args[0][1]
+                                assert gw2_messages.Session.IN_PROGRESS in mock_send.call_args[0][1]
 
     @pytest.mark.asyncio
     async def test_session_live_snapshot_while_playing(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -383,7 +378,7 @@ class TestSessionCommand:
 
         gw2_activity = MagicMock()
         gw2_activity.type = discord.ActivityType.playing
-        gw2_activity.name = GW2_FULL_NAME
+        gw2_activity.name = Gw2.FULL_NAME
         mock_ctx.message.author.activities = (gw2_activity,)
 
         with (
@@ -413,7 +408,7 @@ class TestSessionCommand:
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
             assert "(Live)" in embed.author.name
-            assert gw2_messages.SESSION_USER_STILL_PLAYING in embed.footer.text
+            assert gw2_messages.Session.USER_STILL_PLAYING in embed.footer.text
 
     @pytest.mark.asyncio
     async def test_session_time_passed_less_than_one_minute(self, mock_ctx, sample_api_key_data):
@@ -442,8 +437,6 @@ class TestSessionCommand:
                                 msg = mock_send_msg.call_args[0][1]
                                 assert "still updating" in msg.lower() or "Bot still updating" in msg
 
-    # === Playtime tests ===
-
     @pytest.mark.asyncio
     async def test_session_play_time_from_jsonb_dates(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test that play time uses JSONB date fields for session duration."""
@@ -452,11 +445,9 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            play_time_field = next((f for f in embed.fields if f.name == gw2_messages.PLAY_TIME), None)
+            play_time_field = next((f for f in embed.fields if f.name == gw2_messages.Session.PLAY_TIME), None)
             assert play_time_field is not None
             assert "2h 30m" in play_time_field.value
-
-    # === Gold tests ===
 
     @pytest.mark.asyncio
     async def test_session_gold_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -496,8 +487,6 @@ class TestSessionCommand:
                 assert gold_field is not None
                 assert "--" not in gold_field.value
 
-    # === Deaths tests ===
-
     @pytest.mark.asyncio
     async def test_session_characters_with_deaths(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command with character deaths."""
@@ -511,7 +500,7 @@ class TestSessionCommand:
             r.mock_chars_dal.get_char_deaths = AsyncMock(return_value=char_deaths)
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            deaths_field = next((f for f in embed.fields if f.name == gw2_messages.TIMES_YOU_DIED), None)
+            deaths_field = next((f for f in embed.fields if f.name == gw2_messages.Session.TIMES_YOU_DIED), None)
             assert deaths_field is not None
             assert "Warrior" in deaths_field.value
             assert "TestChar" in deaths_field.value
@@ -527,7 +516,7 @@ class TestSessionCommand:
             r.mock_chars_dal.get_char_deaths = AsyncMock(return_value=char_deaths)
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            deaths_field = next((f for f in embed.fields if f.name == gw2_messages.TIMES_YOU_DIED), None)
+            deaths_field = next((f for f in embed.fields if f.name == gw2_messages.Session.TIMES_YOU_DIED), None)
             assert deaths_field is None
 
     @pytest.mark.asyncio
@@ -543,13 +532,11 @@ class TestSessionCommand:
             r.mock_chars_dal.get_char_deaths = AsyncMock(return_value=char_deaths)
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            deaths_field = next((f for f in embed.fields if f.name == gw2_messages.TIMES_YOU_DIED), None)
+            deaths_field = next((f for f in embed.fields if f.name == gw2_messages.Session.TIMES_YOU_DIED), None)
             assert deaths_field is not None
             assert "Total: 6" in deaths_field.value
             assert "Warrior" in deaths_field.value
             assert "Mesmer" in deaths_field.value
-
-    # === WvW stats tests ===
 
     @pytest.mark.asyncio
     async def test_session_wvw_rank_change(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -559,7 +546,7 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            wvw_field = next((f for f in embed.fields if f.name == gw2_messages.WVW_RANKS), None)
+            wvw_field = next((f for f in embed.fields if f.name == gw2_messages.Session.WVW_RANKS), None)
             assert wvw_field is not None
             assert "2" in wvw_field.value
 
@@ -572,15 +559,13 @@ class TestSessionCommand:
                 await session(mock_ctx)
                 embed = r.mock_send.call_args[0][1]
                 field_names = [f.name for f in embed.fields]
-                assert gw2_messages.YAKS_KILLED in field_names
-                assert gw2_messages.YAKS_SCORTED in field_names
-                assert gw2_messages.PLAYERS_KILLED in field_names
-                assert gw2_messages.KEEPS_CAPTURED in field_names
-                assert gw2_messages.TOWERS_CAPTURED in field_names
-                assert gw2_messages.CAMPS_CAPTURED in field_names
-                assert gw2_messages.SMC_CAPTURED in field_names
-
-    # === Wallet currency tests ===
+                assert gw2_messages.Session.YAKS_KILLED in field_names
+                assert gw2_messages.Session.YAKS_ESCORTED in field_names
+                assert gw2_messages.Session.PLAYERS_KILLED in field_names
+                assert gw2_messages.Session.KEEPS_CAPTURED in field_names
+                assert gw2_messages.Session.TOWERS_CAPTURED in field_names
+                assert gw2_messages.Session.CAMPS_CAPTURED in field_names
+                assert gw2_messages.Session.SMC_CAPTURED in field_names
 
     @pytest.mark.asyncio
     async def test_session_karma_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -690,8 +675,6 @@ class TestSessionCommand:
             assert field is not None
             assert "+5" in field.value
 
-    # === New currency tests ===
-
     @pytest.mark.asyncio
     async def test_session_spirit_shards_gained(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test session command when spirit shards are gained."""
@@ -755,20 +738,16 @@ class TestSessionCommand:
     @pytest.mark.asyncio
     async def test_session_no_currency_field_when_unchanged(self, mock_ctx, sample_api_key_data, sample_time_passed):
         """Test that no currency field is added when values are unchanged."""
-        session_data = _make_session_data()  # All values same between start/end
+        session_data = _make_session_data()
         runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
             field_names = [f.name for f in embed.fields]
-            # Only basic fields should be present
-            assert gw2_messages.ACCOUNT_NAME in field_names
-            assert gw2_messages.SERVER in field_names
-            assert gw2_messages.PLAY_TIME in field_names
-            # Only the 3 basic fields should be present (no currency/gold fields)
+            assert gw2_messages.Session.ACCOUNT_NAME in field_names
+            assert gw2_messages.Session.SERVER in field_names
+            assert gw2_messages.Session.PLAY_TIME in field_names
             assert len(field_names) == 3
-
-    # === Stale data tests (missing keys) ===
 
     @pytest.mark.asyncio
     async def test_session_gold_not_shown_when_missing_from_start(
@@ -809,10 +788,8 @@ class TestSessionCommand:
         async with runner.run() as r:
             await session(mock_ctx)
             embed = r.mock_send.call_args[0][1]
-            yaks_fields = [f for f in embed.fields if gw2_messages.YAKS_KILLED in f.name]
+            yaks_fields = [f for f in embed.fields if gw2_messages.Session.YAKS_KILLED in f.name]
             assert len(yaks_fields) == 0
-
-    # === Still playing / DM tests ===
 
     @pytest.mark.asyncio
     async def test_session_still_playing_gw2(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -820,7 +797,7 @@ class TestSessionCommand:
         session_data = _make_session_data()
         gw2_activity = MagicMock()
         gw2_activity.type = discord.ActivityType.playing
-        gw2_activity.name = GW2_FULL_NAME
+        gw2_activity.name = Gw2.FULL_NAME
         mock_ctx.message.author.activities = (gw2_activity,)
         mock_ctx.channel = MagicMock(spec=discord.TextChannel)
 
@@ -853,7 +830,7 @@ class TestSessionCommand:
         mock_ctx.channel = MagicMock(spec=discord.DMChannel)
         gw2_activity = MagicMock()
         gw2_activity.type = discord.ActivityType.playing
-        gw2_activity.name = GW2_FULL_NAME
+        gw2_activity.name = Gw2.FULL_NAME
         mock_ctx.message.author.activities = (gw2_activity,)
 
         runner = self._run_session(mock_ctx, sample_api_key_data, session_data, sample_time_passed)
@@ -862,8 +839,6 @@ class TestSessionCommand:
                 await session(mock_ctx)
                 mock_end_session.assert_not_called()
                 r.mock_send.assert_called_once()
-
-    # === Basic embed tests ===
 
     @pytest.mark.asyncio
     async def test_session_successful_embed_basic_fields(self, mock_ctx, sample_api_key_data, sample_time_passed):
@@ -875,9 +850,9 @@ class TestSessionCommand:
             r.mock_send.assert_called_once()
             embed = r.mock_send.call_args[0][1]
             field_names = [f.name for f in embed.fields]
-            assert gw2_messages.ACCOUNT_NAME in field_names
-            assert gw2_messages.SERVER in field_names
-            assert gw2_messages.PLAY_TIME in field_names
+            assert gw2_messages.Session.ACCOUNT_NAME in field_names
+            assert gw2_messages.Session.SERVER in field_names
+            assert gw2_messages.Session.PLAY_TIME in field_names
 
     @pytest.mark.asyncio
     async def test_session_time_passed_exactly_one_minute(self, mock_ctx, sample_api_key_data):
@@ -948,7 +923,7 @@ class TestAddDeathsField:
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_deaths_field(embed, char_deaths)
             assert len(embed.fields) == 1
-            assert embed.fields[0].name == gw2_messages.TIMES_YOU_DIED
+            assert embed.fields[0].name == gw2_messages.Session.TIMES_YOU_DIED
             assert "Char1 (Warrior): 5" in embed.fields[0].value
             assert "Total: 5" in embed.fields[0].value
 
@@ -974,7 +949,7 @@ class TestAddDeathsField:
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_deaths_field(embed, char_deaths)
             assert len(embed.fields) == 1
-            assert embed.fields[0].name == gw2_messages.TIMES_YOU_DIED
+            assert embed.fields[0].name == gw2_messages.Session.TIMES_YOU_DIED
             assert "I Hadesz I (Necromancer): 1" in embed.fields[0].value
             assert "Hàdész (Mesmer): 2" in embed.fields[0].value
             assert "Total: 3" in embed.fields[0].value
@@ -1008,10 +983,9 @@ class TestAddWvwStats:
         with patch("src.gw2.cogs.sessions.chat_formatting.inline", side_effect=lambda x: f"`{x}`"):
             _add_wvw_stats(embed, start, end)
             assert len(embed.fields) == 8
-            # WvW stats should not have + sign (they can only increase)
-            rank_field = next(f for f in embed.fields if f.name == gw2_messages.WVW_RANKS)
+            rank_field = next(f for f in embed.fields if f.name == gw2_messages.Session.WVW_RANKS)
             assert rank_field.value == "`2`"
-            yaks_field = next(f for f in embed.fields if f.name == gw2_messages.YAKS_KILLED)
+            yaks_field = next(f for f in embed.fields if f.name == gw2_messages.Session.YAKS_KILLED)
             assert yaks_field.value == "`3`"
 
     def test_no_stats_changed(self):

@@ -43,7 +43,7 @@ class OnGuildUpdate(commands.Cog):
 
     def _create_base_embed(self):
         """Create the base embed and message for guild updates."""
-        msg = [f"{messages.NEW_SERVER_SETTINGS}\n"]
+        msg = [f"{messages.GuildUpdate.NEW_SERVER_SETTINGS}\n"]
 
         # Create a simple context-like object for get_embed
         class SimpleContext:
@@ -62,27 +62,27 @@ class OnGuildUpdate(commands.Cog):
         """Handle guild icon changes."""
         if str(before.icon.url) != str(after.icon.url):
             self._set_thumbnail_if_icon_exists(after, embed)
-            embed.add_field(name=messages.NEW_SERVER_ICON, value="")
+            embed.add_field(name=messages.GuildUpdate.NEW_SERVER_ICON, value="")
             icon_url = after.icon.url if after.icon else "None"
-            msg.append(f"{messages.NEW_SERVER_ICON}: \n{icon_url}\n")
+            msg.append(f"{messages.GuildUpdate.NEW_SERVER_ICON}: \n{icon_url}\n")
 
     @staticmethod
     def _handle_name_changes(before, after, embed, msg):
         """Handle guild name changes."""
         if str(before.name) != str(after.name):
             if before.name is not None:
-                embed.add_field(name=messages.PREVIOUS_NAME, value=str(before.name))
-            embed.add_field(name=messages.NEW_SERVER_NAME, value=str(after.name))
-            msg.append(f"{messages.NEW_SERVER_NAME}: `{after.name}`\n")
+                embed.add_field(name=messages.GuildUpdate.PREVIOUS_NAME, value=str(before.name))
+            embed.add_field(name=messages.GuildUpdate.NEW_SERVER_NAME, value=str(after.name))
+            msg.append(f"{messages.GuildUpdate.NEW_SERVER_NAME}: `{after.name}`\n")
 
     def _handle_owner_changes(self, before, after, embed, msg):
         """Handle guild owner changes."""
         if str(before.owner_id) != str(after.owner_id):
             self._set_thumbnail_if_icon_exists(after, embed)
             if before.owner_id is not None:
-                embed.add_field(name=messages.PREVIOUS_SERVER_OWNER, value=str(before.owner))
-            embed.add_field(name=messages.NEW_SERVER_OWNER, value=str(after.owner))
-            msg.append(f"{messages.NEW_SERVER_OWNER}: `{after.owner}`\n")
+                embed.add_field(name=messages.GuildUpdate.PREVIOUS_SERVER_OWNER, value=str(before.owner))
+            embed.add_field(name=messages.GuildUpdate.NEW_SERVER_OWNER, value=str(after.owner))
+            msg.append(f"{messages.GuildUpdate.NEW_SERVER_OWNER}: `{after.owner}`\n")
 
     @staticmethod
     def _set_thumbnail_if_icon_exists(guild, embed):
