@@ -1,6 +1,5 @@
 """Comprehensive tests for the OnConnect event cog."""
 
-# Mock problematic imports before importing the module
 import pytest
 import sys
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -15,20 +14,15 @@ def mock_bot():
     """Create a mock bot instance."""
     bot = AsyncMock()
     bot.log = MagicMock()
-    # Ensure log methods are not coroutines
     bot.log.error = MagicMock()
     bot.db_session = MagicMock()
     bot.get_guild = MagicMock()
 
-    # Configure fetch_guilds to return a proper async iterator
     async def mock_fetch_guilds(limit=None):
-        # Return empty async iterator - no guilds by default
-        # Using empty loop to make this an async generator
         for _ in []:
             yield
 
     bot.fetch_guilds = mock_fetch_guilds
-    # Ensure add_cog doesn't return a coroutine
     bot.add_cog = AsyncMock(return_value=None)
     return bot
 
@@ -84,7 +78,6 @@ class TestGuildSynchronizer:
     @patch("src.bot.cogs.events.on_connect.ServersDal")
     async def test_get_database_server_ids_success(self, mock_dal_class, guild_synchronizer):
         """Test getting database server IDs successfully."""
-        # Setup mock
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = [{"id": 12345}, {"id": 12346}, {"id": 12347}]
@@ -98,7 +91,6 @@ class TestGuildSynchronizer:
     @patch("src.bot.cogs.events.on_connect.ServersDal")
     async def test_get_database_server_ids_empty(self, mock_dal_class, guild_synchronizer):
         """Test getting database server IDs when empty."""
-        # Setup mock
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.return_value = None
@@ -111,7 +103,6 @@ class TestGuildSynchronizer:
     @patch("src.bot.cogs.events.on_connect.ServersDal")
     async def test_get_database_server_ids_error(self, mock_dal_class, guild_synchronizer):
         """Test getting database server IDs with error."""
-        # Setup mock to raise exception
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_server.side_effect = RuntimeError("Database error")
@@ -125,7 +116,6 @@ class TestGuildSynchronizer:
     async def test_get_discord_guild_ids_success(self, guild_synchronizer, mock_guilds):
         """Test getting Discord guild IDs successfully."""
 
-        # Setup async generator mock
         async def mock_fetch_guilds(limit=None):
             for guild in mock_guilds:
                 yield guild
@@ -141,9 +131,7 @@ class TestGuildSynchronizer:
     async def test_get_discord_guild_ids_error(self, guild_synchronizer):
         """Test getting Discord guild IDs with error."""
 
-        # Setup mock to raise exception during iteration
         async def error_fetch_guilds(limit=None):
-            # Use try/finally to ensure generator behavior before raising
             try:
                 for _ in []:
                     yield
@@ -198,7 +186,6 @@ class TestGuildSynchronizer:
     @pytest.mark.asyncio
     async def test_sync_guilds_with_database_no_missing(self, guild_synchronizer):
         """Test guild synchronization with no missing guilds."""
-        # Mock methods to return same sets
         guild_synchronizer._get_database_server_ids = AsyncMock(return_value={12345, 12346})
         guild_synchronizer._get_discord_guild_ids = AsyncMock(return_value={12345, 12346})
         guild_synchronizer._add_missing_guilds = AsyncMock()
@@ -211,7 +198,6 @@ class TestGuildSynchronizer:
     @pytest.mark.asyncio
     async def test_sync_guilds_with_database_with_missing(self, guild_synchronizer):
         """Test guild synchronization with missing guilds."""
-        # Mock methods to return different sets
         guild_synchronizer._get_database_server_ids = AsyncMock(return_value={12345})
         guild_synchronizer._get_discord_guild_ids = AsyncMock(return_value={12345, 12346, 12347})
         guild_synchronizer._add_missing_guilds = AsyncMock()
@@ -224,7 +210,6 @@ class TestGuildSynchronizer:
     @pytest.mark.asyncio
     async def test_sync_guilds_with_database_error(self, guild_synchronizer):
         """Test guild synchronization with general error."""
-        # Mock method to raise exception
         guild_synchronizer._get_database_server_ids = AsyncMock(side_effect=RuntimeError("General error"))
 
         await guild_synchronizer.sync_guilds_with_database()
@@ -295,7 +280,6 @@ class TestOnConnect:
         cog = OnConnect(mock_bot)
         cog.connection_handler.process_connection = AsyncMock()
 
-        # Call the listener method directly
         await cog.on_connect()
 
         cog.connection_handler.process_connection.assert_called_once()
@@ -306,7 +290,6 @@ class TestOnConnect:
         cog = OnConnect(mock_bot)
         cog.connection_handler.process_connection = AsyncMock(side_effect=RuntimeError("Critical error"))
 
-        # Call the listener method directly
         await cog.on_connect()
 
         mock_bot.log.error.assert_called_once()
@@ -323,10 +306,8 @@ class TestOnConnect:
     @pytest.mark.asyncio
     async def test_guild_synchronizer_integration(self, mock_bot):
         """Test integration between OnConnect and GuildSynchronizer."""
-        # Create cog and verify connection handler setup
         cog = OnConnect(mock_bot)
 
-        # Verify that connection handler has a guild synchronizer
         assert hasattr(cog.connection_handler, "guild_synchronizer")
         assert isinstance(cog.connection_handler.guild_synchronizer, GuildSynchronizer)
         assert cog.connection_handler.guild_synchronizer.bot == mock_bot
@@ -336,12 +317,10 @@ class TestOnConnect:
     @patch("src.bot.cogs.events.on_connect.bot_utils.insert_server")
     async def test_full_integration_sync_process(self, mock_insert_server, mock_dal_class, mock_bot, mock_guilds):
         """Test full integration of synchronization process."""
-        # Setup database mock
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
-        mock_dal.get_server.return_value = [{"id": 12345}]  # Only first guild in DB
+        mock_dal.get_server.return_value = [{"id": 12345}]
 
-        # Setup Discord API mock
         async def mock_fetch_guilds(limit=None):
             for guild in mock_guilds:
                 yield guild
@@ -349,16 +328,12 @@ class TestOnConnect:
         mock_bot.fetch_guilds = mock_fetch_guilds
         mock_bot.get_guild.side_effect = lambda guild_id: next((g for g in mock_guilds if g.id == guild_id), None)
 
-        # Create and run connection process
         cog = OnConnect(mock_bot)
         await cog.connection_handler.process_connection()
 
-        # Verify synchronization occurred
         mock_dal.get_server.assert_called_once()
 
-        # Should insert missing guilds (12346, 12347)
         assert mock_insert_server.call_count == 2
 
-        # Verify logging
         mock_bot.log.info.assert_any_call("Bot connected to Discord - starting initialization tasks")
         mock_bot.log.info.assert_any_call("Bot connection initialization completed successfully")

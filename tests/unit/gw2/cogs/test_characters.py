@@ -87,7 +87,7 @@ class TestCharactersCommand:
             "profession": "Warrior",
             "level": 80,
             "deaths": 42,
-            "age": 432000,  # seconds
+            "age": 432000,
             "created": "2020-01-15T10:30:00Z",
         }
 
@@ -102,7 +102,7 @@ class TestCharactersCommand:
                 await characters(mock_ctx)
                 mock_error.assert_called_once()
                 error_msg = mock_error.call_args[0][1]
-                assert gw2_messages.NO_API_KEY in error_msg
+                assert gw2_messages.Key.NO_API_KEY in error_msg
 
     @pytest.mark.asyncio
     async def test_characters_invalid_api_key_sends_error_with_help(self, mock_ctx, sample_api_key_data):
@@ -112,22 +112,20 @@ class TestCharactersCommand:
             mock_instance.get_api_key_by_user = AsyncMock(return_value=sample_api_key_data)
             with patch("src.gw2.cogs.characters.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
-                invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.INVALID_APIKEY_MSG}")
+                invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.Api.INVALID_KEY}")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
                 with patch("src.gw2.cogs.characters.bot_utils.send_error_msg") as mock_error:
                     mock_error.return_value = None
                     await characters(mock_ctx)
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert gw2_messages.INVALID_APIKEY_MSG in error_msg
+                    assert gw2_messages.Api.INVALID_KEY in error_msg
                     assert "gw2 key add" in error_msg or "key add" in error_msg
 
     @pytest.mark.asyncio
     async def test_characters_missing_characters_permission_sends_error(self, mock_ctx):
         """Test characters command with missing characters permission."""
-        no_chars_permission_data = [
-            {"key": "test-api-key-12345", "permissions": "account,progression"}  # Missing 'characters'
-        ]
+        no_chars_permission_data = [{"key": "test-api-key-12345", "permissions": "account,progression"}]
         with patch("src.gw2.cogs.characters.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=no_chars_permission_data)
@@ -146,9 +144,7 @@ class TestCharactersCommand:
     @pytest.mark.asyncio
     async def test_characters_missing_account_permission_sends_error(self, mock_ctx):
         """Test characters command with missing account permission."""
-        no_account_permission_data = [
-            {"key": "test-api-key-12345", "permissions": "characters,progression"}  # Missing 'account'
-        ]
+        no_account_permission_data = [{"key": "test-api-key-12345", "permissions": "characters,progression"}]
         with patch("src.gw2.cogs.characters.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
             mock_instance.get_api_key_by_user = AsyncMock(return_value=no_account_permission_data)
@@ -179,8 +175,8 @@ class TestCharactersCommand:
                 )
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
-                        sample_account_data,  # account call
-                        [  # characters?ids=all call
+                        sample_account_data,
+                        [
                             {
                                 "name": "CharOne",
                                 "race": "Human",
@@ -217,9 +213,7 @@ class TestCharactersCommand:
                             embed = mock_send.call_args[0][1]
                             assert embed.title == "Account Name"
                             assert "TestUser.1234" in embed.description
-                            # Verify embed has fields for characters
                             assert len(embed.fields) == 2
-                            # Verify character fields contain expected data
                             char_one_field = embed.fields[0]
                             assert char_one_field.name == "CharOne"
                             assert "Human" in char_one_field.value
@@ -243,7 +237,6 @@ class TestCharactersCommand:
                 mock_client_instance.check_api_key = AsyncMock(
                     return_value={"name": "TestKey", "permissions": ["account", "characters"]}
                 )
-                # age = 144000 seconds => (144000/60)/24 = 100 days
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
                         sample_account_data,
@@ -255,7 +248,7 @@ class TestCharactersCommand:
                                 "profession": "Guardian",
                                 "level": 80,
                                 "deaths": 10,
-                                "age": 144000,  # 100 days in seconds/minutes -> (144000/60)/24 = 100
+                                "age": 144000,
                                 "created": "2022-03-01T00:00:00Z",
                             },
                         ],

@@ -4,7 +4,7 @@ from discord.ext import commands
 from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.gw2.cogs.gw2 import GuildWars2
-from src.gw2.constants import gw2_messages
+from src.gw2.constants import gw2_messages, gw2_variables
 from src.gw2.tools import gw2_utils
 from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
@@ -32,9 +32,9 @@ async def characters(ctx):
         gw2_key_dal = Gw2KeyDal(ctx.bot.db_session, ctx.bot.log)
         rs = await gw2_key_dal.get_api_key_by_user(ctx.message.author.id)
         if not rs:
-            msg = gw2_messages.NO_API_KEY
-            msg += gw2_messages.key_add_info_help(ctx.prefix)
-            msg += gw2_messages.key_more_info_help(ctx.prefix)
+            msg = gw2_messages.Key.NO_API_KEY
+            msg += gw2_messages.Key.add_info_help(ctx.prefix)
+            msg += gw2_messages.Key.more_info_help(ctx.prefix)
             return await bot_utils.send_error_msg(ctx, msg)
 
         api_key = str(rs[0]["key"])
@@ -42,14 +42,14 @@ async def characters(ctx):
         is_valid_key = await gw2_api.check_api_key(api_key)
         if not isinstance(is_valid_key, dict):
             msg = f"{is_valid_key.message}\n"
-            msg += gw2_messages.INVALID_API_KEY_HELP_MESSAGE
-            msg += gw2_messages.key_add_info_help(ctx.prefix)
-            msg += gw2_messages.key_more_info_help(ctx.prefix)
+            msg += gw2_messages.Key.INVALID_KEY_HELP
+            msg += gw2_messages.Key.add_info_help(ctx.prefix)
+            msg += gw2_messages.Key.more_info_help(ctx.prefix)
             return await bot_utils.send_error_msg(ctx, msg)
 
         permissions = str(rs[0]["permissions"])
         if "characters" not in permissions or "account" not in permissions:
-            return await bot_utils.send_error_msg(ctx, gw2_messages.API_KEY_NO_PERMISSION, True)
+            return await bot_utils.send_error_msg(ctx, gw2_messages.Key.NO_ACCOUNT_PERMISSION, True)
 
         progress_msg = await gw2_utils.send_progress_embed(
             ctx, "Please wait, I'm fetching your character data... (this may take a moment)"
@@ -58,8 +58,8 @@ async def characters(ctx):
     try:
         # Fetch account info and all characters in parallel
         api_req_acc, characters_data = await asyncio.gather(
-            gw2_api.call_api("account", api_key),
-            gw2_api.call_api("characters?ids=all", api_key),
+            gw2_api.call_api(gw2_variables.API_ACCOUNT, api_key),
+            gw2_api.call_api(f"{gw2_variables.API_CHARACTERS}?ids=all", api_key),
         )
 
         color = ctx.bot.settings["gw2"]["EmbedColor"]

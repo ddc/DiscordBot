@@ -28,7 +28,7 @@ class TestAPIError:
     def mock_bot_no_log(self):
         """Create a mock bot without logging."""
         bot = MagicMock()
-        del bot.log  # Remove log attribute
+        del bot.log
         return bot
 
     def test_api_error_initialization(self, mock_bot):
@@ -46,7 +46,6 @@ class TestAPIError:
         """Test APIError initialization without logging capability."""
         error_message = "Test API error without log"
 
-        # Should not raise an exception even without log
         error = APIError(mock_bot_no_log, error_message)
 
         assert str(error) == error_message
@@ -59,7 +58,6 @@ class TestAPIError:
         bot.log = None
         error_message = "Test API error with None log"
 
-        # Should not raise an exception with None log
         error = APIError(bot, error_message)
 
         assert str(error) == error_message
@@ -314,7 +312,6 @@ class TestExceptionHierarchy:
 
     def test_all_exceptions_inherit_from_api_error(self, mock_bot):
         """Test that all specific exceptions inherit from APIError."""
-        # Ensure log.error is a regular MagicMock, not AsyncMock
         mock_bot.log.error = MagicMock()
 
         exception_classes = [
@@ -334,19 +331,16 @@ class TestExceptionHierarchy:
 
     def test_exception_catching_hierarchy(self, mock_bot):
         """Test that exceptions can be caught by their parent classes."""
-        # Ensure log.error is a regular MagicMock, not AsyncMock
         mock_bot.log.error = MagicMock()
 
         error = APIBadRequest(mock_bot, "Bad request")
 
-        # Should be catchable as APIError
         try:
             raise error
         except APIError as e:
             assert isinstance(e, APIBadRequest)
             assert isinstance(e, APIError)
 
-        # Should be catchable as Exception
         try:
             raise error
         except Exception as e:
@@ -407,7 +401,6 @@ class TestExceptionHandling:
 
     def test_multiple_exceptions_same_bot(self, mock_bot):
         """Test multiple exceptions with the same bot instance."""
-        # Ensure log.error is a regular MagicMock, not AsyncMock
         mock_bot.log.error = MagicMock()
 
         error1 = APIError(mock_bot, "First error")

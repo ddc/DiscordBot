@@ -304,7 +304,6 @@ class TestCallApi:
         result = await gw2_client.call_api("account", "my-api-key")
 
         assert result == expected_data
-        # Verify headers were built with key
         call_kwargs = gw2_client.bot.aiosession.get.call_args
         headers = (
             call_kwargs[1]["headers"]
@@ -313,7 +312,6 @@ class TestCallApi:
             if len(call_kwargs[0]) > 1
             else None
         )
-        # The headers parameter is passed as keyword arg
         if headers:
             assert "Authorization" in headers
 
@@ -489,7 +487,6 @@ class TestHandleApiError:
         with pytest.raises(APIConnectionError) as exc_info:
             await gw2_client._handle_api_error(mock_response, "https://api.guildwars2.com/v2/account")
 
-        # When err_msg is empty, _handle_other_error uses response.reason
         assert "Server Error" in str(exc_info.value)
 
     @pytest.mark.asyncio
@@ -515,7 +512,6 @@ class TestHandleApiError:
         with pytest.raises(APIConnectionError) as exc_info:
             await gw2_client._handle_api_error(mock_response, "https://api.guildwars2.com/v2/achievements?ids=1,2,3")
 
-        # The init_msg should not include query parameters
         error_msg = str(exc_info.value)
         assert "ids=1,2,3" not in error_msg
 
@@ -540,14 +536,14 @@ class TestHandle400Error:
         with pytest.raises(APIInvalidKey) as exc_info:
             gw2_client._handle_400_error(400, "invalid key", "init_msg")
 
-        assert gw2_messages.INVALID_APIKEY_MSG in str(exc_info.value)
+        assert gw2_messages.Api.INVALID_KEY in str(exc_info.value)
 
     def test_other_error_raises_api_bad_request(self, gw2_client):
         """Test other error messages raise APIBadRequest (line 90)."""
         with pytest.raises(APIBadRequest) as exc_info:
             gw2_client._handle_400_error(400, "some other error", "init_msg")
 
-        assert gw2_messages.API_DOWN in str(exc_info.value)
+        assert gw2_messages.Api.DOWN in str(exc_info.value)
 
     def test_empty_error_raises_api_bad_request(self, gw2_client):
         """Test empty error message raises APIBadRequest."""
@@ -575,14 +571,14 @@ class TestHandle403Error:
         with pytest.raises(APIInvalidKey) as exc_info:
             gw2_client._handle_403_error(403, "invalid key", "init_msg")
 
-        assert gw2_messages.INVALID_APIKEY_MSG in str(exc_info.value)
+        assert gw2_messages.Api.INVALID_KEY in str(exc_info.value)
 
     def test_other_error_raises_api_forbidden(self, gw2_client):
         """Test other error messages raise APIForbidden (line 96)."""
         with pytest.raises(APIForbidden) as exc_info:
             gw2_client._handle_403_error(403, "access denied", "init_msg")
 
-        assert gw2_messages.API_ACCESS_DENIED in str(exc_info.value)
+        assert gw2_messages.Api.ACCESS_DENIED in str(exc_info.value)
 
     def test_empty_error_raises_api_forbidden(self, gw2_client):
         """Test empty error message raises APIForbidden."""
@@ -610,8 +606,7 @@ class TestHandle404Error:
         with pytest.raises(APINotFound) as exc_info:
             gw2_client._handle_404_error(404, "https://api.guildwars2.com/v2/account?key=123")
 
-        assert gw2_messages.API_NOT_FOUND in str(exc_info.value)
-        # Check that the endpoint is split on ?
+        assert gw2_messages.Api.NOT_FOUND in str(exc_info.value)
         assert "key=123" not in str(exc_info.value)
 
     def test_endpoint_without_query_string(self, gw2_client):
@@ -642,7 +637,7 @@ class TestHandle429Error:
         with pytest.raises(APIConnectionError) as exc_info:
             gw2_client._handle_429_error("429)(account")
 
-        assert gw2_messages.API_REQUEST_REACHED in str(exc_info.value)
+        assert gw2_messages.Api.REQUEST_LIMIT_REACHED in str(exc_info.value)
 
 
 class TestHandle502504Error:
@@ -665,7 +660,7 @@ class TestHandle502504Error:
         with pytest.raises(APIInactiveError) as exc_info:
             gw2_client._handle_502_504_error("502)(account")
 
-        assert gw2_messages.API_DOWN in str(exc_info.value)
+        assert gw2_messages.Api.DOWN in str(exc_info.value)
 
 
 class TestHandle503Error:
@@ -741,7 +736,7 @@ class TestHandleOtherError:
         with pytest.raises(APIConnectionError) as exc_info:
             gw2_client._handle_other_error(mock_response, "init_msg", "")
 
-        assert gw2_messages.API_ERROR in str(exc_info.value)
+        assert gw2_messages.Api.ERROR in str(exc_info.value)
 
     def test_error_includes_init_msg(self, gw2_client):
         """Test that the error message includes the init_msg."""
@@ -864,7 +859,6 @@ class TestCallApiIntegration:
         result = await gw2_client.call_api("worlds?ids=all")
 
         assert result == {"worlds": [1001, 1002]}
-        # Verify no Authorization header
         call_kwargs = gw2_client.bot.aiosession.get.call_args
         headers = call_kwargs[1].get("headers", {})
         assert "Authorization" not in headers
@@ -884,7 +878,6 @@ class TestCallApiIntegration:
         gw2_client.bot.aiosession = MagicMock()
         gw2_client.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
-        # Patch _handle_api_error to NOT raise, so execution falls through to return None
         with patch.object(gw2_client, "_handle_api_error", new_callable=AsyncMock) as mock_handler:
             result = await gw2_client.call_api("account")
 
@@ -954,7 +947,6 @@ class TestCallApiRetry:
             await gw2_client.call_api("account")
 
         assert gw2_client.bot.aiosession.get.call_count == 3
-        # Sleep is called between retries, not after the last attempt
         assert mock_sleep.call_count == 2
 
     @pytest.mark.asyncio
@@ -1077,3 +1069,14 @@ class TestCallApiRetry:
 
         assert gw2_client.bot.aiosession.get.call_count == 1
         mock_sleep.assert_not_called()
+
+
+@pytest.mark.asyncio
+@patch("src.gw2.tools.gw2_client._gw2_settings")
+async def test_call_api_with_zero_attempts_makes_no_request(mock_settings):
+    mock_settings.api_retry_max_attempts = 0
+    mock_settings.api_retry_delay = 0
+    bot = MagicMock()
+    bot.aiosession.get = MagicMock()
+    assert await Gw2Client(bot).call_api("account") is None
+    bot.aiosession.get.assert_not_called()

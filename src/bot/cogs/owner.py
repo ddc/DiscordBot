@@ -54,7 +54,7 @@ class Owner(commands.Cog):
         await self._update_bot_activity_prefix(new_prefix)
 
         # Send confirmation
-        embed = self._create_owner_embed(f"{messages.BOT_PREFIX_CHANGED}: `{new_prefix}`")
+        embed = self._create_owner_embed(f"{messages.Owner.PREFIX_CHANGED}: `{new_prefix}`")
         await bot_utils.send_embed(ctx, embed)
 
     @owner.command(name="botdescription")
@@ -75,7 +75,7 @@ class Owner(commands.Cog):
         self.bot.description = desc
 
         # Send confirmation
-        embed = self._create_owner_embed(f"{messages.BOT_DESCRIPTION_CHANGED}: `{desc}`")
+        embed = self._create_owner_embed(f"{messages.Owner.DESCRIPTION_CHANGED}: `{desc}`")
         await bot_utils.send_embed(ctx, embed)
 
     @owner.command(name="servers")

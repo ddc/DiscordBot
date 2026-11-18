@@ -1,8 +1,11 @@
 services:
   discordbot_alembic:
+    image: localhost/discordbot:latest
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - LOG_DIRECTORY=${LOG_DIRECTORY}
     container_name: discordbot_alembic
     restart: always
     init: true
@@ -21,6 +24,7 @@ services:
       start_period: 120s
 
   discordbot:
+    image: localhost/discordbot:latest
     build:
       context: .
       dockerfile: Dockerfile

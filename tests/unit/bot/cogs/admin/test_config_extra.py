@@ -113,7 +113,6 @@ def config_view(mock_ctx, server_config):
     view.message = None
     view._children = []
     view.__weights = {}
-    # Create mock button attributes for restore_buttons
     view.toggle_join_messages = MagicMock()
     view.toggle_leave_messages = MagicMock()
     view.toggle_server_messages = MagicMock()
@@ -168,7 +167,7 @@ class TestConfigPfilterChannelResolution:
         self, mock_send_embed, mock_dal_class, config_cog, mock_ctx, mock_text_channel
     ):
         """When channel is found by name after ID lookup fails (line 219)."""
-        mock_ctx.guild.get_channel.return_value = None  # ID lookup fails
+        mock_ctx.guild.get_channel.return_value = None
         mock_ctx.guild.text_channels = [mock_text_channel]
 
         mock_dal = AsyncMock()
@@ -194,7 +193,7 @@ class TestConfigPfilterChannelResolution:
 
         mock_send_error.assert_called_once()
         error_msg = mock_send_error.call_args[0][1]
-        assert messages.CHANNEL_ID_NOT_FOUND in error_msg
+        assert messages.Config.CHANNEL_ID_NOT_FOUND in error_msg
         assert "nonexistent" in error_msg
 
     @pytest.mark.asyncio
@@ -210,8 +209,8 @@ class TestConfigPfilterChannelResolution:
 
         mock_send_error.assert_called_once()
         error_msg = mock_send_error.call_args[0][1]
-        assert messages.CONFIG_NOT_ACTIVATED_ERROR in error_msg
-        assert messages.BOT_MISSING_MANAGE_MESSAGES_PERMISSION in error_msg
+        assert messages.Config.NOT_ACTIVATED_ERROR in error_msg
+        assert messages.Config.BOT_MISSING_MANAGE_MESSAGES in error_msg
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
@@ -273,7 +272,7 @@ class TestConfigViewHandleUpdate:
     async def test_handle_update_wrong_user_ephemeral(self, config_view, mock_ctx):
         """When interaction user is not the command invoker, sends ephemeral (lines 405-408)."""
         interaction = MagicMock()
-        interaction.user = MagicMock()  # Different user
+        interaction.user = MagicMock()
         interaction.user.__eq__ = lambda self, other: False
         interaction.response = MagicMock()
         interaction.response.send_message = AsyncMock()
@@ -321,11 +320,9 @@ class TestConfigViewHandleUpdate:
 
         update_method = AsyncMock()
 
-        # Mock _create_updated_embed and _restore_buttons
         config_view._create_updated_embed = AsyncMock(return_value=discord.Embed())
         config_view._restore_buttons = AsyncMock()
 
-        # Mock children property
         mock_child = MagicMock()
         mock_child.disabled = False
         mock_child.style = discord.ButtonStyle.success
@@ -333,14 +330,10 @@ class TestConfigViewHandleUpdate:
             await config_view._handle_update(interaction, button, "msg_on_join", update_method, "Join Messages")
 
         interaction.response.defer.assert_called_once()
-        # Verify config was toggled (was True, now should be False)
         assert server_config["msg_on_join"] is False
         update_method.assert_called_once()
-        # Button style should reflect new status
         assert button.style == discord.ButtonStyle.danger
-        # Should have been called at least twice: processing state + final update
         assert interaction.edit_original_response.call_count >= 2
-        # _updating should be reset to False
         assert config_view._updating is False
 
     @pytest.mark.asyncio
@@ -356,7 +349,6 @@ class TestConfigViewHandleUpdate:
         button = MagicMock()
         button.style = discord.ButtonStyle.success
 
-        # Make the update method raise an exception
         update_method = AsyncMock(side_effect=Exception("Database error"))
         config_view._restore_buttons = AsyncMock()
 
@@ -366,10 +358,8 @@ class TestConfigViewHandleUpdate:
         with patch.object(type(config_view), "children", new_callable=PropertyMock, return_value=[mock_child]):
             await config_view._handle_update(interaction, button, "msg_on_join", update_method, "Join Messages")
 
-        # Should have error response
         last_call = interaction.edit_original_response.call_args_list[-1]
         assert "Error updating configuration" in last_call[1]["content"]
-        # _updating should be reset to False in finally block
         assert config_view._updating is False
 
     @pytest.mark.asyncio
@@ -392,7 +382,6 @@ class TestConfigViewHandleUpdate:
         config_view._create_updated_embed = AsyncMock(return_value=discord.Embed())
         config_view._restore_buttons = AsyncMock()
 
-        # Start with False value
         server_config["msg_on_leave"] = False
 
         mock_child = MagicMock()
@@ -426,7 +415,6 @@ class TestConfigViewHandleUpdate:
         config_view._create_updated_embed = AsyncMock(return_value=discord.Embed())
         config_view._restore_buttons = AsyncMock()
 
-        # Add mock children to view
         mock_child = MagicMock()
         mock_child.disabled = False
         mock_child.style = discord.ButtonStyle.success
@@ -434,7 +422,6 @@ class TestConfigViewHandleUpdate:
         with patch.object(type(config_view), "children", new_callable=PropertyMock, return_value=[mock_child]):
             await config_view._handle_update(interaction, button, "msg_on_join", update_method, "Join Messages")
 
-        # After completion, _updating should be False
         assert config_view._updating is False
 
 
@@ -444,31 +431,22 @@ class TestConfigViewRestoreButtons:
     @pytest.mark.asyncio
     async def test_restore_buttons_sets_correct_styles(self, config_view, server_config):
         """Restores all button styles based on current config (lines 470-492)."""
-        # Add mock children with disabled attribute
         mock_child1 = MagicMock()
         mock_child1.disabled = True
         mock_child2 = MagicMock()
         mock_child2.disabled = True
         config_view._children = [mock_child1, mock_child2]
 
-        # Use property mock for children iteration
         with patch.object(
             type(config_view), "children", new_callable=PropertyMock, return_value=[mock_child1, mock_child2]
         ):
             await config_view._restore_buttons()
 
-        # Check styles match config values
-        # msg_on_join=True -> success
         assert config_view.toggle_join_messages.style == discord.ButtonStyle.success
-        # msg_on_leave=False -> danger
         assert config_view.toggle_leave_messages.style == discord.ButtonStyle.danger
-        # msg_on_server_update=True -> success
         assert config_view.toggle_server_messages.style == discord.ButtonStyle.success
-        # msg_on_member_update=False -> danger
         assert config_view.toggle_member_messages.style == discord.ButtonStyle.danger
-        # block_invis_members=True -> success
         assert config_view.toggle_block_invisible.style == discord.ButtonStyle.success
-        # bot_word_reactions=False -> danger
         assert config_view.toggle_bot_reactions.style == discord.ButtonStyle.danger
 
     @pytest.mark.asyncio
@@ -507,7 +485,6 @@ class TestConfigViewCreateUpdatedEmbed:
         assert isinstance(embed, discord.Embed)
         assert embed.author.name == "Configurations for TestGuild"
         assert len(embed.fields) == 7
-        # Check profanity filter field has channel names
         pf_field = embed.fields[6]
         assert "general" in pf_field.value
         assert "random" in pf_field.value
@@ -524,7 +501,7 @@ class TestConfigViewCreateUpdatedEmbed:
 
         assert isinstance(embed, discord.Embed)
         pf_field = embed.fields[6]
-        assert messages.NO_CHANNELS_LISTED in pf_field.value
+        assert messages.Config.NO_CHANNELS_LISTED in pf_field.value
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
@@ -536,10 +513,8 @@ class TestConfigViewCreateUpdatedEmbed:
 
         embed = await config_view._create_updated_embed()
 
-        # msg_on_join=True -> should have green ON text
         join_field = embed.fields[0]
         assert "ON" in join_field.value
-        # msg_on_leave=False -> should have red OFF text
         leave_field = embed.fields[1]
         assert "OFF" in leave_field.value
 
@@ -575,7 +550,7 @@ class TestConfigViewCreateUpdatedEmbed:
 
         embed = await config_view._create_updated_embed()
 
-        assert messages.MORE_INFO in embed.footer.text
+        assert messages.CommandError.MORE_INFO in embed.footer.text
         assert "!help admin config" in embed.footer.text
 
 
@@ -588,7 +563,7 @@ class TestConfigViewButtonCallbacks:
 
     def _get_real_config_view(self, mock_ctx, server_config):
         """Create a ConfigView with real button methods but no event loop dependency."""
-        with patch.object(discord.ui.View, "__init__", lambda self, **kwargs: None):
+        with patch.object(discord.ui.View, "__init__", return_value=None):
             view = object.__new__(ConfigView)
             view.ctx = mock_ctx
             view.server_config = server_config
@@ -606,7 +581,6 @@ class TestConfigViewButtonCallbacks:
         interaction = MagicMock()
         button = MagicMock()
 
-        # Call the unbound method from ConfigView class
         await ConfigView.toggle_join_messages(view, interaction, button)
 
         view._handle_update.assert_called_once()
@@ -707,7 +681,6 @@ class TestConfigViewOnTimeout:
         mock_message.edit = AsyncMock()
         config_view.message = mock_message
 
-        # Add mock children
         mock_child1 = MagicMock()
         mock_child1.disabled = False
         mock_child2 = MagicMock()
@@ -733,7 +706,6 @@ class TestConfigViewOnTimeout:
         mock_child.disabled = False
 
         with patch.object(type(config_view), "children", new_callable=PropertyMock, return_value=[mock_child]):
-            # Should not raise
             await config_view.on_timeout()
 
         assert mock_child.disabled is True
@@ -749,7 +721,6 @@ class TestConfigViewOnTimeout:
         mock_child.disabled = False
 
         with patch.object(type(config_view), "children", new_callable=PropertyMock, return_value=[mock_child]):
-            # Should not raise
             await config_view.on_timeout()
 
         assert mock_child.disabled is True
@@ -815,7 +786,7 @@ class TestConfigViewButtonUpdateMethodLambdas:
 
     def _get_real_config_view(self, mock_ctx, server_config):
         """Create a ConfigView with real button methods but no event loop dependency."""
-        with patch.object(discord.ui.View, "__init__", lambda self, **kwargs: None):
+        with patch.object(discord.ui.View, "__init__", return_value=None):
             view = object.__new__(ConfigView)
             view.ctx = mock_ctx
             view.server_config = server_config
@@ -836,11 +807,9 @@ class TestConfigViewButtonUpdateMethodLambdas:
 
         await ConfigView.toggle_join_messages(view, interaction, button)
 
-        # Extract the lambda from the call
         call_args = view._handle_update.call_args
         update_lambda = call_args[0][3]
 
-        # Call the lambda and verify it calls the correct DAL method
         await update_lambda(mock_dal, 99999, True, 12345)
         mock_dal.update_msg_on_join.assert_called_once_with(99999, True, 12345)
 

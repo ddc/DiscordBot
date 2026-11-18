@@ -8,12 +8,30 @@ from src.gw2.constants import gw2_messages, gw2_variables
 from src.gw2.tools import gw2_utils
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 
+HTML_PARSER = "html.parser"
+MAX_EMBED_FIELDS = 25  # Discord limit per embed
+
 
 class GW2Misc(GuildWars2):
     """Guild Wars 2 miscellaneous commands for wiki search and item info."""
 
     def __init__(self, bot):
         super().__init__(bot)
+
+
+def _add_wiki_results(embed: discord.Embed, posts, wiki_url: str, keyword: str) -> None:
+    """Add one field per matching search result, skipping history pages and the exact-keyword duplicate."""
+    for post in posts:
+        if len(embed.fields) >= MAX_EMBED_FIELDS:
+            break
+        link = post.a
+        title = str(link["title"])
+        if keyword not in title.lower() or "/history" in title:
+            continue
+        if any(field.name == keyword.title() for field in embed.fields):
+            continue
+        url = (wiki_url + link["href"]).replace(")", "\\)")
+        embed.add_field(name=link["title"], value=f"[{gw2_messages.Misc.CLICK_HERE}]({url})")
 
 
 @GW2Misc.gw2.command()
@@ -27,63 +45,60 @@ async def wiki(ctx, *, search):
     """
 
     if len(search) > 300:
-        await ctx.send(gw2_messages.LONG_SEARCH)
+        await ctx.send(gw2_messages.Misc.LONG_SEARCH)
         return
 
-    len_eb_fields = 0
     wiki_url = gw2_variables.WIKI_URL
     search = search.replace(" ", "+")
+    keyword = search.lower().replace("+", " ")
     full_wiki_url = f"{wiki_url}/index.php?title=Special%3ASearch&search={search}&fulltext=Search"
 
     await ctx.message.channel.typing()
     async with ctx.bot.aiosession.get(full_wiki_url) as r:
         results = await r.text()
-        soup = BeautifulSoup(results, "html.parser")
+        soup = BeautifulSoup(results, HTML_PARSER)
         posts = soup.find_all("div", {"class": "mw-search-result-heading"})[:50]
-        total_posts = len(posts)
         if not posts:
-            await bot_utils.send_error_msg(ctx, gw2_messages.NO_RESULTS)
+            await bot_utils.send_error_msg(ctx, gw2_messages.Misc.NO_RESULTS)
             return
 
-        embed = discord.Embed(title=gw2_messages.WIKI_SEARCH_RESULTS, color=ctx.bot.settings["gw2"]["EmbedColor"])
-
-        if total_posts > 0:
-            i = 0
-
-            # discord only supports 25 embed fields
-            times_to_run = 25 if total_posts > 25 else total_posts
-
-            try:
-                while i <= times_to_run:
-                    post = posts[i]
-                    post = post.a
-                    url = wiki_url + post["href"]
-                    url = url.replace(")", "\\)")
-                    keyword = search.lower().replace("+", " ")
-                    found = False
-
-                    if keyword in str(post["title"]).lower():
-                        if len_eb_fields > 0:
-                            for eb_field in embed.fields:
-                                if keyword.title() == eb_field.name:
-                                    found = True
-                                    break
-                            if not found and "/history" not in post["title"]:
-                                embed.add_field(name=post["title"], value=f"[{gw2_messages.CLICK_HERE}]({url})")
-                                len_eb_fields += 1
-                        elif "/history" not in post["title"]:
-                            embed.add_field(name=post["title"], value=f"[{gw2_messages.CLICK_HERE}]({url})")
-                            len_eb_fields += 1
-                    i += 1
-            except IndexError:
-                pass
-
-            embed.description = gw2_messages.displaying_wiki_search_title(len(embed.fields), keyword.title())
-        else:
-            embed.add_field(name=gw2_messages.NO_RESULTS, value=f"[{gw2_messages.CLICK_HERE}]({full_wiki_url})")
-
+        embed = discord.Embed(title=gw2_messages.Misc.WIKI_SEARCH_RESULTS, color=ctx.bot.settings["gw2"]["EmbedColor"])
+        _add_wiki_results(embed, posts, wiki_url, keyword)
+        embed.description = gw2_messages.Misc.wiki_search_title(len(embed.fields), keyword.title())
         embed.set_thumbnail(url=gw2_variables.GW2_WIKI_ICON_URL)
         await bot_utils.send_embed(ctx, embed)
+
+
+def _find_skill_icon_url(soup: BeautifulSoup, wiki_url: str, skill_sanitized: str) -> str:
+    expected_alt = f"{skill_sanitized.replace('_', ' ').lower()}.png"
+    for image in soup.find_all("img"):
+        if image.get("alt", "").lower() == expected_alt and "srcset" in image.attrs:
+            return f"{wiki_url}{image['srcset'].split()[0]}"
+    return ""
+
+
+async def _get_trading_post_text(ctx, soup: BeautifulSoup, skill_sanitized: str) -> str | None:
+    """Return the Trading Post block for the item on this wiki page, or None when it has no TP price."""
+    tp_spans = soup.find_all("span", {"class": "gw2-tpprice"})
+    if not tp_spans:
+        return None
+
+    item_id = tp_spans[0]["data-id"]
+    slug = skill_sanitized.replace("_", "-").lower()
+    gw2tp_url = f"{gw2_variables.GW2TP_ITEM_URL}/{item_id}-{slug}"
+    async with ctx.bot.aiosession.get(gw2tp_url) as tp_r:
+        if tp_r.status != 200:
+            return None
+        gw2bltc_url = f"{gw2_variables.GW2BLTC_ITEM_URL}/{item_id}-{slug}"
+        tp_soup = BeautifulSoup(await tp_r.text(), HTML_PARSER)
+        tp_sell_price = gw2_utils.format_gold(tp_soup.find_all("td", {"id": "sell-price"})[0]["data-price"])
+        tp_buy_price = gw2_utils.format_gold(tp_soup.find_all("td", {"id": "buy-price"})[0]["data-price"])
+        return (
+            "**Trading Post:**\n"
+            f"Sell: *{tp_sell_price}*\n"
+            f"Buy: *{tp_buy_price}*\n"
+            f"[Gw2tp]({gw2tp_url}) / [Gw2bltc]({gw2bltc_url})"
+        )
 
 
 @GW2Misc.gw2.command()
@@ -109,59 +124,26 @@ async def info(ctx, *, skill):
 
     async with ctx.bot.aiosession.get(full_wiki_url) as r:
         if r.status != 200:
-            return await bot_utils.send_error_msg(ctx, gw2_messages.NO_RESULTS)
+            return await bot_utils.send_error_msg(ctx, gw2_messages.Misc.NO_RESULTS)
 
         skill_url = str(r.url)
         skill_name = str(r.url).split("/")[-1:][0].replace("_", " ")
-        skill_icon_url = ""
 
-        results = await r.text()
-        soup = BeautifulSoup(results, "html.parser")
+        soup = BeautifulSoup(await r.text(), HTML_PARSER)
         for br in soup.find_all("br"):
             br.replace_with("\n")
 
-        for image in soup.find_all("img"):
-            image_name = image.get("alt", "")
-            if image_name.lower() == f"{skill_sanitized.replace('_', ' ').lower()}.png":
-                try:
-                    skill_icon_url = f"{wiki_url}{image['srcset'].split()[0]}"
-                    break
-                except KeyError:
-                    pass
+        skill_icon_url = _find_skill_icon_url(soup, wiki_url, skill_sanitized)
 
-        skill_description = soup.find("blockquote")
-        if skill_description is not None:
-            skill_description = skill_description.get_text()[2:].split("—")[0]
-            skill_description = skill_description.replace("?", "")
+        blockquote = soup.find("blockquote")
+        if blockquote is not None:
+            skill_description = blockquote.get_text()[2:].split("—")[0].replace("?", "")
             color = ctx.bot.settings["gw2"]["EmbedColor"]
-
-            myspans = soup.find_all("span", {"class": "gw2-tpprice"})
-            if len(myspans) > 0:
-                item_id = myspans[0]["data-id"]
-            else:
-                item_id = None
-
-            if item_id is not None:
-                gw2tp_url = f"https://www.gw2tp.com/item/{item_id}-{skill_sanitized.replace('_', '-').lower()}"
-                async with ctx.bot.aiosession.get(gw2tp_url) as tp_r:
-                    if tp_r.status == 200:
-                        gw2bltc_url = (
-                            f"https://www.gw2bltc.com/en/item/{item_id}-{skill_sanitized.replace('_', '-').lower()}"
-                        )
-                        tp_results = await tp_r.text()
-                        sell_td = BeautifulSoup(tp_results, "html.parser").find_all("td", {"id": "sell-price"})
-                        buy_td = BeautifulSoup(tp_results, "html.parser").find_all("td", {"id": "buy-price"})
-                        tp_sell_price = gw2_utils.format_gold(sell_td[0]["data-price"])
-                        tp_buy_price = gw2_utils.format_gold(buy_td[0]["data-price"])
-                        skill_description = (
-                            f"{skill_description}\n"
-                            "**Trading Post:**\n"
-                            f"Sell: *{tp_sell_price}*\n"
-                            f"Buy: *{tp_buy_price}*\n"
-                            f"[Gw2tp]({gw2tp_url}) / [Gw2bltc]({gw2bltc_url})"
-                        )
+            tp_text = await _get_trading_post_text(ctx, soup, skill_sanitized)
+            if tp_text:
+                skill_description = f"{skill_description}\n{tp_text}"
         else:
-            skill_description = gw2_messages.CLICK_ON_LINK
+            skill_description = gw2_messages.Misc.CLICK_ON_LINK
             color = discord.Color.red()
 
         embed = discord.Embed(title=skill_name, description=skill_description, color=color, url=skill_url)
@@ -169,19 +151,6 @@ async def info(ctx, *, skill):
         embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.display_avatar.url)
         await bot_utils.send_embed(ctx, embed)
         return None
-
-
-# @GW2Misc.gw2.command()
-# async def api_test(self, ctx):
-#     from src.database.dal.gw2.gw2_key_sql import Gw2KeyDal
-#     user_id = ctx.message.author.id
-#     gw2Api = Gw2Client(self.bot)
-#     gw2KeySql = Gw2KeyDal(self.bot.db_session, self.bot.log)
-#     rs = await gw2KeySql.get_server_user_api_key(ctx.guild.id, user_id)
-#     api_key = rs[0]["key"]
-#     uri = "/wvw/matches/1-3"
-#     api_req = await gw2Api.call_api(uri, api_key)
-#     return api_req
 
 
 async def setup(bot):

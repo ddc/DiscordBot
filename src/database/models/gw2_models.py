@@ -1,10 +1,10 @@
 from sqlalchemy import BigInteger, Boolean, ForeignKey, Integer, Uuid
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from src.database.models import BotBase
 from typing import Any
 from uuid import UUID
-from uuid_utils import uuid7
+from uuid_utils.compat import uuid7
 
 
 class Gw2Keys(BotBase):
@@ -26,11 +26,6 @@ class Gw2Configs(BotBase):
     server_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("servers.id", ondelete="CASCADE"), unique=True)
     session: Mapped[Boolean] = mapped_column(Boolean, server_default="0")
     updated_by: Mapped[int] = mapped_column(BigInteger, nullable=True)
-    servers = relationship(
-        "Servers",
-        back_populates="gw2_configs",
-        primaryjoin="foreign(Gw2Configs.server_id) == Servers.id",
-    )
 
 
 class Gw2Sessions(BotBase):
@@ -41,7 +36,6 @@ class Gw2Sessions(BotBase):
     acc_name: Mapped[str] = mapped_column()
     start: Mapped[dict[str, Any]] = mapped_column(JSONB)
     end: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=True)
-    session_char_deaths = relationship("Gw2SessionCharDeaths", back_populates="session")
 
 
 class Gw2SessionCharDeaths(BotBase):
@@ -54,4 +48,3 @@ class Gw2SessionCharDeaths(BotBase):
     profession: Mapped[str] = mapped_column()
     start: Mapped[int] = mapped_column(Integer)
     end: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    session = relationship("Gw2Sessions", back_populates="session_char_deaths")

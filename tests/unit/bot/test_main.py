@@ -61,7 +61,7 @@ class TestGetCommandPrefix:
             assert result == variables.PREFIX
             mock_log.warning.assert_called_once()
             warning_msg = mock_log.warning.call_args[0][0]
-            assert messages.BOT_INIT_PREFIX_FAILED in warning_msg
+            assert messages.Bot.INIT_PREFIX_FAILED in warning_msg
 
 
 class TestCreateBotActivity:
@@ -128,9 +128,8 @@ class TestRunBot:
 
         mock_sleep.assert_called_once_with(variables.TIME_BEFORE_START)
         mock_asyncio_run.assert_called_once()
-        # First print call is the starting message, second is the CTRLC message
         calls = [call[0][0] for call in mock_print.call_args_list]
-        assert any(messages.BOT_STOPPED_CTRTC == c for c in calls)
+        assert any(messages.Bot.STOPPED_CTRTC == c for c in calls)
         mock_exit.assert_not_called()
 
     @patch("src.__main__.main", new_callable=MagicMock)
@@ -146,9 +145,8 @@ class TestRunBot:
 
         mock_sleep.assert_called_once_with(variables.TIME_BEFORE_START)
         mock_exit.assert_called_once_with(1)
-        # Verify the crash message was printed
         calls = [call[0][0] for call in mock_print.call_args_list]
-        assert any(messages.BOT_CRASHED in c for c in calls)
+        assert any(messages.Bot.CRASHED in c for c in calls)
 
     @patch("src.__main__.main", new_callable=MagicMock)
     @patch("src.__main__.sys.exit")
@@ -161,8 +159,84 @@ class TestRunBot:
 
         run_bot()
 
-        # First print should be the starting message
         first_print = mock_print.call_args_list[0][0][0]
-        expected_start_msg = messages.bot_starting(variables.TIME_BEFORE_START)
+        expected_start_msg = messages.Bot.starting(variables.TIME_BEFORE_START)
         assert first_print == expected_start_msg
         mock_sleep.assert_called_once_with(variables.TIME_BEFORE_START)
+
+
+def _async_cm(value):
+    cm = MagicMock()
+    cm.__aenter__ = AsyncMock(return_value=value)
+    cm.__aexit__ = AsyncMock(return_value=False)
+    return cm
+
+
+class TestMain:
+    @pytest.fixture
+    def env(self):
+        """Patch every external dependency main() touches and expose the mocks."""
+        from src import __main__ as main_module
+
+        bot = MagicMock()
+        bot.start = AsyncMock()
+        bot.close = AsyncMock()
+        log = MagicMock()
+        settings = MagicMock(token="TOKEN-123")
+        patches = {
+            "TimedRotatingLog": patch.object(main_module, "TimedRotatingLog", return_value=log),
+            "get_bot_settings": patch.object(main_module, "get_bot_settings", return_value=settings),
+            "ClientSession": patch.object(main_module, "ClientSession", return_value=_async_cm("http-session")),
+            "PostgreSQL": patch.object(main_module, "PostgreSQL", return_value=_async_cm("db-session")),
+            "Bot": patch.object(main_module, "Bot", return_value=_async_cm(bot)),
+            "prefix": patch.object(main_module, "_get_command_prefix", new_callable=AsyncMock, return_value="!"),
+            "activity": patch.object(main_module, "_create_bot_activity", return_value=discord.Game(name="x")),
+            "bg_tasks": patch.object(main_module.bot_utils, "init_background_tasks"),
+            "exit": patch.object(main_module.sys, "exit", side_effect=SystemExit(1)),
+        }
+        started = {name: p.start() for name, p in patches.items()}
+        yield {"module": main_module, "bot": bot, "log": log, "settings": settings, **started}
+        for p in patches.values():
+            p.stop()
+
+    @pytest.mark.asyncio
+    async def test_missing_token_exits(self, env):
+        env["settings"].token = None
+        with pytest.raises(SystemExit):
+            await env["module"].main()
+        env["log"].error.assert_any_call(messages.Bot.MISSING_ENV_VAR)
+        env["Bot"].assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_starts_and_closes_bot(self, env):
+        await env["module"].main()
+
+        kwargs = env["Bot"].call_args.kwargs
+        assert kwargs["command_prefix"] == "!"
+        assert kwargs["aiosession"] == "http-session"
+        assert kwargs["db_session"] == "db-session"
+        assert kwargs["owner_id"] == int(variables.AUTHOR_ID)
+        env["bg_tasks"].assert_called_once_with(env["bot"])
+        env["bot"].start.assert_awaited_once_with("TOKEN-123")
+        env["bot"].close.assert_awaited_once()
+        env["log"].info.assert_any_call(messages.Bot.CLOSING)
+
+    @pytest.mark.asyncio
+    async def test_login_failure_is_logged_not_raised(self, env):
+        env["bot"].start.side_effect = discord.LoginFailure("bad token")
+        await env["module"].main()
+
+        logged = [c.args[0] for c in env["log"].error.call_args_list]
+        assert any(m.startswith(messages.Bot.LOGIN_FAILED) and "bad token" in m for m in logged)
+        env["bot"].close.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_crash_is_logged_and_reraised(self, env):
+        env["bot"].start.side_effect = RuntimeError("gateway exploded")
+        with pytest.raises(RuntimeError, match="gateway exploded"):
+            await env["module"].main()
+
+        logged = [c.args[0] for c in env["log"].error.call_args_list]
+        assert f"{messages.Bot.TERMINATED} | gateway exploded" in logged
+        assert f"{messages.Bot.FATAL_ERROR_MAIN}: gateway exploded" in logged
+        env["bot"].close.assert_awaited_once()

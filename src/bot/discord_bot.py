@@ -40,9 +40,9 @@ class Bot(commands.Bot):
         try:
             await bot_utils.load_cogs(self)
             self.add_view(bot_utils.EmbedPaginatorView())
-            self.log.info(messages.BOT_LOADED_ALL_COGS_SUCCESS)
+            self.log.info(messages.Bot.LOADED_ALL_COGS_SUCCESS)
         except Exception as e:
-            self.log.error(f"{messages.BOT_LOAD_COGS_FAILED}: {e}")
+            self.log.error(f"{messages.Bot.LOAD_COGS_FAILED}: {e}")
             raise
 
     def _load_settings(self) -> None:
@@ -75,5 +75,5 @@ class Bot(commands.Bot):
             }
 
         except Exception as e:
-            self.log.error(f"{messages.BOT_LOAD_SETTINGS_FAILED}: {e}")
+            self.log.error(f"{messages.Bot.LOAD_SETTINGS_FAILED}: {e}")
             raise

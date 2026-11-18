@@ -106,7 +106,7 @@ class TestWikiCommand:
         mock_ctx.send.assert_called_once()
         from src.gw2.constants import gw2_messages
 
-        assert mock_ctx.send.call_args[0][0] == gw2_messages.LONG_SEARCH
+        assert mock_ctx.send.call_args[0][0] == gw2_messages.Misc.LONG_SEARCH
 
     @pytest.mark.asyncio
     async def test_wiki_search_exactly_300_chars_allowed(self, mock_ctx):
@@ -119,11 +119,10 @@ class TestWikiCommand:
 
         with patch("src.gw2.cogs.misc.bot_utils.send_error_msg", new_callable=AsyncMock) as mock_error:
             await wiki(mock_ctx, search=search)
-            # Should not send LONG_SEARCH message
             from src.gw2.constants import gw2_messages
 
             if mock_ctx.send.called:
-                assert mock_ctx.send.call_args[0][0] != gw2_messages.LONG_SEARCH
+                assert mock_ctx.send.call_args[0][0] != gw2_messages.Misc.LONG_SEARCH
 
     @pytest.mark.asyncio
     async def test_wiki_no_results_found(self, mock_ctx):
@@ -138,7 +137,7 @@ class TestWikiCommand:
             mock_error.assert_called_once()
             from src.gw2.constants import gw2_messages
 
-            assert mock_error.call_args[0][1] == gw2_messages.NO_RESULTS
+            assert mock_error.call_args[0][1] == gw2_messages.Misc.NO_RESULTS
 
     @pytest.mark.asyncio
     async def test_wiki_results_with_matching_keywords(self, mock_ctx):
@@ -148,7 +147,6 @@ class TestWikiCommand:
         So results with titles different from the keyword title are added, while
         once a field matching keyword.title() exists, subsequent results are skipped.
         """
-        # Use titles that all contain the keyword "sword" but none exactly equals "Sword"
         results = [
             {"title": "Sword of Fire", "href": "/wiki/Sword_of_Fire"},
             {"title": "Sword of Ice", "href": "/wiki/Sword_of_Ice"},
@@ -163,8 +161,6 @@ class TestWikiCommand:
             await wiki(mock_ctx, search="sword")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
-            # All results contain keyword "sword" and no title exactly equals "Sword"
-            # so none trigger the dedup logic
             assert len(embed.fields) == 3
             assert embed.fields[0].name == "Sword of Fire"
             assert embed.fields[1].name == "Sword of Ice"
@@ -187,7 +183,6 @@ class TestWikiCommand:
             await wiki(mock_ctx, search="eternity")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
-            # The duplicate "Eternity" title should be skipped
             titles = [field.name for field in embed.fields]
             assert titles.count("Eternity") == 1
 
@@ -211,14 +206,8 @@ class TestWikiCommand:
             assert not any("/history" in t for t in titles)
 
     @pytest.mark.asyncio
-    async def test_wiki_posts_limited_to_around_25(self, mock_ctx):
-        """Test wiki command limits iteration via times_to_run.
-
-        Note: The source code uses `while i <= times_to_run` where times_to_run=25,
-        which iterates indices 0 through 25 (26 iterations). This is an off-by-one
-        in the source, resulting in up to 26 fields when all match.
-        """
-        # Create 30 matching results
+    async def test_wiki_posts_limited_to_25(self, mock_ctx):
+        """Test wiki command stops at Discord's 25-field embed limit."""
         results = [{"title": f"Sword {i}", "href": f"/wiki/Sword_{i}"} for i in range(30)]
         html = self._make_search_result_html(results)
         mock_response = AsyncMock()
@@ -229,13 +218,11 @@ class TestWikiCommand:
             await wiki(mock_ctx, search="sword")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
-            # Due to `while i <= 25` (off-by-one), up to 26 fields can be added
-            assert len(embed.fields) == 26
+            assert len(embed.fields) == 25
 
     @pytest.mark.asyncio
     async def test_wiki_index_error_handled(self, mock_ctx):
         """Test wiki command handles IndexError gracefully."""
-        # Create only 2 results but this should not crash
         results = [
             {"title": "Test Item", "href": "/wiki/Test_Item"},
         ]
@@ -245,7 +232,6 @@ class TestWikiCommand:
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
         with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
-            # Should not raise - IndexError is caught
             await wiki(mock_ctx, search="test item")
             mock_send.assert_called_once()
 
@@ -265,7 +251,6 @@ class TestWikiCommand:
             await wiki(mock_ctx, search="eternity")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
-            # No matching results, so no fields added
             assert len(embed.fields) == 0
 
     @pytest.mark.asyncio
@@ -284,7 +269,6 @@ class TestWikiCommand:
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
             if embed.fields:
-                # Check that ) is escaped in the URL
                 assert "\\)" in embed.fields[0].value
 
     @pytest.mark.asyncio
@@ -318,7 +302,6 @@ class TestWikiCommand:
 
         with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await wiki(mock_ctx, search="dawn weapon")
-            # Verify that the URL passed to aiosession.get contains + instead of spaces
             called_url = mock_ctx.bot.aiosession.get.call_args[0][0]
             assert "dawn+weapon" in called_url
 
@@ -338,7 +321,7 @@ class TestWikiCommand:
             embed = mock_send.call_args[0][1]
             from src.gw2.constants import gw2_messages
 
-            assert embed.title == gw2_messages.WIKI_SEARCH_RESULTS
+            assert embed.title == gw2_messages.Misc.WIKI_SEARCH_RESULTS
 
 
 class TestInfoCommand:
@@ -412,7 +395,7 @@ class TestInfoCommand:
             mock_error.assert_called_once()
             from src.gw2.constants import gw2_messages
 
-            assert mock_error.call_args[0][1] == gw2_messages.NO_RESULTS
+            assert mock_error.call_args[0][1] == gw2_messages.Misc.NO_RESULTS
 
     @pytest.mark.asyncio
     async def test_info_skill_with_description_and_icon(self, mock_ctx):
@@ -463,7 +446,6 @@ class TestInfoCommand:
         mock_tp_response.status = 200
         mock_tp_response.text = AsyncMock(return_value=tp_html)
 
-        # First call returns wiki page, second returns TP page
         mock_ctx.bot.aiosession.get = MagicMock(
             side_effect=[
                 AsyncContextManager(mock_response),
@@ -498,7 +480,7 @@ class TestInfoCommand:
             embed = mock_send.call_args[0][1]
             from src.gw2.constants import gw2_messages
 
-            assert embed.description == gw2_messages.CLICK_ON_LINK
+            assert embed.description == gw2_messages.Misc.CLICK_ON_LINK
             assert embed.color == discord.Color.red()
 
     @pytest.mark.asyncio
@@ -520,7 +502,6 @@ class TestInfoCommand:
             await info(mock_ctx, skill="Eternity")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
-            # Icon URL should be empty string (no match found)
             assert embed.thumbnail.url == ""
 
     @pytest.mark.asyncio
@@ -534,11 +515,9 @@ class TestInfoCommand:
         mock_ctx.bot.aiosession.get = MagicMock(return_value=AsyncContextManager(mock_response))
 
         with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
-            # Should not raise KeyError
             await info(mock_ctx, skill="Eternity")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
-            # Icon URL remains empty since KeyError was handled
             assert embed.thumbnail.url == ""
 
     @pytest.mark.asyncio
@@ -560,7 +539,6 @@ class TestInfoCommand:
             await info(mock_ctx, skill="Eternity")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
-            # No TP data should be in description
             assert "Trading Post" not in embed.description
             assert "Sell:" not in embed.description
 
@@ -593,7 +571,6 @@ class TestInfoCommand:
             await info(mock_ctx, skill="Eternity")
             mock_send.assert_called_once()
             embed = mock_send.call_args[0][1]
-            # TP data should not be included
             assert "Trading Post" not in embed.description
 
     @pytest.mark.asyncio
@@ -719,7 +696,6 @@ class TestInfoCommand:
         with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await info(mock_ctx, skill="Eternity")
             embed = mock_send.call_args[0][1]
-            # Description should only contain text before the em dash
             assert "Attribution here" not in embed.description
             assert "Some description text" in embed.description
 
@@ -741,7 +717,6 @@ class TestInfoCommand:
         with patch("src.gw2.cogs.misc.bot_utils.send_embed", new_callable=AsyncMock) as mock_send:
             await info(mock_ctx, skill="blade of the void")
             called_url = mock_ctx.bot.aiosession.get.call_args[0][0]
-            # URL should use "of" and "the" (lowercase), not "Of" and "The"
             assert "Blade_of_the_Void" in called_url
 
     @pytest.mark.asyncio
@@ -814,7 +789,6 @@ class TestInfoCommand:
             with patch("src.gw2.cogs.misc.gw2_utils.format_gold", side_effect=["5g 0s 0c", "4g 50s 0c"]):
                 await info(mock_ctx, skill="bolt of damask")
                 embed = mock_send.call_args[0][1]
-                # TP URL should use hyphens instead of underscores
                 assert "bolt-of-damask" in embed.description
                 assert "gw2tp.com" in embed.description
                 assert "gw2bltc.com" in embed.description
@@ -909,9 +883,8 @@ class TestWikiNoResultsBranch:
         """Test wiki command sends error when no search results found (line 80 - no posts).
 
         This covers the case where posts is an empty list, triggering
-        'await bot_utils.send_error_msg(ctx, gw2_messages.NO_RESULTS)' and returning.
+        'await bot_utils.send_error_msg(ctx, gw2_messages.Misc.NO_RESULTS)' and returning.
         """
-        # HTML with no mw-search-result-heading divs at all
         html = "<html><body><div>No results here</div></body></html>"
         mock_response = AsyncMock()
         mock_response.text = AsyncMock(return_value=html)
@@ -931,4 +904,4 @@ class TestWikiNoResultsBranch:
             mock_error.assert_called_once()
             from src.gw2.constants import gw2_messages
 
-            assert mock_error.call_args[0][1] == gw2_messages.NO_RESULTS
+            assert mock_error.call_args[0][1] == gw2_messages.Misc.NO_RESULTS

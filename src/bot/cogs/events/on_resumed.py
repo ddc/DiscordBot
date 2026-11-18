@@ -11,7 +11,7 @@ class OnResumed(commands.Cog):
     async def on_resumed(self) -> None:
         """Called when the client has resumed a session after a disconnect"""
         try:
-            self.bot.log.info(messages.bot_resumed(self.bot.user))
+            self.bot.log.info(messages.Bot.resumed(self.bot.user))
         except Exception as e:
             print(f"Bot resumed - logging failed: {e}")
 

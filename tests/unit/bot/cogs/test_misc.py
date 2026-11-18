@@ -7,11 +7,11 @@ from datetime import UTC, datetime
 from discord.ext import commands
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-# Mock problematic imports before importing the module
 sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.misc import Misc
 from src.bot.constants import messages, variables
+from src.bot.constants.settings import get_bot_settings
 
 
 @pytest.fixture
@@ -109,7 +109,6 @@ class TestMisc:
         assert cog.bot == mock_bot
         assert hasattr(cog, "_random")
 
-    # Test pepe command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.misc.pepedatabase", ["https://example.com/pepe1.jpg", "https://example.com/pepe2.jpg"])
     async def test_pepe_command_success(self, misc_cog, mock_ctx):
@@ -130,13 +129,11 @@ class TestMisc:
         with pytest.raises(commands.BadArgument):
             await misc_cog.pepe.callback(misc_cog, mock_ctx)
 
-    # Test TTS command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.misc.gTTS")
     @patch("src.bot.cogs.misc.bot_utils.send_error_msg")
     async def test_tts_command_success(self, mock_send_error, mock_gtts_class, misc_cog, mock_ctx):
         """Test successful TTS command execution."""
-        # Setup TTS mock
         mock_tts = MagicMock()
         mock_gtts_class.return_value = mock_tts
 
@@ -147,7 +144,6 @@ class TestMisc:
         mock_tts.write_to_fp.assert_called_once()
         mock_ctx.send.assert_called_once()
 
-        # Verify file was sent
         sent_file = mock_ctx.send.call_args[1]["file"]
         assert isinstance(sent_file, discord.File)
         assert sent_file.filename == "TestUser.mp3"
@@ -157,7 +153,6 @@ class TestMisc:
     @patch("src.bot.cogs.misc.bot_utils.send_error_msg")
     async def test_tts_command_with_mentions(self, mock_send_error, mock_gtts_class, misc_cog, mock_ctx):
         """Test TTS command with user mentions."""
-        # Setup mock member
         mock_member = MagicMock()
         mock_member.display_name = "MentionedUser"
         mock_ctx.guild.get_member.return_value = mock_member
@@ -167,7 +162,6 @@ class TestMisc:
 
         await misc_cog.tts.callback(misc_cog, mock_ctx, tts_text="Hello <@!123456789>")
 
-        # Should process mention and call gTTS with processed text
         mock_gtts_class.assert_called_once()
         processed_text = mock_gtts_class.call_args[1]["text"]
         assert "@MentionedUser" in processed_text
@@ -182,7 +176,6 @@ class TestMisc:
 
         await misc_cog.tts.callback(misc_cog, mock_ctx, tts_text="Hello <:smile:123456789012345678>")
 
-        # Should process emoji and call gTTS with processed text
         mock_gtts_class.assert_called_once()
         processed_text = mock_gtts_class.call_args[1]["text"]
         assert "smile" in processed_text
@@ -194,7 +187,7 @@ class TestMisc:
         """Test TTS command with gTTS error."""
         await misc_cog.tts.callback(misc_cog, mock_ctx, tts_text="Hello world")
 
-        mock_send_error.assert_called_once_with(mock_ctx, messages.INVALID_MESSAGE)
+        mock_send_error.assert_called_once_with(mock_ctx, messages.CommandError.INVALID_MESSAGE)
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.misc.bot_utils.send_error_msg")
@@ -202,9 +195,8 @@ class TestMisc:
         """Test TTS command with empty processed text."""
         await misc_cog.tts.callback(misc_cog, mock_ctx, tts_text="")
 
-        mock_send_error.assert_called_once_with(mock_ctx, messages.INVALID_MESSAGE)
+        mock_send_error.assert_called_once_with(mock_ctx, messages.CommandError.INVALID_MESSAGE)
 
-    # Test echo command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.misc.bot_utils.send_msg")
     async def test_echo_command(self, mock_send_msg, misc_cog, mock_ctx):
@@ -214,13 +206,12 @@ class TestMisc:
         mock_ctx.message.channel.typing.assert_called_once()
         mock_send_msg.assert_called_once_with(mock_ctx, "Hello world!")
 
-    # Test ping command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.misc.bot_utils.send_embed")
     async def test_ping_command_good_latency(self, mock_send_embed, misc_cog, mock_ctx):
         """Test ping command with good latency."""
         mock_ctx.subcommand_passed = None
-        misc_cog.bot.ws.latency = 0.1  # 100ms
+        misc_cog.bot.ws.latency = 0.1
 
         await misc_cog.ping.callback(misc_cog, mock_ctx)
 
@@ -236,7 +227,7 @@ class TestMisc:
     async def test_ping_command_bad_latency(self, mock_send_embed, misc_cog, mock_ctx):
         """Test ping command with bad latency."""
         mock_ctx.subcommand_passed = None
-        misc_cog.bot.ws.latency = 0.3  # 300ms
+        misc_cog.bot.ws.latency = 0.3
 
         await misc_cog.ping.callback(misc_cog, mock_ctx)
 
@@ -252,7 +243,6 @@ class TestMisc:
         with pytest.raises(commands.BadArgument):
             await misc_cog.ping.callback(misc_cog, mock_ctx)
 
-    # Test lmgtfy command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.misc.bot_utils.send_msg")
     async def test_lmgtfy_command(self, mock_send_msg, misc_cog, mock_ctx):
@@ -266,7 +256,6 @@ class TestMisc:
         assert variables.LMGTFY_URL in sent_url
         assert "how+to+code+in+python" in sent_url
 
-    # Test invites command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.misc.bot_utils.send_msg")
     @patch("src.bot.cogs.misc.chat_formatting.inline")
@@ -287,7 +276,6 @@ class TestMisc:
         """Test invites command with various invite types."""
         mock_ctx.subcommand_passed = None
 
-        # Create mock invites
         unlimited_invite = MagicMock()
         unlimited_invite.revoked = False
         unlimited_invite.max_age = 0
@@ -316,8 +304,8 @@ class TestMisc:
 
         mock_send_embed.assert_called_once()
         embed = mock_send_embed.call_args[0][1]
-        assert embed.title == messages.INVITE_TITLE
-        assert len(embed.fields) == 3  # unlimited, limited, revoked
+        assert embed.title == messages.Misc.INVITE_TITLE
+        assert len(embed.fields) == 3
 
     @pytest.mark.asyncio
     async def test_invites_command_with_subcommand(self, misc_cog, mock_ctx):
@@ -327,7 +315,6 @@ class TestMisc:
         with pytest.raises(commands.BadArgument):
             await misc_cog.invites.callback(misc_cog, mock_ctx)
 
-    # Test serverinfo command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.misc.bot_utils.send_embed")
     @patch("src.bot.cogs.misc.bot_utils.get_current_date_time")
@@ -338,12 +325,10 @@ class TestMisc:
         """Test serverinfo command."""
         mock_ctx.subcommand_passed = None
 
-        # Setup time mocks
         current_time = datetime.now(UTC)
         mock_get_current_time.return_value = current_time
         mock_convert_datetime.return_value = "2023-01-01 12:00:00 UTC"
 
-        # Setup guild members
         online_member = MagicMock()
         online_member.bot = False
         online_member.status = discord.Status.online
@@ -369,9 +354,7 @@ class TestMisc:
 
         embed = mock_send_embed.call_args[0][1]
         assert embed.author.name == "Test Server"
-        assert (
-            len(embed.fields) == 9
-        )  # Users, Online, Offline, Bots, Text Channels, Voice Channels, Roles, Owner, Emojis
+        assert len(embed.fields) == 9
 
     @pytest.mark.asyncio
     async def test_serverinfo_command_with_subcommand(self, misc_cog, mock_ctx):
@@ -381,7 +364,6 @@ class TestMisc:
         with pytest.raises(commands.BadArgument):
             await misc_cog.serverinfo.callback(misc_cog, mock_ctx)
 
-    # Test userinfo command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.misc.bot_utils.send_embed")
     @patch("src.bot.cogs.misc.bot_utils.get_object_member_by_str")
@@ -391,9 +373,8 @@ class TestMisc:
     ):
         """Test userinfo command for self."""
         mock_get_current_time.return_value = datetime.now(UTC)
-        mock_get_member.return_value = None  # No member string provided
+        mock_get_member.return_value = None
 
-        # Setup guild members including the author for member number calculation
         mock_ctx.guild.members = [mock_ctx.author]
 
         await misc_cog.userinfo.callback(misc_cog, mock_ctx, member_str=None)
@@ -416,7 +397,6 @@ class TestMisc:
         mock_get_current_time.return_value = datetime.now(UTC)
         mock_get_member.return_value = mock_member
 
-        # Setup guild members including the target member for member number calculation
         mock_ctx.guild.members = [mock_member]
 
         await misc_cog.userinfo.callback(misc_cog, mock_ctx, member_str="TestMember")
@@ -427,7 +407,6 @@ class TestMisc:
         embed = mock_send_embed.call_args[0][1]
         assert "TestMember ~ Nickname" in embed.author.name
 
-    # Test about command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.misc.bot_utils.send_embed")
     @patch("src.bot.cogs.misc.bot_utils.get_bot_stats")
@@ -435,18 +414,16 @@ class TestMisc:
         """Test about command."""
         mock_ctx.subcommand_passed = None
 
-        # Setup bot stats
         mock_get_bot_stats.return_value = {
             "servers": "5 servers",
             "users": "(100 users)(10 bots)[110 total]",
             "channels": "(50 text)(20 voice)[70 total]",
         }
 
-        # Setup bot owner - make get_user return a regular mock, not coroutine
         mock_owner = MagicMock()
         mock_owner.avatar = MagicMock()
         mock_owner.avatar.url = "https://example.com/owner_avatar.png"
-        misc_cog.bot.get_user = MagicMock(return_value=mock_owner)  # Not AsyncMock
+        misc_cog.bot.get_user = MagicMock(return_value=mock_owner)
 
         await misc_cog.about.callback(misc_cog, mock_ctx)
 
@@ -457,6 +434,14 @@ class TestMisc:
         assert embed.author.name.startswith("TestBot")
         assert embed.description == "Test bot description"
 
+        fields = {field.name: field.value for field in embed.fields}
+        settings = get_bot_settings()
+        assert fields["Anthropic"] == settings.anthropic_model
+        assert fields["OpenAI"] == settings.openai_model
+        assert fields["Google"] == settings.gemini_model
+        names = [field.name for field in embed.fields]
+        assert names.index("Google") < names.index("Download")
+
     @pytest.mark.asyncio
     async def test_about_command_with_subcommand(self, misc_cog, mock_ctx):
         """Test about command with subcommand (should raise BadArgument)."""
@@ -465,7 +450,6 @@ class TestMisc:
         with pytest.raises(commands.BadArgument):
             await misc_cog.about.callback(misc_cog, mock_ctx)
 
-    # Test TTS helper methods
     def test_has_special_tokens_true(self, misc_cog):
         """Test _has_special_tokens with special tokens."""
         assert misc_cog._has_special_tokens("Hello <@!123456789>") is True
@@ -533,10 +517,8 @@ class TestMisc:
         result = misc_cog._process_custom_emoji("<:smile>")
         assert result == "<:smile>"
 
-    # Test static helper methods
     def test_categorize_invites(self, misc_cog):
         """Test _categorize_invites static method."""
-        # Create mock invites
         unlimited_invite = MagicMock()
         unlimited_invite.revoked = False
         unlimited_invite.max_age = 0
@@ -571,7 +553,6 @@ class TestMisc:
 
     def test_calculate_server_stats(self, misc_cog, mock_ctx):
         """Test _calculate_server_stats static method."""
-        # Setup members
         online_user = MagicMock()
         online_user.bot = False
         online_user.status = discord.Status.online
@@ -594,25 +575,22 @@ class TestMisc:
 
         result = misc_cog._calculate_server_stats(mock_ctx.guild)
 
-        assert result["online"] == 3  # online + idle (including bot)
-        assert result["users"] == 3  # non-bot users
-        assert result["bots"] == 1  # bot users
+        assert result["online"] == 3
+        assert result["users"] == 3
+        assert result["bots"] == 1
         assert result["text_channels"] == 2
         assert result["voice_channels"] == 1
 
     def test_get_user_info(self, misc_cog, mock_ctx, mock_member):
         """Test _get_user_info static method."""
-        # Setup guild members for member number calculation
         older_member = MagicMock()
         older_member.joined_at = datetime(2020, 1, 1, tzinfo=UTC)
         mock_member.joined_at = datetime(2021, 1, 1, tzinfo=UTC)
         newer_member = MagicMock()
         newer_member.joined_at = datetime(2022, 1, 1, tzinfo=UTC)
 
-        # Important: use the exact same mock_member object in the list
         mock_ctx.guild.members = [older_member, mock_member, newer_member]
 
-        # Setup member roles
         role1 = MagicMock()
         role1.name = "Role1"
         role2 = MagicMock()
@@ -626,8 +604,8 @@ class TestMisc:
 
         assert "created_on" in result
         assert "joined_on" in result
-        assert result["member_number"] == 2  # Second to join
-        assert result["roles"] == "Role1, Role3"  # Excludes @everyone
+        assert result["member_number"] == 2
+        assert result["roles"] == "Role1, Role3"
         assert result["user_id"] == 99999
 
     def test_get_activity_description_playing(self, misc_cog, mock_member):
@@ -657,7 +635,7 @@ class TestMisc:
         mock_member.status = discord.Status.dnd
 
         result = misc_cog._get_activity_description(mock_member)
-        assert result == messages.DO_NOT_DISTURB
+        assert result == messages.Misc.DO_NOT_DISTURB
 
     def test_get_activity_description_other_activity(self, misc_cog, mock_member):
         """Test _get_activity_description with other activity type."""
@@ -716,7 +694,6 @@ class TestMisc:
         assert "@TestUser" in result
         assert "smile" in result
 
-    # Test serverinfo with no icon (line 168)
     @pytest.mark.asyncio
     @patch("src.bot.cogs.misc.bot_utils.send_embed")
     @patch("src.bot.cogs.misc.bot_utils.get_current_date_time")
@@ -727,15 +704,12 @@ class TestMisc:
         """Test serverinfo command when server has no icon (line 168)."""
         mock_ctx.subcommand_passed = None
 
-        # Setup time mocks
         current_time = datetime.now(UTC)
         mock_get_current_time.return_value = current_time
         mock_convert_datetime.return_value = "2023-01-01 12:00:00 UTC"
 
-        # Set server icon to None
         mock_ctx.guild.icon = None
 
-        # Setup guild members
         member = MagicMock()
         member.bot = False
         member.status = discord.Status.online
@@ -745,12 +719,9 @@ class TestMisc:
 
         mock_send_embed.assert_called_once()
         embed = mock_send_embed.call_args[0][1]
-        # Author name should be set but without url
         assert embed.author.name == "Test Server"
-        # Thumbnail should not be set (no icon)
         assert embed.thumbnail.url is None
 
-    # Test userinfo with no avatar (line 204)
     @pytest.mark.asyncio
     @patch("src.bot.cogs.misc.bot_utils.send_embed")
     @patch("src.bot.cogs.misc.bot_utils.get_object_member_by_str")
@@ -762,22 +733,17 @@ class TestMisc:
         mock_get_current_time.return_value = datetime.now(UTC)
         mock_get_member.return_value = None
 
-        # Set author avatar to None
         mock_ctx.author.avatar = None
 
-        # Setup guild members including the author for member number calculation
         mock_ctx.guild.members = [mock_ctx.author]
 
         await misc_cog.userinfo.callback(misc_cog, mock_ctx, member_str=None)
 
         mock_send_embed.assert_called_once()
         embed = mock_send_embed.call_args[0][1]
-        # Author name should be set but without url (no avatar)
         assert "TestUser" in embed.author.name
-        # Thumbnail should not be set
         assert embed.thumbnail.url is None
 
-    # Test _process_custom_emoji exception path (lines 297-298)
     def test_process_custom_emoji_exception_path(self, misc_cog):
         """Test _process_custom_emoji returns word when exception occurs (lines 297-298).
 
@@ -785,9 +751,5 @@ class TestMisc:
         which in Python 3 means 'except IndexError as ValueError'.
         An IndexError should trigger the except path.
         """
-        # "<:" with no closing ">" parts but still passes _is_custom_emoji check
-        # A word that splits into fewer than expected parts
-        # The split on ":" for "<:>" gives ['<', '', '>'] which has len >= 3
-        # but emoji_parts[2].rstrip(">") gives '' with len 0, so it returns word
         result = misc_cog._process_custom_emoji("<:>")
         assert result == "<:>"

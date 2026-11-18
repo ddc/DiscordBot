@@ -62,6 +62,8 @@ def _include_object(
     Filter to only include objects from our target schemas.
     This prevents Alembic from trying to manage tables in other schemas.
     """
+    if type_ == "table" and _name == "alembic_version":
+        return False
     if type_ == "table" and hasattr(obj, "schema"):
         obj_schema = obj.schema  # type: ignore[attr-defined]
         if obj_schema is None or obj_schema in _schemas:

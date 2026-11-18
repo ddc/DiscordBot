@@ -88,14 +88,13 @@ class TestSendEmbed:
         ctx.author.default_avatar = MagicMock()
         ctx.author.default_avatar.url = "https://example.com/default.png"
         ctx.send = AsyncMock()
-        ctx.channel = MagicMock()  # Not a DMChannel by default
+        ctx.channel = MagicMock()
         return ctx
 
     @pytest.mark.asyncio
     async def test_send_embed_no_color_sets_from_settings(self, mock_ctx):
         """Test that embed with no color gets color from bot settings."""
         embed = discord.Embed(description="Test")
-        # Embed starts with no color (None)
         assert embed.color is None
 
         await bot_utils.send_embed(mock_ctx, embed)
@@ -129,7 +128,6 @@ class TestSendEmbed:
 
         await bot_utils.send_embed(mock_ctx, embed)
 
-        # The author should not be overwritten since embed.author is truthy
         assert embed.author.name == "ExistingAuthor"
 
     @pytest.mark.asyncio
@@ -150,10 +148,8 @@ class TestSendEmbed:
 
         await bot_utils.send_embed(mock_ctx, embed, dm=True)
 
-        # Should send embed to author DM
         mock_ctx.author.send.assert_called_once_with(embed=embed)
 
-        # Should send notification embed to channel
         mock_ctx.send.assert_called_once()
         notification_call = mock_ctx.send.call_args
         notification_embed = notification_call[1]["embed"]
@@ -204,9 +200,7 @@ class TestSendEmbed:
 
         await bot_utils.send_embed(mock_ctx, embed)
 
-        # Should log the error
         mock_ctx.bot.log.error.assert_called_once()
-        # Should try to send DM disabled message to channel
         mock_ctx.send.assert_called_once()
 
     @pytest.mark.asyncio
@@ -217,7 +211,6 @@ class TestSendEmbed:
 
         await bot_utils.send_embed(mock_ctx, embed, dm=False)
 
-        # Should log the error but NOT show DM disabled (was a channel send)
         mock_ctx.bot.log.error.assert_called_once()
         assert "Failed to send message" in mock_ctx.bot.log.error.call_args[0][0]
 
@@ -242,7 +235,7 @@ class TestDeleteMessage:
         ctx = MagicMock()
         ctx.message = MagicMock()
         ctx.message.delete = AsyncMock()
-        ctx.channel = MagicMock()  # Not a DMChannel
+        ctx.channel = MagicMock()
         ctx.bot = MagicMock()
         ctx.bot.settings = {"bot": {"EmbedColor": discord.Color.blue()}}
         ctx.bot.log = MagicMock()
@@ -263,12 +256,11 @@ class TestDeleteMessage:
         mock_send_msg.assert_called_once()
         call_args = mock_send_msg.call_args[0]
         assert call_args[0] == mock_ctx
-        # msg should be MESSAGE_REMOVED_FOR_PRIVACY
         from src.bot.constants import messages
 
-        assert call_args[1] == messages.MESSAGE_REMOVED_FOR_PRIVACY
-        assert call_args[2] is False  # dm=False
-        assert call_args[3] is None  # color=None (no error)
+        assert call_args[1] == messages.BotUtils.MESSAGE_REMOVED_FOR_PRIVACY
+        assert call_args[2] is False
+        assert call_args[3] is None
 
     @pytest.mark.asyncio
     @patch("src.bot.tools.bot_utils.send_msg")
@@ -283,9 +275,9 @@ class TestDeleteMessage:
         assert call_args[0] == mock_ctx
         from src.bot.constants import messages
 
-        assert call_args[1] == messages.DELETE_MESSAGE_NO_PERMISSION
-        assert call_args[2] is False  # dm=False
-        assert call_args[3] == discord.Color.red()  # color=red for error
+        assert call_args[1] == messages.BotUtils.DELETE_MESSAGE_NO_PERMISSION
+        assert call_args[2] is False
+        assert call_args[3] == discord.Color.red()
 
     @pytest.mark.asyncio
     @patch("src.bot.tools.bot_utils.send_msg")
@@ -352,7 +344,6 @@ class TestGetServerSystemChannel:
         server = MagicMock()
         server.system_channel = None
 
-        # Create channels with overwrites
         channel1 = MagicMock()
         channel1.position = 0
 
@@ -382,7 +373,7 @@ class TestGetServerSystemChannel:
         everyone_role.name = "@everyone"
 
         permissions = MagicMock()
-        permissions.read_messages = None  # None means not explicitly denied
+        permissions.read_messages = None
 
         channel.overwrites = {everyone_role: permissions}
 
@@ -421,7 +412,7 @@ class TestGetServerSystemChannel:
 
         channel = MagicMock()
         channel.position = 0
-        del channel.overwrites  # Remove overwrites attribute
+        del channel.overwrites
 
         server.text_channels = [channel]
 
@@ -437,21 +428,18 @@ class TestGetServerSystemChannel:
         everyone_role = MagicMock()
         everyone_role.name = "@everyone"
 
-        # Channel at position 2 (should be second)
         channel_high = MagicMock()
         channel_high.position = 2
         permissions_high = MagicMock()
         permissions_high.read_messages = True
         channel_high.overwrites = {everyone_role: permissions_high}
 
-        # Channel at position 0 (should be first)
         channel_low = MagicMock()
         channel_low.position = 0
         permissions_low = MagicMock()
         permissions_low.read_messages = True
         channel_low.overwrites = {everyone_role: permissions_low}
 
-        # Put them in reverse order to test sorting
         server.text_channels = [channel_high, channel_low]
 
         result = bot_utils.get_server_system_channel(server)
@@ -476,7 +464,6 @@ class TestGetServerSystemChannel:
         channel = MagicMock()
         channel.position = 0
 
-        # Target without name attribute (e.g., a Member without name)
         target_no_name = MagicMock()
         del target_no_name.name
 
@@ -547,14 +534,12 @@ class TestGetServerSystemChannel:
         everyone_role = MagicMock()
         everyone_role.name = "@everyone"
 
-        # Channel 1: read_messages=False (not readable)
         channel1 = MagicMock()
         channel1.position = 0
         perms1 = MagicMock()
         perms1.read_messages = False
         channel1.overwrites = {everyone_role: perms1}
 
-        # Channel 2: read_messages=True (readable)
         channel2 = MagicMock()
         channel2.position = 1
         perms2 = MagicMock()
@@ -585,7 +570,7 @@ class TestSendEmbedDmFallback:
         ctx.author.avatar = MagicMock()
         ctx.author.avatar.url = "https://example.com/avatar.png"
         ctx.send = AsyncMock()
-        ctx.channel = MagicMock()  # Not a DMChannel
+        ctx.channel = MagicMock()
         return ctx
 
     @pytest.mark.asyncio
@@ -596,7 +581,6 @@ class TestSendEmbedDmFallback:
 
         await bot_utils.send_embed(mock_ctx, embed, dm=True)
 
-        # DM failed, should fall back to channel send
         mock_ctx.send.assert_called_once_with(embed=embed)
 
     @pytest.mark.asyncio
@@ -604,12 +588,9 @@ class TestSendEmbedDmFallback:
         """Test that when DM disabled message itself fails to send (lines 155-156)."""
         embed = discord.Embed(description="Test", color=discord.Color.green())
         mock_ctx.channel = MagicMock(spec=discord.DMChannel)
-        # First call (author.send) raises Forbidden
         mock_ctx.author.send.side_effect = discord.Forbidden(MagicMock(), "Cannot send DM")
-        # Fallback channel send also raises
         mock_ctx.send.side_effect = discord.Forbidden(MagicMock(), "Cannot send to channel either")
 
-        # Should not raise — the inner except catches it
         await bot_utils.send_embed(mock_ctx, embed)
 
         mock_ctx.bot.log.error.assert_called_once()
@@ -711,7 +692,7 @@ class TestEmbedPaginatorView:
         with patch.object(view, "_save_current_page", new_callable=AsyncMock):
             await view.next_button.callback(interaction)
 
-        assert view.current_page == 1  # advanced
+        assert view.current_page == 1
         interaction.response.edit_message.assert_called_once()
         interaction.response.send_message.assert_not_called()
 
@@ -728,7 +709,7 @@ class TestEmbedPaginatorView:
         with patch.object(view, "_save_current_page", new_callable=AsyncMock):
             await view.previous_button.callback(interaction)
 
-        assert view.current_page == 0  # went back
+        assert view.current_page == 0
         interaction.response.edit_message.assert_called_once()
         interaction.response.send_message.assert_not_called()
 
@@ -792,14 +773,13 @@ class TestSendPaginatedEmbed:
         mock_ctx.send.assert_called_once()
         call_kwargs = mock_ctx.send.call_args[1]
         sent_embed = call_kwargs["embed"]
-        assert len(sent_embed.fields) == 25  # First page
+        assert len(sent_embed.fields) == 25
         assert isinstance(call_kwargs["view"], EmbedPaginatorView)
 
         view = call_kwargs["view"]
         assert len(view.pages) == 2
         assert len(view.pages[0].fields) == 25
         assert len(view.pages[1].fields) == 5
-        # Check properties preserved
         assert view.pages[0].description == "Test desc"
         assert view.pages[0].author.name == "Author"
         assert view.pages[0].thumbnail.url == "https://example.com/thumb.png"
@@ -823,7 +803,6 @@ class TestSendPaginatedEmbed:
         for i in range(26):
             embed.add_field(name=f"Field {i}", value=f"Value {i}")
 
-        # max_fields=30 means 26 fields fit in one page
         with patch("src.bot.tools.bot_utils.send_embed") as mock_send:
             await bot_utils.send_paginated_embed(mock_ctx, embed, max_fields=30)
             mock_send.assert_called_once()
@@ -925,10 +904,10 @@ class TestEmbedPaginatorViewPersistence:
         ctx.send.assert_called_once()
         mock_dal.insert_embed_pages.assert_awaited_once()
         call_args = mock_dal.insert_embed_pages.call_args
-        assert call_args[0][0] == 111  # message_id
-        assert call_args[0][1] == 222  # channel_id
-        assert call_args[0][2] == 42  # author_id
-        assert len(call_args[0][3]) == 2  # pages data
+        assert call_args[0][0] == 111
+        assert call_args[0][1] == 222
+        assert call_args[0][2] == 42
+        assert len(call_args[0][3]) == 2
 
     @pytest.mark.asyncio
     @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
@@ -945,7 +924,6 @@ class TestEmbedPaginatorViewPersistence:
         mock_msg = MagicMock()
         mock_msg.id = 111
         mock_msg.channel.id = 222
-        # First attempt: 429 code 40062 (transient). Notice send: ok. Retry: ok.
         rate_limited = _make_http_exception(429, code=40062)
         notice_msg = MagicMock()
         ctx.send = AsyncMock(side_effect=[rate_limited, notice_msg, mock_msg])
@@ -955,7 +933,6 @@ class TestEmbedPaginatorViewPersistence:
         with patch("src.bot.tools.bot_utils.asyncio.sleep", new_callable=AsyncMock):
             await view.send_and_save(ctx)
 
-        # 3 ctx.send calls: failed attempt, retry notice, successful retry
         assert ctx.send.await_count == 3
         assert view.message is mock_msg
         mock_dal.insert_embed_pages.assert_awaited_once()
@@ -988,7 +965,7 @@ class TestEmbedPaginatorViewPersistence:
         )
         mock_dal_class.return_value = mock_dal
 
-        view = EmbedPaginatorView()  # No pages
+        view = EmbedPaginatorView()
         interaction = MagicMock()
         interaction.message.id = 111
         interaction.client.db_session = MagicMock()
@@ -1009,7 +986,7 @@ class TestEmbedPaginatorViewPersistence:
         mock_dal.get_embed_pages = AsyncMock(return_value=None)
         mock_dal_class.return_value = mock_dal
 
-        view = EmbedPaginatorView()  # No pages
+        view = EmbedPaginatorView()
         interaction = MagicMock()
         interaction.message.id = 999
         interaction.client.db_session = MagicMock()
@@ -1138,7 +1115,6 @@ class TestSendWithRetry:
             result = await bot_utils.send_with_retry(mock_ctx, send, embed="x")
         assert result == "ok"
         assert send.await_count == 2
-        # Notice sent exactly once
         mock_ctx.send.assert_called_once()
         notice_embed = mock_ctx.send.call_args[1]["embed"]
         assert "retrying" in notice_embed.description.lower()
@@ -1178,7 +1154,6 @@ class TestSendWithRetry:
             with pytest.raises(discord.HTTPException):
                 await bot_utils.send_with_retry(mock_ctx, send, max_attempts=3)
         assert send.await_count == 3
-        # Notice sent at most once even across multiple failed attempts
         assert mock_ctx.send.call_count == 1
 
     @pytest.mark.asyncio
@@ -1190,3 +1165,45 @@ class TestSendWithRetry:
             result = await bot_utils.send_with_retry(mock_ctx, send)
         assert result == "ok"
         assert send.await_count == 2
+
+
+class TestPaginatorExpiredButtons:
+    """Previous/next on a paginator whose pages are gone from memory and the database."""
+
+    @staticmethod
+    def _expired_view_and_interaction():
+        view = EmbedPaginatorView()
+        interaction = MagicMock()
+        interaction.message.id = 999
+        interaction.response.send_message = AsyncMock()
+        interaction.response.edit_message = AsyncMock()
+        return view, interaction
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("button_name", ["previous_button", "next_button"])
+    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    async def test_expired_pagination_does_not_move(self, mock_dal_class, button_name):
+        mock_dal_class.return_value.get_embed_pages = AsyncMock(return_value=None)
+        view, interaction = self._expired_view_and_interaction()
+
+        button = getattr(view, button_name)
+        await button.callback(interaction)
+
+        interaction.response.send_message.assert_awaited_once_with("This pagination has expired.", ephemeral=True)
+        interaction.response.edit_message.assert_not_awaited()
+        assert view.current_page == 0
+
+
+@pytest.mark.asyncio
+async def test_send_paginated_embed_keeps_existing_footer_text():
+    embed = discord.Embed(title="T", color=discord.Color.green())
+    embed.set_footer(text="2024-01-01 UTC")
+    for i in range(30):
+        embed.add_field(name=f"f{i}", value="v")
+    ctx = MagicMock()
+    ctx.message.author.id = 1
+    with patch("src.bot.tools.bot_utils.EmbedPaginatorView") as mock_view:
+        mock_view.return_value.send_and_save = AsyncMock()
+        await bot_utils.send_paginated_embed(ctx, embed)
+    pages = mock_view.call_args[0][0]
+    assert [p.footer.text for p in pages] == ["2024-01-01 UTC | Page 1/2", "2024-01-01 UTC | Page 2/2"]

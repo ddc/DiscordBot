@@ -9,6 +9,8 @@ Create Date: 2024-12-01 15:25:51.880359
 import sqlalchemy as sa
 from alembic import op
 from collections.abc import Sequence
+from datetime import datetime
+from uuid import UUID
 
 # revision identifiers, used by Alembic.
 revision: str = "0010"
@@ -20,15 +22,15 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.create_table(
         "gw2_session_char_deaths",
-        sa.Column("id", sa.Uuid(), nullable=False, server_default=sa.text("gen_random_uuid()")),
-        sa.Column("session_id", sa.Uuid(), nullable=False),
-        sa.Column("user_id", sa.BigInteger(), nullable=False),
-        sa.Column("name", sa.String(), nullable=False),
-        sa.Column("profession", sa.String(), nullable=False),
-        sa.Column("start", sa.Integer(), nullable=False),
-        sa.Column("end", sa.Integer(), nullable=True),
-        sa.Column("updated_at", sa.DateTime(), server_default=sa.func.timezone("utc", sa.func.now()), nullable=False),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.func.timezone("utc", sa.func.now()), nullable=False),
+        sa.Column[UUID]("id", sa.Uuid[UUID](), nullable=False, server_default=sa.text("uuidv7()")),
+        sa.Column[UUID]("session_id", sa.Uuid[UUID](), nullable=False),
+        sa.Column[int]("user_id", sa.BigInteger(), nullable=False),
+        sa.Column[str]("name", sa.String(), nullable=False),
+        sa.Column[str]("profession", sa.String(), nullable=False),
+        sa.Column[int]("start", sa.Integer(), nullable=False),
+        sa.Column[int]("end", sa.Integer(), nullable=True),
+        sa.Column[datetime]("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column[datetime]("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.ForeignKeyConstraint(
             ["session_id"],
             ["gw2.gw2_sessions.id"],

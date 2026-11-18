@@ -180,15 +180,38 @@ class TestInfoCommand:
                 mock_client_instance = mock_client.return_value
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
-                        {"world": 1001},  # account call
-                        sample_matches_data,  # wvw/matches call
-                        sample_worldinfo_data,  # worlds call
+                        {"world": 1001},
+                        sample_matches_data,
+                        sample_worldinfo_data,
                     ]
                 )
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send:
                     await info(mock_ctx, world=None)
                     mock_send.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_info_wr_team_id_uses_team_name_without_worlds_lookup(self, mock_bot, mock_ctx, sample_matches_data):
+        """A World Restructuring team id resolves its name locally and only fetches the match."""
+        sample_matches_data["all_worlds"]["red"].append(11001)
+
+        with (
+            patch("src.gw2.cogs.wvw.Gw2KeyDal") as mock_dal,
+            patch("src.gw2.cogs.wvw.Gw2Client") as mock_client,
+            patch("src.gw2.cogs.wvw.get_team_name", return_value="Moogooloo"),
+            patch("src.gw2.cogs.wvw.bot_utils.send_embed") as mock_send,
+        ):
+            mock_dal.return_value.get_api_key_by_user = AsyncMock(return_value=[{"key": "k"}])
+            mock_client.return_value.call_api = AsyncMock(
+                side_effect=[{"wvw": {"team_id": 11001}, "world": 1001}, sample_matches_data]
+            )
+            await info(mock_ctx, world=None)
+
+        assert mock_client.return_value.call_api.await_count == 2
+        embed = mock_send.call_args[0][1]
+        assert embed.title == "Moogooloo"
+        fields = {f.name: f.value for f in embed.fields}
+        assert "N/A" in fields["Population"]
 
     @pytest.mark.asyncio
     async def test_info_no_world_api_key_error(self, mock_bot, mock_ctx):
@@ -269,7 +292,7 @@ class TestInfoCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert gw2_messages.INVALID_WORLD_NAME in error_msg
+                    assert gw2_messages.Wvw.INVALID_WORLD_NAME in error_msg
                     assert "InvalidWorld" in error_msg
 
     @pytest.mark.asyncio
@@ -304,7 +327,7 @@ class TestInfoCommand:
         }
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
-            mock_get_wid.return_value = 1001  # Not in any of the all_worlds lists
+            mock_get_wid.return_value = 1001
 
             with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -320,14 +343,14 @@ class TestInfoCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert gw2_messages.WORLD_COLOR_ERROR in error_msg
+                    assert gw2_messages.Wvw.WORLD_COLOR_ERROR in error_msg
 
     @pytest.mark.asyncio
     async def test_info_na_tier(self, mock_bot, mock_ctx, sample_matches_data, sample_worldinfo_data):
         """Test info command with NA tier (wid < 2001)."""
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
-            mock_get_wid.return_value = 1001  # NA world
+            mock_get_wid.return_value = 1001
 
             with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -342,7 +365,7 @@ class TestInfoCommand:
                     await info(mock_ctx, world="Anvil Rock")
 
                     embed = mock_send.call_args[0][1]
-                    assert gw2_messages.NA_TIER_TITLE in embed.description
+                    assert gw2_messages.Wvw.NA_TIER_TITLE in embed.description
 
     @pytest.mark.asyncio
     async def test_info_eu_tier(self, mock_bot, mock_ctx, sample_worldinfo_data):
@@ -390,14 +413,14 @@ class TestInfoCommand:
                     await info(mock_ctx, world="Desolation")
 
                     embed = mock_send.call_args[0][1]
-                    assert gw2_messages.EU_TIER_TITLE in embed.description
+                    assert gw2_messages.Wvw.EU_TIER_TITLE in embed.description
 
     @pytest.mark.asyncio
     async def test_info_red_world_color(self, mock_bot, mock_ctx, sample_matches_data, sample_worldinfo_data):
         """Test info command with red world color."""
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
-            mock_get_wid.return_value = 1001  # In red all_worlds
+            mock_get_wid.return_value = 1001
 
             with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -419,7 +442,7 @@ class TestInfoCommand:
         """Test info command with green world color."""
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
-            mock_get_wid.return_value = 1003  # In green all_worlds
+            mock_get_wid.return_value = 1003
 
             with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -441,7 +464,7 @@ class TestInfoCommand:
         """Test info command with blue world color."""
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
-            mock_get_wid.return_value = 1005  # In blue all_worlds
+            mock_get_wid.return_value = 1005
 
             with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -485,7 +508,6 @@ class TestInfoCommand:
                         await info(mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
-                        # Check that the Population field has "Very high"
                         pop_field = next(f for f in embed.fields if f.name == "Population")
                         assert "Very high" in pop_field.value
 
@@ -580,7 +602,7 @@ class TestInfoCommand:
         """Test info command with normal kd calculation."""
 
         with patch("src.gw2.cogs.wvw.gw2_utils.get_world_id", new_callable=AsyncMock) as mock_get_wid:
-            mock_get_wid.return_value = 1001  # red world
+            mock_get_wid.return_value = 1001
 
             with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
@@ -736,7 +758,7 @@ class TestMatchCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert gw2_messages.MISSING_WORLD_NAME in error_msg
+                    assert gw2_messages.Wvw.MISSING_WORLD_NAME in error_msg
 
     @pytest.mark.asyncio
     async def test_match_no_world_api_key_error(self, mock_bot, mock_ctx):
@@ -757,7 +779,7 @@ class TestMatchCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert gw2_messages.MISSING_WORLD_NAME in error_msg
+                    assert gw2_messages.Wvw.MISSING_WORLD_NAME in error_msg
 
     @pytest.mark.asyncio
     async def test_match_no_world_generic_exception(self, mock_bot, mock_ctx):
@@ -812,7 +834,7 @@ class TestMatchCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert gw2_messages.INVALID_WORLD_NAME in error_msg
+                    assert gw2_messages.Wvw.INVALID_WORLD_NAME in error_msg
                     assert "InvalidWorld" in error_msg
 
     @pytest.mark.asyncio
@@ -833,7 +855,7 @@ class TestMatchCommand:
                         await match(mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
-                        assert gw2_messages.NA_TIER_TITLE in embed.description
+                        assert gw2_messages.Wvw.NA_TIER_TITLE in embed.description
 
     @pytest.mark.asyncio
     async def test_match_eu_tier(self, mock_bot, mock_ctx):
@@ -892,7 +914,7 @@ class TestMatchCommand:
                         await match(mock_ctx, world="Desolation")
 
                         embed = mock_send.call_args[0][1]
-                        assert gw2_messages.EU_TIER_TITLE in embed.description
+                        assert gw2_messages.Wvw.EU_TIER_TITLE in embed.description
 
     @pytest.mark.asyncio
     async def test_match_exception_during_fetch(self, mock_bot, mock_ctx):
@@ -1030,7 +1052,7 @@ class TestKdrCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert gw2_messages.INVALID_WORLD_NAME in error_msg
+                    assert gw2_messages.Wvw.INVALID_WORLD_NAME in error_msg
 
     @pytest.mark.asyncio
     async def test_kdr_no_world_api_key_error(self, mock_bot, mock_ctx):
@@ -1051,7 +1073,7 @@ class TestKdrCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert gw2_messages.INVALID_WORLD_NAME in error_msg
+                    assert gw2_messages.Wvw.INVALID_WORLD_NAME in error_msg
 
     @pytest.mark.asyncio
     async def test_kdr_no_world_generic_exception(self, mock_bot, mock_ctx):
@@ -1106,7 +1128,7 @@ class TestKdrCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert gw2_messages.INVALID_WORLD_NAME in error_msg
+                    assert gw2_messages.Wvw.INVALID_WORLD_NAME in error_msg
                     assert "InvalidWorld" in error_msg
 
     @pytest.mark.asyncio
@@ -1127,7 +1149,7 @@ class TestKdrCommand:
                         await kdr(mock_ctx, world="Anvil Rock")
 
                         embed = mock_send.call_args[0][1]
-                        assert gw2_messages.NA_TIER_TITLE in embed.description
+                        assert gw2_messages.Wvw.NA_TIER_TITLE in embed.description
 
     @pytest.mark.asyncio
     async def test_kdr_eu_tier_title(self, mock_bot, mock_ctx):
@@ -1226,7 +1248,7 @@ class TestKdrCommand:
 
                         mock_send.assert_called_once()
                         embed = mock_send.call_args[0][1]
-                        assert embed.title == gw2_messages.WVW_KDR_TITLE
+                        assert embed.title == gw2_messages.Wvw.KDR_TITLE
                         field_names = [f.name for f in embed.fields]
                         assert "Green" in field_names
                         assert "Blue" in field_names
@@ -1270,7 +1292,6 @@ class TestGetMapNamesEmbedValues:
             assert "World1 (High)" in result
             assert "World2 (Medium)" in result
             assert "World3 (Low)" in result
-            # Verify the primary server is first in the list
             mock_pop.assert_called_once()
 
     @pytest.mark.asyncio
@@ -1283,7 +1304,6 @@ class TestGetMapNamesEmbedValues:
 
             call_args = mock_pop.call_args[0]
             ids_str = call_args[1]
-            # Primary server (1003) should be first
             assert ids_str.startswith("1003")
 
     @pytest.mark.asyncio
@@ -1301,7 +1321,6 @@ class TestGetMapNamesEmbedValues:
 
             call_args = mock_pop.call_args[0]
             ids_str = call_args[1]
-            # 1001 should appear only once
             assert ids_str.count("1001") == 1
 
 
@@ -1316,7 +1335,7 @@ class TestGetKdrEmbedValues:
             "deaths": {"red": 4000, "green": 3500, "blue": 2500},
         }
 
-        result = await _get_kdr_embed_values("red", matches)
+        result = _get_kdr_embed_values("red", matches)
 
         expected_kd = round(5000 / 4000, 3)
         assert f"Kills: `{format(5000, ',d')}`" in result
@@ -1332,7 +1351,7 @@ class TestGetKdrEmbedValues:
             "deaths": {"red": 4000, "green": 3500, "blue": 2500},
         }
 
-        result = await _get_kdr_embed_values("red", matches)
+        result = _get_kdr_embed_values("red", matches)
 
         assert "K/D: `0.0`" in result
         assert "Activity: `4,000`" in result
@@ -1345,7 +1364,7 @@ class TestGetKdrEmbedValues:
             "deaths": {"red": 0, "green": 3500, "blue": 2500},
         }
 
-        result = await _get_kdr_embed_values("red", matches)
+        result = _get_kdr_embed_values("red", matches)
 
         assert "K/D: `0.0`" in result
 
@@ -1357,7 +1376,7 @@ class TestGetKdrEmbedValues:
             "deaths": {"red": 4000, "green": 3500, "blue": 2500},
         }
 
-        result = await _get_kdr_embed_values("green", matches)
+        result = _get_kdr_embed_values("green", matches)
 
         expected_kd = round(4000 / 3500, 3)
         assert f"K/D: `{expected_kd}`" in result
@@ -1371,7 +1390,7 @@ class TestGetKdrEmbedValues:
             "deaths": {"red": 0},
         }
 
-        result = await _get_kdr_embed_values("red", matches)
+        result = _get_kdr_embed_values("red", matches)
 
         assert "K/D: `0.0`" in result
         assert "Activity: `0`" in result
@@ -1394,6 +1413,7 @@ class TestGetMatchEmbedValues:
             ],
             "maps": [
                 {
+                    "type": "Center",
                     "objectives": [
                         {"owner": "Red", "points_tick": 5, "yaks_delivered": 10},
                         {"owner": "Green", "points_tick": 3},
@@ -1403,6 +1423,7 @@ class TestGetMatchEmbedValues:
                     "deaths": {"red": 800, "green": 700, "blue": 500},
                 },
                 {
+                    "type": "RedHome",
                     "objectives": [
                         {"owner": "Red", "points_tick": 4, "yaks_delivered": 8},
                         {"owner": "Green", "points_tick": 6},
@@ -1411,6 +1432,7 @@ class TestGetMatchEmbedValues:
                     "deaths": {"red": 1000, "green": 800, "blue": 600},
                 },
                 {
+                    "type": "BlueHome",
                     "objectives": [
                         {"owner": "Blue", "points_tick": 7},
                         {"owner": "Red", "points_tick": 3, "yaks_delivered": 6},
@@ -1419,6 +1441,7 @@ class TestGetMatchEmbedValues:
                     "deaths": {"red": 1100, "green": 900, "blue": 700},
                 },
                 {
+                    "type": "GreenHome",
                     "objectives": [
                         {"owner": "Green", "points_tick": 5, "yaks_delivered": 12},
                         {"owner": "Blue", "points_tick": 4},
@@ -1432,7 +1455,7 @@ class TestGetMatchEmbedValues:
     @pytest.mark.asyncio
     async def test_match_embed_values_normal(self, sample_matches):
         """Test _get_match_embed_values with normal data."""
-        result = await _get_match_embed_values("red", sample_matches)
+        result = _get_match_embed_values("red", sample_matches)
 
         assert "Score: `150,000`" in result
         assert "Victory Pts: `50`" in result
@@ -1465,7 +1488,7 @@ class TestGetMatchEmbedValues:
             ],
         }
 
-        result = await _get_match_embed_values("red", matches)
+        result = _get_match_embed_values("red", matches)
         assert "K/D: `0.0`" in result
 
     @pytest.mark.asyncio
@@ -1485,7 +1508,7 @@ class TestGetMatchEmbedValues:
             ],
         }
 
-        result = await _get_match_embed_values("red", matches)
+        result = _get_match_embed_values("red", matches)
         assert "K/D: `0.0`" in result
         assert "K/D EBG: `0.0`" in result
         assert "K/D Green: `0.0`" in result
@@ -1509,14 +1532,14 @@ class TestGetMatchEmbedValues:
             ],
         }
 
-        result = await _get_match_embed_values("red", matches)
+        result = _get_match_embed_values("red", matches)
         assert "%PPT~: `0.0`" in result
         assert "%PPK~: `0.0`" in result
 
     @pytest.mark.asyncio
     async def test_match_embed_values_normal_pppt_pppk(self, sample_matches):
         """Test _get_match_embed_values with normal pppt/pppk calculations."""
-        result = await _get_match_embed_values("red", sample_matches)
+        result = _get_match_embed_values("red", sample_matches)
 
         score = 150000
         kills = 5000
@@ -1530,9 +1553,8 @@ class TestGetMatchEmbedValues:
     @pytest.mark.asyncio
     async def test_match_embed_values_yaks_delivered_present(self, sample_matches):
         """Test _get_match_embed_values with yaks_delivered present."""
-        result = await _get_match_embed_values("red", sample_matches)
+        result = _get_match_embed_values("red", sample_matches)
 
-        # Red owns objectives with yaks_delivered: 10, 8, 6 = 24
         assert "Yaks Dlv:" in result
 
     @pytest.mark.asyncio
@@ -1552,13 +1574,12 @@ class TestGetMatchEmbedValues:
             ],
         }
 
-        result = await _get_match_embed_values("red", matches)
-        # yaks_delivered should be 0 since no objectives have the key
+        result = _get_match_embed_values("red", matches)
         assert "Yaks Dlv: `0`" in result
 
     @pytest.mark.asyncio
     async def test_match_embed_values_per_map_kd_blue(self):
-        """Test _get_match_embed_values per-map KD for blue (map index 0)."""
+        """Test _get_match_embed_values per-map KD for the Blue borderland."""
         matches = {
             "scores": {"red": 100000},
             "victory_points": {"red": 50},
@@ -1566,20 +1587,20 @@ class TestGetMatchEmbedValues:
             "deaths": {"red": 4000},
             "skirmishes": [{"scores": {"red": 600}}],
             "maps": [
-                {"objectives": [], "kills": {"red": 1000}, "deaths": {"red": 500}},  # blue map
-                {"objectives": [], "kills": {"red": 1200}, "deaths": {"red": 1000}},  # ebg
-                {"objectives": [], "kills": {"red": 1400}, "deaths": {"red": 700}},  # green
-                {"objectives": [], "kills": {"red": 1500}, "deaths": {"red": 1200}},  # red
+                {"type": "BlueHome", "objectives": [], "kills": {"red": 1000}, "deaths": {"red": 500}},
+                {"type": "Center", "objectives": [], "kills": {"red": 1200}, "deaths": {"red": 1000}},
+                {"type": "GreenHome", "objectives": [], "kills": {"red": 1400}, "deaths": {"red": 700}},
+                {"type": "RedHome", "objectives": [], "kills": {"red": 1500}, "deaths": {"red": 1200}},
             ],
         }
 
-        result = await _get_match_embed_values("red", matches)
+        result = _get_match_embed_values("red", matches)
         expected_kd_blue = round(1000 / 500, 3)
         assert f"K/D Blue: `{expected_kd_blue}`" in result
 
     @pytest.mark.asyncio
     async def test_match_embed_values_per_map_kd_ebg(self):
-        """Test _get_match_embed_values per-map KD for EBG (map index 1)."""
+        """Test _get_match_embed_values per-map KD for Eternal Battlegrounds."""
         matches = {
             "scores": {"green": 120000},
             "victory_points": {"green": 40},
@@ -1588,19 +1609,19 @@ class TestGetMatchEmbedValues:
             "skirmishes": [{"scores": {"green": 500}}],
             "maps": [
                 {"objectives": [], "kills": {"green": 800}, "deaths": {"green": 700}},
-                {"objectives": [], "kills": {"green": 900}, "deaths": {"green": 600}},  # ebg
+                {"type": "Center", "objectives": [], "kills": {"green": 900}, "deaths": {"green": 600}},
                 {"objectives": [], "kills": {"green": 1100}, "deaths": {"green": 900}},
                 {"objectives": [], "kills": {"green": 1200}, "deaths": {"green": 1000}},
             ],
         }
 
-        result = await _get_match_embed_values("green", matches)
+        result = _get_match_embed_values("green", matches)
         expected_kd_ebg = round(900 / 600, 3)
         assert f"K/D EBG: `{expected_kd_ebg}`" in result
 
     @pytest.mark.asyncio
     async def test_match_embed_values_per_map_kd_green(self):
-        """Test _get_match_embed_values per-map KD for green (map index 2)."""
+        """Test _get_match_embed_values per-map KD for the Green borderland."""
         matches = {
             "scores": {"blue": 100000},
             "victory_points": {"blue": 30},
@@ -1610,18 +1631,18 @@ class TestGetMatchEmbedValues:
             "maps": [
                 {"objectives": [], "kills": {"blue": 600}, "deaths": {"blue": 500}},
                 {"objectives": [], "kills": {"blue": 700}, "deaths": {"blue": 600}},
-                {"objectives": [], "kills": {"blue": 800}, "deaths": {"blue": 400}},  # green
+                {"type": "GreenHome", "objectives": [], "kills": {"blue": 800}, "deaths": {"blue": 400}},
                 {"objectives": [], "kills": {"blue": 900}, "deaths": {"blue": 800}},
             ],
         }
 
-        result = await _get_match_embed_values("blue", matches)
+        result = _get_match_embed_values("blue", matches)
         expected_kd_green = round(800 / 400, 3)
         assert f"K/D Green: `{expected_kd_green}`" in result
 
     @pytest.mark.asyncio
     async def test_match_embed_values_per_map_kd_red(self):
-        """Test _get_match_embed_values per-map KD for red (map index 3)."""
+        """Test _get_match_embed_values per-map KD for the Red borderland."""
         matches = {
             "scores": {"blue": 100000},
             "victory_points": {"blue": 30},
@@ -1632,28 +1653,48 @@ class TestGetMatchEmbedValues:
                 {"objectives": [], "kills": {"blue": 600}, "deaths": {"blue": 500}},
                 {"objectives": [], "kills": {"blue": 700}, "deaths": {"blue": 600}},
                 {"objectives": [], "kills": {"blue": 800}, "deaths": {"blue": 700}},
-                {"objectives": [], "kills": {"blue": 900}, "deaths": {"blue": 300}},  # red
+                {"type": "RedHome", "objectives": [], "kills": {"blue": 900}, "deaths": {"blue": 300}},
             ],
         }
 
-        result = await _get_match_embed_values("blue", matches)
+        result = _get_match_embed_values("blue", matches)
         expected_kd_red = round(900 / 300, 3)
         assert f"K/D Red: `{expected_kd_red}`" in result
+
+    def test_match_embed_values_per_map_kd_uses_map_type_not_position(self):
+        """Per-map K/D must follow each map's "type" (API order is Center, RedHome, BlueHome, GreenHome)."""
+        matches = {
+            "scores": {"red": 100000},
+            "victory_points": {"red": 50},
+            "kills": {"red": 5000},
+            "deaths": {"red": 4000},
+            "skirmishes": [{"scores": {"red": 600}}],
+            "maps": [
+                {"type": "Center", "objectives": [], "kills": {"red": 100}, "deaths": {"red": 100}},
+                {"type": "RedHome", "objectives": [], "kills": {"red": 200}, "deaths": {"red": 100}},
+                {"type": "BlueHome", "objectives": [], "kills": {"red": 300}, "deaths": {"red": 100}},
+                {"type": "GreenHome", "objectives": [], "kills": {"red": 400}, "deaths": {"red": 100}},
+            ],
+        }
+
+        result = _get_match_embed_values("red", matches)
+        assert "K/D EBG: `1.0`" in result
+        assert "K/D Red: `2.0`" in result
+        assert "K/D Blue: `3.0`" in result
+        assert "K/D Green: `4.0`" in result
 
     @pytest.mark.asyncio
     async def test_match_embed_values_skirmish_uses_last(self, sample_matches):
         """Test _get_match_embed_values uses the last skirmish."""
-        result = await _get_match_embed_values("red", sample_matches)
+        result = _get_match_embed_values("red", sample_matches)
 
-        # Last skirmish is index 1, score for red is 600
         assert "Skirmish: `600`" in result
 
     @pytest.mark.asyncio
     async def test_match_embed_values_activity(self, sample_matches):
         """Test _get_match_embed_values calculates activity correctly."""
-        result = await _get_match_embed_values("red", sample_matches)
+        result = _get_match_embed_values("red", sample_matches)
 
-        # Activity = kills + deaths = 5000 + 4000 = 9000
         assert "Activity: `9,000`" in result
 
 
@@ -1763,7 +1804,6 @@ class TestInfoDefaultColor:
 
         sample_worldinfo = {"id": 1001, "name": "Anvil Rock", "population": "High"}
 
-        # Create matches where the world is in a color key that is NOT red/green/blue
         matches_data = {
             "id": "1-3",
             "scores": {"yellow": 150000},
@@ -1836,7 +1876,6 @@ class TestMatchAPIKeyError:
 
             with patch("src.gw2.cogs.wvw.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
-                # Raise APIKeyError on the account call (results = await gw2_api.call_api("account", api_key))
                 mock_client_instance.call_api = AsyncMock(side_effect=APIKeyError(mock_ctx.bot, "Invalid key"))
 
                 with patch("src.gw2.cogs.wvw.bot_utils.send_error_msg") as mock_error:
@@ -1844,7 +1883,7 @@ class TestMatchAPIKeyError:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert gw2_messages.MISSING_WORLD_NAME in error_msg
+                    assert gw2_messages.Wvw.MISSING_WORLD_NAME in error_msg
 
 
 class TestKdrAPIKeyError:
@@ -1898,7 +1937,7 @@ class TestKdrAPIKeyError:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert gw2_messages.INVALID_WORLD_NAME in error_msg
+                    assert gw2_messages.Wvw.INVALID_WORLD_NAME in error_msg
 
 
 class TestResolveTier:
@@ -1908,27 +1947,27 @@ class TestResolveTier:
         """Test NA tier resolution from match ID."""
         matches = {"id": "1-3"}
         result = _resolve_tier(matches)
-        assert gw2_messages.NA_TIER_TITLE in result
+        assert gw2_messages.Wvw.NA_TIER_TITLE in result
         assert "3" in result
 
     def test_eu_tier(self):
         """Test EU tier resolution from match ID."""
         matches = {"id": "2-5"}
         result = _resolve_tier(matches)
-        assert gw2_messages.EU_TIER_TITLE in result
+        assert gw2_messages.Wvw.EU_TIER_TITLE in result
         assert "5" in result
 
     def test_na_tier_1(self):
         """Test NA tier 1."""
         matches = {"id": "1-1"}
         result = _resolve_tier(matches)
-        assert result == f"{gw2_messages.NA_TIER_TITLE} 1"
+        assert result == f"{gw2_messages.Wvw.NA_TIER_TITLE} 1"
 
     def test_eu_tier_1(self):
         """Test EU tier 1."""
         matches = {"id": "2-1"}
         result = _resolve_tier(matches)
-        assert result == f"{gw2_messages.EU_TIER_TITLE} 1"
+        assert result == f"{gw2_messages.Wvw.EU_TIER_TITLE} 1"
 
 
 class TestResolveWvwWorldId:

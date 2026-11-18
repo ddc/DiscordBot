@@ -10,14 +10,11 @@ from unittest.mock import Mock
 
 logger = logging.getLogger(__name__)
 
-# Ensure the project root is on sys.path so `from src...` imports work
-# regardless of whether pytest was invoked via `python -m pytest` or `pytest`
 _project_root = str(Path(__file__).resolve().parent.parent.parent)
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
 
-# Mock problematic imports before any test modules are loaded
 def setup_mocks():
     """Setup mocks for problematic dependencies."""
     sys.modules["ddcDatabases"] = Mock()
@@ -32,7 +29,6 @@ def auto_import_modules():
         if "__pycache__" in str(py_file) or "migrations" in str(py_file):
             continue
 
-        # Convert file path to module path
         module_parts = py_file.with_suffix("").parts
         module_name = ".".join(module_parts)
 
@@ -42,5 +38,4 @@ def auto_import_modules():
             logger.debug("Failed to import %s for coverage discovery", module_name)
 
 
-# Run auto-import during pytest collection
 auto_import_modules()

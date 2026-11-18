@@ -22,7 +22,7 @@ from src.database.dal.gw2.gw2_configs_dal import Gw2ConfigsDal
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.database.dal.gw2.gw2_session_chars_dal import Gw2SessionCharDeathsDal
 from src.database.dal.gw2.gw2_sessions_dal import Gw2SessionsDal
-from src.gw2.constants import gw2_messages
+from src.gw2.constants import gw2_messages, gw2_variables
 from src.gw2.constants.gw2_currencies import ACHIEVEMENT_MAPPING, WALLET_MAPPING
 from src.gw2.constants.gw2_settings import get_gw2_settings
 from src.gw2.constants.gw2_teams import get_team_name, is_wr_team_id
@@ -146,7 +146,7 @@ async def _fetch_achievement_data_in_batches(gw2_api: Gw2Client, user_achievemen
         async def _fetch_batch(batch_ids):
             async with sem:
                 ids_string = ",".join(str(aid) for aid in batch_ids)
-                return await gw2_api.call_api(f"achievements?ids={ids_string}")
+                return await gw2_api.call_api(f"{gw2_variables.API_ACHIEVEMENTS}?ids={ids_string}")
 
         batch_tasks = []
         for i in range(0, len(needed_ids), batch_size):
@@ -218,7 +218,7 @@ async def get_world_id(bot: Bot, world: str | None) -> int | None:
 
     try:
         gw2_api = Gw2Client(bot)
-        results = await gw2_api.call_api("worlds?ids=all")
+        results = await gw2_api.call_api(f"{gw2_variables.API_WORLDS}?ids=all")
 
         # Create a dictionary for O(1) lookup instead of O(n) linear search
         # Also support partial matches as a fallback
@@ -241,6 +241,16 @@ async def get_world_id(bot: Bot, world: str | None) -> int | None:
     return None
 
 
+async def _fetch_legacy_world_names(bot: Bot, legacy_ids: list[int]) -> dict[int, str]:
+    """Look up names for legacy (pre-World Restructuring) world IDs via /v2/worlds."""
+    if not legacy_ids:
+        return {}
+    gw2_api = Gw2Client(bot)
+    legacy_ids_str = ",".join(str(wid) for wid in legacy_ids)
+    results = await gw2_api.call_api(f"{gw2_variables.API_WORLDS}?ids={legacy_ids_str}")
+    return {world["id"]: world["name"] for world in results or []}
+
+
 async def get_world_name_population(ctx: commands.Context, world_ids: str) -> list[str] | None:
     """Get world names and population data.
 
@@ -253,23 +263,13 @@ async def get_world_name_population(ctx: commands.Context, world_ids: str) -> li
             return None
 
         legacy_ids = [wid for wid in id_list if not is_wr_team_id(wid)]
-
-        # Build name lookup from API for legacy IDs
-        legacy_names: dict[int, str] = {}
-        if legacy_ids:
-            gw2_api = Gw2Client(ctx.bot)
-            legacy_ids_str = ",".join(str(wid) for wid in legacy_ids)
-            results = await gw2_api.call_api(f"worlds?ids={legacy_ids_str}")
-            if results:
-                for world in results:
-                    legacy_names[world["id"]] = world["name"]
+        legacy_names = await _fetch_legacy_world_names(ctx.bot, legacy_ids)
 
         # Resolve all IDs in original order
         names: list[str] = []
         for wid in id_list:
             if is_wr_team_id(wid):
-                name = get_team_name(wid)
-                names.append(name if name else f"Team {wid}")
+                names.append(get_team_name(wid) or f"Team {wid}")
             elif wid in legacy_names:
                 names.append(legacy_names[wid])
 
@@ -284,7 +284,7 @@ async def get_world_name(bot: Bot, world_ids: str) -> str | None:
     """Get world name by world ID."""
     try:
         gw2_api = Gw2Client(bot)
-        result = await gw2_api.call_api(f"worlds?ids={world_ids}")
+        result = await gw2_api.call_api(f"{gw2_variables.API_WORLDS}?ids={world_ids}")
         return result.get("name") if result else None
 
     except Exception as e:
@@ -298,9 +298,9 @@ async def delete_api_key(ctx: commands.Context, message: bool = False) -> None:
         try:
             await ctx.message.delete()
             if message:
-                await send_msg(ctx, gw2_messages.API_KEY_MESSAGE_REMOVED)
+                await send_msg(ctx, gw2_messages.Utils.KEY_MESSAGE_REMOVED)
         except discord.HTTPException:
-            await bot_utils.send_error_msg(ctx, gw2_messages.API_KEY_MESSAGE_REMOVED_DENIED)
+            await bot_utils.send_error_msg(ctx, gw2_messages.Utils.KEY_MESSAGE_REMOVED_DENIED)
 
 
 def is_private_message(ctx: commands.Context) -> bool:
@@ -317,9 +317,9 @@ async def check_gw2_game_activity(bot: Bot, before: discord.Member, after: disco
         return
 
     before_is_gw2 = (
-        before_activity is not None and gw2_messages.GW2_FULL_NAME.lower() in str(before_activity.name).lower()
+        before_activity is not None and gw2_messages.Gw2.FULL_NAME.lower() in str(before_activity.name).lower()
     )
-    after_is_gw2 = after_activity is not None and gw2_messages.GW2_FULL_NAME.lower() in str(after_activity.name).lower()
+    after_is_gw2 = after_activity is not None and gw2_messages.Gw2.FULL_NAME.lower() in str(after_activity.name).lower()
 
     bot.log.debug(
         f"GW2 activity detected for {after.id}: "
@@ -345,8 +345,8 @@ def _get_non_custom_activity(activities) -> discord.Activity | None:
 
 def _is_gw2_activity_detected(before_activity, after_activity) -> bool:
     """Check if Guild Wars 2 activity is detected in before or after states."""
-    return (after_activity is not None and gw2_messages.GW2_FULL_NAME.lower() in str(after_activity.name).lower()) or (
-        before_activity is not None and gw2_messages.GW2_FULL_NAME.lower() in str(before_activity.name).lower()
+    return (after_activity is not None and gw2_messages.Gw2.FULL_NAME.lower() in str(after_activity.name).lower()) or (
+        before_activity is not None and gw2_messages.Gw2.FULL_NAME.lower() in str(before_activity.name).lower()
     )
 
 
@@ -546,7 +546,7 @@ async def _retry_session_later(bot: Bot, member: discord.Member, api_key: str, s
 
     bot.log.error(f"All background retries exhausted for {session_type} session for user {member.id}")
     try:
-        await member.send(gw2_messages.SESSION_API_DOWN_DM)
+        await member.send(gw2_messages.Session.API_DOWN_DM)
     except discord.HTTPException:
         bot.log.warning(f"Could not DM user {member.id} about GW2 API failure")
 
@@ -558,9 +558,9 @@ async def get_user_stats(bot: Bot, api_key: str) -> dict | None:
     try:
         achievement_ids = ",".join(str(k) for k in ACHIEVEMENT_MAPPING)
         account_data, wallet_data, achievements_data = await asyncio.gather(
-            gw2_api.call_api("account", api_key),
-            gw2_api.call_api("account/wallet", api_key),
-            gw2_api.call_api(f"account/achievements?ids={achievement_ids}", api_key),
+            gw2_api.call_api(gw2_variables.API_ACCOUNT, api_key),
+            gw2_api.call_api(gw2_variables.API_ACCOUNT_WALLET, api_key),
+            gw2_api.call_api(f"{gw2_variables.API_ACCOUNT_ACHIEVEMENTS}?ids={achievement_ids}", api_key),
         )
 
     except Exception as e:
@@ -616,7 +616,7 @@ async def insert_start_char_deaths(bot: Bot, member: discord.Member, api_key: st
     bot.log.debug(f"Attempting to insert start char deaths for session {session_id}, user {member.id}")
     try:
         gw2_api = Gw2Client(bot)
-        characters_data = await gw2_api.call_api("characters?ids=all", api_key)
+        characters_data = await gw2_api.call_api(f"{gw2_variables.API_CHARACTERS}?ids=all", api_key)
 
         gw2_session_chars_dal = Gw2SessionCharDeathsDal(bot.db_session, bot.log)
         await gw2_session_chars_dal.insert_start_char_deaths(session_id, member.id, characters_data)
@@ -631,7 +631,7 @@ async def update_end_char_deaths(bot: Bot, member: discord.Member, api_key: str,
     bot.log.debug(f"Attempting to update end char deaths for session {session_id}, user {member.id}")
     try:
         gw2_api = Gw2Client(bot)
-        characters_data = await gw2_api.call_api("characters?ids=all", api_key)
+        characters_data = await gw2_api.call_api(f"{gw2_variables.API_CHARACTERS}?ids=all", api_key)
 
         gw2_session_chars_dal = Gw2SessionCharDeathsDal(bot.db_session, bot.log)
         await gw2_session_chars_dal.update_end_char_deaths(session_id, member.id, characters_data)
@@ -828,7 +828,7 @@ async def get_worlds_ids(ctx: commands.Context) -> tuple[bool, list[dict] | None
     try:
         await ctx.message.channel.typing()
         gw2_api = Gw2Client(ctx.bot)
-        results = await gw2_api.call_api("worlds?ids=all")
+        results = await gw2_api.call_api(f"{gw2_variables.API_WORLDS}?ids=all")
         return True, results
     except Exception as e:
         await bot_utils.send_error_msg(ctx, e)

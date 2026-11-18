@@ -26,9 +26,8 @@ class TestCoolDownsEnum:
     def test_cooldowns_enum_members_count(self):
         """Test that we have the expected number of cooldown members."""
         actual_members = [member.name for member in CoolDowns]
-        assert len(actual_members) >= 1  # At least Admin should exist
+        assert len(actual_members) >= 1
 
-        # Check that Admin exists (which we know works)
         assert "Admin" in actual_members
 
 
@@ -37,19 +36,15 @@ class TestCoolDownsDebugMode:
 
     def test_debug_mode_cooldowns_are_one(self):
         """Test that in debug mode, cooldowns would be 1 second."""
-        # We can't easily test this due to import-time initialization
-        # Just verify that the enum values are integers
         for cooldown in CoolDowns:
             assert isinstance(cooldown.value, int)
             assert cooldown.value > 0
 
     def test_production_mode_uses_config_values(self):
         """Test that production mode loads values from configuration."""
-        # Since the configuration is loaded at import time, we can't easily mock it
-        # Just verify that the values are reasonable integers
         for cooldown in CoolDowns:
             assert isinstance(cooldown.value, int)
-            assert 1 <= cooldown.value <= 3600  # Between 1 second and 1 hour
+            assert 1 <= cooldown.value <= 3600
 
 
 class TestCoolDownsStringRepresentation:
@@ -60,12 +55,10 @@ class TestCoolDownsStringRepresentation:
         admin_cooldown = CoolDowns.Admin
         assert str(admin_cooldown) == str(admin_cooldown.value)
 
-        # Test with different cooldowns
         for cooldown in CoolDowns:
             str_value = str(cooldown)
             assert isinstance(str_value, str)
             assert str_value == str(cooldown.value)
-            # Should be able to convert back to int
             assert int(str_value) == cooldown.value
 
     def test_str_method_consistency(self):
@@ -110,20 +103,15 @@ class TestCoolDownsConfigurationLoading:
 
     def test_configuration_file_loading(self):
         """Test that configuration loading works."""
-        # Since the configuration is loaded at import time, we can't mock it easily
-        # Just verify that the CoolDowns enum was successfully created
         assert hasattr(CoolDowns, "Admin")
         assert isinstance(CoolDowns.Admin.value, int)
 
     def test_missing_configuration_values(self):
         """Test that enum handles configuration properly."""
-        # Since we can't easily test missing config at runtime,
-        # just verify current config works
         assert CoolDowns.Admin.value > 0
 
     def test_invalid_configuration_values(self):
         """Test that current configuration is valid."""
-        # Verify all current values are valid integers
         for cooldown in CoolDowns:
             assert isinstance(cooldown.value, int)
             assert cooldown.value > 0
@@ -146,17 +134,14 @@ class TestCoolDownsEnumBehavior:
         """Test comparison operations between cooldowns."""
         admin = CoolDowns.Admin
 
-        # Enum members should be comparable by identity
         assert admin == CoolDowns.Admin
 
-        # If there are other members, test comparison
         all_members = list(CoolDowns)
         if len(all_members) > 1:
             other = all_members[1]
             if admin != other:
                 assert admin != other
 
-        # Values should be comparable numerically
         assert admin.value == admin.seconds
         assert admin.value >= 0
 
@@ -169,11 +154,9 @@ class TestCoolDownsEnumBehavior:
             cooldown_names.append(cooldown.name)
             cooldown_values.append(cooldown.value)
 
-        # Should have at least Admin
         assert len(cooldown_names) >= 1
         assert "Admin" in cooldown_names
 
-        # All values should be positive integers
         for value in cooldown_values:
             assert isinstance(value, int)
             assert value > 0
@@ -186,20 +169,17 @@ class TestCoolDownsEnumBehavior:
         config = CoolDowns["Config"]
         assert config == CoolDowns.Config
 
-        # Test all cooldowns can be looked up
         for cooldown in CoolDowns:
             looked_up = CoolDowns[cooldown.name]
             assert looked_up == cooldown
 
-    def test_cooldowns_cannot_be_modified(self):
+    def test_cooldowns_cannot_be_modified(self, monkeypatch):
         """Test that cooldown values cannot be modified."""
         original_value = CoolDowns.Admin.value
 
-        # Enum values should be immutable
         with pytest.raises(AttributeError):
-            CoolDowns.Admin.value = 999
+            monkeypatch.setattr(CoolDowns.Admin, "value", 999)
 
-        # Value should remain unchanged
         assert CoolDowns.Admin.value == original_value
 
 
@@ -210,9 +190,7 @@ class TestCoolDownsIntegration:
         """Test cooldowns integration with Discord command framework."""
         from discord.ext import commands
 
-        # Test that cooldown values can be used with discord.py cooldowns
         for cooldown in CoolDowns:
-            # Should be able to create a cooldown decorator
             cooldown_decorator = commands.cooldown(1, cooldown.seconds, commands.BucketType.user)
             assert callable(cooldown_decorator)
 
@@ -225,13 +203,11 @@ class TestCoolDownsIntegration:
     def test_cooldowns_reasonable_ranges(self):
         """Test that cooldown values are in reasonable ranges."""
         for cooldown in CoolDowns:
-            # Cooldowns should be between 1 second and 1 hour (3600 seconds)
             assert 1 <= cooldown.value <= 3600
             assert 1 <= cooldown.seconds <= 3600
 
     def test_debug_mode_integration(self):
         """Test integration behavior works correctly."""
-        # Test that all cooldowns work as expected
         for cooldown in CoolDowns:
             assert cooldown.value > 0
             assert cooldown.seconds == cooldown.value
@@ -249,7 +225,6 @@ class TestCoolDownsDocumentation:
 
     def test_seconds_property_has_docstring(self):
         """Test that the seconds property has documentation."""
-        # Get the property from any enum member
         admin = CoolDowns.Admin
         seconds_property = type(admin).seconds
 
@@ -281,7 +256,6 @@ class TestCoolDownsErrorHandling:
         from src.bot.constants import variables
         from src.bot.tools.cooldowns import _bot_settings
 
-        # In non-debug mode, values should come from settings
         if not variables.DEBUG:
             assert CoolDowns.Admin.value == _bot_settings.admin_cooldown
             assert CoolDowns.Config.value == _bot_settings.config_cooldown
@@ -291,7 +265,6 @@ class TestCoolDownsErrorHandling:
             assert CoolDowns.OpenAI.value == _bot_settings.openai_cooldown
             assert CoolDowns.Owner.value == _bot_settings.owner_cooldown
         else:
-            # In debug mode, all cooldowns should be 1 second
             assert CoolDowns.Admin.value == 1
             assert CoolDowns.Config.value == 1
             assert CoolDowns.CustomCommand.value == 1

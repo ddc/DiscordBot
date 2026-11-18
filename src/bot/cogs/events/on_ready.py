@@ -66,7 +66,7 @@ class OnReady(commands.Cog):
             self.info_display.print_timestamp()
 
             # Log bot online status
-            self.bot.log.info(messages.bot_online(self.bot.user))
+            self.bot.log.info(messages.Bot.online(self.bot.user))
         except Exception as e:
             # Display startup information even if stats fail
             self.info_display.print_startup_banner(variables.VERSION)
@@ -76,7 +76,7 @@ class OnReady(commands.Cog):
 
             # Log error and bot online status
             self.bot.log.error(f"Failed to get bot stats during startup: {e}")
-            self.bot.log.info(messages.bot_online(self.bot.user))
+            self.bot.log.info(messages.Bot.online(self.bot.user))
 
 
 async def setup(bot: Bot) -> None:

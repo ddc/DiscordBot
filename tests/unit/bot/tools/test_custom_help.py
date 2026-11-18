@@ -119,7 +119,7 @@ class TestHelpPaginatorView:
 
         await view.next_button.callback(interaction)
 
-        assert view.current_page == 0  # unchanged
+        assert view.current_page == 0
         interaction.response.send_message.assert_called_once_with(
             "Only the command invoker can use these buttons.", ephemeral=True
         )
@@ -136,7 +136,7 @@ class TestHelpPaginatorView:
 
         await view.previous_button.callback(interaction)
 
-        assert view.current_page == 1  # unchanged
+        assert view.current_page == 1
         interaction.response.send_message.assert_called_once_with(
             "Only the command invoker can use these buttons.", ephemeral=True
         )
@@ -246,7 +246,6 @@ class TestSendPages:
         help_command.paginator = MagicMock()
         help_command.paginator.pages = ["Page 1 content"]
 
-        # Destination is NOT a DM channel
         mock_destination = MagicMock(spec=discord.TextChannel)
         help_command.get_destination = MagicMock(return_value=mock_destination)
 
@@ -254,10 +253,8 @@ class TestSendPages:
 
         await help_command.send_pages()
 
-        # Should send pages to DM
         help_command._send_pages_to_dm.assert_called_once()
 
-        # Should send notification embed to channel
         help_command.context.send.assert_called_once()
         call_kwargs = help_command.context.send.call_args[1]
         embed = call_kwargs["embed"]
@@ -313,7 +310,6 @@ class TestSendPages:
         help_command.get_destination = MagicMock(return_value=mock_destination)
         help_command._send_pages_to_dm = AsyncMock()
 
-        # Simulate no avatar
         help_command.context.author.avatar = None
         help_command.context.author.default_avatar = MagicMock()
         help_command.context.author.default_avatar.url = "https://cdn.example.com/default.png"
@@ -346,14 +342,12 @@ class TestSendPages:
         help_command.paginator = MagicMock()
         help_command.paginator.pages = ["Page 1 content"]
 
-        # Destination IS a DM channel (isinstance check returns True)
         mock_destination = MagicMock(spec=discord.DMChannel)
         help_command.get_destination = MagicMock(return_value=mock_destination)
         help_command._send_pages_to_destination = AsyncMock()
 
         await help_command.send_pages()
 
-        # Should send to destination directly, not to DM separately
         help_command._send_pages_to_destination.assert_called_once_with(mock_destination)
 
 
@@ -388,7 +382,6 @@ class TestSendPagesToDm:
 
         await help_command._send_pages_to_dm()
 
-        # Should send exactly one message (not two)
         help_command.context.author.send.assert_called_once()
         call_kwargs = help_command.context.author.send.call_args[1]
         assert "**Page 1/2**" in call_kwargs["content"]
@@ -455,7 +448,6 @@ class TestSendPagesToDestination:
 
         await help_command._send_pages_to_destination(mock_destination)
 
-        # Should send exactly one message (not two)
         mock_destination.send.assert_called_once()
         call_kwargs = mock_destination.send.call_args[1]
         assert "**Page 1/2**" in call_kwargs["content"]
@@ -518,16 +510,13 @@ class TestSendBotHelp:
         cmd.context.author.send = AsyncMock()
         cmd.dm_help = False
 
-        # Create a mock bot with a group command that has subcommands
         bot = MagicMock()
         bot.description = ""
         cmd.context.bot = bot
 
-        # Create a cog
         mock_cog = MagicMock()
         mock_cog.qualified_name = "Config"
 
-        # Create subcommands
         sub1 = MagicMock(spec=commands.Command)
         sub1.name = "botgame"
         sub1.short_doc = "Change bot game."
@@ -544,7 +533,6 @@ class TestSendBotHelp:
         sub2.checks = []
         sub2.enabled = True
 
-        # Create a group command with subcommands
         group_cmd = MagicMock(spec=commands.Group)
         group_cmd.name = "admin"
         group_cmd.short_doc = "Admin commands."
@@ -555,7 +543,6 @@ class TestSendBotHelp:
         group_cmd.qualified_name = "admin"
         group_cmd.commands = [sub1, sub2]
 
-        # Create a regular (non-group) command
         regular_cmd = MagicMock(spec=commands.Command)
         regular_cmd.name = "roll"
         regular_cmd.short_doc = "Roll a die."
@@ -566,7 +553,6 @@ class TestSendBotHelp:
 
         bot.commands = [group_cmd, regular_cmd]
 
-        # Mock send_pages to capture paginator state
         sent_pages = []
 
         async def capture_send_pages():
@@ -574,7 +560,6 @@ class TestSendBotHelp:
 
         cmd.send_pages = capture_send_pages
 
-        # Mock filter_commands to return commands as-is
         async def mock_filter(cmds, *, sort=True, key=None):
             return sorted(cmds, key=lambda c: c.name) if sort else list(cmds)
 
@@ -583,18 +568,38 @@ class TestSendBotHelp:
         mapping = {mock_cog: [group_cmd, regular_cmd], None: []}
         await cmd.send_bot_help(mapping)
 
-        # Should have at least 2 pages: overview + admin subcommands
         assert len(sent_pages) >= 2
 
-        # First page should have the overview with command names
         assert "admin" in sent_pages[0]
         assert "roll" in sent_pages[0]
 
-        # Second page should have the group subcommands
         subcommand_page = sent_pages[1]
         assert "admin subcommands:" in subcommand_page
         assert "botgame" in subcommand_page
         assert "config" in subcommand_page
+
+    @pytest.mark.asyncio
+    async def test_send_bot_help_starts_with_bot_description(self):
+        cmd = CustomHelpCommand()
+        cmd.context = MagicMock()
+        cmd.dm_help = False
+        cmd.context.bot.description = "A helpful test bot"
+        cmd.context.bot.commands = []
+
+        sent_pages = []
+
+        async def capture_send_pages():
+            sent_pages.extend(cmd.paginator.pages)
+
+        async def mock_filter(cmds, *, sort=True, key=None):
+            return list(cmds)
+
+        cmd.send_pages = capture_send_pages
+        cmd.filter_commands = mock_filter
+        await cmd.send_bot_help({None: []})
+
+        assert sent_pages
+        assert sent_pages[0].lstrip("`\n").startswith("A helpful test bot")
 
     @pytest.mark.asyncio
     async def test_send_bot_help_no_subcommand_page_for_empty_groups(self):
@@ -612,7 +617,6 @@ class TestSendBotHelp:
         mock_cog = MagicMock()
         mock_cog.qualified_name = "Config"
 
-        # Group with no subcommands
         group_cmd = MagicMock(spec=commands.Group)
         group_cmd.name = "admin"
         group_cmd.short_doc = "Admin commands."
@@ -640,7 +644,6 @@ class TestSendBotHelp:
         mapping = {mock_cog: [group_cmd], None: []}
         await cmd.send_bot_help(mapping)
 
-        # Should have only the overview page, no subcommand pages
         assert len(sent_pages) == 1
 
     @pytest.mark.asyncio
@@ -684,6 +687,5 @@ class TestSendBotHelp:
         mapping = {mock_cog: [regular_cmd], None: []}
         await cmd.send_bot_help(mapping)
 
-        # Only overview page
         assert len(sent_pages) == 1
         assert "ping" in sent_pages[0]

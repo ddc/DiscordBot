@@ -2,8 +2,6 @@
 
 import discord
 import pytest
-
-# Mock problematic imports before importing the module
 import sys
 from discord.ext import commands
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -22,9 +20,7 @@ def mock_bot():
     bot.log = MagicMock()
     bot.user = MagicMock()
     bot.command_prefix = ("!",)
-    # Configure remove_command to not return a coroutine
     bot.remove_command = MagicMock(return_value=None)
-    # Ensure add_cog doesn't return a coroutine
     bot.add_cog = AsyncMock(return_value=None)
     return bot
 
@@ -54,14 +50,14 @@ def mock_ctx():
     author = MagicMock()
     author.id = 67890
     author.display_name = "TestUser"
-    author.send = AsyncMock()  # For DM functionality
+    author.send = AsyncMock()
     author.avatar = MagicMock()
     author.avatar.url = "https://example.com/avatar.png"
 
     ctx.author = author
     ctx.message = MagicMock()
     ctx.message.channel = AsyncMock()
-    ctx.send = AsyncMock()  # For channel notifications
+    ctx.send = AsyncMock()
     ctx.prefix = "!"
 
     return ctx
@@ -90,7 +86,6 @@ class TestConfig:
         """Test config group command."""
         mock_invoke.return_value = "mock_command"
 
-        # Import the config function from the module
         from src.bot.cogs.admin.config import config
 
         result = await config(mock_ctx)
@@ -98,7 +93,6 @@ class TestConfig:
         mock_invoke.assert_called_once_with(mock_ctx, "admin config")
         assert result == "mock_command"
 
-    # Test _get_switch_status function
     def test_get_switch_status_on_lowercase(self):
         """Test _get_switch_status with 'on' input."""
         status, color = _get_switch_status("on")
@@ -138,7 +132,6 @@ class TestConfig:
         assert status is False
         assert color == discord.Color.red()
 
-    # Test join message configuration
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.config.ServersDal")
     @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
@@ -177,7 +170,6 @@ class TestConfig:
         assert embed.color == discord.Color.red()
         assert "OFF" in embed.description
 
-    # Test leave message configuration
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.config.ServersDal")
     @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
@@ -194,7 +186,6 @@ class TestConfig:
         mock_dal.update_msg_on_leave.assert_called_once_with(12345, True, 67890)
         mock_send_embed.assert_called_once()
 
-    # Test server message configuration
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.config.ServersDal")
     @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
@@ -211,7 +202,6 @@ class TestConfig:
         mock_dal.update_msg_on_server_update.assert_called_once_with(12345, True, 67890)
         mock_send_embed.assert_called_once()
 
-    # Test member message configuration
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.config.ServersDal")
     @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
@@ -228,7 +218,6 @@ class TestConfig:
         mock_dal.update_msg_on_member_update.assert_called_once_with(12345, True, 67890)
         mock_send_embed.assert_called_once()
 
-    # Test block invisible members configuration
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.config.ServersDal")
     @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
@@ -245,7 +234,6 @@ class TestConfig:
         mock_dal.update_block_invis_members.assert_called_once_with(12345, True, 67890)
         mock_send_embed.assert_called_once()
 
-    # Test bot reactions configuration
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.config.ServersDal")
     @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
@@ -262,7 +250,6 @@ class TestConfig:
         mock_dal.update_bot_word_reactions.assert_called_once_with(12345, True, 67890)
         mock_send_embed.assert_called_once()
 
-    # Test profanity filter configuration
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
     @patch("src.bot.cogs.admin.config.bot_utils.send_embed")
@@ -319,7 +306,7 @@ class TestConfig:
 
         mock_send_error.assert_called_once()
         error_msg = mock_send_error.call_args[0][1]
-        assert messages.MISING_REUIRED_ARGUMENT in error_msg
+        assert messages.Config.MISSING_REQUIRED_ARGUMENT in error_msg
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.config.bot_utils.send_error_msg", new_callable=AsyncMock)
@@ -331,14 +318,14 @@ class TestConfig:
 
         mock_send_error.assert_called_once()
         error_msg = mock_send_error.call_args[0][1]
-        assert messages.CHANNEL_ID_NOT_FOUND in error_msg
+        assert messages.Config.CHANNEL_ID_NOT_FOUND in error_msg
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.config.bot_utils.send_error_msg", new_callable=AsyncMock)
     async def test_config_pfilter_channel_not_found(self, mock_send_error, config_cog, mock_ctx):
         """Test profanity filter with non-existent channel."""
         mock_ctx.guild.text_channels = []
-        mock_ctx.guild.get_channel.return_value = None  # Channel not found by ID
+        mock_ctx.guild.get_channel.return_value = None
 
         from src.bot.cogs.admin.config import config_pfilter
 
@@ -346,7 +333,7 @@ class TestConfig:
 
         mock_send_error.assert_called_once()
         error_msg = mock_send_error.call_args[0][1]
-        assert messages.CHANNEL_ID_NOT_FOUND in error_msg
+        assert messages.Config.CHANNEL_ID_NOT_FOUND in error_msg
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.config.bot_utils.send_error_msg")
@@ -363,8 +350,8 @@ class TestConfig:
 
         mock_send_error.assert_called_once()
         error_msg = mock_send_error.call_args[0][1]
-        assert messages.CONFIG_NOT_ACTIVATED_ERROR in error_msg
-        assert messages.BOT_MISSING_MANAGE_MESSAGES_PERMISSION in error_msg
+        assert messages.Config.NOT_ACTIVATED_ERROR in error_msg
+        assert messages.Config.BOT_MISSING_MANAGE_MESSAGES in error_msg
 
     @pytest.mark.asyncio
     async def test_config_pfilter_invalid_status(self, config_cog, mock_ctx, mock_text_channel):
@@ -377,7 +364,6 @@ class TestConfig:
 
             await config_pfilter(mock_ctx, subcommand_passed="invalid 98765")
 
-    # Test config list
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.config.ServersDal")
     @patch("src.bot.cogs.admin.config.ProfanityFilterDal")
@@ -395,7 +381,6 @@ class TestConfig:
         mock_ctx,
     ):
         """Test listing all configurations."""
-        # Setup mocks
         mock_servers_dal = AsyncMock()
         mock_servers_dal_class.return_value = mock_servers_dal
         mock_servers_dal.get_server.return_value = {
@@ -422,15 +407,13 @@ class TestConfig:
         await config_list(mock_ctx)
 
         mock_ctx.message.channel.typing.assert_called_once()
-        # New implementation sends to DM and then notification to channel
         mock_ctx.author.send.assert_called_once()
         mock_ctx.send.assert_called_once()
 
-        # Check the embed sent to DM
         dm_call_args = mock_ctx.author.send.call_args
-        embed = dm_call_args[1]["embed"]  # embed is passed as keyword argument
+        embed = dm_call_args[1]["embed"]
         assert embed.author.name == "Configurations for Test Server"
-        assert len(embed.fields) == 7  # 6 config options + profanity filter
+        assert len(embed.fields) == 7
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.config.ServersDal")
@@ -458,17 +441,14 @@ class TestConfig:
 
         await config_list(mock_ctx)
 
-        # New implementation sends to DM and then notification to channel
         mock_ctx.author.send.assert_called_once()
         mock_ctx.send.assert_called_once()
 
-        # Check the embed sent to DM
         dm_call_args = mock_ctx.author.send.call_args
-        embed = dm_call_args[1]["embed"]  # embed is passed as keyword argument
+        embed = dm_call_args[1]["embed"]
 
-        # Check that the profanity filter field shows "No channels listed"
         pf_field = next(field for field in embed.fields if "pfilter" in field.name.lower())
-        assert messages.NO_CHANNELS_LISTED in pf_field.value
+        assert messages.Config.NO_CHANNELS_LISTED in pf_field.value
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.config.ServersDal")
@@ -496,9 +476,8 @@ class TestConfig:
 
             await config_list(mock_ctx)
 
-            # Check the embed sent to DM
             dm_call_args = mock_ctx.author.send.call_args
-            embed = dm_call_args[1]["embed"]  # embed is passed as keyword argument
+            embed = dm_call_args[1]["embed"]
             assert embed.author.icon_url is None
             assert embed.thumbnail.url is None
 
@@ -538,7 +517,7 @@ class TestConfig:
 
         mock_send_error.assert_called_once()
         error_msg = mock_send_error.call_args[0][1]
-        assert messages.CHANNEL_ID_NOT_FOUND in error_msg
+        assert messages.Config.CHANNEL_ID_NOT_FOUND in error_msg
         assert "98765" in error_msg
 
     @pytest.mark.asyncio
@@ -560,7 +539,6 @@ class TestConfig:
 
         await config_pfilter(mock_ctx, subcommand_passed="on 98765")
 
-        # Should succeed because administrator includes manage messages
         mock_dal.insert_profanity_filter_channel.assert_called_once()
         mock_send_embed.assert_called_once()
 
@@ -583,6 +561,5 @@ class TestConfig:
 
         await config_pfilter(mock_ctx, subcommand_passed="on 98765")
 
-        # Should succeed with manage messages permission
         mock_dal.insert_profanity_filter_channel.assert_called_once()
         mock_send_embed.assert_called_once()

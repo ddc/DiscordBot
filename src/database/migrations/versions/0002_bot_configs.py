@@ -9,7 +9,9 @@ Create Date: 2024-12-01 15:15:07.594600
 import sqlalchemy as sa
 from alembic import op
 from collections.abc import Sequence
+from datetime import datetime
 from src.bot.constants import variables
+from uuid import UUID
 
 # revision identifiers, used by Alembic.
 revision: str = "0002"
@@ -21,13 +23,13 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.create_table(
         "bot_configs",
-        sa.Column("id", sa.Uuid(), nullable=False, server_default=sa.text("gen_random_uuid()")),
-        sa.Column("prefix", sa.CHAR(length=1), server_default=variables.PREFIX, nullable=False),
-        sa.Column("author_id", sa.BigInteger(), server_default=variables.AUTHOR_ID, nullable=False),
-        sa.Column("url", sa.String(), server_default=variables.BOT_WEBPAGE_URL, nullable=False),
-        sa.Column("description", sa.String(), server_default=variables.DESCRIPTION, nullable=False),
-        sa.Column("updated_at", sa.DateTime(), server_default=sa.func.timezone("utc", sa.func.now()), nullable=False),
-        sa.Column("created_at", sa.DateTime(), server_default=sa.func.timezone("utc", sa.func.now()), nullable=False),
+        sa.Column[UUID]("id", sa.Uuid[UUID](), nullable=False, server_default=sa.text("uuidv7()")),
+        sa.Column[str]("prefix", sa.CHAR(length=1), server_default=variables.PREFIX, nullable=False),
+        sa.Column[int]("author_id", sa.BigInteger(), server_default=variables.AUTHOR_ID, nullable=False),
+        sa.Column[str]("url", sa.String(), server_default=variables.BOT_WEBPAGE_URL, nullable=False),
+        sa.Column[str]("description", sa.String(), server_default=variables.DESCRIPTION, nullable=False),
+        sa.Column[datetime]("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column[datetime]("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("id"),
     )

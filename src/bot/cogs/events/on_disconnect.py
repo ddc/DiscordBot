@@ -28,7 +28,7 @@ class OnDisconnect(commands.Cog):
         try:
             ws = self.bot.ws
             close_code = getattr(ws, "close_code", None) if ws else None
-            msg = messages.bot_disconnected(self.bot.user)
+            msg = messages.Bot.disconnected(self.bot.user)
             if close_code:
                 msg += f" (close code: {close_code})"
             self.bot.log.warning(msg)

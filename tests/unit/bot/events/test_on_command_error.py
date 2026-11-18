@@ -1,6 +1,5 @@
 """Comprehensive tests for the Errors event cog."""
 
-# Mock problematic imports before importing the module
 import pytest
 import sys
 from discord.ext import commands
@@ -17,11 +16,8 @@ def mock_bot():
     """Create a mock bot instance."""
     bot = AsyncMock()
     bot.log = MagicMock()
-    # Ensure log methods are not coroutines
     bot.log.error = MagicMock()
-    # Ensure add_cog doesn't return a coroutine
     bot.add_cog = AsyncMock(return_value=None)
-    # Mock the event decorator to prevent coroutine issues
     bot.event = MagicMock(side_effect=lambda func: func)
     return bot
 
@@ -53,7 +49,6 @@ def mock_ctx():
     ctx.message.channel = MagicMock()
     ctx.message.channel.id = 98765
 
-    # Setup ctx.bot with proper mock configuration
     ctx.bot = AsyncMock()
     ctx.bot.log = MagicMock()
     ctx.bot.log.error = MagicMock()
@@ -109,7 +104,7 @@ class TestErrorMessageBuilder:
 
     def test_get_error_message_with_command_raised_exception(self):
         """Test error message extraction with command raised exception."""
-        error = Exception(f"{messages.COMMAND_RAISED_EXCEPTION}:Actual error")
+        error = Exception(f"{messages.CommandError.RAISED_EXCEPTION}:Actual error")
         result = ErrorMessageBuilder.get_error_message(error)
         assert result == "Actual error"
 
@@ -127,14 +122,14 @@ class TestErrorMessageBuilder:
         """Test command not found message building."""
         context = ErrorContext(mock_ctx, mock_error)
         result = ErrorMessageBuilder.build_command_not_found(context)
-        expected = f"{messages.COMMAND_NOT_FOUND}:\n`!testcommand`"
+        expected = f"{messages.CommandError.NOT_FOUND}:\n`!testcommand`"
         assert result == expected
 
     def test_build_missing_argument(self, mock_ctx, mock_error):
         """Test missing argument message building."""
         context = ErrorContext(mock_ctx, mock_error)
         result = ErrorMessageBuilder.build_missing_argument(context)
-        expected = f"{messages.MISSING_REQUIRED_ARGUMENT_HELP_MESSAGE}: `!help testcommand`"
+        expected = f"{messages.CommandError.MISSING_REQUIRED_ARGUMENT_HELP}: `!help testcommand`"
         assert result == expected
 
     def test_build_check_failure_not_admin(self, mock_ctx, mock_error):
@@ -142,7 +137,7 @@ class TestErrorMessageBuilder:
         context = ErrorContext(mock_ctx, mock_error)
         context.error_msg = "user not admin"
         result = ErrorMessageBuilder.build_check_failure(context)
-        expected = f"{messages.NOT_ADMIN_USE_COMMAND}: `!testcommand`"
+        expected = f"{messages.CommandError.NOT_ADMIN}: `!testcommand`"
         assert result == expected
 
     def test_build_check_failure_not_owner(self, mock_ctx, mock_error):
@@ -150,7 +145,7 @@ class TestErrorMessageBuilder:
         context = ErrorContext(mock_ctx, mock_error)
         context.error_msg = "user not owner"
         result = ErrorMessageBuilder.build_check_failure(context)
-        expected = f"{messages.BOT_OWNERS_ONLY_COMMAND}: `!testcommand`"
+        expected = f"{messages.CommandError.OWNERS_ONLY}: `!testcommand`"
         assert result == expected
 
     def test_build_check_failure_other(self, mock_ctx, mock_error):
@@ -168,8 +163,8 @@ class TestErrorMessageBuilder:
         result = ErrorMessageBuilder.build_bad_argument(context)
 
         expected_prefixes = " ".join(variables.ALLOWED_PREFIXES)
-        assert f"{messages.PREFIXES_CHOICE}: {expected_prefixes}" in result
-        assert f"{messages.HELP_COMMAND_MORE_INFO}: `!help testcommand`" in result
+        assert f"{messages.CommandError.PREFIXES_CHOICE}: {expected_prefixes}" in result
+        assert f"{messages.CommandError.HELP_MORE_INFO}: `!help testcommand`" in result
 
     def test_build_command_invoke_error_dm_disabled(self, mock_ctx, mock_error):
         """Test command invoke error for DM disabled."""
@@ -177,22 +172,22 @@ class TestErrorMessageBuilder:
         context.error_msg = "Cannot send messages to this user"
         result = ErrorMessageBuilder.build_command_invoke_error(context)
 
-        assert messages.DIRECT_MESSAGES_DISABLED in result
-        assert f"{messages.HELP_COMMAND_MORE_INFO}: `!help testcommand`" in result
+        assert messages.CommandError.DIRECT_MESSAGES_DISABLED in result
+        assert f"{messages.CommandError.HELP_MORE_INFO}: `!help testcommand`" in result
 
     def test_build_forbidden_error_dm_channel(self, mock_ctx, mock_error):
         """Test forbidden error for DM channel."""
         context = ErrorContext(mock_ctx, mock_error)
         context.error_msg = "Cannot execute action on a DM channel"
         result = ErrorMessageBuilder.build_forbidden_error(context)
-        assert result == messages.DM_CANNOT_EXECUTE_COMMAND
+        assert result == messages.CommandError.DM_CANNOT_EXECUTE
 
     def test_build_forbidden_error_other(self, mock_ctx, mock_error):
         """Test forbidden error for other cases."""
         context = ErrorContext(mock_ctx, mock_error)
         context.error_msg = "Some other forbidden error"
         result = ErrorMessageBuilder.build_forbidden_error(context)
-        assert result == messages.PRIVILEGE_LOW
+        assert result == messages.CommandError.PRIVILEGE_LOW
 
 
 class TestErrors:
@@ -245,7 +240,7 @@ class TestErrors:
 
         await errors_cog._handle_command_not_found(context, False)
 
-        expected_msg = f"{messages.COMMAND_NOT_FOUND}:\n`!testcommand`"
+        expected_msg = f"{messages.CommandError.NOT_FOUND}:\n`!testcommand`"
         mock_send_error.assert_called_once_with(mock_ctx, expected_msg, False)
 
     @pytest.mark.asyncio
@@ -299,7 +294,7 @@ class TestErrors:
 
         await errors_cog._handle_too_many_arguments(context, False)
 
-        expected_msg = f"{messages.COMMAND_ERROR}!\n {messages.HELP_COMMAND_MORE_INFO}: `!help testcommand`"
+        expected_msg = f"{messages.CommandError.ERROR}!\n {messages.CommandError.HELP_MORE_INFO}: `!help testcommand`"
         mock_send_error.assert_called_once_with(mock_ctx, expected_msg, False)
 
     @pytest.mark.asyncio
@@ -361,9 +356,9 @@ class TestErrors:
 
         result = ErrorMessageBuilder.build_bad_argument(context)
 
-        assert f"{gw2_messages.GW2_SERVER_NOT_FOUND}: `invalid server`" in result
-        assert f"{gw2_messages.GW2_SERVER_MORE_INFO}: `!gw2 worlds`" in result
-        assert f"{messages.HELP_COMMAND_MORE_INFO}: `!help testcommand`" in result
+        assert f"{gw2_messages.CommandError.SERVER_NOT_FOUND}: `invalid server`" in result
+        assert f"{gw2_messages.CommandError.SERVER_MORE_INFO}: `!gw2 worlds`" in result
+        assert f"{messages.CommandError.HELP_MORE_INFO}: `!help testcommand`" in result
 
 
 class TestErrorContextCommandNone:
@@ -417,7 +412,6 @@ class TestErrorMessageBuilderFallthrough:
         """Test get_error_message when error.args is empty and no original (line 52)."""
         error = MagicMock()
         error.args = []
-        # Remove the 'original' attribute so it falls through to return str(error)
         del error.original
         error.__str__ = MagicMock(return_value="string representation")
 
@@ -434,9 +428,9 @@ class TestBuildCommandInvokeErrorElse:
         context.error_msg = "Some completely unrelated error that matches nothing"
 
         result = ErrorMessageBuilder.build_command_invoke_error(context)
-        assert f"{messages.COMMAND_INTERNAL_ERROR}: `!testcommand`" in result
-        assert messages.CONTACT_ADMIN in result
-        assert messages.HELP_COMMAND_MORE_INFO not in result
+        assert f"{messages.CommandError.INTERNAL_ERROR}: `!testcommand`" in result
+        assert messages.CommandError.CONTACT_ADMIN in result
+        assert messages.CommandError.HELP_MORE_INFO not in result
 
     def test_build_command_invoke_error_attribute_error(self, mock_ctx, mock_error):
         """Test build_command_invoke_error with AttributeError shows internal error."""
@@ -444,8 +438,8 @@ class TestBuildCommandInvokeErrorElse:
         context.error_msg = "AttributeError: 'NoneType' object has no attribute 'foo'"
 
         result = ErrorMessageBuilder.build_command_invoke_error(context)
-        assert f"{messages.COMMAND_INTERNAL_ERROR}: `!testcommand`" in result
-        assert messages.CONTACT_ADMIN in result
+        assert f"{messages.CommandError.INTERNAL_ERROR}: `!testcommand`" in result
+        assert messages.CommandError.CONTACT_ADMIN in result
 
     def test_build_command_invoke_error_missing_permissions(self, mock_ctx, mock_error):
         """Test build_command_invoke_error with Missing Permissions."""
@@ -453,17 +447,15 @@ class TestBuildCommandInvokeErrorElse:
         context.error_msg = "Missing Permissions to do something"
 
         result = ErrorMessageBuilder.build_command_invoke_error(context)
-        assert f"{messages.NO_PERMISSION_EXECUTE_COMMAND}: `!testcommand`" in result
+        assert f"{messages.CommandError.NO_PERMISSION}: `!testcommand`" in result
 
     def test_build_command_invoke_error_no_option_error(self, mock_ctx, mock_error):
         """Test build_command_invoke_error with NoOptionError."""
         context = ErrorContext(mock_ctx, mock_error)
-        # The code does: error_msg.split()[7] to get the option name
-        # Indices:        0             1   2      3     4     5     6     7
         context.error_msg = "NoOptionError: no option 'optname' in section 'section' myoption"
 
         result = ErrorMessageBuilder.build_command_invoke_error(context)
-        assert f"{messages.NO_OPTION_FOUND}: `myoption`" in result
+        assert f"{messages.CommandError.NO_OPTION_FOUND}: `myoption`" in result
 
     def test_build_command_invoke_error_gw2_api(self, mock_ctx, mock_error):
         """Test build_command_invoke_error with GW2 API error."""
@@ -479,7 +471,7 @@ class TestBuildCommandInvokeErrorElse:
         context.error_msg = "No text to send to TTS API"
 
         result = ErrorMessageBuilder.build_command_invoke_error(context)
-        assert messages.INVALID_MESSAGE in result
+        assert messages.CommandError.INVALID_MESSAGE in result
 
     def test_build_command_invoke_error_status_code_403(self, mock_ctx, mock_error):
         """Test build_command_invoke_error with status code 403."""
@@ -487,7 +479,7 @@ class TestBuildCommandInvokeErrorElse:
         context.error_msg = "status code: 403 forbidden"
 
         result = ErrorMessageBuilder.build_command_invoke_error(context)
-        assert messages.DIRECT_MESSAGES_DISABLED in result
+        assert messages.CommandError.DIRECT_MESSAGES_DISABLED in result
 
 
 class TestOnCommandErrorEventHandler:
@@ -502,13 +494,12 @@ class TestOnCommandErrorEventHandler:
         mock_ctx.command = None
         mock_ctx.message.content = "!nonexistent arg1"
 
-        # Get the on_command_error function registered via bot.event
         on_command_error_func = mock_bot.event.call_args[0][0]
         await on_command_error_func(mock_ctx, error)
 
         mock_send_error.assert_called_once()
         call_msg = mock_send_error.call_args[0][1]
-        assert messages.COMMAND_NOT_FOUND in call_msg
+        assert messages.CommandError.NOT_FOUND in call_msg
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
@@ -525,7 +516,7 @@ class TestOnCommandErrorEventHandler:
 
         mock_send_error.assert_called_once()
         call_msg = mock_send_error.call_args[0][1]
-        assert messages.MISSING_REQUIRED_ARGUMENT_HELP_MESSAGE in call_msg
+        assert messages.CommandError.MISSING_REQUIRED_ARGUMENT_HELP in call_msg
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
@@ -539,7 +530,7 @@ class TestOnCommandErrorEventHandler:
 
         mock_send_error.assert_called_once()
         call_msg = mock_send_error.call_args[0][1]
-        assert messages.NOT_ADMIN_USE_COMMAND in call_msg
+        assert messages.CommandError.NOT_ADMIN in call_msg
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
@@ -547,7 +538,6 @@ class TestOnCommandErrorEventHandler:
         """Test on_command_error dispatches BadArgument for GW2 server (lines 142, 188-190)."""
         cog = Errors(mock_bot)
         error = commands.BadArgument("BadArgument_Gw2ConfigServer")
-        # split()[4:] means everything from index 4 onwards forms the server name
         mock_ctx.message.clean_content = "!gw2 config server set My Server"
 
         on_command_error_func = mock_bot.event.call_args[0][0]
@@ -568,7 +558,7 @@ class TestOnCommandErrorEventHandler:
 
         mock_send_error.assert_called_once()
         call_msg = mock_send_error.call_args[0][1]
-        assert messages.UNKNOWN_OPTION in call_msg
+        assert messages.CommandError.UNKNOWN_OPTION in call_msg
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
@@ -583,8 +573,8 @@ class TestOnCommandErrorEventHandler:
 
         mock_send_error.assert_called_once()
         call_msg = mock_send_error.call_args[0][1]
-        assert messages.COMMAND_INTERNAL_ERROR in call_msg
-        assert messages.CONTACT_ADMIN in call_msg
+        assert messages.CommandError.INTERNAL_ERROR in call_msg
+        assert messages.CommandError.CONTACT_ADMIN in call_msg
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
@@ -603,7 +593,7 @@ class TestOnCommandErrorEventHandler:
 
         mock_send_error.assert_called_once()
         call_msg = mock_send_error.call_args[0][1]
-        assert call_msg == messages.DM_CANNOT_EXECUTE_COMMAND
+        assert call_msg == messages.CommandError.DM_CANNOT_EXECUTE
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
@@ -622,7 +612,7 @@ class TestOnCommandErrorEventHandler:
 
         mock_send_error.assert_called_once()
         call_msg = mock_send_error.call_args[0][1]
-        assert call_msg == messages.PRIVILEGE_LOW
+        assert call_msg == messages.CommandError.PRIVILEGE_LOW
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
@@ -692,8 +682,6 @@ class TestHandleBadArgumentBranches:
         """Test handling BadArgument for GW2 config server (lines 188-190)."""
         context = ErrorContext(mock_ctx, Exception())
         context.error_msg = "BadArgument_Gw2ConfigServer"
-        # split()[4:] means everything from index 4 onwards forms the server name
-        # indices: 0='!gw2', 1='config', 2='server', 3='set', 4='Aurora', 5='Glade'
         mock_ctx.message.clean_content = "!gw2 config server set Aurora Glade"
 
         await errors_cog._handle_bad_argument(context, False)
@@ -727,7 +715,7 @@ class TestHandleMissingArgument:
 
         await errors_cog._handle_missing_argument(context, False)
 
-        expected_msg = f"{messages.MISSING_REQUIRED_ARGUMENT_HELP_MESSAGE}: `!help testcommand`"
+        expected_msg = f"{messages.CommandError.MISSING_REQUIRED_ARGUMENT_HELP}: `!help testcommand`"
         mock_send_error.assert_called_once_with(mock_ctx, expected_msg, False)
 
 
@@ -743,7 +731,7 @@ class TestHandleCheckFailure:
 
         await errors_cog._handle_check_failure(context, True)
 
-        expected_msg = f"{messages.BOT_OWNERS_ONLY_COMMAND}: `!testcommand`"
+        expected_msg = f"{messages.CommandError.OWNERS_ONLY}: `!testcommand`"
         mock_send_error.assert_called_once_with(mock_ctx, expected_msg, True)
 
     @pytest.mark.asyncio
@@ -773,8 +761,8 @@ class TestHandleCommandInvokeError:
         mock_send_error.assert_called_once()
         call_args = mock_send_error.call_args[0]
         assert call_args[0] == mock_ctx
-        assert messages.COMMAND_INTERNAL_ERROR in call_args[1]
-        assert messages.CONTACT_ADMIN in call_args[1]
+        assert messages.CommandError.INTERNAL_ERROR in call_args[1]
+        assert messages.CommandError.CONTACT_ADMIN in call_args[1]
         assert call_args[2] is True
 
 
@@ -790,7 +778,7 @@ class TestHandleForbidden:
 
         await errors_cog._handle_forbidden(context, True)
 
-        mock_send_error.assert_called_once_with(mock_ctx, messages.DM_CANNOT_EXECUTE_COMMAND, True)
+        mock_send_error.assert_called_once_with(mock_ctx, messages.CommandError.DM_CANNOT_EXECUTE, True)
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.events.on_command_error.Errors._send_error_message")
@@ -801,4 +789,4 @@ class TestHandleForbidden:
 
         await errors_cog._handle_forbidden(context, True)
 
-        mock_send_error.assert_called_once_with(mock_ctx, messages.PRIVILEGE_LOW, True)
+        mock_send_error.assert_called_once_with(mock_ctx, messages.CommandError.PRIVILEGE_LOW, True)

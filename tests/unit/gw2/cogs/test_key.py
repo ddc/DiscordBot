@@ -105,7 +105,7 @@ class TestAddCommand:
         with patch("src.gw2.cogs.key.bot_utils.delete_message") as mock_delete:
             with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
-                invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.INVALID_APIKEY_MSG}")
+                invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.Api.INVALID_KEY}")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
                 with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                     mock_error.return_value = None
@@ -119,14 +119,14 @@ class TestAddCommand:
         with patch("src.gw2.cogs.key.bot_utils.delete_message"):
             with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
-                invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.INVALID_APIKEY_MSG}")
+                invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.Api.INVALID_KEY}")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
                 with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                     mock_error.return_value = None
                     await add(mock_ctx, api_key)
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert gw2_messages.INVALID_APIKEY_MSG in error_msg
+                    assert gw2_messages.Api.INVALID_KEY in error_msg
                     assert api_key in error_msg
 
     @pytest.mark.asyncio
@@ -157,8 +157,8 @@ class TestAddCommand:
                 )
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
-                        {"name": "TestUser.1234", "world": 1001},  # account call
-                        Exception("Server API error"),  # world call
+                        {"name": "TestUser.1234", "world": 1001},
+                        Exception("Server API error"),
                     ]
                 )
                 with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
@@ -362,14 +362,14 @@ class TestUpdateCommand:
                 mock_instance.get_api_key_by_user = AsyncMock(return_value=[{"name": "OldKey", "key": "old-key-12345"}])
                 with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                     mock_client_instance = mock_client.return_value
-                    invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.INVALID_APIKEY_MSG}")
+                    invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.Api.INVALID_KEY}")
                     mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
                     with patch("src.gw2.cogs.key.bot_utils.send_error_msg") as mock_error:
                         mock_error.return_value = None
                         await update(mock_ctx, api_key)
                         mock_error.assert_called_once()
                         error_msg = mock_error.call_args[0][1]
-                        assert gw2_messages.INVALID_APIKEY_MSG in error_msg
+                        assert gw2_messages.Api.INVALID_KEY in error_msg
 
     @pytest.mark.asyncio
     async def test_update_account_info_api_fails(self, mock_ctx):
@@ -423,9 +423,7 @@ class TestUpdateCommand:
             with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
                 mock_instance = mock_dal.return_value
                 mock_instance.get_api_key_by_user = AsyncMock(return_value=[{"name": "OldKey", "key": "old-key-12345"}])
-                mock_instance.get_api_key = AsyncMock(
-                    return_value=[{"user_id": 99999, "key": api_key}]  # different user
-                )
+                mock_instance.get_api_key = AsyncMock(return_value=[{"user_id": 99999, "key": api_key}])
                 with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                     mock_client_instance = mock_client.return_value
                     mock_client_instance.check_api_key = AsyncMock(
@@ -490,8 +488,7 @@ class TestUpdateCommand:
             with patch("src.gw2.cogs.key.Gw2KeyDal") as mock_dal:
                 mock_instance = mock_dal.return_value
                 mock_instance.get_api_key_by_user = AsyncMock(return_value=[{"name": "OldKey", "key": "old-key-12345"}])
-                # Key is found but belongs to same user
-                mock_instance.get_api_key = AsyncMock(return_value=[{"user_id": 12345, "key": api_key}])  # same user
+                mock_instance.get_api_key = AsyncMock(return_value=[{"user_id": 12345, "key": api_key}])
                 mock_instance.update_api_key = AsyncMock()
                 with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                     mock_client_instance = mock_client.return_value
@@ -569,7 +566,7 @@ class TestRemoveCommand:
                 await remove(mock_ctx)
                 mock_error.assert_called_once()
                 error_msg = mock_error.call_args[0][1]
-                assert gw2_messages.NO_API_KEY in error_msg
+                assert gw2_messages.Key.NO_API_KEY in error_msg
 
     @pytest.mark.asyncio
     async def test_remove_has_api_key_deletes_and_confirms(self, mock_ctx):
@@ -657,7 +654,6 @@ class TestInfoCommand:
                         embed = mock_send.call_args[0][1]
                         assert embed.title == "Your GW2 Account"
                         assert "TestUser.1234" in embed.description
-                        # Check dm=True
                         assert mock_send.call_args[1]["dm"] is True
 
     @pytest.mark.asyncio
@@ -678,7 +674,7 @@ class TestInfoCommand:
             )
             with patch("src.gw2.cogs.key.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
-                invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.INVALID_APIKEY_MSG}")
+                invalid_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.Api.INVALID_KEY}")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_error)
                 with patch("src.gw2.cogs.key.bot_utils.send_embed") as mock_send:
                     with patch("src.gw2.cogs.key.bot_utils.get_current_date_time_str_long") as mock_time:
@@ -686,7 +682,6 @@ class TestInfoCommand:
                         await info(mock_ctx)
                         mock_send.assert_called_once()
                         embed = mock_send.call_args[0][1]
-                        # Check embed fields for "NO" valid
                         valid_field = None
                         for field in embed.fields:
                             if field.name == "Valid":
@@ -886,7 +881,7 @@ class TestApiKeyModal:
 
         modal = ApiKeyModal(mock_bot, "add", "!")
         modal.api_key_input = MagicMock()
-        modal.api_key_input.value = "  test-key  "  # whitespace stripped by code
+        modal.api_key_input.value = "  test-key  "
 
         interaction = MagicMock(spec=discord.Interaction)
         interaction.response.defer = AsyncMock()
@@ -961,7 +956,6 @@ class TestApiKeyView:
 
         await view.on_timeout()
 
-        # All button children disabled.
         assert all(item.disabled for item in view.children)
         view.message.edit.assert_awaited_once()
 
@@ -970,8 +964,7 @@ class TestApiKeyView:
         from src.gw2.cogs.key import ApiKeyView
 
         view = ApiKeyView(mock_bot, "add", "!")
-        view.message = None  # Never sent
-        # Should not raise.
+        view.message = None
         await view.on_timeout()
         assert all(item.disabled for item in view.children)
 
@@ -983,7 +976,6 @@ class TestApiKeyView:
         view = ApiKeyView(mock_bot, "add", "!")
         view.message = MagicMock()
         view.message.edit = AsyncMock(side_effect=discord.NotFound(MagicMock(), "gone"))
-        # Should not raise — caught by except.
         await view.on_timeout()
         view.message.edit.assert_awaited_once()
 
@@ -1012,7 +1004,6 @@ class TestAddCommandInteractivePath:
         with patch("src.gw2.cogs.key.bot_utils.is_private_message", return_value=False):
             await add.callback(mock_ctx, api_key=None)
 
-        # DM was sent with the view.
         mock_ctx.author.send.assert_awaited_once()
         dm_kwargs = mock_ctx.author.send.call_args[1]
         assert "view" in dm_kwargs
@@ -1022,7 +1013,6 @@ class TestAddCommandInteractivePath:
         assert dm_kwargs["view"].mode == "add"
         assert dm_kwargs["view"].message is sent_message
 
-        # Channel-side notification was posted.
         mock_ctx.send.assert_awaited_once()
         notif_embed = mock_ctx.send.call_args[1]["embed"]
         assert "DM" in notif_embed.description
@@ -1035,9 +1025,7 @@ class TestAddCommandInteractivePath:
         with patch("src.gw2.cogs.key.bot_utils.is_private_message", return_value=True):
             await add.callback(mock_ctx, api_key=None)
 
-        # DM message sent.
         mock_ctx.author.send.assert_awaited_once()
-        # NO channel notification (we're already in DM).
         mock_ctx.send.assert_not_called()
 
 

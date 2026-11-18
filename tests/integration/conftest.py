@@ -3,14 +3,10 @@ import os
 import sys
 from pathlib import Path
 
-# Ensure the project root is on sys.path so `from src...` imports work
-# regardless of whether pytest was invoked via `python -m pytest` or `pytest`
 _project_root = str(Path(__file__).resolve().parent.parent.parent)
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
-# Prevent tests/docker/ from shadowing the real `docker` package
-# pytest adds tests/ to sys.path, causing tests/docker/__init__.py to shadow docker from PyPI
 _tests_dir = os.path.dirname(os.path.dirname(__file__))
 if _tests_dir in sys.path:
     sys.path.remove(_tests_dir)

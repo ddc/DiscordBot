@@ -56,14 +56,14 @@ def init_background_tasks(bot: commands.Bot) -> None:
 
 
 async def load_cogs(bot):
-    bot.log.debug(messages.LOADING_EXTENSIONS)
+    bot.log.debug(messages.BotUtils.LOADING_EXTENSIONS)
     for ext in variables.ALL_COGS:
         cog_name = ext.replace("/", ".").replace(".py", "")
         try:
             await bot.load_extension(cog_name)
             bot.log.debug(f"{cog_name}")
         except Exception as e:
-            bot.log.error(f"{messages.LOADING_EXTENSION_FAILED}: {cog_name}")
+            bot.log.error(f"{messages.BotUtils.LOADING_EXTENSION_FAILED}: {cog_name}")
             bot.log.error(f"{e.__class__.__name__}: {e}\n")
 
 
@@ -151,7 +151,30 @@ async def send_with_retry(ctx, send_method, *args, max_attempts: int = 3, base_d
                     notified = True
                 except discord.HTTPException:
                     pass  # Notice itself failed; keep retrying the main send
-            await asyncio.sleep(base_delay * (2 ** (attempt - 1)))
+            await asyncio.sleep(base_delay * 2 ** (attempt - 1))
+
+
+async def _send_embed_to_dm(ctx, embed) -> None:
+    """Send the embed to the author's DM and post a notice in the channel; fall back to the channel."""
+    try:
+        await send_with_retry(ctx, ctx.author.send, embed=embed)
+        notification_embed = discord.Embed(description="📬 Response sent to your DM", color=discord.Color.green())
+        notification_embed.set_author(
+            name=ctx.author.display_name,
+            icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url,
+        )
+        await send_with_retry(ctx, ctx.send, embed=notification_embed)
+    except discord.Forbidden, discord.HTTPException:
+        # DM failed, fall back to sending in the channel
+        await send_with_retry(ctx, ctx.send, embed=embed)
+
+
+async def _notify_send_failure(ctx, message: str) -> None:
+    """Best-effort error notice in the channel after a failed send."""
+    try:
+        await ctx.send(embed=discord.Embed(description=chat_formatting.error(message), color=discord.Color.red()))
+    except discord.Forbidden, discord.HTTPException:
+        pass  # Can't send anything, nothing we can do
 
 
 async def send_embed(ctx, embed, dm=False):
@@ -165,47 +188,16 @@ async def send_embed(ctx, embed, dm=False):
             # Already in DM, just send the embed
             await send_with_retry(ctx, ctx.author.send, embed=embed)
         elif dm:
-            # Send to DM and notify in channel
-            try:
-                await send_with_retry(ctx, ctx.author.send, embed=embed)
-                notification_embed = discord.Embed(
-                    description="📬 Response sent to your DM", color=discord.Color.green()
-                )
-                notification_embed.set_author(
-                    name=ctx.author.display_name,
-                    icon_url=ctx.author.avatar.url if ctx.author.avatar else ctx.author.default_avatar.url,
-                )
-                await send_with_retry(ctx, ctx.send, embed=notification_embed)
-            except discord.Forbidden, discord.HTTPException:
-                # DM failed, fall back to sending in the channel
-                await send_with_retry(ctx, ctx.send, embed=embed)
+            await _send_embed_to_dm(ctx, embed)
         else:
-            # Send to channel
             await send_with_retry(ctx, ctx.send, embed=embed)
     except (discord.Forbidden, discord.HTTPException) as e:
         ctx.bot.log.error(f"Failed to send message: {e}")
-        if dm or is_private_message(ctx):
-            # Only show DM disabled message when we were actually trying to DM
-            try:
-                await ctx.send(
-                    embed=discord.Embed(
-                        description=chat_formatting.error(messages.DISABLED_DM),
-                        color=discord.Color.red(),
-                    )
-                )
-            except discord.Forbidden, discord.HTTPException:
-                pass  # Can't send to channel either, nothing we can do
-        else:
-            # Channel send failed — notify the user with a simple embed
-            try:
-                await ctx.send(
-                    embed=discord.Embed(
-                        description=chat_formatting.error(messages.SEND_MESSAGE_FAILED),
-                        color=discord.Color.red(),
-                    )
-                )
-            except discord.Forbidden, discord.HTTPException:
-                pass  # Can't send anything, nothing we can do
+        # Only show the DM-disabled message when we were actually trying to DM
+        trying_dm = dm or is_private_message(ctx)
+        await _notify_send_failure(
+            ctx, messages.BotUtils.DISABLED_DM if trying_dm else messages.BotUtils.SEND_MESSAGE_FAILED
+        )
     except Exception as e:
         ctx.bot.log.error(f"Unexpected error sending message: {e}")
 
@@ -335,10 +327,6 @@ async def send_paginated_embed(ctx, embed: discord.Embed, max_fields: int = 25) 
         )
         pages.append(page_embed)
 
-    if len(pages) == 1:
-        await send_embed(ctx, pages[0])
-        return
-
     view = EmbedPaginatorView(pages, ctx.message.author.id)
     await view.send_and_save(ctx)
 
@@ -346,13 +334,13 @@ async def send_paginated_embed(ctx, embed: discord.Embed, max_fields: int = 25) 
 async def delete_message(ctx, warning=False):
     if not is_private_message(ctx):
         color = None
-        msg = messages.MESSAGE_REMOVED_FOR_PRIVACY
+        msg = messages.BotUtils.MESSAGE_REMOVED_FOR_PRIVACY
 
         try:
             await ctx.message.delete()
         except Exception as e:
             color = discord.Color.red()
-            msg = messages.DELETE_MESSAGE_NO_PERMISSION
+            msg = messages.BotUtils.DELETE_MESSAGE_NO_PERMISSION
             ctx.bot.log.error(f"{e}: {msg}")
         finally:
             if warning:

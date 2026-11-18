@@ -1,8 +1,6 @@
 """Comprehensive tests for the CustomCommand cog."""
 
 import pytest
-
-# Mock problematic imports before importing the module
 import sys
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -20,9 +18,7 @@ def mock_bot():
     bot.db_session = MagicMock()
     bot.log = MagicMock()
     bot.commands = []
-    # Configure remove_command to not return a coroutine
     bot.remove_command = MagicMock(return_value=None)
-    # Ensure add_cog doesn't return a coroutine
     bot.add_cog = AsyncMock(return_value=None)
     return bot
 
@@ -51,7 +47,6 @@ def mock_ctx():
     ctx.message = MagicMock()
     ctx.prefix = "!"
 
-    # Mock bot commands
     mock_command = MagicMock()
     mock_command.name = "help"
     ctx.bot = MagicMock()
@@ -90,7 +85,6 @@ class TestCustomCommand:
         mock_invoke.assert_called_once_with(mock_ctx, "admin cc")
         assert result == "mock_command"
 
-    # Test add command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
     @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
@@ -101,7 +95,7 @@ class TestCustomCommand:
         """Test successful custom command addition."""
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
-        mock_dal.get_command.return_value = None  # Command doesn't exist
+        mock_dal.get_command.return_value = None
 
         from src.bot.cogs.admin.custom_cmd import add_custom_command
 
@@ -113,7 +107,7 @@ class TestCustomCommand:
         mock_send_msg.assert_called_once()
 
         success_msg = mock_send_msg.call_args[0][1]
-        assert messages.CUSTOM_COMMAND_ADDED in success_msg
+        assert messages.CustomCommand.ADDED in success_msg
         assert "!hello" in success_msg
 
     @pytest.mark.asyncio
@@ -129,21 +123,21 @@ class TestCustomCommand:
         mock_send_error.assert_called_once()
 
         error_msg = mock_send_error.call_args[0][1]
-        assert messages.MISSING_REQUIRED_ARGUMENT_HELP_MESSAGE in error_msg
+        assert messages.CommandError.MISSING_REQUIRED_ARGUMENT_HELP in error_msg
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
     @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg")
     async def test_add_custom_command_name_too_long(self, mock_send_error, mock_delete_msg, custom_cmd_cog, mock_ctx):
         """Test add command with name too long."""
-        long_name = "a" * 21  # 21 characters, exceeds limit of 20
+        long_name = "a" * 21
 
         from src.bot.cogs.admin.custom_cmd import add_custom_command
 
         await add_custom_command(mock_ctx, subcommand_passed=f"{long_name} Some description")
 
         mock_delete_msg.assert_called_once_with(mock_ctx)
-        mock_send_error.assert_called_once_with(mock_ctx, messages.COMMAND_LENGHT_ERROR)
+        mock_send_error.assert_called_once_with(mock_ctx, messages.CustomCommand.LENGTH_ERROR)
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
@@ -160,7 +154,7 @@ class TestCustomCommand:
         mock_send_error.assert_called_once()
 
         error_msg = mock_send_error.call_args[0][1]
-        assert messages.ALREADY_A_STANDARD_COMMAND in error_msg
+        assert messages.CustomCommand.ALREADY_A_STANDARD_COMMAND in error_msg
         assert "!help" in error_msg
 
     @pytest.mark.asyncio
@@ -173,7 +167,7 @@ class TestCustomCommand:
         """Test add command that already exists."""
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
-        mock_dal.get_command.return_value = {"name": "hello"}  # Command exists
+        mock_dal.get_command.return_value = {"name": "hello"}
 
         from src.bot.cogs.admin.custom_cmd import add_custom_command
 
@@ -183,11 +177,10 @@ class TestCustomCommand:
         mock_send_warning.assert_called_once()
 
         warning_msg = mock_send_warning.call_args[0][1]
-        assert messages.COMMAND_ALREADY_EXISTS in warning_msg
+        assert messages.CustomCommand.ALREADY_EXISTS in warning_msg
         assert "!hello" in warning_msg
         assert "admin cc edit hello" in warning_msg
 
-    # Test edit command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
     @patch("src.bot.cogs.admin.custom_cmd.bot_utils.delete_message")
@@ -210,7 +203,7 @@ class TestCustomCommand:
         mock_send_msg.assert_called_once()
 
         success_msg = mock_send_msg.call_args[0][1]
-        assert messages.CUSTOM_COMMAND_EDITED in success_msg
+        assert messages.CustomCommand.EDITED in success_msg
         assert "!hello" in success_msg
 
     @pytest.mark.asyncio
@@ -226,7 +219,7 @@ class TestCustomCommand:
         mock_send_error.assert_called_once()
 
         error_msg = mock_send_error.call_args[0][1]
-        assert messages.MISSING_REQUIRED_ARGUMENT_HELP_MESSAGE in error_msg
+        assert messages.CommandError.MISSING_REQUIRED_ARGUMENT_HELP in error_msg
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
@@ -245,7 +238,7 @@ class TestCustomCommand:
         await edit_custom_command(mock_ctx, subcommand_passed="hello Updated greeting!")
 
         mock_delete_msg.assert_called_once_with(mock_ctx)
-        mock_send_error.assert_called_once_with(mock_ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
+        mock_send_error.assert_called_once_with(mock_ctx, messages.CustomCommand.NO_COMMANDS_FOUND)
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
@@ -267,10 +260,9 @@ class TestCustomCommand:
         mock_send_error.assert_called_once()
 
         error_msg = mock_send_error.call_args[0][1]
-        assert messages.COMMAND_NOT_FOUND in error_msg
+        assert messages.CommandError.NOT_FOUND in error_msg
         assert "!nonexistent" in error_msg
 
-    # Test remove command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
     @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_msg")
@@ -291,7 +283,7 @@ class TestCustomCommand:
         mock_send_msg.assert_called_once()
 
         success_msg = mock_send_msg.call_args[0][1]
-        assert messages.CUSTOM_COMMAND_REMOVED in success_msg
+        assert messages.CustomCommand.REMOVED in success_msg
         assert "!hello" in success_msg
 
     @pytest.mark.asyncio
@@ -309,7 +301,7 @@ class TestCustomCommand:
 
         await remove_custom_command(mock_ctx, cmd_name="hello")
 
-        mock_send_warning.assert_called_once_with(mock_ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
+        mock_send_warning.assert_called_once_with(mock_ctx, messages.CustomCommand.NO_COMMANDS_FOUND)
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
@@ -329,11 +321,10 @@ class TestCustomCommand:
         mock_send_error.assert_called_once()
 
         error_msg = mock_send_error.call_args[0][1]
-        assert messages.CUSTOM_COMMAND_UNABLE_REMOVE in error_msg
-        assert messages.COMMAND_NOT_FOUND in error_msg
+        assert messages.CustomCommand.UNABLE_REMOVE in error_msg
+        assert messages.CommandError.NOT_FOUND in error_msg
         assert "nonexistent" in error_msg
 
-    # Test removeall command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
     @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_msg")
@@ -351,7 +342,7 @@ class TestCustomCommand:
 
         mock_dal.get_all_server_commands.assert_called_once_with(12345)
         mock_dal.delete_all_commands.assert_called_once_with(12345)
-        mock_send_msg.assert_called_once_with(mock_ctx, messages.CUSTOM_COMMAND_ALL_REMOVED)
+        mock_send_msg.assert_called_once_with(mock_ctx, messages.CustomCommand.ALL_REMOVED)
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
@@ -368,9 +359,8 @@ class TestCustomCommand:
 
         await remove_all_custom_commands(mock_ctx)
 
-        mock_send_error.assert_called_once_with(mock_ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
+        mock_send_error.assert_called_once_with(mock_ctx, messages.CustomCommand.NO_COMMANDS_FOUND)
 
-    # Test list command
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
     @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_embed")
@@ -388,7 +378,6 @@ class TestCustomCommand:
         mock_ctx,
     ):
         """Test successful listing of custom commands."""
-        # Setup mock data
         mock_command_1 = {"name": "hello", "created_by": 67890, "created_at": datetime.now()}
         mock_command_2 = {"name": "rules", "created_by": 11111, "created_at": datetime.now()}
 
@@ -396,7 +385,6 @@ class TestCustomCommand:
         mock_dal_class.return_value = mock_dal
         mock_dal.get_all_server_commands.return_value = [mock_command_1, mock_command_2]
 
-        # Setup member mocks
         mock_user1 = MagicMock()
         mock_user1.display_name = "TestUser"
         mock_user2 = MagicMock()
@@ -414,9 +402,9 @@ class TestCustomCommand:
         mock_send_embed.assert_called_once()
 
         embed = mock_send_embed.call_args[0][1]
-        assert embed.author.name == messages.CUSTOM_COMMANDS_SERVER
+        assert embed.author.name == messages.CustomCommand.COMMANDS_SERVER
         assert embed.author.icon_url == "https://example.com/icon.png"
-        assert len(embed.fields) == 3  # Command, Created by, Created at
+        assert len(embed.fields) == 3
         assert embed.footer.text == "For more info: !help admin cc"
 
     @pytest.mark.asyncio
@@ -434,7 +422,7 @@ class TestCustomCommand:
 
         await list_custom_commands(mock_ctx)
 
-        mock_send_warning.assert_called_once_with(mock_ctx, messages.NO_CUSTOM_COMMANDS_FOUND)
+        mock_send_warning.assert_called_once_with(mock_ctx, messages.CustomCommand.NO_COMMANDS_FOUND)
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
@@ -459,7 +447,7 @@ class TestCustomCommand:
         mock_dal_class.return_value = mock_dal
         mock_dal.get_all_server_commands.return_value = [mock_command]
 
-        mock_get_member.return_value = None  # User not found
+        mock_get_member.return_value = None
         mock_convert_datetime.return_value = "2023-01-01 12:00:00"
         mock_inline.side_effect = lambda x: f"inline({x})"
 
@@ -470,7 +458,6 @@ class TestCustomCommand:
         mock_send_embed.assert_called_once()
         embed = mock_send_embed.call_args[0][1]
 
-        # Check that "Unknown User" is used when member is not found
         created_by_field = next(field for field in embed.fields if field.name == "Created by")
         assert "Unknown User" in created_by_field.value
 
@@ -541,9 +528,8 @@ class TestCustomCommand:
         self, mock_send_msg, mock_delete_msg, mock_dal_class, custom_cmd_cog, mock_ctx
     ):
         """Test add command with case-insensitive bot command conflict."""
-        # Add a command with mixed case to bot commands
         mock_command = MagicMock()
-        mock_command.name = "Help"  # Different case than "help"
+        mock_command.name = "Help"
         mock_ctx.bot.commands = [mock_command]
 
         from src.bot.cogs.admin.custom_cmd import add_custom_command
@@ -553,7 +539,7 @@ class TestCustomCommand:
 
             mock_send_error.assert_called_once()
             error_msg = mock_send_error.call_args[0][1]
-            assert messages.ALREADY_A_STANDARD_COMMAND in error_msg
+            assert messages.CustomCommand.ALREADY_A_STANDARD_COMMAND in error_msg
 
     @pytest.mark.asyncio
     @patch("src.bot.cogs.admin.custom_cmd.CustomCommandsDal")
@@ -587,7 +573,7 @@ class TestCustomCommand:
         mock_dal_class.return_value = mock_dal
         mock_dal.get_command.return_value = None
 
-        name_20_chars = "a" * 20  # Exactly 20 characters
+        name_20_chars = "a" * 20
 
         from src.bot.cogs.admin.custom_cmd import add_custom_command
 

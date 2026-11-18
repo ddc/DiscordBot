@@ -34,10 +34,10 @@ class DiceRolls(commands.Cog):
 
         dice_size = self._parse_dice_size(ctx.subcommand_passed)
         if dice_size is None:
-            return await bot_utils.send_error_msg(ctx, messages.DICE_SIZE_NOT_VALID)
+            return await bot_utils.send_error_msg(ctx, messages.DiceRolls.SIZE_NOT_VALID)
 
         if dice_size <= 1:
-            return await bot_utils.send_error_msg(ctx, messages.DICE_SIZE_HIGHER_ONE)
+            return await bot_utils.send_error_msg(ctx, messages.DiceRolls.SIZE_HIGHER_ONE)
 
         roll_result = self._generate_roll(dice_size)
 
@@ -73,13 +73,13 @@ class DiceRolls(commands.Cog):
         """
         dice_size = self._parse_results_dice_size(ctx.message.content)
         if dice_size is None:
-            return await bot_utils.send_error_msg(ctx, messages.DICE_SIZE_NOT_VALID)
+            return await bot_utils.send_error_msg(ctx, messages.DiceRolls.SIZE_NOT_VALID)
 
         dice_rolls_dal = DiceRollsDal(self.bot.db_session, self.bot.log)
         server_rolls = await dice_rolls_dal.get_all_server_rolls(ctx.guild.id, dice_size)
 
         if not server_rolls:
-            return await bot_utils.send_error_msg(ctx, messages.no_dice_size_rolls(dice_size))
+            return await bot_utils.send_error_msg(ctx, messages.DiceRolls.no_size_rolls(dice_size))
 
         embed = self._create_results_embed(ctx, server_rolls, dice_size)
         await bot_utils.send_embed(ctx, embed)
@@ -97,7 +97,7 @@ class DiceRolls(commands.Cog):
 
         dice_rolls_dal = DiceRollsDal(self.bot.db_session, self.bot.log)
         await dice_rolls_dal.delete_all_server_rolls(ctx.guild.id)
-        await bot_utils.send_msg(ctx, messages.DELETED_ALL_ROLLS)
+        await bot_utils.send_msg(ctx, messages.DiceRolls.DELETED_ALL)
 
     @staticmethod
     def _parse_dice_size(subcommand_passed: str | None) -> int | None:
@@ -179,24 +179,24 @@ class DiceRolls(commands.Cog):
 
         # Check if new server record
         if roll > server_record["roll"]:
-            message_parts.append(messages.SERVER_HIGHEST_ROLL_ANOUNCE)
+            message_parts.append(messages.DiceRolls.SERVER_HIGHEST_ROLL_ANNOUNCE)
             server_record["roll"] = roll
             server_record["user"] = author
 
         # Check if new personal record (but not if user is server winner)
         is_server_winner = server_record["user"] == author
         if roll == user_highest and roll > 0 and not is_server_winner:
-            message_parts.append(messages.MEMBER_HIGHEST_ROLL)
+            message_parts.append(messages.DiceRolls.MEMBER_HIGHEST_ROLL)
 
         # Add server record information
         if server_record["user"] is None or server_record["user"] == author:
-            message_parts.append(f"{messages.MEMBER_SERVER_WINNER_ANOUNCE} {user_highest}")
+            message_parts.append(f"{messages.DiceRolls.MEMBER_SERVER_WINNER_ANNOUNCE} {user_highest}")
         else:
             highest_user = server_record["user"]
             message_parts.extend(
                 [
-                    f"`{highest_user.display_name}` {messages.MEMBER_HAS_HIGHEST_ROLL} {server_record['roll']}",
-                    f"{messages.MEMBER_HIGHEST_ROLL} {user_highest}",
+                    f"`{highest_user.display_name}` {messages.DiceRolls.MEMBER_HAS_HIGHEST_ROLL} {server_record['roll']}",
+                    f"{messages.DiceRolls.MEMBER_HIGHEST_ROLL} {user_highest}",
                 ]
             )
 
@@ -229,7 +229,7 @@ class DiceRolls(commands.Cog):
         embed.set_author(name=f"{ctx.guild.name} (Dice Size: {dice_size})", icon_url=ctx.guild.icon.url)
         embed.add_field(name="Member", value=chat_formatting.inline(members))
         embed.add_field(name="Roll", value=chat_formatting.inline(rolls))
-        embed.set_footer(text=f"{messages.RESET_ALL_ROLLS}: {ctx.prefix}roll reset")
+        embed.set_footer(text=f"{messages.DiceRolls.RESET_ALL}: {ctx.prefix}roll reset")
 
         return embed
 

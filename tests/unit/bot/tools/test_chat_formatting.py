@@ -282,7 +282,7 @@ class TestEdgeCases:
         long_text = "A" * 1000
         result = chat_formatting.bold(long_text)
         assert result == f"**{long_text}**"
-        assert len(result) == 1004  # original + 4 asterisks
+        assert len(result) == 1004
 
     def test_text_with_unicode(self):
         """Test formatting with Unicode characters."""

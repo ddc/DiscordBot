@@ -35,7 +35,7 @@ class WelcomeMessageBuilder:
             if member.avatar:
                 embed.set_thumbnail(url=member.avatar.url)
 
-            embed.set_author(name=messages.JOINED_THE_SERVER)
+            embed.set_author(name=messages.MemberJoin.JOINED_THE_SERVER)
             embed.set_footer(icon_url=self.bot.user.avatar.url if self.bot.user.avatar else None, text=f"{now} UTC")
 
             return embed
@@ -55,7 +55,7 @@ class WelcomeMessageBuilder:
         """
         try:
             now = bot_utils.get_current_date_time_str_long()
-            return f"{member.name} {messages.JOINED_THE_SERVER}\n{now}"
+            return f"{member.name} {messages.MemberJoin.JOINED_THE_SERVER}\n{now}"
         except Exception as e:
             self.bot.log.error(f"Failed to create join message for {member}: {e}")
             return f"{member.name} joined the server!"

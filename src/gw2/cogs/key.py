@@ -3,7 +3,7 @@ from discord.ext import commands
 from src.bot.tools import bot_utils, chat_formatting
 from src.database.dal.gw2.gw2_key_dal import Gw2KeyDal
 from src.gw2.cogs.gw2 import GuildWars2
-from src.gw2.constants import gw2_messages
+from src.gw2.constants import gw2_messages, gw2_variables
 from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
 
@@ -44,11 +44,11 @@ async def _validate_api_key(bot, api_key):
     key_name = is_valid_key["name"]
     permissions = ",".join(is_valid_key["permissions"])
 
-    api_req_acc_info = await gw2_api.call_api("account", api_key)
+    api_req_acc_info = await gw2_api.call_api(gw2_variables.API_ACCOUNT, api_key)
     gw2_acc_name = api_req_acc_info["name"]
     member_server_id = api_req_acc_info["world"]
 
-    uri = f"worlds/{member_server_id}"
+    uri = f"{gw2_variables.API_WORLDS}/{member_server_id}"
     api_req_server = await gw2_api.call_api(uri, api_key)
     gw2_server_name = api_req_server["name"]
 
@@ -86,7 +86,7 @@ async def _process_add_key(ctx_or_interaction, api_key, bot, prefix):
 
     rs = await gw2_key_dal.get_api_key(api_key)
     if rs:
-        return await _send_error(ctx_or_interaction, gw2_messages.KEY_ALREADY_IN_USE)
+        return await _send_error(ctx_or_interaction, gw2_messages.Key.ALREADY_IN_USE)
 
     try:
         await gw2_key_dal.insert_api_key(
@@ -99,8 +99,8 @@ async def _process_add_key(ctx_or_interaction, api_key, bot, prefix):
                 "api_key": api_key,
             }
         )
-        msg = gw2_messages.key_added_successfully(key_info["key_name"], key_info["gw2_server_name"])
-        msg += gw2_messages.key_more_info_help(prefix)
+        msg = gw2_messages.Key.added_successfully(key_info["key_name"], key_info["gw2_server_name"])
+        msg += gw2_messages.Key.more_info_help(prefix)
         await _send_success(ctx_or_interaction, msg, embed_color)
     except Exception as e:
         bot.log.error(f"Error inserting API key for user {user_id}: {e}")
@@ -130,7 +130,7 @@ async def _process_update_key(ctx_or_interaction, api_key, bot, prefix):
 
     rs = await gw2_key_dal.get_api_key(api_key)
     if rs and rs[0]["user_id"] != user_id:
-        return await _send_error(ctx_or_interaction, gw2_messages.KEY_ALREADY_IN_USE)
+        return await _send_error(ctx_or_interaction, gw2_messages.Key.ALREADY_IN_USE)
 
     try:
         await gw2_key_dal.update_api_key(
@@ -144,8 +144,8 @@ async def _process_update_key(ctx_or_interaction, api_key, bot, prefix):
             }
         )
         old_key_name = existing_user_key[0]["name"]
-        msg = gw2_messages.key_replaced_successfully(old_key_name, key_info["key_name"], key_info["gw2_server_name"])
-        msg += gw2_messages.key_more_info_help(prefix)
+        msg = gw2_messages.Key.replaced_successfully(old_key_name, key_info["key_name"], key_info["gw2_server_name"])
+        msg += gw2_messages.Key.more_info_help(prefix)
         await _send_success(ctx_or_interaction, msg, embed_color)
     except Exception as e:
         bot.log.error(f"Error updating API key for user {user_id}: {e}")
@@ -317,14 +317,14 @@ async def remove(ctx):
 
     rs = await gw2_key_dal.get_api_key_by_user(user_id)
     if not rs:
-        msg = gw2_messages.NO_API_KEY
-        msg += gw2_messages.key_add_info_help(ctx.prefix)
-        msg += gw2_messages.key_more_info_help(ctx.prefix)
+        msg = gw2_messages.Key.NO_API_KEY
+        msg += gw2_messages.Key.add_info_help(ctx.prefix)
+        msg += gw2_messages.Key.more_info_help(ctx.prefix)
         return await bot_utils.send_error_msg(ctx, msg)
     else:
         color = ctx.bot.settings["gw2"]["EmbedColor"]
         await gw2_key_dal.delete_user_api_key(user_id)
-        await bot_utils.send_msg(ctx, gw2_messages.KEY_REMOVED_SUCCESSFULLY, True, color)
+        await bot_utils.send_msg(ctx, gw2_messages.Key.REMOVED_SUCCESSFULLY, True, color)
         return None
 
 
@@ -362,7 +362,7 @@ async def info(ctx):
         is_valid_key = await gw2_api.check_api_key(api_key)
         if not isinstance(is_valid_key, dict):
             is_valid_key = "NO"
-            name = f"***{gw2_messages.INVALID_APIKEY_MSG}***"
+            name = f"***{gw2_messages.Api.INVALID_KEY}***"
         else:
             is_valid_key = "YES"
             name = f"{ctx.message.author}"

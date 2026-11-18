@@ -1,6 +1,5 @@
 """Comprehensive tests for the Admin cog."""
 
-# Mock problematic imports before importing the module
 import discord
 import pytest
 import sys
@@ -87,21 +86,18 @@ class TestAdmin:
 
         await admin_cog.botgame.callback(admin_cog, mock_ctx, game=game)
 
-        # Verify typing indicator
         mock_ctx.message.channel.typing.assert_called_once()
 
-        # Verify bot presence change
         admin_cog.bot.change_presence.assert_called_once()
         activity_call = admin_cog.bot.change_presence.call_args[1]["activity"]
         assert isinstance(activity_call, discord.Game)
         assert activity_call.name == f"{game} | !help"
 
-        # Verify embed was sent
-        assert mock_send_embed.call_count == 1  # No warning embed since BGActivityTimer is 0
+        assert mock_send_embed.call_count == 1
 
         embed_call = mock_send_embed.call_args_list[0]
         embed = embed_call[0][1]
-        assert messages.bot_announce_playing(game) in embed.description
+        assert messages.Admin.announce_playing(game) in embed.description
         assert embed.author.name == "TestBot"
         assert embed.author.icon_url == "https://example.com/bot_avatar.png"
 
@@ -110,24 +106,20 @@ class TestAdmin:
     async def test_botgame_command_with_bg_timer_warning(self, mock_send_embed, admin_cog, mock_ctx):
         """Test botgame command with background activity timer warning."""
         game = "Reading documentation"
-        admin_cog.bot.settings["bot"]["BGActivityTimer"] = 300  # 5 minutes
+        admin_cog.bot.settings["bot"]["BGActivityTimer"] = 300
 
         await admin_cog.botgame.callback(admin_cog, mock_ctx, game=game)
 
-        # Verify both embeds were sent (success + warning)
         assert mock_send_embed.call_count == 2
 
-        # Check success embed
         success_embed = mock_send_embed.call_args_list[0][0][1]
-        assert messages.bot_announce_playing(game) in success_embed.description
+        assert messages.Admin.announce_playing(game) in success_embed.description
 
-        # Check warning embed
         warning_embed = mock_send_embed.call_args_list[1][0][1]
-        assert messages.bg_task_warning(300) in warning_embed.description
+        assert messages.Admin.bg_task_warning(300) in warning_embed.description
 
-        # Verify warning embed was sent with dm=False
         warning_call = mock_send_embed.call_args_list[1]
-        assert len(warning_call[0]) == 3  # ctx, embed, dm
+        assert len(warning_call[0]) == 3
         assert warning_call[0][2] is False
 
     @pytest.mark.asyncio
@@ -140,8 +132,7 @@ class TestAdmin:
 
             mock_send_embed.assert_called_once()
             embed = mock_send_embed.call_args[0][1]
-            assert messages.bg_task_warning(600) in embed.description
-            # Verify dm=False parameter
+            assert messages.Admin.bg_task_warning(600) in embed.description
             assert mock_send_embed.call_args[0][2] is False
 
     @pytest.mark.asyncio
@@ -180,12 +171,10 @@ class TestAdmin:
 
         await admin_cog.botgame.callback(admin_cog, mock_ctx, game=game)
 
-        # Verify the game name is properly handled
         activity_call = admin_cog.bot.change_presence.call_args[1]["activity"]
         expected_name = f"{game} | !help"
         assert activity_call.name == expected_name
 
-        # Verify embed contains the game name
         embed = mock_send_embed.call_args[0][1]
         assert game in embed.description
 
@@ -197,7 +186,6 @@ class TestAdmin:
 
         await admin_cog.botgame.callback(admin_cog, mock_ctx, game=game)
 
-        # Even empty game name should work
         activity_call = admin_cog.bot.change_presence.call_args[1]["activity"]
         assert activity_call.name == " | !help"
 
@@ -247,9 +235,8 @@ class TestAdmin:
         await admin_cog.botgame.callback(admin_cog, mock_ctx, game=game)
 
         embed = mock_send_embed.call_args[0][1]
-        # Should be wrapped in code block
         assert "```" in embed.description
-        assert messages.bot_announce_playing(game) in embed.description
+        assert messages.Admin.announce_playing(game) in embed.description
 
     def test_admin_cog_inheritance(self, admin_cog):
         """Test that Admin cog properly inherits from commands.Cog."""

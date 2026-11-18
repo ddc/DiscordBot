@@ -2,7 +2,6 @@
 OnGuildChannelCreate, OnGuildChannelDelete, OnGuildChannelUpdate,
 OnGuildRemove, and OnPresenceUpdate."""
 
-# Mock problematic imports before importing the modules
 import pytest
 import sys
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -63,11 +62,6 @@ def mock_guild():
     return guild
 
 
-# =============================================================================
-# Tests for on_command.py - CommandLogger
-# =============================================================================
-
-
 class TestCommandLogger:
     """Test cases for CommandLogger class."""
 
@@ -107,7 +101,6 @@ class TestCommandLogger:
 
         logger.log_command_execution(mock_ctx)
 
-        # When prefix is None, the else branch uses command_parts
         mock_bot.log.info.assert_called_once_with("Command executed in 'Test Server#general' by TestUser#5678: testcmd")
 
     def test_log_command_execution_dm_context(self, mock_bot, mock_ctx):
@@ -132,7 +125,6 @@ class TestCommandLogger:
     def test_log_command_execution_exception(self, mock_bot, mock_ctx):
         """Test logging command execution when an exception occurs."""
         logger = CommandLogger(mock_bot)
-        # Make ctx.command raise an exception when accessed
         mock_ctx.command = MagicMock()
         type(mock_ctx.command).name = property(lambda self: (_ for _ in ()).throw(RuntimeError("attr error")))
 
@@ -152,15 +144,9 @@ class TestCommandLogger:
 
         logger.log_command_execution(mock_ctx)
 
-        # prefix is "/" but message starts with "!", so else branch is taken
         mock_bot.log.info.assert_called_once_with(
             "Command executed in 'Test Server#general' by TestUser#5678: testcmd sub"
         )
-
-
-# =============================================================================
-# Tests for on_command.py - OnCommand cog
-# =============================================================================
 
 
 class TestOnCommand:
@@ -190,10 +176,8 @@ class TestOnCommand:
         """Test on_command event handler calls the command logger."""
         cog = OnCommand(mock_bot)
 
-        # Call the listener method directly
         await cog.on_command(mock_ctx)
 
-        # Verify the log was called (command_logger.log_command_execution was invoked)
         mock_bot.log.info.assert_called_once()
 
     @pytest.mark.asyncio
@@ -201,10 +185,8 @@ class TestOnCommand:
         """Test on_command event handler when exception occurs."""
         cog = OnCommand(mock_bot)
 
-        # Patch command_logger to raise an exception
         cog.command_logger.log_command_execution = MagicMock(side_effect=RuntimeError("Logger error"))
 
-        # Call the listener method directly
         await cog.on_command(mock_ctx)
 
         mock_bot.log.error.assert_called_once()
@@ -218,11 +200,6 @@ class TestOnCommand:
         cog = OnCommand(mock_bot)
         assert isinstance(cog, commands.Cog)
         assert hasattr(cog, "bot")
-
-
-# =============================================================================
-# Tests for on_disconnect.py - OnDisconnect cog
-# =============================================================================
 
 
 class TestOnDisconnect:
@@ -251,10 +228,9 @@ class TestOnDisconnect:
         mock_bot.ws = None
         cog = OnDisconnect(mock_bot)
 
-        # Call the listener method directly
         await cog.on_disconnect()
 
-        mock_bot.log.warning.assert_called_once_with(messages.bot_disconnected(mock_bot.user))
+        mock_bot.log.warning.assert_called_once_with(messages.Bot.disconnected(mock_bot.user))
 
     @pytest.mark.asyncio
     async def test_on_disconnect_event_logs_close_code(self, mock_bot):
@@ -266,7 +242,7 @@ class TestOnDisconnect:
 
         await cog.on_disconnect()
 
-        expected_msg = f"{messages.bot_disconnected(mock_bot.user)} (close code: 1001)"
+        expected_msg = f"{messages.Bot.disconnected(mock_bot.user)} (close code: 1001)"
         mock_bot.log.warning.assert_called_once_with(expected_msg)
 
     @pytest.mark.asyncio
@@ -274,13 +250,13 @@ class TestOnDisconnect:
     async def test_on_disconnect_event_with_bot_disconnected_message(self, mock_messages, mock_bot):
         """Test on_disconnect event calls bot_disconnected function."""
         mock_bot.ws = None
-        mock_messages.bot_disconnected.return_value = f"Bot {mock_bot.user} has disconnected!"
+        mock_messages.Bot.disconnected.return_value = f"Bot {mock_bot.user} has disconnected!"
 
         cog = OnDisconnect(mock_bot)
 
         await cog.on_disconnect()
 
-        mock_messages.bot_disconnected.assert_called_once_with(mock_bot.user)
+        mock_messages.Bot.disconnected.assert_called_once_with(mock_bot.user)
         mock_bot.log.warning.assert_called_once_with(f"Bot {mock_bot.user} has disconnected!")
 
     @pytest.mark.asyncio
@@ -290,7 +266,6 @@ class TestOnDisconnect:
 
         cog = OnDisconnect(mock_bot)
 
-        # Should not raise; falls through to print fallback
         with patch("builtins.print") as mock_print:
             await cog.on_disconnect()
             mock_print.assert_called_once()
@@ -304,11 +279,6 @@ class TestOnDisconnect:
         cog = OnDisconnect(mock_bot)
         assert isinstance(cog, commands.Cog)
         assert hasattr(cog, "bot")
-
-
-# =============================================================================
-# Tests for on_guild_channel_create.py - OnGuildChannelCreate cog
-# =============================================================================
 
 
 class TestOnGuildChannelCreate:
@@ -339,7 +309,6 @@ class TestOnGuildChannelCreate:
         mock_channel = MagicMock()
         mock_channel.name = "new-channel"
 
-        # Should not raise any exception
         await cog.on_guild_channel_create(mock_channel)
 
     def test_on_guild_channel_create_cog_inheritance(self, mock_bot):
@@ -349,11 +318,6 @@ class TestOnGuildChannelCreate:
         cog = OnGuildChannelCreate(mock_bot)
         assert isinstance(cog, commands.Cog)
         assert hasattr(cog, "bot")
-
-
-# =============================================================================
-# Tests for on_guild_channel_delete.py - OnGuildChannelDelete cog
-# =============================================================================
 
 
 class TestOnGuildChannelDelete:
@@ -384,7 +348,6 @@ class TestOnGuildChannelDelete:
         mock_channel = MagicMock()
         mock_channel.name = "deleted-channel"
 
-        # Should not raise any exception
         await cog.on_guild_channel_delete(mock_channel)
 
     def test_on_guild_channel_delete_cog_inheritance(self, mock_bot):
@@ -394,11 +357,6 @@ class TestOnGuildChannelDelete:
         cog = OnGuildChannelDelete(mock_bot)
         assert isinstance(cog, commands.Cog)
         assert hasattr(cog, "bot")
-
-
-# =============================================================================
-# Tests for on_guild_channel_update.py - OnGuildChannelUpdate cog
-# =============================================================================
 
 
 class TestOnGuildChannelUpdate:
@@ -431,7 +389,6 @@ class TestOnGuildChannelUpdate:
         mock_after = MagicMock()
         mock_after.name = "new-channel"
 
-        # Should not raise any exception
         await cog.on_guild_channel_update(mock_before, mock_after)
 
     def test_on_guild_channel_update_cog_inheritance(self, mock_bot):
@@ -441,11 +398,6 @@ class TestOnGuildChannelUpdate:
         cog = OnGuildChannelUpdate(mock_bot)
         assert isinstance(cog, commands.Cog)
         assert hasattr(cog, "bot")
-
-
-# =============================================================================
-# Tests for on_guild_remove.py - GuildCleanupHandler
-# =============================================================================
 
 
 class TestGuildCleanupHandler:
@@ -507,11 +459,6 @@ class TestGuildCleanupHandler:
         mock_bot.log.error.assert_called_once()
 
 
-# =============================================================================
-# Tests for on_guild_remove.py - OnGuildRemove cog
-# =============================================================================
-
-
 class TestOnGuildRemove:
     """Test cases for OnGuildRemove cog."""
 
@@ -543,12 +490,9 @@ class TestOnGuildRemove:
 
         cog = OnGuildRemove(mock_bot)
 
-        # Call the listener method directly
         await cog.on_guild_remove(mock_guild)
 
-        # Verify info log about removal
         mock_bot.log.info.assert_any_call(f"Bot removed from guild: {mock_guild.name} (ID: {mock_guild.id})")
-        # Verify cleanup was attempted
         mock_dal.delete_server.assert_called_once_with(mock_guild.id)
 
     @pytest.mark.asyncio
@@ -561,10 +505,8 @@ class TestOnGuildRemove:
 
         cog = OnGuildRemove(mock_bot)
 
-        # Call the listener method directly
         await cog.on_guild_remove(mock_guild)
 
-        # Verify warning about incomplete cleanup
         mock_bot.log.warning.assert_called_once_with(f"Database cleanup may be incomplete for guild: {mock_guild.name}")
 
     @pytest.mark.asyncio
@@ -572,10 +514,8 @@ class TestOnGuildRemove:
         """Test on_guild_remove event handler with general exception."""
         cog = OnGuildRemove(mock_bot)
 
-        # Make the info log raise to trigger the outer exception handler
         mock_bot.log.info.side_effect = RuntimeError("Unexpected error")
 
-        # Call the listener method directly
         await cog.on_guild_remove(mock_guild)
 
         mock_bot.log.error.assert_called_once()
@@ -589,11 +529,6 @@ class TestOnGuildRemove:
         cog = OnGuildRemove(mock_bot)
         assert isinstance(cog, commands.Cog)
         assert hasattr(cog, "bot")
-
-
-# =============================================================================
-# Tests for on_presence_update.py - OnPresenceUpdate cog
-# =============================================================================
 
 
 class TestOnPresenceUpdate:
@@ -626,7 +561,6 @@ class TestOnPresenceUpdate:
         mock_after = MagicMock()
         mock_after.bot = False
 
-        # Call the listener method directly
         await cog.on_presence_update(mock_before, mock_after)
 
         mock_check_gw2.assert_called_once_with(mock_bot, mock_before, mock_after)
@@ -641,7 +575,6 @@ class TestOnPresenceUpdate:
         mock_after = MagicMock()
         mock_after.bot = True
 
-        # Call the listener method directly
         await cog.on_presence_update(mock_before, mock_after)
 
         mock_check_gw2.assert_not_called()

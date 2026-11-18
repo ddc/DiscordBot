@@ -46,7 +46,7 @@ async def config_join_message(ctx: commands.Context, *, status: str) -> None:
     await ctx.message.channel.typing()
 
     new_status, color = _get_switch_status(status)
-    msg = f"{messages.CONFIG_JOIN} is now: `{status.upper()}`"
+    msg = f"{messages.Config.JOIN} is now: `{status.upper()}`"
 
     # Update database
     servers_dal = ServersDal(ctx.bot.db_session, ctx.bot.log)
@@ -70,7 +70,7 @@ async def config_leave_message(ctx: commands.Context, *, status: str) -> None:
     await ctx.message.channel.typing()
 
     new_status, color = _get_switch_status(status)
-    msg = f"{messages.CONFIG_LEAVE} is now: `{status.upper()}`"
+    msg = f"{messages.Config.LEAVE} is now: `{status.upper()}`"
 
     # Update database
     servers_dal = ServersDal(ctx.bot.db_session, ctx.bot.log)
@@ -94,7 +94,7 @@ async def config_server_message(ctx: commands.Context, *, status: str) -> None:
     await ctx.message.channel.typing()
 
     new_status, color = _get_switch_status(status)
-    msg = f"{messages.CONFIG_SERVER} is now: `{status.upper()}`"
+    msg = f"{messages.Config.SERVER} is now: `{status.upper()}`"
 
     # Update database
     servers_dal = ServersDal(ctx.bot.db_session, ctx.bot.log)
@@ -118,7 +118,7 @@ async def config_member_message(ctx: commands.Context, *, status: str) -> None:
     await ctx.message.channel.typing()
 
     new_status, color = _get_switch_status(status)
-    msg = f"{messages.CONFIG_MEMBER} is now: `{status.upper()}`"
+    msg = f"{messages.Config.MEMBER} is now: `{status.upper()}`"
 
     # Update database
     servers_dal = ServersDal(ctx.bot.db_session, ctx.bot.log)
@@ -142,7 +142,7 @@ async def config_block_invis_members(ctx: commands.Context, *, status: str) -> N
     await ctx.message.channel.typing()
 
     new_status, color = _get_switch_status(status)
-    msg = f"{messages.CONFIG_BLOCK_INVIS_MEMBERS} is now: `{status.upper()}`"
+    msg = f"{messages.Config.BLOCK_INVIS_MEMBERS} is now: `{status.upper()}`"
 
     # Update database
     servers_dal = ServersDal(ctx.bot.db_session, ctx.bot.log)
@@ -166,7 +166,7 @@ async def config_bot_word_reactions(ctx: commands.Context, *, status: str) -> No
     await ctx.message.channel.typing()
 
     new_status, color = _get_switch_status(status)
-    msg = f"{messages.CONFIG_BOT_WORD_REACTIONS} is now: `{status.upper()}`"
+    msg = f"{messages.Config.BOT_WORD_REACTIONS} is now: `{status.upper()}`"
 
     # Update database
     servers_dal = ServersDal(ctx.bot.db_session, ctx.bot.log)
@@ -195,11 +195,11 @@ async def config_pfilter(ctx: commands.Context, *, subcommand_passed: str) -> No
 
     # Parse arguments
     help_command = (
-        f"{messages.HELP_COMMAND_MORE_INFO}: {chat_formatting.inline(f'{ctx.prefix}help admin config pfilter')}"
+        f"{messages.CommandError.HELP_MORE_INFO}: {chat_formatting.inline(f'{ctx.prefix}help admin config pfilter')}"
     )
     subcommands = subcommand_passed.split()
     if len(subcommands) < 1:
-        return await bot_utils.send_error_msg(ctx, f"{messages.MISING_REUIRED_ARGUMENT}\n{help_command}")
+        return await bot_utils.send_error_msg(ctx, f"{messages.Config.MISSING_REQUIRED_ARGUMENT}\n{help_command}")
 
     new_status = subcommands[0]
 
@@ -220,7 +220,7 @@ async def config_pfilter(ctx: commands.Context, *, subcommand_passed: str) -> No
 
         if not channel:
             return await bot_utils.send_error_msg(
-                ctx, f"{messages.CHANNEL_ID_NOT_FOUND}: {chat_formatting.inline(channel_input)}"
+                ctx, f"{messages.Config.CHANNEL_ID_NOT_FOUND}: {chat_formatting.inline(channel_input)}"
             )
 
     profanity_filter_dal = ProfanityFilterDal(ctx.bot.db_session, ctx.bot.log)
@@ -229,7 +229,7 @@ async def config_pfilter(ctx: commands.Context, *, subcommand_passed: str) -> No
         case "on" | "ON":
             # Check bot permissions
             if not ctx.guild.me.guild_permissions.administrator and not ctx.guild.me.guild_permissions.manage_messages:
-                msg = f"{messages.CONFIG_NOT_ACTIVATED_ERROR} {messages.BOT_MISSING_MANAGE_MESSAGES_PERMISSION}"
+                msg = f"{messages.Config.NOT_ACTIVATED_ERROR} {messages.Config.BOT_MISSING_MANAGE_MESSAGES}"
                 return await bot_utils.send_error_msg(ctx, msg)
 
             status = "ACTIVATED"
@@ -244,7 +244,7 @@ async def config_pfilter(ctx: commands.Context, *, subcommand_passed: str) -> No
         case _:
             raise commands.BadArgument(message="BadArgument")
 
-    msg = messages.config_pfilter(status.upper(), channel.name)
+    msg = messages.Config.pfilter(status.upper(), channel.name)
     embed = discord.Embed(description=msg, color=color)
     await bot_utils.send_embed(ctx, embed)
     return None
@@ -276,7 +276,7 @@ async def config_list(ctx: commands.Context) -> None:
         channel_names_lst = [channel["channel_name"] for channel in pf]
         channel_names = "\n".join(channel_names_lst)
     else:
-        channel_names = messages.NO_CHANNELS_LISTED
+        channel_names = messages.Config.NO_CHANNELS_LISTED
 
     # Format status indicators
     on = chat_formatting.green_text("ON")
@@ -288,43 +288,23 @@ async def config_list(ctx: commands.Context) -> None:
     embed.set_thumbnail(url=guild_icon_url)
     embed.set_author(name=f"Configurations for {ctx.guild.name}", icon_url=guild_icon_url)
 
-    embed.add_field(
-        name=f"📥 {messages.CONFIG_JOIN}",
-        value=f"{on}" if sc["msg_on_join"] else f"{off}",
-        inline=True,
+    toggles = (
+        (f"📥 {messages.Config.JOIN}", "msg_on_join"),
+        (f"📤 {messages.Config.LEAVE}", "msg_on_leave"),
+        (f"🔄 {messages.Config.SERVER}", "msg_on_server_update"),
+        (f"👤 {messages.Config.MEMBER}", "msg_on_member_update"),
+        (f"👻 {messages.Config.BLOCK_INVIS_MEMBERS}", "block_invis_members"),
+        (f"🎭 {messages.Config.BOT_WORD_REACTIONS}", "bot_word_reactions"),
     )
+    for name, key in toggles:
+        embed.add_field(name=name, value=on if sc[key] else off, inline=True)
     embed.add_field(
-        name=f"📤 {messages.CONFIG_LEAVE}",
-        value=f"{on}" if sc["msg_on_leave"] else f"{off}",
-        inline=True,
-    )
-    embed.add_field(
-        name=f"🔄 {messages.CONFIG_SERVER}",
-        value=f"{on}" if sc["msg_on_server_update"] else f"{off}",
-        inline=True,
-    )
-    embed.add_field(
-        name=f"👤 {messages.CONFIG_MEMBER}",
-        value=f"{on}" if sc["msg_on_member_update"] else f"{off}",
-        inline=True,
-    )
-    embed.add_field(
-        name=f"👻 {messages.CONFIG_BLOCK_INVIS_MEMBERS}",
-        value=f"{on}" if sc["block_invis_members"] else f"{off}",
-        inline=True,
-    )
-    embed.add_field(
-        name=f"🎭 {messages.CONFIG_BOT_WORD_REACTIONS}",
-        value=f"{on}" if sc["bot_word_reactions"] else f"{off}",
-        inline=True,
-    )
-    embed.add_field(
-        name=f"{messages.CONFIG_PFILTER_CHANNELS}\n*`{cmd_prefix} pfilter on/off <channel_name>`*",
+        name=f"{messages.Config.PFILTER_CHANNELS}\n*`{cmd_prefix} pfilter on/off <channel_name>`*",
         value=chat_formatting.inline(channel_names),
         inline=False,
     )
 
-    embed.set_footer(text=f"{messages.MORE_INFO}: {ctx.prefix}help admin config")
+    embed.set_footer(text=f"{messages.CommandError.MORE_INFO}: {ctx.prefix}help admin config")
 
     # Create interactive view with buttons
     view = ConfigView(ctx, sc)
@@ -503,7 +483,7 @@ class ConfigView(discord.ui.View):
             channel_names_lst = [channel["channel_name"] for channel in pf]
             channel_names = "\n".join(channel_names_lst)
         else:
-            channel_names = messages.NO_CHANNELS_LISTED
+            channel_names = messages.Config.NO_CHANNELS_LISTED
 
         # Format status indicators
         on = chat_formatting.green_text("ON")
@@ -518,42 +498,42 @@ class ConfigView(discord.ui.View):
         embed.set_author(name=f"Configurations for {self.ctx.guild.name}", icon_url=guild_icon_url)
 
         embed.add_field(
-            name=f"📥 {messages.CONFIG_JOIN}",
+            name=f"📥 {messages.Config.JOIN}",
             value=f"{on}" if self.server_config["msg_on_join"] else f"{off}",
             inline=True,
         )
         embed.add_field(
-            name=f"📤 {messages.CONFIG_LEAVE}",
+            name=f"📤 {messages.Config.LEAVE}",
             value=f"{on}" if self.server_config["msg_on_leave"] else f"{off}",
             inline=True,
         )
         embed.add_field(
-            name=f"🔄 {messages.CONFIG_SERVER}",
+            name=f"🔄 {messages.Config.SERVER}",
             value=f"{on}" if self.server_config["msg_on_server_update"] else f"{off}",
             inline=True,
         )
         embed.add_field(
-            name=f"👤 {messages.CONFIG_MEMBER}",
+            name=f"👤 {messages.Config.MEMBER}",
             value=f"{on}" if self.server_config["msg_on_member_update"] else f"{off}",
             inline=True,
         )
         embed.add_field(
-            name=f"👻 {messages.CONFIG_BLOCK_INVIS_MEMBERS}",
+            name=f"👻 {messages.Config.BLOCK_INVIS_MEMBERS}",
             value=f"{on}" if self.server_config["block_invis_members"] else f"{off}",
             inline=True,
         )
         embed.add_field(
-            name=f"🎭 {messages.CONFIG_BOT_WORD_REACTIONS}",
+            name=f"🎭 {messages.Config.BOT_WORD_REACTIONS}",
             value=f"{on}" if self.server_config["bot_word_reactions"] else f"{off}",
             inline=True,
         )
         embed.add_field(
-            name=f"{messages.CONFIG_PFILTER_CHANNELS}\n*`{cmd_prefix} pfilter on <channel_id>`*",
+            name=f"{messages.Config.PFILTER_CHANNELS}\n*`{cmd_prefix} pfilter on <channel_id>`*",
             value=chat_formatting.inline(channel_names),
             inline=False,
         )
 
-        embed.set_footer(text=f"{messages.MORE_INFO}: {self.ctx.prefix}help admin config")
+        embed.set_footer(text=f"{messages.CommandError.MORE_INFO}: {self.ctx.prefix}help admin config")
         return embed
 
     @discord.ui.button(label="Join Messages", emoji="📥", style=discord.ButtonStyle.secondary, row=0)

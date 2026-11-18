@@ -76,13 +76,13 @@ class ProfanityFilter:
         await ctx.message.channel.send(censored_text)
 
         # Send censorship notification
-        embed = discord.Embed(title="", color=discord.Color.red(), description=messages.MESSAGE_CENSURED)
+        embed = discord.Embed(title="", color=discord.Color.red(), description=messages.Messages.MESSAGE_CENSURED)
         embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.display_avatar.url)
 
         try:
             await ctx.message.channel.send(embed=embed)
         except discord.HTTPException:
-            await ctx.message.channel.send(f"{ctx.message.author.mention} {messages.MESSAGE_CENSURED}")
+            await ctx.message.channel.send(f"{ctx.message.author.mention} {messages.Messages.MESSAGE_CENSURED}")
 
         self._log_censored_message(ctx, user_msg)
 
@@ -97,7 +97,7 @@ class ProfanityFilter:
 
     def _log_filter_error(self, ctx: commands.Context, user_msg: str, error: Exception) -> None:
         """Log profanity filter error."""
-        error_msg = f"Profanity filter is ON\nbut {messages.BOT_MISSING_MANAGE_MESSAGES_PERMISSION}"
+        error_msg = f"Profanity filter is ON\nbut {messages.Config.BOT_MISSING_MANAGE_MESSAGES}"
         self.bot.log.info(
             f"(Server:{ctx.message.guild.name})"
             f"(Channel:{ctx.message.channel})"
@@ -145,9 +145,9 @@ class CustomReactionHandler:
         for word in reaction_words:
             if word in msg_content:
                 if word == "stupid":
-                    return messages.BOT_REACT_STUPID
+                    return messages.Messages.BOT_REACT_STUPID
                 elif word == "retard":
-                    return messages.BOT_REACT_RETARD
+                    return messages.Messages.BOT_REACT_RETARD
                 else:
                     # Generic response for other reaction words
                     return "fu ufk!!!"
@@ -159,7 +159,7 @@ class CustomReactionHandler:
     async def _send_reaction_message(message: discord.Message, response: str) -> None:
         """Send a reaction message."""
         await message.channel.typing()
-        description = f"{messages.BOT_REACT_EMOJIS}\n{chat_formatting.inline(response)}"
+        description = f"{messages.Messages.BOT_REACT_EMOJIS}\n{chat_formatting.inline(response)}"
         embed = discord.Embed(color=discord.Color.red(), description=description)
         embed.set_author(name=message.author.display_name, icon_url=message.author.display_avatar.url)
         await message.channel.send(embed=embed)
@@ -182,7 +182,7 @@ class ExclusiveUsersChecker:
         )
 
         if not is_allowed:
-            await bot_utils.send_error_msg(ctx, messages.PRIVATE_BOT_MESSAGE, True)
+            await bot_utils.send_error_msg(ctx, messages.Messages.PRIVATE_BOT_MESSAGE, True)
 
         return is_allowed
 
@@ -234,7 +234,7 @@ class DMMessageHandler:
         """Send help message to bot owner."""
         embed = discord.Embed(
             color=discord.Color.green(),
-            description=chat_formatting.inline(messages.OWNER_DM_BOT_MESSAGE),
+            description=chat_formatting.inline(messages.Messages.OWNER_DM_BOT_MESSAGE),
         )
         await ctx.message.author.send(embed=embed)
 
@@ -245,7 +245,7 @@ class DMMessageHandler:
         """Send DM not allowed message."""
         embed = discord.Embed(
             color=discord.Color.red(),
-            description=chat_formatting.error_inline(messages.NO_DM_MESSAGES),
+            description=chat_formatting.error_inline(messages.Messages.NO_DM_MESSAGES),
         )
         await ctx.message.author.send(embed=embed)
 
@@ -253,7 +253,7 @@ class DMMessageHandler:
         """Send no DM commands allowed message."""
         embed = discord.Embed(
             color=discord.Color.red(),
-            description=chat_formatting.error_inline(messages.DM_COMMAND_NOT_ALLOWED),
+            description=chat_formatting.error_inline(messages.Messages.DM_COMMAND_NOT_ALLOWED),
         )
         await ctx.message.author.send(embed=embed)
 
@@ -261,10 +261,10 @@ class DMMessageHandler:
         """Send command not allowed message with allowed commands list."""
         embed = discord.Embed(
             color=discord.Color.red(),
-            description=chat_formatting.error_inline(messages.DM_COMMAND_NOT_ALLOWED),
+            description=chat_formatting.error_inline(messages.Messages.DM_COMMAND_NOT_ALLOWED),
         )
         embed.add_field(
-            name=f"{messages.DM_COMMANDS_ALLOW_LIST}:",
+            name=f"{messages.Messages.DM_COMMANDS_ALLOW_LIST}:",
             value=chat_formatting.inline("\n".join(allowed_commands)),
             inline=False,
         )
@@ -286,7 +286,7 @@ class ServerMessageHandler:
         configs = await servers_dal.get_server(ctx.message.guild.id, ctx.message.channel.id)
 
         if not configs:
-            self.bot.log.warning(messages.GET_CONFIGS_ERROR)
+            self.bot.log.warning(messages.CustomCommand.GET_CONFIGS_ERROR)
             if is_command:
                 await self.bot.process_commands(ctx.message)
             return
@@ -305,7 +305,7 @@ class ServerMessageHandler:
         """Handle message from invisible member."""
         await bot_utils.delete_message(ctx)
 
-        message_text = messages.blocked_invis_message(ctx.guild.name)
+        message_text = messages.Messages.blocked_invis(ctx.guild.name)
         embed = discord.Embed(
             title="",
             color=discord.Color.red(),

@@ -4,7 +4,7 @@ from discord.ext import commands
 from src.bot.tools import bot_utils, chat_formatting
 from src.bot.tools.bot_utils import EmbedPaginatorView
 from src.gw2.cogs.gw2 import GuildWars2
-from src.gw2.constants import gw2_messages
+from src.gw2.constants import gw2_messages, gw2_variables
 from src.gw2.tools import gw2_utils
 from src.gw2.tools.gw2_client import Gw2Client
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
@@ -46,8 +46,8 @@ async def worlds_na(ctx):
         ctx, "Please wait, I'm fetching NA world data... (this may take a moment)"
     )
 
-    na_worlds = [w for w in worlds_ids if w["id"] < 2001]
-    embed_na, _ = await _fetch_worlds_matches(ctx, na_worlds, gw2_messages.NA_SERVERS_TITLE, "1-")
+    na_worlds = [w for w in worlds_ids if w["id"] < 2000]
+    embed_na, _ = await _fetch_worlds_matches(ctx, na_worlds, gw2_messages.Worlds.NA_SERVERS_TITLE, "1-")
 
     await progress_msg.delete()
     await _send_paginated_worlds_embed(ctx, embed_na)
@@ -71,8 +71,8 @@ async def worlds_eu(ctx):
         ctx, "Please wait, I'm fetching EU world data... (this may take a moment)"
     )
 
-    eu_worlds = [w for w in worlds_ids if w["id"] > 2001]
-    embed_eu, _ = await _fetch_worlds_matches(ctx, eu_worlds, gw2_messages.EU_SERVERS_TITLE, "2-")
+    eu_worlds = [w for w in worlds_ids if w["id"] >= 2000]
+    embed_eu, _ = await _fetch_worlds_matches(ctx, eu_worlds, gw2_messages.Worlds.EU_SERVERS_TITLE, "2-")
 
     await progress_msg.delete()
     await _send_paginated_worlds_embed(ctx, embed_eu)
@@ -88,7 +88,7 @@ async def _fetch_worlds_matches(ctx, worlds, title, region_prefix):
 
     async def _fetch_match(world):
         async with sem:
-            return await gw2_api.call_api(f"wvw/matches?world={world['id']}")
+            return await gw2_api.call_api(f"{gw2_variables.API_WVW_MATCHES}?world={world['id']}")
 
     tasks = [_fetch_match(w) for w in worlds]
     results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -141,10 +141,6 @@ async def _send_paginated_worlds_embed(ctx, embed):
         total_pages = (total_fields + max_fields - 1) // max_fields
         page_embed.set_footer(text=f"Page {page_number}/{total_pages}")
         pages.append(page_embed)
-
-    if len(pages) == 1:
-        await ctx.send(embed=pages[0])
-        return
 
     view = EmbedPaginatorView(pages, ctx.author.id)
     await view.send_and_save(ctx)

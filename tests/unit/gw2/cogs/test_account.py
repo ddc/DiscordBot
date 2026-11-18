@@ -31,7 +31,6 @@ class TestGW2Account:
 
     def test_gw2_account_inheritance(self, gw2_account_cog):
         """Test that GW2Account inherits from GuildWars2 properly."""
-        # Should inherit from the base GuildWars2 class
         from src.gw2.cogs.gw2 import GuildWars2
 
         assert isinstance(gw2_account_cog, GuildWars2)
@@ -89,7 +88,7 @@ class TestAccountCommand:
             "daily_ap": 5000,
             "monthly_ap": 500,
             "wvw_rank": 1250,
-            "age": 1051200,  # minutes (2 years)
+            "age": 1051200,
         }
 
     @pytest.fixture
@@ -109,7 +108,7 @@ class TestAccountCommand:
 
                 mock_error.assert_called_once()
                 error_msg = mock_error.call_args[0][1]
-                assert gw2_messages.NO_API_KEY in error_msg
+                assert gw2_messages.Key.NO_API_KEY in error_msg
 
     @pytest.mark.asyncio
     async def test_account_command_invalid_api_key(self, mock_ctx, sample_api_key_data):
@@ -120,7 +119,7 @@ class TestAccountCommand:
 
             with patch("src.gw2.cogs.account.Gw2Client") as mock_client:
                 mock_client_instance = mock_client.return_value
-                invalid_key_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.INVALID_APIKEY_MSG}")
+                invalid_key_error = APIInvalidKey(mock_ctx.bot, f"(400) {gw2_messages.Api.INVALID_KEY}")
                 mock_client_instance.check_api_key = AsyncMock(return_value=invalid_key_error)
 
                 with patch("src.gw2.cogs.account.bot_utils.send_error_msg") as mock_error:
@@ -128,14 +127,12 @@ class TestAccountCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert gw2_messages.INVALID_APIKEY_MSG in error_msg
+                    assert gw2_messages.Api.INVALID_KEY in error_msg
 
     @pytest.mark.asyncio
     async def test_account_command_insufficient_permissions(self, mock_ctx, sample_account_data):
         """Test account command with insufficient API key permissions."""
-        insufficient_permissions_data = [
-            {"key": "test-api-key-12345", "permissions": "characters"}  # Missing 'account' permission
-        ]
+        insufficient_permissions_data = [{"key": "test-api-key-12345", "permissions": "characters"}]
 
         with patch("src.gw2.cogs.account.Gw2KeyDal") as mock_dal:
             mock_instance = mock_dal.return_value
@@ -150,7 +147,7 @@ class TestAccountCommand:
 
                     mock_error.assert_called_once()
                     error_msg = mock_error.call_args[0][1]
-                    assert gw2_messages.API_KEY_NO_PERMISSION in error_msg
+                    assert gw2_messages.Key.NO_ACCOUNT_PERMISSION in error_msg
 
     @pytest.mark.asyncio
     async def test_account_command_successful_basic(
@@ -166,8 +163,8 @@ class TestAccountCommand:
                 mock_client_instance.check_api_key = AsyncMock(return_value=sample_account_data)
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
-                        sample_account_data,  # account call
-                        sample_world_data,  # world call
+                        sample_account_data,
+                        sample_world_data,
                     ]
                 )
 
@@ -176,7 +173,6 @@ class TestAccountCommand:
 
                     mock_send.assert_called_once()
                     mock_send.assert_called_once()
-                    # The embed is created inside the function, just verify send was called
 
     @pytest.mark.asyncio
     async def test_account_command_with_characters_permission(self, mock_ctx, sample_account_data, sample_world_data):
@@ -194,9 +190,9 @@ class TestAccountCommand:
                 mock_client_instance.check_api_key = AsyncMock(return_value=sample_account_data)
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
-                        sample_account_data,  # account call
-                        sample_world_data,  # world call
-                        characters_data,  # characters call
+                        sample_account_data,
+                        sample_world_data,
+                        characters_data,
                     ]
                 )
 
@@ -205,7 +201,6 @@ class TestAccountCommand:
 
                     mock_send.assert_called_once()
                     mock_send.assert_called_once()
-                    # Verify the function completed without error
 
     @pytest.mark.asyncio
     async def test_account_command_with_progression_permission(self, mock_ctx, sample_account_data, sample_world_data):
@@ -223,9 +218,9 @@ class TestAccountCommand:
                 mock_client_instance.check_api_key = AsyncMock(return_value=sample_account_data)
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
-                        sample_account_data,  # account call
-                        sample_world_data,  # world call
-                        achievements_data,  # achievements call
+                        sample_account_data,
+                        sample_world_data,
+                        achievements_data,
                     ]
                 )
 
@@ -240,7 +235,6 @@ class TestAccountCommand:
 
                             mock_send.assert_called_once()
                             mock_send.assert_called_once()
-                            # Verify the function completed without error
 
     @pytest.mark.asyncio
     async def test_account_command_with_pvp_permission(self, mock_ctx, sample_account_data, sample_world_data):
@@ -258,9 +252,9 @@ class TestAccountCommand:
                 mock_client_instance.check_api_key = AsyncMock(return_value=sample_account_data)
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
-                        sample_account_data,  # account call
-                        sample_world_data,  # world call
-                        pvp_stats_data,  # pvp stats call
+                        sample_account_data,
+                        sample_world_data,
+                        pvp_stats_data,
                     ]
                 )
 
@@ -272,7 +266,6 @@ class TestAccountCommand:
 
                         mock_send.assert_called_once()
                         mock_send.assert_called_once()
-                        # Verify the function completed without error
 
     @pytest.mark.asyncio
     async def test_account_command_with_guilds(self, mock_ctx, sample_account_data, sample_world_data):
@@ -292,10 +285,10 @@ class TestAccountCommand:
                 mock_client_instance.check_api_key = AsyncMock(return_value=sample_account_data)
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
-                        sample_account_data,  # account call
-                        sample_world_data,  # world call
-                        guild_data_1,  # first guild call
-                        guild_data_2,  # second guild call
+                        sample_account_data,
+                        sample_world_data,
+                        guild_data_1,
+                        guild_data_2,
                     ]
                 )
 
@@ -304,7 +297,6 @@ class TestAccountCommand:
 
                     mock_send.assert_called_once()
                     mock_send.assert_called_once()
-                    # Verify the function completed without error
 
     @pytest.mark.asyncio
     async def test_account_command_api_error_during_execution(self, mock_ctx, sample_api_key_data, sample_account_data):
@@ -338,9 +330,9 @@ class TestAccountCommand:
                 mock_client_instance.check_api_key = AsyncMock(return_value=sample_account_data)
                 mock_client_instance.call_api = AsyncMock(
                     side_effect=[
-                        sample_account_data,  # account call
-                        sample_world_data,  # world call
-                        Exception("Guild API Error"),  # guild call fails
+                        sample_account_data,
+                        sample_world_data,
+                        Exception("Guild API Error"),
                     ]
                 )
 
@@ -352,14 +344,12 @@ class TestAccountCommand:
 
     def test_account_command_cooldown(self):
         """Test that account command has proper cooldown."""
-        # The cooldown is applied via decorator, just check the function exists
         from src.gw2.cogs.account import account
 
         assert callable(account)
 
     def test_account_command_belongs_to_gw2_group(self):
         """Test that account command belongs to gw2 command group."""
-        # The command is registered as a subcommand via @GW2Account.gw2.command()
         from src.gw2.cogs.account import account
 
         assert callable(account)
@@ -400,7 +390,6 @@ class TestAccountSetup:
 
         await setup(mock_bot)
 
-        # Verify that add_cog was called with a GW2Account instance
         mock_bot.add_cog.assert_called_once()
         cog_instance = mock_bot.add_cog.call_args[0][0]
         assert isinstance(cog_instance, GW2Account)
@@ -470,7 +459,6 @@ class TestAccountCommandFullPaths:
         ctx.message.channel.typing = AsyncMock()
 
         ctx.prefix = "!"
-        # Critical fix: ctx.send must be AsyncMock so `await ctx.send(...)` works
         ctx.send = AsyncMock()
         return ctx
 
@@ -501,7 +489,6 @@ class TestAccountCommandFullPaths:
         """Test the full success path with account-only permissions (no optional calls, no guilds)."""
         api_key_data = [{"key": "test-api-key-12345", "permissions": "account"}]
 
-        # progress_msg returned by ctx.send
         progress_msg = AsyncMock()
         mock_ctx.send.return_value = progress_msg
 
@@ -517,23 +504,19 @@ class TestAccountCommandFullPaths:
             mock_client_instance.check_api_key = AsyncMock(return_value={"valid": True})
             mock_client_instance.call_api = AsyncMock(
                 side_effect=[
-                    sample_account_data_no_guilds,  # account call
-                    sample_world_data,  # worlds/{server_id} call
+                    sample_account_data_no_guilds,
+                    sample_world_data,
                 ]
             )
 
             await account(mock_ctx)
 
-            # ctx.send was called for the progress embed
             mock_ctx.send.assert_called_once()
 
-            # send_embed was called with the final embed
             mock_send_embed.assert_called_once()
 
-            # progress_msg.delete was called to remove the progress message
             progress_msg.delete.assert_called_once()
 
-            # Verify API calls
             assert mock_client_instance.call_api.call_count == 2
             mock_client_instance.call_api.assert_any_call("account", "test-api-key-12345")
             mock_client_instance.call_api.assert_any_call("worlds/1001", "test-api-key-12345")
@@ -543,7 +526,6 @@ class TestAccountCommandFullPaths:
         """Test the exception handler path (lines 249-259)."""
         api_key_data = [{"key": "test-api-key-12345", "permissions": "account"}]
 
-        # ctx.send raises immediately, so the try block fails at progress message
         mock_ctx.send = AsyncMock(side_effect=RuntimeError("send failed"))
 
         with (
@@ -558,12 +540,10 @@ class TestAccountCommandFullPaths:
 
             await account(mock_ctx)
 
-            # send_error_msg should be called with the exception
             mock_error_msg.assert_called_once()
             error_arg = mock_error_msg.call_args[0][1]
             assert isinstance(error_arg, RuntimeError)
 
-            # log.error should also be called
             mock_ctx.bot.log.error.assert_called_once()
 
     @pytest.mark.asyncio
@@ -583,7 +563,6 @@ class TestAccountCommandFullPaths:
 
             mock_client_instance = mock_client.return_value
             mock_client_instance.check_api_key = AsyncMock(return_value={"valid": True})
-            # First call_api (account) raises, after progress msg and typing task created
             mock_client_instance.call_api = AsyncMock(side_effect=RuntimeError("API exploded"))
 
             await account(mock_ctx)
@@ -621,11 +600,11 @@ class TestAccountCommandFullPaths:
             mock_client_instance.check_api_key = AsyncMock(return_value={"valid": True})
             mock_client_instance.call_api = AsyncMock(
                 side_effect=[
-                    sample_account_data_no_guilds,  # account
-                    sample_world_data,  # worlds/{server_id}
-                    characters_data,  # characters (gathered)
-                    achievements_data,  # account/achievements (gathered)
-                    pvp_data,  # pvp/stats (gathered)
+                    sample_account_data_no_guilds,
+                    sample_world_data,
+                    characters_data,
+                    achievements_data,
+                    pvp_data,
                 ]
             )
 
@@ -634,11 +613,8 @@ class TestAccountCommandFullPaths:
             mock_send_embed.assert_called_once()
             progress_msg.delete.assert_called_once()
 
-            # Verify optional tasks were requested
-            # progress_msg.edit should have been called to update progress
             progress_msg.edit.assert_called()
 
-            # Verify the embed contains expected fields
             embed = mock_send_embed.call_args[0][1]
             field_names = [f.name for f in embed.fields]
             assert "Characters" in field_names
@@ -673,24 +649,21 @@ class TestAccountCommandFullPaths:
             mock_client_instance.check_api_key = AsyncMock(return_value={"valid": True})
             mock_client_instance.call_api = AsyncMock(
                 side_effect=[
-                    sample_account_data_no_guilds,  # account
-                    sample_world_data,  # worlds/{server_id}
-                    Exception("characters API failed"),  # characters call fails
+                    sample_account_data_no_guilds,
+                    sample_world_data,
+                    Exception("characters API failed"),
                 ]
             )
 
             await account(mock_ctx)
 
-            # The command should still succeed despite characters failing
             mock_send_embed.assert_called_once()
             progress_msg.delete.assert_called_once()
 
-            # Warning should be logged for the failed optional task
             mock_ctx.bot.log.warning.assert_called_once()
             warning_msg = mock_ctx.bot.log.warning.call_args[0][0]
             assert "characters" in warning_msg
 
-            # Embed should NOT have Characters field since that call failed
             embed = mock_send_embed.call_args[0][1]
             field_names = [f.name for f in embed.fields]
             assert "Characters" not in field_names
@@ -732,10 +705,10 @@ class TestAccountCommandFullPaths:
             mock_client_instance.check_api_key = AsyncMock(return_value={"valid": True})
             mock_client_instance.call_api = AsyncMock(
                 side_effect=[
-                    account_data_with_guilds,  # account
-                    sample_world_data,  # worlds/{server_id}
-                    guild_data_1,  # guild/{guild-id-1}
-                    guild_data_2,  # guild/{guild-id-2}
+                    account_data_with_guilds,
+                    sample_world_data,
+                    guild_data_1,
+                    guild_data_2,
                 ]
             )
 
@@ -744,23 +717,19 @@ class TestAccountCommandFullPaths:
             mock_send_embed.assert_called_once()
             progress_msg.delete.assert_called_once()
 
-            # progress_msg.edit should be called for guild fetching status
             progress_msg.edit.assert_called()
 
-            # Verify the embed has guild fields
             embed = mock_send_embed.call_args[0][1]
             field_names = [f.name for f in embed.fields]
             assert "Guilds" in field_names
             assert "Guild Leader" in field_names
 
-            # Get the guild field values
             guilds_field = next(f for f in embed.fields if f.name == "Guilds")
             assert "[TG1] Test Guild One" in guilds_field.value
             assert "[TG2] Test Guild Two" in guilds_field.value
 
             leader_field = next(f for f in embed.fields if f.name == "Guild Leader")
             assert "[TG1] Test Guild One" in leader_field.value
-            # guild-id-2 is NOT a leader, so TG2 should not be in leader field
             assert "[TG2] Test Guild Two" not in leader_field.value
 
     @pytest.mark.asyncio
@@ -812,7 +781,6 @@ class TestAccountCommandFullPaths:
 
             mock_send_embed.assert_called_once()
 
-            # Guild returned None for name, so Guilds field should not appear
             embed = mock_send_embed.call_args[0][1]
             field_names = [f.name for f in embed.fields]
             assert "Guilds" not in field_names
@@ -904,7 +872,6 @@ class TestAccountCommandFullPaths:
 
             embed = mock_send_embed.call_args[0][1]
             access_field = next(f for f in embed.fields if f.name == "Access")
-            # HeartOfThorns -> Heart Of Thorns
             assert "Heart Of Thorns" in access_field.value
             assert "Path Of Fire" in access_field.value
             assert "End Of Dragons" in access_field.value
@@ -960,3 +927,31 @@ class TestAccountCommandFullPaths:
             embed = mock_send_embed.call_args[0][1]
             assert embed.thumbnail.url == "https://example.com/default.png"
             assert embed.author.icon_url == "https://example.com/default.png"
+
+
+class TestAccountHelpers:
+    @pytest.mark.asyncio
+    async def test_resolve_server_wr_team_skips_api(self):
+        from src.gw2.cogs.account import _resolve_server
+
+        gw2_api = MagicMock()
+        gw2_api.call_api = AsyncMock()
+        with patch("src.gw2.cogs.account.get_team_name", return_value=None):
+            name, population = await _resolve_server(gw2_api, 11005, "key")
+        assert (name, population) == ("Team 11005", "N/A")
+        gw2_api.call_api.assert_not_awaited()
+
+    def test_base_embed_adds_wvw_team_field(self):
+        from src.gw2.cogs.account import _build_base_embed
+
+        ctx = MagicMock()
+        ctx.bot.settings = {"gw2": {"EmbedColor": 0x00FF00}}
+        ctx.message.author.display_name = "TestUser"
+        ctx.message.author.display_avatar.url = "https://example.com/a.png"
+        api_req_acc = {"name": "Test.1234", "access": ["GuildWars2"], "commander": True, "wvw": {"team_id": 11005}}
+        with patch("src.gw2.cogs.account.get_team_name", return_value="Moogooloo"):
+            embed = _build_base_embed(ctx, api_req_acc, "Anvil Rock", "High")
+        fields = {f.name: f.value for f in embed.fields}
+        assert "Moogooloo" in fields["WvW Team"]
+        assert "Yes" in fields["Commander Tag"]
+        assert "Guild Wars 2" in fields["Access"]

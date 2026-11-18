@@ -124,13 +124,13 @@ async def test_insert_char_stores_correct_data(db_session, log):
 async def test_fk_constraint_requires_session(db_session, log):
     """Inserting a char with a non-existent session_id should fail with FK violation."""
     db_utils = DBUtilsAsync(db_session)
+    stmt = Gw2SessionCharDeaths(
+        session_id=uuid4(),
+        user_id=USER_ID,
+        name="Orphan",
+        profession="Mesmer",
+        start=0,
+        end=None,
+    )
     with pytest.raises(IntegrityError):
-        stmt = Gw2SessionCharDeaths(
-            session_id=uuid4(),
-            user_id=USER_ID,
-            name="Orphan",
-            profession="Mesmer",
-            start=0,
-            end=None,
-        )
         await db_utils.insert(stmt)
