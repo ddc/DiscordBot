@@ -18,7 +18,7 @@ class CoolDowns(Enum):
     CustomCommand = 1 if variables.DEBUG else _bot_settings.custom_cmd_cooldown
     DiceRolls = 1 if variables.DEBUG else _bot_settings.dice_rolls_cooldown
     Misc = 1 if variables.DEBUG else _bot_settings.misc_cooldown
-    OpenAI = 1 if variables.DEBUG else _bot_settings.openai_cooldown
+    AI = 1 if variables.DEBUG else _bot_settings.openai_cooldown
     Owner = 1 if variables.DEBUG else _bot_settings.owner_cooldown
 
     def __str__(self) -> str:

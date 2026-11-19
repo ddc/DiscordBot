@@ -10,6 +10,19 @@ sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.admin.config import Config, _get_switch_status
 from src.bot.constants import messages
+lazy from src.bot.cogs.admin.admin import Admin
+lazy from src.bot.cogs.admin.config import (
+    config,
+    config_block_invis_members,
+    config_bot_word_reactions,
+    config_join_message,
+    config_leave_message,
+    config_list,
+    config_member_message,
+    config_pfilter,
+    config_server_message,
+    setup,
+)
 
 
 @pytest.fixture
@@ -86,8 +99,6 @@ class TestConfig:
         """Test config group command."""
         mock_invoke.return_value = "mock_command"
 
-        from src.bot.cogs.admin.config import config
-
         result = await config(mock_ctx)
 
         mock_invoke.assert_called_once_with(mock_ctx, "admin config")
@@ -140,8 +151,6 @@ class TestConfig:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
 
-        from src.bot.cogs.admin.config import config_join_message
-
         await config_join_message(mock_ctx, status="on")
 
         mock_ctx.message.channel.typing.assert_called_once()
@@ -160,8 +169,6 @@ class TestConfig:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
 
-        from src.bot.cogs.admin.config import config_join_message
-
         await config_join_message(mock_ctx, status="off")
 
         mock_dal.update_msg_on_join.assert_called_once_with(12345, False, 67890)
@@ -178,8 +185,6 @@ class TestConfig:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
 
-        from src.bot.cogs.admin.config import config_leave_message
-
         await config_leave_message(mock_ctx, status="on")
 
         mock_ctx.message.channel.typing.assert_called_once()
@@ -193,8 +198,6 @@ class TestConfig:
         """Test enabling server messages."""
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
-
-        from src.bot.cogs.admin.config import config_server_message
 
         await config_server_message(mock_ctx, status="on")
 
@@ -210,8 +213,6 @@ class TestConfig:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
 
-        from src.bot.cogs.admin.config import config_member_message
-
         await config_member_message(mock_ctx, status="on")
 
         mock_ctx.message.channel.typing.assert_called_once()
@@ -226,8 +227,6 @@ class TestConfig:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
 
-        from src.bot.cogs.admin.config import config_block_invis_members
-
         await config_block_invis_members(mock_ctx, status="on")
 
         mock_ctx.message.channel.typing.assert_called_once()
@@ -241,8 +240,6 @@ class TestConfig:
         """Test enabling bot word reactions."""
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
-
-        from src.bot.cogs.admin.config import config_bot_word_reactions
 
         await config_bot_word_reactions(mock_ctx, status="on")
 
@@ -262,8 +259,6 @@ class TestConfig:
 
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
-
-        from src.bot.cogs.admin.config import config_pfilter
 
         await config_pfilter(mock_ctx, subcommand_passed="on 98765")
 
@@ -287,8 +282,6 @@ class TestConfig:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
 
-        from src.bot.cogs.admin.config import config_pfilter
-
         await config_pfilter(mock_ctx, subcommand_passed="off 98765")
 
         mock_dal.delete_profanity_filter_channel.assert_called_once_with(98765)
@@ -300,7 +293,6 @@ class TestConfig:
     @patch("src.bot.cogs.admin.config.bot_utils.send_error_msg", new_callable=AsyncMock)
     async def test_config_pfilter_missing_arguments(self, mock_send_error, config_cog, mock_ctx):
         """Test profanity filter with missing arguments."""
-        from src.bot.cogs.admin.config import config_pfilter
 
         await config_pfilter(mock_ctx, subcommand_passed="")
 
@@ -312,7 +304,6 @@ class TestConfig:
     @patch("src.bot.cogs.admin.config.bot_utils.send_error_msg", new_callable=AsyncMock)
     async def test_config_pfilter_invalid_channel_id(self, mock_send_error, config_cog, mock_ctx):
         """Test profanity filter with invalid channel ID."""
-        from src.bot.cogs.admin.config import config_pfilter
 
         await config_pfilter(mock_ctx, subcommand_passed="on invalid_id")
 
@@ -326,8 +317,6 @@ class TestConfig:
         """Test profanity filter with non-existent channel."""
         mock_ctx.guild.text_channels = []
         mock_ctx.guild.get_channel.return_value = None
-
-        from src.bot.cogs.admin.config import config_pfilter
 
         await config_pfilter(mock_ctx, subcommand_passed="on 98765")
 
@@ -343,8 +332,6 @@ class TestConfig:
         mock_ctx.guild.get_channel.return_value = mock_text_channel
         mock_ctx.guild.me.guild_permissions.administrator = False
         mock_ctx.guild.me.guild_permissions.manage_messages = False
-
-        from src.bot.cogs.admin.config import config_pfilter
 
         await config_pfilter(mock_ctx, subcommand_passed="on 98765")
 
@@ -402,8 +389,6 @@ class TestConfig:
         mock_green_text.return_value = "GREEN_ON"
         mock_red_text.return_value = "RED_OFF"
 
-        from src.bot.cogs.admin.config import config_list
-
         await config_list(mock_ctx)
 
         mock_ctx.message.channel.typing.assert_called_once()
@@ -436,8 +421,6 @@ class TestConfig:
         mock_pf_dal = AsyncMock()
         mock_pf_dal_class.return_value = mock_pf_dal
         mock_pf_dal.get_all_server_profanity_filter_channels.return_value = []
-
-        from src.bot.cogs.admin.config import config_list
 
         await config_list(mock_ctx)
 
@@ -484,7 +467,6 @@ class TestConfig:
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
         """Test the setup function."""
-        from src.bot.cogs.admin.config import setup
 
         await setup(mock_bot)
 
@@ -496,7 +478,6 @@ class TestConfig:
 
     def test_config_cog_inheritance(self, config_cog):
         """Test that Config cog properly inherits from Admin."""
-        from src.bot.cogs.admin.admin import Admin
 
         assert isinstance(config_cog, Admin)
         assert hasattr(config_cog, "bot")
@@ -510,8 +491,6 @@ class TestConfig:
         """Test profanity filter when get_channel returns None."""
         mock_ctx.guild.text_channels = [mock_text_channel]
         mock_ctx.guild.get_channel.return_value = None
-
-        from src.bot.cogs.admin.config import config_pfilter
 
         await config_pfilter(mock_ctx, subcommand_passed="on 98765")
 
@@ -535,8 +514,6 @@ class TestConfig:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
 
-        from src.bot.cogs.admin.config import config_pfilter
-
         await config_pfilter(mock_ctx, subcommand_passed="on 98765")
 
         mock_dal.insert_profanity_filter_channel.assert_called_once()
@@ -556,8 +533,6 @@ class TestConfig:
 
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
-
-        from src.bot.cogs.admin.config import config_pfilter
 
         await config_pfilter(mock_ctx, subcommand_passed="on 98765")
 

@@ -1,12 +1,12 @@
 import discord
 import re
-from bs4 import BeautifulSoup
 from discord.ext import commands
 from src.bot.tools import bot_utils
 from src.gw2.cogs.gw2 import GuildWars2
 from src.gw2.constants import gw2_messages, gw2_variables
 from src.gw2.tools import gw2_utils
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
+lazy from bs4 import BeautifulSoup
 
 HTML_PARSER = "html.parser"
 MAX_EMBED_FIELDS = 25  # Discord limit per embed

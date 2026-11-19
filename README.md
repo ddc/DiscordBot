@@ -149,6 +149,7 @@ Configure any subset of the three providers — commands for unconfigured provid
 
 | Variable                | Default                 | Description                              |
 |:------------------------|:------------------------|:-----------------------------------------|
+| `BOT_DEFAULT_AI_MODEL`  | `gpt`                   | Model behind `ai` / `aiweb`: `claude`, `gpt` or `gemini` |
 | `BOT_OPENAI_API_KEY`    |                         | OpenAI API key (powers `gpt`, `gptweb`)  |
 | `BOT_OPENAI_MODEL`      | `gpt-5.5`               | OpenAI model name                        |
 | `BOT_ANTHROPIC_API_KEY` |                         | Anthropic API key (powers `claude`, `claudeweb`) |
@@ -180,12 +181,14 @@ See [.env.example](.env.example) for the complete list of configuration options 
 # Commands
 
 ## AI / LLM Commands
-Six commands across three providers. The `*web` variants enable the provider's built-in web search (OpenAI `web_search`, Anthropic `web_search`, Google Search grounding) for current/factual questions. The plain variants answer from training only — faster, cheaper, no live data.
+Six commands across three providers, plus `ai` / `aiweb`, which use the provider set in `BOT_DEFAULT_AI_MODEL` (e.g. with `claude`, `ai` = `claude` and `aiweb` = `claudeweb`). The `*web` variants enable the provider's built-in web search (OpenAI `web_search`, Anthropic `web_search`, Google Search grounding) for current/factual questions. The plain variants answer from training only — faster, cheaper, no live data.
 
 All AI commands are channel-only (they cannot be invoked in DMs).
 
 | Command               | Provider          | Web search |
 |:----------------------|:------------------|:-----------|
+| `ai <message>`        | `BOT_DEFAULT_AI_MODEL` | no    |
+| `aiweb <message>`     | `BOT_DEFAULT_AI_MODEL` | yes   |
 | `gpt <message>`       | OpenAI            | no         |
 | `gptweb <message>`    | OpenAI            | yes        |
 | `claude <message>`    | Anthropic Claude  | no         |
@@ -313,10 +316,10 @@ poe updatedev
 # Run database migrations
 poe migration
 
-# Profile unit tests
+# Profile unit tests (Python 3.15 sampling profiler, writes profile_unit.prof in pstats format)
 poe profile
 
-# Profile integration tests
+# Profile integration tests (writes profile_integration.prof)
 poe profile-integration
 ```
 

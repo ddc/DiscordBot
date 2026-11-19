@@ -5,6 +5,8 @@ from src.gw2.cogs.characters import GW2Characters, characters
 from src.gw2.constants import gw2_messages
 from src.gw2.tools.gw2_exceptions import APIInvalidKey
 from unittest.mock import AsyncMock, MagicMock, patch
+lazy from src.gw2.cogs.characters import setup
+lazy from src.gw2.cogs.gw2 import GuildWars2
 
 
 class TestGW2Characters:
@@ -31,7 +33,6 @@ class TestGW2Characters:
 
     def test_gw2_characters_inheritance(self, gw2_characters_cog):
         """Test that GW2Characters inherits from GuildWars2 properly."""
-        from src.gw2.cogs.gw2 import GuildWars2
 
         assert isinstance(gw2_characters_cog, GuildWars2)
 
@@ -441,7 +442,6 @@ class TestCharactersSetup:
     @pytest.mark.asyncio
     async def test_setup_function_exists(self):
         """Test that setup function exists and is callable."""
-        from src.gw2.cogs.characters import setup
 
         assert callable(setup)
 
@@ -451,8 +451,6 @@ class TestCharactersSetup:
         mock_bot = MagicMock()
         mock_bot.remove_command = MagicMock()
         mock_bot.add_cog = AsyncMock()
-
-        from src.gw2.cogs.characters import setup
 
         await setup(mock_bot)
 
@@ -464,8 +462,6 @@ class TestCharactersSetup:
         mock_bot = MagicMock()
         mock_bot.remove_command = MagicMock()
         mock_bot.add_cog = AsyncMock()
-
-        from src.gw2.cogs.characters import setup
 
         await setup(mock_bot)
 

@@ -22,11 +22,14 @@ import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 from src.bot.constants import variables
+lazy from alembic import command
+lazy from alembic.config import Config
+lazy from ddcdatabases import clear_postgresql_settings_cache
+lazy from testcontainers.community.postgres import PostgresContainer
 
 
 @pytest.fixture(scope="session")
 def postgres_container():
-    from testcontainers.community.postgres import PostgresContainer
 
     with PostgresContainer("postgres:latest", driver=None) as pg:
         yield pg
@@ -48,14 +51,9 @@ def setup_env_and_run_migrations(postgres_container):
     os.environ["POSTGRESQL_SCHEMA"] = "gw2,public"
     os.environ["POSTGRESQL_SSL_MODE"] = "disable"
 
-    from ddcdatabases import clear_postgresql_settings_cache
-
     clear_postgresql_settings_cache()
 
-    from alembic import command
-    from alembic.config import Config
-
-    alembic_cfg = Config(str(variables.BASE_DIR / "alembic.ini"))
+    alembic_cfg = Config(str(variables._base_dir / "alembic.ini"))
     command.upgrade(alembic_cfg, "head")
 
 

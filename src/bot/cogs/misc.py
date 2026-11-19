@@ -2,7 +2,6 @@ import discord
 import random
 import sys
 from discord.ext import commands
-from gtts import gTTS
 from io import BytesIO
 from src.bot.constants import messages, variables
 from src.bot.constants.settings import get_bot_settings
@@ -10,6 +9,7 @@ from src.bot.discord_bot import Bot
 from src.bot.tools import bot_utils, chat_formatting
 from src.bot.tools.cooldowns import CoolDowns
 from src.bot.tools.pepe import pepedatabase
+lazy from gtts import gTTS
 
 
 class Misc(commands.Cog):

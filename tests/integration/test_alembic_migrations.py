@@ -1,5 +1,6 @@
 import pytest
 from sqlalchemy import text
+lazy from ddcdatabases import DBUtilsAsync
 
 pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
 
@@ -38,14 +39,12 @@ EXPECTED_GW2_TRIGGERS = [
 
 
 async def _fetch_rows(db_session, stmt):
-    from ddcdatabases import DBUtilsAsync
 
     db = DBUtilsAsync(db_session)
     return await db.fetchall(stmt, True)
 
 
 async def _execute(db_session, stmt):
-    from ddcdatabases import DBUtilsAsync
 
     db = DBUtilsAsync(db_session)
     await db.execute(stmt)

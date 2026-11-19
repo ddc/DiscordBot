@@ -7,7 +7,7 @@ class TestWalletMapping:
     """Test cases for WALLET_MAPPING constant."""
 
     def test_is_dict_of_int_to_str(self):
-        assert isinstance(WALLET_MAPPING, dict)
+        assert isinstance(WALLET_MAPPING, frozendict)
         for key, value in WALLET_MAPPING.items():
             assert isinstance(key, int), f"Key {key} is not int"
             assert isinstance(value, str), f"Value {value} for key {key} is not str"
@@ -89,7 +89,7 @@ class TestWalletDisplayNames:
     """Test cases for WALLET_DISPLAY_NAMES constant."""
 
     def test_is_dict_of_str_to_str(self):
-        assert isinstance(WALLET_DISPLAY_NAMES, dict)
+        assert isinstance(WALLET_DISPLAY_NAMES, frozendict)
         for key, value in WALLET_DISPLAY_NAMES.items():
             assert isinstance(key, str), f"Key {key} is not str"
             assert isinstance(value, str), f"Value {value} for key {key} is not str"
@@ -149,7 +149,7 @@ class TestAchievementMapping:
     """Test cases for ACHIEVEMENT_MAPPING constant."""
 
     def test_is_dict_of_int_to_str(self):
-        assert isinstance(ACHIEVEMENT_MAPPING, dict)
+        assert isinstance(ACHIEVEMENT_MAPPING, frozendict)
         for key, value in ACHIEVEMENT_MAPPING.items():
             assert isinstance(key, int), f"Key {key} is not int"
             assert isinstance(value, str), f"Value {value} for key {key} is not str"

@@ -8,6 +8,7 @@ sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.events.on_guild_update import OnGuildUpdate
 from src.bot.constants import messages
+lazy from src.bot.cogs.events.on_guild_update import setup
 
 
 @pytest.fixture
@@ -80,7 +81,6 @@ class TestOnGuildUpdate:
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
         """Test the setup function."""
-        from src.bot.cogs.events.on_guild_update import setup
 
         await setup(mock_bot)
 

@@ -471,8 +471,6 @@ class ConfigView(discord.ui.View):
 
     async def _create_updated_embed(self):
         """Create updated configuration embed with current settings."""
-        from src.bot.constants import messages
-        from src.bot.tools import chat_formatting
 
         # Get profanity filter channels
         profanity_filter_dal = ProfanityFilterDal(self.ctx.bot.db_session, self.ctx.bot.log)

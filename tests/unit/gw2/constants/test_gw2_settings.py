@@ -4,6 +4,7 @@ import os
 import pytest
 from src.gw2.constants.gw2_settings import Gw2Settings, get_gw2_settings
 from unittest.mock import patch
+lazy from src.gw2.constants import gw2_variables
 
 
 class TestGw2Settings:
@@ -242,7 +243,6 @@ class TestGetGw2Settings:
 
     def test_api_version_affects_api_uri(self):
         """Test that changing API version affects the constructed API URI."""
-        from src.gw2.constants import gw2_variables
 
         expected_version = get_gw2_settings().api_version
         expected_uri = f"https://api.guildwars2.com/v{expected_version}"

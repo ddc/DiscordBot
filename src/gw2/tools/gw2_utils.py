@@ -94,12 +94,10 @@ async def send_progress_embed(
     Uses send_with_retry so transient Discord errors (5xx, code 40062) are retried
     instead of bubbling up to the command error handler.
     """
-    from src.bot.tools.bot_utils import send_with_retry
-
     color = ctx.bot.settings["gw2"]["EmbedColor"]
     embed = discord.Embed(description=f"\U0001f504 **{message}**", color=color)
     embed.set_author(name=ctx.message.author.display_name, icon_url=ctx.message.author.display_avatar.url)
-    return await send_with_retry(ctx, ctx.send, embed=embed)
+    return await bot_utils.send_with_retry(ctx, ctx.send, embed=embed)
 
 
 async def send_msg(ctx: commands.Context, description: str, dm: bool = False) -> None:
@@ -132,11 +130,7 @@ async def calculate_user_achiev_points(ctx: commands.Context, api_req_acc_achiev
 
 
 async def _fetch_achievement_data_in_batches(gw2_api: Gw2Client, user_achievements: list[dict]) -> list[dict]:
-    """Fetch achievement data from API in parallel batches of 200, with in-memory cache.
-
-    Achievement definitions (tiers, points) are static game data that rarely change,
-    so caching them avoids 18+ API calls on every `gw2 account` invocation.
-    """
+    """Fetch achievement data from API in parallel batches of 200, with in-memory cache"""
     needed_ids = [ach["id"] for ach in user_achievements if ach["id"] not in _achievement_cache]
 
     if needed_ids:
@@ -220,17 +214,12 @@ async def get_world_id(bot: Bot, world: str | None) -> int | None:
         gw2_api = Gw2Client(bot)
         results = await gw2_api.call_api(f"{gw2_variables.API_WORLDS}?ids=all")
 
-        # Create a dictionary for O(1) lookup instead of O(n) linear search
-        # Also support partial matches as a fallback
         world_lower = world.lower()
         world_map = {w["name"].lower(): w["id"] for w in results}
 
-        # Try exact match first (O(1))
         if world_lower in world_map:
             return world_map[world_lower]
 
-        # If no exact match, try partial match (case-insensitive)
-        # This allows users to type "jade" instead of "Jade Quarry" for example
         for world_name, world_id in world_map.items():
             if world_lower in world_name:
                 return world_id
@@ -377,12 +366,7 @@ async def _handle_gw2_activity_change(
     member: discord.Member,
     action: str,
 ) -> None:
-    """Handle GW2 activity changes and manage session tracking.
-
-    Uses a per-user pending-action queue so that end events arriving while
-    a start is in progress are never silently dropped.  Duplicate events
-    (same action as current or already-pending) are dropped.
-    """
+    """Handle GW2 activity changes and manage session tracking"""
     if member.id in _processing_sessions:
         state = _processing_sessions[member.id]
         if action == state["current"] or action == state["pending"]:
@@ -471,12 +455,7 @@ async def _do_start_session(bot: Bot, member: discord.Member, api_key: str, sess
 
 
 async def end_session(bot: Bot, member: discord.Member, api_key: str, *, skip_delay: bool = False) -> None:
-    """End a GW2 session for a member.
-
-    Waits for the GW2 API cache to refresh before fetching end stats,
-    so that wallet/achievement values reflect in-game changes.
-    Set skip_delay=True for user-facing commands where the user is actively waiting.
-    """
+    """End a GW2 session for a member"""
     end_delay = _gw2_settings.api_session_end_delay
     if not skip_delay and end_delay and end_delay > 0:
         bot.log.debug(f"Waiting {end_delay}s for GW2 API cache to refresh before ending session for user {member.id}")
@@ -814,7 +793,7 @@ def convert_timedelta_to_obj(time_delta: timedelta) -> TimeObject:
     time_components = time_part.split(":")
     obj.hours = int(time_components[0])
     obj.minutes = int(time_components[1])
-    obj.seconds = int(float(time_components[2]))  # Handle potential microseconds
+    obj.seconds = int(float(time_components[2]))
 
     return obj
 

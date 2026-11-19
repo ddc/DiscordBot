@@ -10,6 +10,7 @@ import pytest
 from src.__main__ import _create_bot_activity, _get_command_prefix, run_bot
 from src.bot.constants import messages, variables
 from unittest.mock import AsyncMock, MagicMock, patch
+lazy from src import __main__ as main_module
 
 
 class TestGetCommandPrefix:
@@ -176,7 +177,6 @@ class TestMain:
     @pytest.fixture
     def env(self):
         """Patch every external dependency main() touches and expose the mocks."""
-        from src import __main__ as main_module
 
         bot = MagicMock()
         bot.start = AsyncMock()

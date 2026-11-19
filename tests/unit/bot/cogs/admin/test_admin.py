@@ -10,6 +10,7 @@ sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.admin.admin import Admin
 from src.bot.constants import messages
+lazy from src.bot.cogs.admin.admin import setup
 
 
 @pytest.fixture
@@ -217,7 +218,6 @@ class TestAdmin:
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
         """Test the setup function."""
-        from src.bot.cogs.admin.admin import setup
 
         await setup(mock_bot)
 

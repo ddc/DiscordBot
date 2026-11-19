@@ -9,6 +9,9 @@ sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.events.on_command_error import ErrorContext, ErrorMessageBuilder, Errors
 from src.bot.constants import messages, variables
+lazy import discord
+lazy from src.bot.cogs.events.on_command_error import setup
+lazy from src.gw2.constants import gw2_messages
 
 
 @pytest.fixture
@@ -311,7 +314,6 @@ class TestErrors:
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
         """Test the setup function."""
-        from src.bot.cogs.events.on_command_error import setup
 
         await setup(mock_bot)
 
@@ -351,8 +353,6 @@ class TestErrors:
         context = ErrorContext(mock_ctx, mock_error)
         context.error_msg = "BadArgument_Gw2ConfigServer"
         context.bad_argument = "invalid server"
-
-        from src.gw2.constants import gw2_messages
 
         result = ErrorMessageBuilder.build_bad_argument(context)
 
@@ -580,7 +580,6 @@ class TestOnCommandErrorEventHandler:
     @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_on_command_error_forbidden(self, mock_send_error, mock_bot, mock_ctx):
         """Test on_command_error dispatches discord.Forbidden (lines 147, 234-235)."""
-        import discord
 
         cog = Errors(mock_bot)
         response = MagicMock()
@@ -599,7 +598,6 @@ class TestOnCommandErrorEventHandler:
     @patch("src.bot.cogs.events.on_command_error.bot_utils.send_error_msg")
     async def test_on_command_error_forbidden_privilege_low(self, mock_send_error, mock_bot, mock_ctx):
         """Test on_command_error dispatches discord.Forbidden with low privilege (lines 234-235)."""
-        import discord
 
         cog = Errors(mock_bot)
         response = MagicMock()

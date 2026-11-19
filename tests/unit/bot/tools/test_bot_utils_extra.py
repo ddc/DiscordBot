@@ -9,6 +9,7 @@ sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.tools import bot_utils
 from src.bot.tools.bot_utils import EmbedPaginatorView
+lazy from src.bot.constants import messages
 
 
 class TestSendHelpMsg:
@@ -256,7 +257,6 @@ class TestDeleteMessage:
         mock_send_msg.assert_called_once()
         call_args = mock_send_msg.call_args[0]
         assert call_args[0] == mock_ctx
-        from src.bot.constants import messages
 
         assert call_args[1] == messages.BotUtils.MESSAGE_REMOVED_FOR_PRIVACY
         assert call_args[2] is False
@@ -273,7 +273,6 @@ class TestDeleteMessage:
         mock_send_msg.assert_called_once()
         call_args = mock_send_msg.call_args[0]
         assert call_args[0] == mock_ctx
-        from src.bot.constants import messages
 
         assert call_args[1] == messages.BotUtils.DELETE_MESSAGE_NO_PERMISSION
         assert call_args[2] is False
@@ -755,7 +754,7 @@ class TestSendPaginatedEmbed:
             mock_send.assert_called_once_with(mock_ctx, embed)
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_pagination_splits_fields(self, mock_dal_class, mock_ctx):
         """Test embed with >25 fields is split into pages (lines 221-246)."""
         mock_dal = MagicMock()
@@ -808,7 +807,7 @@ class TestSendPaginatedEmbed:
             mock_send.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_pagination_no_color_uses_settings(self, mock_dal_class, mock_ctx):
         """Test that embed without color gets it from settings."""
         mock_dal = MagicMock()
@@ -826,7 +825,7 @@ class TestSendPaginatedEmbed:
         assert view.pages[0].color == discord.Color.blue()
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_pagination_stores_message(self, mock_dal_class, mock_ctx):
         """Test that view.message is set after sending."""
         mock_dal = MagicMock()
@@ -880,7 +879,7 @@ class TestEmbedPaginatorViewPersistence:
         assert restored.footer.text == original.footer.text
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_send_and_save(self, mock_dal_class):
         """Test send_and_save sends message and saves to DB."""
         mock_dal = MagicMock()
@@ -910,7 +909,7 @@ class TestEmbedPaginatorViewPersistence:
         assert len(call_args[0][3]) == 2
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_send_and_save_retries_on_transient_error(self, mock_dal_class):
         """send_and_save retries on 429 code 40062 instead of letting it propagate."""
         mock_dal = MagicMock()
@@ -938,7 +937,7 @@ class TestEmbedPaginatorViewPersistence:
         mock_dal.insert_embed_pages.assert_awaited_once()
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_load_from_db_pages_already_set(self, mock_dal_class):
         """Test _load_from_db returns True immediately when pages exist."""
         pages = self._make_pages(2)
@@ -951,7 +950,7 @@ class TestEmbedPaginatorViewPersistence:
         mock_dal_class.assert_not_called()
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_load_from_db_loads_from_database(self, mock_dal_class):
         """Test _load_from_db loads pages from DB when not in memory."""
         mock_dal = MagicMock()
@@ -979,7 +978,7 @@ class TestEmbedPaginatorViewPersistence:
         assert view.author_id == 42
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_load_from_db_record_not_found(self, mock_dal_class):
         """Test _load_from_db returns False when record not in DB."""
         mock_dal = MagicMock()
@@ -999,7 +998,7 @@ class TestEmbedPaginatorViewPersistence:
         interaction.response.send_message.assert_called_once_with("This pagination has expired.", ephemeral=True)
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_save_current_page(self, mock_dal_class):
         """Test _save_current_page updates DB."""
         mock_dal = MagicMock()
@@ -1181,7 +1180,7 @@ class TestPaginatorExpiredButtons:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("button_name", ["previous_button", "next_button"])
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_expired_pagination_does_not_move(self, mock_dal_class, button_name):
         mock_dal_class.return_value.get_embed_pages = AsyncMock(return_value=None)
         view, interaction = self._expired_view_and_interaction()

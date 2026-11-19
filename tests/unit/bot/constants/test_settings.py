@@ -2,8 +2,11 @@
 
 import os
 import pytest
+from pydantic import ValidationError
 from src.bot.constants.settings import BotSettings, get_bot_settings
 from unittest.mock import patch
+lazy from src.bot.constants import variables
+lazy from typing import get_args
 
 
 class TestBotSettings:
@@ -167,3 +170,34 @@ class TestGetBotSettings:
 
         assert isinstance(settings.prefix, (str, type(None)))
         assert isinstance(settings.admin_cooldown, (int, type(None)))
+
+
+class TestDefaultAiModel:
+    """BOT_DEFAULT_AI_MODEL selects the model behind the `ai` command."""
+
+    def test_defaults_to_gpt(self, monkeypatch):
+        monkeypatch.delenv("BOT_DEFAULT_AI_MODEL", raising=False)
+        assert BotSettings(_env_file=None).default_ai_model == "gpt"
+
+    @pytest.mark.parametrize("value", ["claude", "gpt", "gemini"])
+    def test_accepts_supported_models(self, monkeypatch, value):
+        monkeypatch.setenv("BOT_DEFAULT_AI_MODEL", value)
+        assert BotSettings(_env_file=None).default_ai_model == value
+
+    def test_is_case_and_whitespace_insensitive(self, monkeypatch):
+        monkeypatch.setenv("BOT_DEFAULT_AI_MODEL", "  Claude ")
+        assert BotSettings(_env_file=None).default_ai_model == "claude"
+
+    @pytest.mark.parametrize("value", ["openai", "anthropic", "llama", ""])
+    def test_rejects_unsupported_models(self, monkeypatch, value):
+        monkeypatch.setenv("BOT_DEFAULT_AI_MODEL", value)
+        with pytest.raises(ValidationError):
+            BotSettings(_env_file=None)
+
+
+def test_ai_model_providers_cover_every_allowed_default_ai_model():
+    """Every BOT_DEFAULT_AI_MODEL value must map to a provider, and vice versa."""
+
+    allowed = set(get_args(BotSettings.model_fields["default_ai_model"].annotation))
+    assert set(variables.AI_MODEL_PROVIDERS) == allowed
+    assert set(variables.AI_MODEL_PROVIDERS.values()) == {"anthropic", "openai", "gemini"}

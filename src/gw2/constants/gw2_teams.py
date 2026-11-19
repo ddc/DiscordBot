@@ -8,37 +8,39 @@ API, so names must be hardcoded.
 from typing import Final
 
 # NA teams: 11001-11012, EU teams: 12001-12015
-WR_TEAM_NAMES: Final[dict[int, str]] = {
-    # North America
-    11001: "Team 1 (NA)",
-    11002: "Team 2 (NA)",
-    11003: "Team 3 (NA)",
-    11004: "Team 4 (NA)",
-    11005: "Team 5 (NA)",
-    11006: "Team 6 (NA)",
-    11007: "Team 7 (NA)",
-    11008: "Team 8 (NA)",
-    11009: "Team 9 (NA)",
-    11010: "Team 10 (NA)",
-    11011: "Team 11 (NA)",
-    11012: "Team 12 (NA)",
-    # Europe
-    12001: "Team 1 (EU)",
-    12002: "Team 2 (EU)",
-    12003: "Team 3 (EU)",
-    12004: "Team 4 (EU)",
-    12005: "Team 5 (EU)",
-    12006: "Team 6 (EU)",
-    12007: "Team 7 (EU)",
-    12008: "Team 8 (EU)",
-    12009: "Team 9 (EU)",
-    12010: "Team 10 (EU)",
-    12011: "Team 11 (EU)",
-    12012: "Team 12 (EU)",
-    12013: "Team 13 (EU)",
-    12014: "Team 14 (EU)",
-    12015: "Team 15 (EU)",
-}
+WR_TEAM_NAMES: Final[frozendict[int, str]] = frozendict(
+    {
+        # North America
+        11001: "Team 1 (NA)",
+        11002: "Team 2 (NA)",
+        11003: "Team 3 (NA)",
+        11004: "Team 4 (NA)",
+        11005: "Team 5 (NA)",
+        11006: "Team 6 (NA)",
+        11007: "Team 7 (NA)",
+        11008: "Team 8 (NA)",
+        11009: "Team 9 (NA)",
+        11010: "Team 10 (NA)",
+        11011: "Team 11 (NA)",
+        11012: "Team 12 (NA)",
+        # Europe
+        12001: "Team 1 (EU)",
+        12002: "Team 2 (EU)",
+        12003: "Team 3 (EU)",
+        12004: "Team 4 (EU)",
+        12005: "Team 5 (EU)",
+        12006: "Team 6 (EU)",
+        12007: "Team 7 (EU)",
+        12008: "Team 8 (EU)",
+        12009: "Team 9 (EU)",
+        12010: "Team 10 (EU)",
+        12011: "Team 11 (EU)",
+        12012: "Team 12 (EU)",
+        12013: "Team 13 (EU)",
+        12014: "Team 14 (EU)",
+        12015: "Team 15 (EU)",
+    }
+)
 
 
 def is_wr_team_id(world_id: int) -> bool:

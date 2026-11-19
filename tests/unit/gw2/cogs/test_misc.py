@@ -4,6 +4,8 @@ import discord
 import pytest
 from src.gw2.cogs.misc import GW2Misc, info, setup, wiki
 from unittest.mock import AsyncMock, MagicMock, patch
+lazy from src.gw2.cogs.gw2 import GuildWars2
+lazy from src.gw2.constants import gw2_messages
 
 
 class AsyncContextManager:
@@ -43,7 +45,6 @@ class TestGW2Misc:
 
     def test_gw2_misc_inheritance(self, gw2_misc_cog):
         """Test that GW2Misc inherits from GuildWars2 properly."""
-        from src.gw2.cogs.gw2 import GuildWars2
 
         assert isinstance(gw2_misc_cog, GuildWars2)
 
@@ -104,7 +105,6 @@ class TestWikiCommand:
         long_search = "a" * 301
         await wiki(mock_ctx, search=long_search)
         mock_ctx.send.assert_called_once()
-        from src.gw2.constants import gw2_messages
 
         assert mock_ctx.send.call_args[0][0] == gw2_messages.Misc.LONG_SEARCH
 

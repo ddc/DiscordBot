@@ -7,6 +7,8 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.events.on_connect import ConnectionHandler, GuildSynchronizer, OnConnect
+lazy from discord.ext import commands
+lazy from src.bot.cogs.events.on_connect import setup
 
 
 @pytest.fixture
@@ -265,7 +267,6 @@ class TestOnConnect:
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
         """Test the setup function."""
-        from src.bot.cogs.events.on_connect import setup
 
         await setup(mock_bot)
 
@@ -298,7 +299,6 @@ class TestOnConnect:
 
     def test_on_connect_cog_inheritance(self, on_connect_cog):
         """Test that OnConnect cog properly inherits from commands.Cog."""
-        from discord.ext import commands
 
         assert isinstance(on_connect_cog, commands.Cog)
         assert hasattr(on_connect_cog, "bot")

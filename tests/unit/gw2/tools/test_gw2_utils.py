@@ -45,6 +45,7 @@ from src.gw2.tools.gw2_utils import (
     update_end_char_deaths,
 )
 from unittest.mock import AsyncMock, MagicMock, patch
+lazy from src.gw2.tools import gw2_utils
 
 
 class TestSendMsg:
@@ -136,7 +137,6 @@ class TestFetchAchievementDataInBatches:
     @pytest.fixture(autouse=True)
     def clear_cache(self):
         """Clear the module-level achievement cache between tests."""
-        from src.gw2.tools import gw2_utils
 
         gw2_utils._achievement_cache.clear()
         yield
