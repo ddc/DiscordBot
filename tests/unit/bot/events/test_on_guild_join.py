@@ -9,6 +9,9 @@ sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.events.on_guild_join import OnGuildJoin, WelcomeMessageBuilder
 from src.bot.constants import messages, variables
+lazy import inspect
+lazy from discord.ext import commands
+lazy from src.bot.cogs.events.on_guild_join import setup
 
 
 @pytest.fixture
@@ -166,7 +169,6 @@ class TestOnGuildJoin:
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
         """Test the setup function."""
-        from src.bot.cogs.events.on_guild_join import setup
 
         await setup(mock_bot)
 
@@ -239,7 +241,6 @@ class TestOnGuildJoin:
 
     def test_on_guild_join_cog_inheritance(self, on_guild_join_cog):
         """Test that OnGuildJoin cog properly inherits from commands.Cog."""
-        from discord.ext import commands
 
         assert isinstance(on_guild_join_cog, commands.Cog)
         assert hasattr(on_guild_join_cog, "bot")
@@ -263,7 +264,6 @@ class TestOnGuildJoin:
 
     def test_welcome_message_builder_static_methods(self):
         """Test that WelcomeMessageBuilder methods are static."""
-        import inspect
 
         assert inspect.isfunction(WelcomeMessageBuilder.build_welcome_message)
         assert inspect.isfunction(WelcomeMessageBuilder.build_welcome_embed)

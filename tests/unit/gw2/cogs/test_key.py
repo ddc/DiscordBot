@@ -5,6 +5,9 @@ from src.gw2.cogs.key import GW2Key, add, info, key, remove, update
 from src.gw2.constants import gw2_messages
 from src.gw2.tools.gw2_exceptions import APIInvalidKey
 from unittest.mock import AsyncMock, MagicMock, patch
+lazy import discord
+lazy from src.gw2.cogs.gw2 import GuildWars2
+lazy from src.gw2.cogs.key import ApiKeyModal, ApiKeyView, _get_user_id, _send_error, _send_success, setup
 
 
 class TestGW2Key:
@@ -31,7 +34,6 @@ class TestGW2Key:
 
     def test_gw2_key_inheritance(self, gw2_key_cog):
         """Test that GW2Key inherits from GuildWars2 properly."""
-        from src.gw2.cogs.gw2 import GuildWars2
 
         assert isinstance(gw2_key_cog, GuildWars2)
 
@@ -777,7 +779,6 @@ class TestKeySetup:
     @pytest.mark.asyncio
     async def test_setup_function_exists(self):
         """Test that setup function exists and is callable."""
-        from src.gw2.cogs.key import setup
 
         assert callable(setup)
 
@@ -787,8 +788,6 @@ class TestKeySetup:
         mock_bot = MagicMock()
         mock_bot.remove_command = MagicMock()
         mock_bot.add_cog = AsyncMock()
-
-        from src.gw2.cogs.key import setup
 
         await setup(mock_bot)
 
@@ -801,8 +800,6 @@ class TestKeySetup:
         mock_bot.remove_command = MagicMock()
         mock_bot.add_cog = AsyncMock()
 
-        from src.gw2.cogs.key import setup
-
         await setup(mock_bot)
 
         mock_bot.add_cog.assert_called_once()
@@ -814,8 +811,6 @@ class TestInteractionHelpers:
     """Cover the Interaction branches of _get_user_id / _send_success / _send_error."""
 
     def test_get_user_id_from_interaction(self):
-        import discord
-        from src.gw2.cogs.key import _get_user_id
 
         interaction = MagicMock(spec=discord.Interaction)
         interaction.user.id = 42
@@ -823,8 +818,6 @@ class TestInteractionHelpers:
 
     @pytest.mark.asyncio
     async def test_send_success_via_interaction_followup(self):
-        import discord
-        from src.gw2.cogs.key import _send_success
 
         interaction = MagicMock(spec=discord.Interaction)
         interaction.followup.send = AsyncMock()
@@ -839,8 +832,6 @@ class TestInteractionHelpers:
 
     @pytest.mark.asyncio
     async def test_send_error_via_interaction_followup(self):
-        import discord
-        from src.gw2.cogs.key import _send_error
 
         interaction = MagicMock(spec=discord.Interaction)
         interaction.followup.send = AsyncMock()
@@ -867,7 +858,6 @@ class TestApiKeyModal:
         return bot
 
     def test_init_stores_attrs(self, mock_bot):
-        from src.gw2.cogs.key import ApiKeyModal
 
         modal = ApiKeyModal(mock_bot, "add", "!")
         assert modal.bot is mock_bot
@@ -876,8 +866,6 @@ class TestApiKeyModal:
 
     @pytest.mark.asyncio
     async def test_on_submit_add_mode_calls_process_add_key(self, mock_bot):
-        import discord
-        from src.gw2.cogs.key import ApiKeyModal
 
         modal = ApiKeyModal(mock_bot, "add", "!")
         modal.api_key_input = MagicMock()
@@ -894,8 +882,6 @@ class TestApiKeyModal:
 
     @pytest.mark.asyncio
     async def test_on_submit_update_mode_calls_process_update_key(self, mock_bot):
-        import discord
-        from src.gw2.cogs.key import ApiKeyModal
 
         modal = ApiKeyModal(mock_bot, "update", "!")
         modal.api_key_input = MagicMock()
@@ -920,7 +906,6 @@ class TestApiKeyView:
         return bot
 
     def test_init_stores_attrs(self, mock_bot):
-        from src.gw2.cogs.key import ApiKeyView
 
         view = ApiKeyView(mock_bot, "add", "!")
         assert view.bot is mock_bot
@@ -931,8 +916,6 @@ class TestApiKeyView:
 
     @pytest.mark.asyncio
     async def test_enter_key_button_sends_modal(self, mock_bot):
-        import discord
-        from src.gw2.cogs.key import ApiKeyView
 
         view = ApiKeyView(mock_bot, "update", "?")
         interaction = MagicMock(spec=discord.Interaction)
@@ -948,7 +931,6 @@ class TestApiKeyView:
 
     @pytest.mark.asyncio
     async def test_on_timeout_disables_children_and_edits(self, mock_bot):
-        from src.gw2.cogs.key import ApiKeyView
 
         view = ApiKeyView(mock_bot, "add", "!")
         view.message = MagicMock()
@@ -961,7 +943,6 @@ class TestApiKeyView:
 
     @pytest.mark.asyncio
     async def test_on_timeout_no_message_skips_edit(self, mock_bot):
-        from src.gw2.cogs.key import ApiKeyView
 
         view = ApiKeyView(mock_bot, "add", "!")
         view.message = None
@@ -970,8 +951,6 @@ class TestApiKeyView:
 
     @pytest.mark.asyncio
     async def test_on_timeout_edit_failure_is_swallowed(self, mock_bot):
-        import discord
-        from src.gw2.cogs.key import ApiKeyView
 
         view = ApiKeyView(mock_bot, "add", "!")
         view.message = MagicMock()
@@ -1007,7 +986,6 @@ class TestAddCommandInteractivePath:
         mock_ctx.author.send.assert_awaited_once()
         dm_kwargs = mock_ctx.author.send.call_args[1]
         assert "view" in dm_kwargs
-        from src.gw2.cogs.key import ApiKeyView
 
         assert isinstance(dm_kwargs["view"], ApiKeyView)
         assert dm_kwargs["view"].mode == "add"
@@ -1055,7 +1033,6 @@ class TestUpdateCommandInteractivePath:
 
         mock_ctx.author.send.assert_awaited_once()
         dm_kwargs = mock_ctx.author.send.call_args[1]
-        from src.gw2.cogs.key import ApiKeyView
 
         assert isinstance(dm_kwargs["view"], ApiKeyView)
         assert dm_kwargs["view"].mode == "update"

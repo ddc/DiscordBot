@@ -18,6 +18,7 @@ from src.gw2.cogs.wvw import (
 from src.gw2.constants import gw2_messages
 from src.gw2.tools.gw2_exceptions import APIKeyError
 from unittest.mock import AsyncMock, MagicMock, patch
+lazy from src.gw2.cogs.gw2 import GuildWars2
 
 
 class TestGW2WvW:
@@ -44,7 +45,6 @@ class TestGW2WvW:
 
     def test_gw2_wvw_inheritance(self, gw2_wvw_cog):
         """Test that GW2WvW inherits from GuildWars2 properly."""
-        from src.gw2.cogs.gw2 import GuildWars2
 
         assert isinstance(gw2_wvw_cog, GuildWars2)
 

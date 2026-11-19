@@ -5,6 +5,8 @@ import pytest
 from discord.ext import commands
 from src.gw2.cogs.config import GW2Config, GW2ConfigView, config, config_list, config_session
 from unittest.mock import AsyncMock, MagicMock, patch
+lazy from src.gw2.cogs.config import setup
+lazy from src.gw2.cogs.gw2 import GuildWars2
 
 
 class TestGW2Config:
@@ -31,7 +33,6 @@ class TestGW2Config:
 
     def test_gw2_config_inheritance(self, gw2_config_cog):
         """Test that GW2Config inherits from GuildWars2 properly."""
-        from src.gw2.cogs.gw2 import GuildWars2
 
         assert isinstance(gw2_config_cog, GuildWars2)
 
@@ -637,7 +638,6 @@ class TestConfigSetup:
     @pytest.mark.asyncio
     async def test_setup_function_exists(self):
         """Test that setup function exists and is callable."""
-        from src.gw2.cogs.config import setup
 
         assert callable(setup)
 
@@ -647,8 +647,6 @@ class TestConfigSetup:
         mock_bot = MagicMock()
         mock_bot.remove_command = MagicMock()
         mock_bot.add_cog = AsyncMock()
-
-        from src.gw2.cogs.config import setup
 
         await setup(mock_bot)
 
@@ -660,8 +658,6 @@ class TestConfigSetup:
         mock_bot = MagicMock()
         mock_bot.remove_command = MagicMock()
         mock_bot.add_cog = AsyncMock()
-
-        from src.gw2.cogs.config import setup
 
         await setup(mock_bot)
 

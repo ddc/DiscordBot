@@ -1,5 +1,6 @@
 import pytest
 from src.database.dal.bot.servers_dal import ServersDal
+lazy from src.database.dal.bot.custom_commands_dal import CustomCommandsDal
 
 pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
 
@@ -118,7 +119,6 @@ async def test_get_server_with_profanity_join_no_filter(db_session, log):
 
 
 async def test_delete_server_cascades_children(db_session, log):
-    from src.database.dal.bot.custom_commands_dal import CustomCommandsDal
 
     server_dal = ServersDal(db_session, log)
     cmd_dal = CustomCommandsDal(db_session, log)

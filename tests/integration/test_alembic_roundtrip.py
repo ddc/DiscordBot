@@ -31,7 +31,7 @@ def _scalar(database: str, sql: str):
 
 @pytest.fixture
 def alembic_cfg():
-    return Config(str(variables.BASE_DIR / "alembic.ini"))
+    return Config(str(variables._base_dir / "alembic.ini"))
 
 
 @pytest.fixture
@@ -85,7 +85,7 @@ def test_offline_sql_generation(alembic_cfg, scratch_database, capsys):
 @pytest.fixture
 def revision_dir(tmp_path, alembic_cfg):
     """Extra version location so a generated revision is written to tmp, never into the repo."""
-    versions = variables.BASE_DIR / "src" / "database" / "migrations" / "versions"
+    versions = variables._base_dir / "src" / "database" / "migrations" / "versions"
     alembic_cfg.set_main_option("version_locations", f"{versions}{os.pathsep}{tmp_path}")
     return tmp_path
 
@@ -102,3 +102,28 @@ def test_new_revision_gets_next_sequential_id(alembic_cfg, scratch_database, rev
     assert script.down_revision == "0011"
     generated = next(revision_dir.glob("0012_*probe*.py")).read_text()
     assert "alembic_version" not in generated
+
+
+def _execute(database: str, sql: str) -> None:
+    engine = sa.create_engine(_sync_url(database))
+    try:
+        with engine.begin() as conn:
+            conn.execute(sa.text(sql))
+    finally:
+        engine.dispose()
+
+
+def test_tables_in_unmanaged_schemas_are_ignored(alembic_cfg, scratch_database):
+    """Autogenerate must never propose dropping tables that live in schemas the bot does not manage."""
+    command.upgrade(alembic_cfg, "head")
+    _execute(scratch_database, "CREATE SCHEMA other_app")
+    _execute(scratch_database, "CREATE TABLE other_app.foreign_table (id integer PRIMARY KEY)")
+    command.check(alembic_cfg)
+
+
+def test_first_revision_in_empty_history_is_0001(alembic_cfg, scratch_database, tmp_path):
+    alembic_cfg.set_main_option("version_locations", str(tmp_path))
+    script = command.revision(alembic_cfg, message="initial", autogenerate=True, version_path=str(tmp_path))
+    assert script.revision == "0001"
+    assert script.down_revision is None
+    assert next(tmp_path.glob("0001_*initial*.py")).exists()

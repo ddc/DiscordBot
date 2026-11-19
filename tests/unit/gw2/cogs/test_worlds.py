@@ -13,6 +13,7 @@ from src.gw2.cogs.worlds import (
 )
 from src.gw2.constants import gw2_messages
 from unittest.mock import AsyncMock, MagicMock, patch
+lazy from src.gw2.cogs.gw2 import GuildWars2
 
 
 class TestGW2Worlds:
@@ -39,7 +40,6 @@ class TestGW2Worlds:
 
     def test_gw2_worlds_inheritance(self, gw2_worlds_cog):
         """Test that GW2Worlds inherits from GuildWars2 properly."""
-        from src.gw2.cogs.gw2 import GuildWars2
 
         assert isinstance(gw2_worlds_cog, GuildWars2)
 
@@ -653,7 +653,7 @@ class TestSendPaginatedWorldsEmbed:
         mock_ctx.send.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_paginates_when_more_than_25_fields(self, mock_dal_class, mock_ctx):
         """Test that embed with >25 fields sends first page with view."""
         mock_dal = MagicMock()
@@ -669,7 +669,7 @@ class TestSendPaginatedWorldsEmbed:
         assert len(sent_embed.fields) == 25
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_paginated_footer_shows_page_numbers(self, mock_dal_class, mock_ctx):
         """Test that paginated embeds have correct page footer."""
         mock_dal = MagicMock()
@@ -683,7 +683,7 @@ class TestSendPaginatedWorldsEmbed:
         assert "Page 1/2" in sent_embed.footer.text
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_paginated_view_has_second_page(self, mock_dal_class, mock_ctx):
         """Test that the view contains both pages with correct fields."""
         mock_dal = MagicMock()
@@ -709,7 +709,7 @@ class TestSendPaginatedWorldsEmbed:
         assert "view" not in call_kwargs
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_embed_description_preserved_in_pages(self, mock_dal_class, mock_ctx):
         """Test that embed description is preserved in paginated pages."""
         mock_dal = MagicMock()
@@ -723,7 +723,7 @@ class TestSendPaginatedWorldsEmbed:
         assert sent_embed.description == gw2_messages.Worlds.NA_SERVERS_TITLE
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_color_applied_to_all_pages(self, mock_dal_class, mock_ctx):
         """Test that color is applied to paginated pages."""
         mock_dal = MagicMock()
@@ -738,7 +738,7 @@ class TestSendPaginatedWorldsEmbed:
             assert page.color.value == 0x00FF00
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_fields_split_correctly_across_pages(self, mock_dal_class, mock_ctx):
         """Test that fields are correctly distributed across pages."""
         mock_dal = MagicMock()
@@ -756,7 +756,7 @@ class TestSendPaginatedWorldsEmbed:
         assert "Page 1/3" in view.pages[0].footer.text
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_view_message_reference_is_set(self, mock_dal_class, mock_ctx):
         """Test that view.message is set to the sent message."""
         mock_dal = MagicMock()
@@ -772,7 +772,7 @@ class TestSendPaginatedWorldsEmbed:
         assert view.message is mock_msg
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_view_author_id_matches_ctx_author(self, mock_dal_class, mock_ctx):
         """Test that view.author_id matches ctx.author.id."""
         mock_dal = MagicMock()
@@ -829,7 +829,7 @@ class TestSendPaginatedWorldsEmbedEdgeCases:
         assert len(sent_embed.fields) == 25
 
     @pytest.mark.asyncio
-    @patch("src.database.dal.bot.embed_pages_dal.EmbedPagesDal")
+    @patch("src.bot.tools.bot_utils.EmbedPagesDal")
     async def test_paginated_26_fields_creates_two_pages(self, mock_dal_class, mock_ctx):
         """Test pagination with 26 fields creates exactly 2 pages."""
         mock_dal = MagicMock()

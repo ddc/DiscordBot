@@ -7,6 +7,7 @@ sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.dice_rolls import DiceRolls
 from src.bot.constants import messages
+lazy from src.bot.cogs.dice_rolls import setup
 
 
 @pytest.fixture
@@ -368,7 +369,6 @@ class TestDiceRolls:
 
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
-        from src.bot.cogs.dice_rolls import setup
 
         await setup(mock_bot)
 

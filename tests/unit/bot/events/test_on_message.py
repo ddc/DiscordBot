@@ -19,6 +19,7 @@ from src.bot.cogs.events.on_message import (
     ServerMessageHandler,
 )
 from src.bot.constants import messages
+lazy from src.bot.cogs.events.on_message import setup
 
 
 @pytest.fixture
@@ -521,7 +522,6 @@ class TestOnMessage:
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
         """Test the setup function."""
-        from src.bot.cogs.events.on_message import setup
 
         await setup(mock_bot)
 

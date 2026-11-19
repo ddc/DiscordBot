@@ -13,6 +13,7 @@ sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.admin.config import Config, ConfigView, _get_switch_status
 from src.bot.constants import messages
+lazy from src.bot.cogs.admin.config import config_pfilter
 
 
 @pytest.fixture
@@ -135,8 +136,6 @@ class TestConfigPfilterChannelResolution:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
 
-        from src.bot.cogs.admin.config import config_pfilter
-
         await config_pfilter(mock_ctx, subcommand_passed="on")
 
         mock_dal.insert_profanity_filter_channel.assert_called_once_with(99999, 11111, "test-channel", 12345)
@@ -152,8 +151,6 @@ class TestConfigPfilterChannelResolution:
         mock_ctx.guild.get_channel.return_value = mock_text_channel
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
-
-        from src.bot.cogs.admin.config import config_pfilter
 
         await config_pfilter(mock_ctx, subcommand_passed="on 22222")
 
@@ -203,8 +200,6 @@ class TestConfigPfilterChannelResolution:
         mock_ctx.guild.me.guild_permissions.administrator = False
         mock_ctx.guild.me.guild_permissions.manage_messages = False
 
-        from src.bot.cogs.admin.config import config_pfilter
-
         await config_pfilter(mock_ctx, subcommand_passed="on")
 
         mock_send_error.assert_called_once()
@@ -219,8 +214,6 @@ class TestConfigPfilterChannelResolution:
         """When 'off' status, deletes channel filter (lines 240-243)."""
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
-
-        from src.bot.cogs.admin.config import config_pfilter
 
         await config_pfilter(mock_ctx, subcommand_passed="off")
 
@@ -244,8 +237,6 @@ class TestConfigPfilterChannelResolution:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
 
-        from src.bot.cogs.admin.config import config_pfilter
-
         await config_pfilter(mock_ctx, subcommand_passed="ON")
 
         mock_dal.insert_profanity_filter_channel.assert_called_once()
@@ -257,8 +248,6 @@ class TestConfigPfilterChannelResolution:
         """When 'OFF' (uppercase) status, deletes channel filter (line 240)."""
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
-
-        from src.bot.cogs.admin.config import config_pfilter
 
         await config_pfilter(mock_ctx, subcommand_passed="OFF")
 

@@ -5,6 +5,7 @@ from discord.ext import commands
 from src.gw2.cogs.daily import GW2Daily, daily
 from src.gw2.constants import gw2_messages, gw2_variables
 from unittest.mock import AsyncMock, MagicMock, patch
+lazy from src.gw2.cogs.gw2 import GuildWars2
 
 DAILY_RESPONSE = {
     "meta_progress_current": 2,
@@ -71,7 +72,6 @@ async def _run(ctx, *args, api_response=None, api_side_effect=None, key_rows=Non
 
 
 def test_cog_inherits_guild_wars2():
-    from src.gw2.cogs.gw2 import GuildWars2
 
     assert isinstance(GW2Daily(MagicMock()), GuildWars2)
 

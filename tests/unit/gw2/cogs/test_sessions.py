@@ -16,6 +16,9 @@ from src.gw2.constants import gw2_messages
 from src.gw2.constants.gw2_currencies import WALLET_DISPLAY_NAMES
 from src.gw2.constants.gw2_messages import Gw2
 from unittest.mock import AsyncMock, MagicMock, patch
+lazy import contextlib
+lazy from src.gw2.cogs.gw2 import GuildWars2
+lazy from src.gw2.tools.gw2_utils import TimeObject
 
 
 class TestGW2Session:
@@ -42,7 +45,6 @@ class TestGW2Session:
 
     def test_gw2_session_inheritance(self, gw2_session_cog):
         """Test that GW2Session inherits from GuildWars2 properly."""
-        from src.gw2.cogs.gw2 import GuildWars2
 
         assert isinstance(gw2_session_cog, GuildWars2)
 
@@ -162,7 +164,6 @@ class TestSessionCommand:
     @pytest.fixture
     def sample_time_passed(self):
         """Create a sample TimeObject."""
-        from src.gw2.tools.gw2_utils import TimeObject
 
         time_obj = TimeObject()
         time_obj.hours = 2
@@ -175,7 +176,6 @@ class TestSessionCommand:
     def _run_session(self, mock_ctx, sample_api_key_data, session_data, sample_time_passed, extra_patches=None):
         """Helper that sets up all patches for a successful session command call.
         Returns a context manager dict with mock references."""
-        import contextlib
 
         class SessionRunner:
             def __init__(self):
@@ -414,7 +414,6 @@ class TestSessionCommand:
     async def test_session_time_passed_less_than_one_minute(self, mock_ctx, sample_api_key_data):
         """Test session command when time passed is less than 1 minute."""
         session_data = _make_session_data()
-        from src.gw2.tools.gw2_utils import TimeObject
 
         time_obj = TimeObject()
         time_obj.hours = 0
@@ -858,7 +857,6 @@ class TestSessionCommand:
     async def test_session_time_passed_exactly_one_minute(self, mock_ctx, sample_api_key_data):
         """Test session command when time passed is exactly 1 minute (should proceed)."""
         session_data = _make_session_data()
-        from src.gw2.tools.gw2_utils import TimeObject
 
         time_obj = TimeObject()
         time_obj.hours = 0

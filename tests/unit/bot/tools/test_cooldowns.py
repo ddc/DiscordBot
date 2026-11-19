@@ -2,6 +2,10 @@
 
 import pytest
 from src.bot.tools.cooldowns import CoolDowns
+lazy from discord.ext import commands
+lazy from enum import Enum
+lazy from src.bot.constants import variables
+lazy from src.bot.tools.cooldowns import _bot_settings
 
 
 class TestCoolDownsEnum:
@@ -14,7 +18,7 @@ class TestCoolDownsEnum:
         assert hasattr(CoolDowns, "CustomCommand")
         assert hasattr(CoolDowns, "DiceRolls")
         assert hasattr(CoolDowns, "Misc")
-        assert hasattr(CoolDowns, "OpenAI")
+        assert hasattr(CoolDowns, "AI")
         assert hasattr(CoolDowns, "Owner")
 
     def test_cooldowns_enum_values_are_integers(self):
@@ -122,7 +126,6 @@ class TestCoolDownsEnumBehavior:
 
     def test_cooldowns_are_enum_members(self):
         """Test that cooldowns are proper enum members."""
-        from enum import Enum
 
         assert issubclass(CoolDowns, Enum)
 
@@ -188,7 +191,6 @@ class TestCoolDownsIntegration:
 
     def test_cooldowns_with_discord_commands(self):
         """Test cooldowns integration with Discord command framework."""
-        from discord.ext import commands
 
         for cooldown in CoolDowns:
             cooldown_decorator = commands.cooldown(1, cooldown.seconds, commands.BucketType.user)
@@ -253,8 +255,6 @@ class TestCoolDownsErrorHandling:
 
     def test_cooldown_values_are_from_settings(self):
         """Test that cooldown values are properly loaded from settings."""
-        from src.bot.constants import variables
-        from src.bot.tools.cooldowns import _bot_settings
 
         if not variables.DEBUG:
             assert CoolDowns.Admin.value == _bot_settings.admin_cooldown
@@ -262,7 +262,7 @@ class TestCoolDownsErrorHandling:
             assert CoolDowns.CustomCommand.value == _bot_settings.custom_cmd_cooldown
             assert CoolDowns.DiceRolls.value == _bot_settings.dice_rolls_cooldown
             assert CoolDowns.Misc.value == _bot_settings.misc_cooldown
-            assert CoolDowns.OpenAI.value == _bot_settings.openai_cooldown
+            assert CoolDowns.AI.value == _bot_settings.openai_cooldown
             assert CoolDowns.Owner.value == _bot_settings.owner_cooldown
         else:
             assert CoolDowns.Admin.value == 1
@@ -270,5 +270,5 @@ class TestCoolDownsErrorHandling:
             assert CoolDowns.CustomCommand.value == 1
             assert CoolDowns.DiceRolls.value == 1
             assert CoolDowns.Misc.value == 1
-            assert CoolDowns.OpenAI.value == 1
+            assert CoolDowns.AI.value == 1
             assert CoolDowns.Owner.value == 1

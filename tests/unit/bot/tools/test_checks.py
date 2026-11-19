@@ -254,13 +254,11 @@ class TestChecksErrorMessages:
 
     def test_admin_check_error_message_content(self):
         """Test the error message creation logic."""
-        from src.bot.tools.checks import Checks
 
         assert callable(Checks.check_is_admin())
 
     def test_owner_check_error_message_content(self):
         """Test the error message creation logic."""
-        from src.bot.tools.checks import Checks
 
         assert callable(Checks.check_is_bot_owner())
 

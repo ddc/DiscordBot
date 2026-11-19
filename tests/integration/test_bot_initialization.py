@@ -4,19 +4,18 @@ from aiohttp import ClientSession
 from src.bot.constants import variables
 from src.bot.discord_bot import Bot
 from src.database.dal.bot.bot_configs_dal import BotConfigsDal
+lazy from src.__main__ import _get_command_prefix
 
 pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
 
 
 async def test_get_command_prefix_from_db(db_session, log):
-    from src.__main__ import _get_command_prefix
 
     prefix = await _get_command_prefix(db_session, log)
     assert prefix == variables.PREFIX
 
 
 async def test_get_command_prefix_after_update(db_session, log):
-    from src.__main__ import _get_command_prefix
 
     dal = BotConfigsDal(db_session, log)
     await dal.update_bot_prefix("?")

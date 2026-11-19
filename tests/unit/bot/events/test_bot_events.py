@@ -16,6 +16,7 @@ from src.bot.cogs.events.on_guild_channel_update import OnGuildChannelUpdate
 from src.bot.cogs.events.on_guild_remove import GuildCleanupHandler, OnGuildRemove
 from src.bot.cogs.events.on_presence_update import OnPresenceUpdate
 from src.bot.constants import messages
+lazy from discord.ext import commands
 
 
 @pytest.fixture
@@ -195,7 +196,6 @@ class TestOnCommand:
 
     def test_on_command_cog_inheritance(self, mock_bot):
         """Test that OnCommand cog properly inherits from commands.Cog."""
-        from discord.ext import commands
 
         cog = OnCommand(mock_bot)
         assert isinstance(cog, commands.Cog)
@@ -274,7 +274,6 @@ class TestOnDisconnect:
 
     def test_on_disconnect_cog_inheritance(self, mock_bot):
         """Test that OnDisconnect cog properly inherits from commands.Cog."""
-        from discord.ext import commands
 
         cog = OnDisconnect(mock_bot)
         assert isinstance(cog, commands.Cog)
@@ -313,7 +312,6 @@ class TestOnGuildChannelCreate:
 
     def test_on_guild_channel_create_cog_inheritance(self, mock_bot):
         """Test that OnGuildChannelCreate cog properly inherits from commands.Cog."""
-        from discord.ext import commands
 
         cog = OnGuildChannelCreate(mock_bot)
         assert isinstance(cog, commands.Cog)
@@ -352,7 +350,6 @@ class TestOnGuildChannelDelete:
 
     def test_on_guild_channel_delete_cog_inheritance(self, mock_bot):
         """Test that OnGuildChannelDelete cog properly inherits from commands.Cog."""
-        from discord.ext import commands
 
         cog = OnGuildChannelDelete(mock_bot)
         assert isinstance(cog, commands.Cog)
@@ -393,7 +390,6 @@ class TestOnGuildChannelUpdate:
 
     def test_on_guild_channel_update_cog_inheritance(self, mock_bot):
         """Test that OnGuildChannelUpdate cog properly inherits from commands.Cog."""
-        from discord.ext import commands
 
         cog = OnGuildChannelUpdate(mock_bot)
         assert isinstance(cog, commands.Cog)
@@ -524,7 +520,6 @@ class TestOnGuildRemove:
 
     def test_on_guild_remove_cog_inheritance(self, mock_bot):
         """Test that OnGuildRemove cog properly inherits from commands.Cog."""
-        from discord.ext import commands
 
         cog = OnGuildRemove(mock_bot)
         assert isinstance(cog, commands.Cog)
@@ -581,7 +576,6 @@ class TestOnPresenceUpdate:
 
     def test_on_presence_update_cog_inheritance(self, mock_bot):
         """Test that OnPresenceUpdate cog properly inherits from commands.Cog."""
-        from discord.ext import commands
 
         cog = OnPresenceUpdate(mock_bot)
         assert isinstance(cog, commands.Cog)

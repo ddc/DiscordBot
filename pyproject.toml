@@ -1,7 +1,7 @@
 [project]
 name = "DiscordBot"
-version = "4.0.0"
-description = "A simple Discord bot with multi-provider AI commands (OpenAI / Claude / Gemini) and server administration tools"
+version = "4.0.1"
+description = "A simple Discord bot with multi-provider AI commands and server administration tools"
 urls.Repository = "https://github.com/ddc/DiscordBot"
 urls.Homepage = "https://ddc.github.io/DiscordBot"
 license = { text = "MIT" }
@@ -37,7 +37,7 @@ dependencies = [
   "better-profanity>=0.7.0",
   "ddcdatabases[postgres]>=5.0.4",
   "discord-py>=2.7.1",
-  "google-genai>=3.5.0",
+  "google-genai>=3.6.1",
   "gTTS>=2.5.4",
   "openai>=3.55.1",
   "PyNaCl>=1.6.2",
@@ -50,7 +50,7 @@ dev = [
     "coverage>=7.17.3",
     "poethepoet>=0.49.0",
     "pytest-asyncio>=1.5.0",
-    "ruff>=0.17.5",
+    "ruff>=0.17.6",
     "testcontainers[postgres]>=4.15.0",
 ]
 
@@ -59,8 +59,8 @@ linter.shell = "uv run ruff check --fix . && uv run ruff format ."
 snyk-export.shell = "uv export --no-hashes --no-annotate --all-extras --all-groups --format requirements-txt > requirements.txt && uvx pre-commit run --all-files || uvx pre-commit run --all-files"
 snyk-container.shell = "docker build -t discordbot:snyk-scan . && snyk container test discordbot:snyk-scan --file=Dockerfile; docker rmi discordbot:snyk-scan"
 snyk.sequence = ["snyk-export", { shell = "uv pip install pip && snyk test --file=requirements.txt && snyk code test; uv pip uninstall pip" }, "snyk-container"]
-profile = "uv run python -m cProfile -o cprofile_unit.prof -m pytest tests/unit"
-profile-integration = "uv run python -m cProfile -o cprofile_integration.prof -m pytest tests/integration"
+profile = "uv run python -m profiling.sampling run --async-aware --pstats -o profile_unit.prof -m pytest tests/unit"
+profile-integration = "uv run python -m profiling.sampling run --async-aware --pstats -o profile_integration.prof -m pytest tests/integration"
 hadolint.shell = "docker run --rm -i -v $(pwd)/.hadolint.yml:/.config/hadolint.yml:ro hadolint/hadolint < Dockerfile"
 test-docker = "uv run pytest tests/docker"
 test-unit.sequence = [
@@ -123,7 +123,7 @@ exclude_lines = [
 ]
 
 [tool.ruff]
-target-version = "py314"
+target-version = "py315"
 line-length = 120
 
 [tool.ruff.lint]

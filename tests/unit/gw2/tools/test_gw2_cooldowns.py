@@ -2,6 +2,8 @@
 
 import pytest
 from src.gw2.tools.gw2_cooldowns import GW2CoolDowns
+lazy from src.bot.constants import variables
+lazy from src.gw2.tools.gw2_cooldowns import _gw2_settings
 
 
 class TestGW2CoolDowns:
@@ -40,8 +42,6 @@ class TestGW2CoolDowns:
 
     def test_cooldown_values_are_from_settings(self):
         """Test that cooldown values are properly loaded from GW2 settings."""
-        from src.bot.constants import variables
-        from src.gw2.tools.gw2_cooldowns import _gw2_settings
 
         if not variables.DEBUG:
             assert GW2CoolDowns.Account.value[0] == _gw2_settings.account_cooldown
@@ -71,7 +71,6 @@ class TestGW2CoolDowns:
 
     def test_session_cooldown_is_longest(self):
         """Test that session cooldown is typically the longest (when not in debug mode)."""
-        from src.bot.constants import variables
 
         if not variables.DEBUG:
             session_cooldown = GW2CoolDowns.Session.value[0]

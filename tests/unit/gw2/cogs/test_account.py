@@ -5,6 +5,8 @@ from src.gw2.cogs.account import GW2Account, account
 from src.gw2.constants import gw2_messages
 from src.gw2.tools.gw2_exceptions import APIInvalidKey
 from unittest.mock import AsyncMock, MagicMock, patch
+lazy from src.gw2.cogs.account import _build_base_embed, _fetch_guild_info_standalone, _resolve_server, setup
+lazy from src.gw2.cogs.gw2 import GuildWars2
 
 
 class TestGW2Account:
@@ -31,7 +33,6 @@ class TestGW2Account:
 
     def test_gw2_account_inheritance(self, gw2_account_cog):
         """Test that GW2Account inherits from GuildWars2 properly."""
-        from src.gw2.cogs.gw2 import GuildWars2
 
         assert isinstance(gw2_account_cog, GuildWars2)
 
@@ -344,13 +345,11 @@ class TestAccountCommand:
 
     def test_account_command_cooldown(self):
         """Test that account command has proper cooldown."""
-        from src.gw2.cogs.account import account
 
         assert callable(account)
 
     def test_account_command_belongs_to_gw2_group(self):
         """Test that account command belongs to gw2 command group."""
-        from src.gw2.cogs.account import account
 
         assert callable(account)
 
@@ -361,7 +360,6 @@ class TestAccountSetup:
     @pytest.mark.asyncio
     async def test_setup_function_exists(self):
         """Test that setup function exists and is callable."""
-        from src.gw2.cogs.account import setup
 
         assert callable(setup)
 
@@ -371,8 +369,6 @@ class TestAccountSetup:
         mock_bot = MagicMock()
         mock_bot.remove_command = MagicMock()
         mock_bot.add_cog = AsyncMock()
-
-        from src.gw2.cogs.account import setup
 
         await setup(mock_bot)
 
@@ -385,8 +381,6 @@ class TestAccountSetup:
         mock_bot = MagicMock()
         mock_bot.remove_command = MagicMock()
         mock_bot.add_cog = AsyncMock()
-
-        from src.gw2.cogs.account import setup
 
         await setup(mock_bot)
 
@@ -401,7 +395,6 @@ class TestFetchGuildInfoStandalone:
     @pytest.mark.asyncio
     async def test_fetch_guild_info_success(self):
         """Test successful guild info fetch returns formatted name and id."""
-        from src.gw2.cogs.account import _fetch_guild_info_standalone
 
         mock_gw2_api = MagicMock()
         mock_gw2_api.call_api = AsyncMock(return_value={"name": "Test Guild", "tag": "TG"})
@@ -416,7 +409,6 @@ class TestFetchGuildInfoStandalone:
     @pytest.mark.asyncio
     async def test_fetch_guild_info_exception_returns_none(self):
         """Test that an exception returns (None, guild_id) and logs the error."""
-        from src.gw2.cogs.account import _fetch_guild_info_standalone
 
         mock_gw2_api = MagicMock()
         mock_gw2_api.call_api = AsyncMock(side_effect=Exception("API failure"))
@@ -932,7 +924,6 @@ class TestAccountCommandFullPaths:
 class TestAccountHelpers:
     @pytest.mark.asyncio
     async def test_resolve_server_wr_team_skips_api(self):
-        from src.gw2.cogs.account import _resolve_server
 
         gw2_api = MagicMock()
         gw2_api.call_api = AsyncMock()
@@ -942,7 +933,6 @@ class TestAccountHelpers:
         gw2_api.call_api.assert_not_awaited()
 
     def test_base_embed_adds_wvw_team_field(self):
-        from src.gw2.cogs.account import _build_base_embed
 
         ctx = MagicMock()
         ctx.bot.settings = {"gw2": {"EmbedColor": 0x00FF00}}

@@ -1,7 +1,8 @@
 from dotenv import load_dotenv
 from functools import lru_cache
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing import Literal
 
 # Lazy loading flag for dotenv
 _dotenv_loaded = False
@@ -22,19 +23,29 @@ class BotSettings(BaseSettings):
     embed_owner_color: str = Field(default="dark_purple")
     exclusive_users: str = Field(default="")
 
-    # OpenAi
-    openai_model: str = Field(default="gpt-5.5", description="https://developers.openai.com/api/docs/models")
+    # Default model for `ai` and `aiweb` commands
+    default_ai_model: Literal["claude", "gpt", "gemini"] = Field(
+        default="gpt", description="Model used by `ai` / `aiweb`: claude, gpt or gemini"
+    )
+
+    # OpenAI
+    openai_model: str = Field(default="gpt-6.2-astra", description="https://developers.openai.com/api/docs/models")
     openai_api_key: str | None = Field(default=None)
 
     # Anthropic (Claude)
     anthropic_model: str = Field(
-        default="claude-opus-4-8", description="https://docs.anthropic.com/en/docs/about-claude/models"
+        default="claude-fable-5-2", description="https://docs.anthropic.com/en/docs/about-claude/models"
     )
     anthropic_api_key: str | None = Field(default=None)
 
     # Google (Gemini)
     gemini_model: str = Field(default="gemini-flash-latest", description="https://ai.google.dev/gemini-api/docs/models")
     gemini_api_key: str | None = Field(default=None)
+
+    @field_validator("default_ai_model", mode="before")
+    @classmethod
+    def _normalize_default_ai_model(cls, value: object) -> object:
+        return value.strip().lower() if isinstance(value, str) else value
 
     # Cooldowns
     admin_cooldown: int = Field(default=20)

@@ -9,6 +9,16 @@ sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.admin.custom_cmd import CustomCommand
 from src.bot.constants import messages
+lazy from src.bot.cogs.admin.admin import Admin
+lazy from src.bot.cogs.admin.custom_cmd import (
+    add_custom_command,
+    custom_command,
+    edit_custom_command,
+    list_custom_commands,
+    remove_all_custom_commands,
+    remove_custom_command,
+    setup,
+)
 
 
 @pytest.fixture
@@ -78,8 +88,6 @@ class TestCustomCommand:
         """Test custom_command group command."""
         mock_invoke.return_value = "mock_command"
 
-        from src.bot.cogs.admin.custom_cmd import custom_command
-
         result = await custom_command(mock_ctx)
 
         mock_invoke.assert_called_once_with(mock_ctx, "admin cc")
@@ -97,8 +105,6 @@ class TestCustomCommand:
         mock_dal_class.return_value = mock_dal
         mock_dal.get_command.return_value = None
 
-        from src.bot.cogs.admin.custom_cmd import add_custom_command
-
         await add_custom_command(mock_ctx, subcommand_passed="hello Hello there!")
 
         mock_delete_msg.assert_called_once_with(mock_ctx)
@@ -115,7 +121,6 @@ class TestCustomCommand:
     @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg")
     async def test_add_custom_command_missing_args(self, mock_send_error, mock_delete_msg, custom_cmd_cog, mock_ctx):
         """Test add command with missing arguments."""
-        from src.bot.cogs.admin.custom_cmd import add_custom_command
 
         await add_custom_command(mock_ctx, subcommand_passed="hello")
 
@@ -132,8 +137,6 @@ class TestCustomCommand:
         """Test add command with name too long."""
         long_name = "a" * 21
 
-        from src.bot.cogs.admin.custom_cmd import add_custom_command
-
         await add_custom_command(mock_ctx, subcommand_passed=f"{long_name} Some description")
 
         mock_delete_msg.assert_called_once_with(mock_ctx)
@@ -146,7 +149,6 @@ class TestCustomCommand:
         self, mock_send_error, mock_delete_msg, custom_cmd_cog, mock_ctx
     ):
         """Test add command that conflicts with existing bot command."""
-        from src.bot.cogs.admin.custom_cmd import add_custom_command
 
         await add_custom_command(mock_ctx, subcommand_passed="help Some description")
 
@@ -168,8 +170,6 @@ class TestCustomCommand:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_command.return_value = {"name": "hello"}
-
-        from src.bot.cogs.admin.custom_cmd import add_custom_command
 
         await add_custom_command(mock_ctx, subcommand_passed="hello Hello there!")
 
@@ -193,8 +193,6 @@ class TestCustomCommand:
         mock_dal_class.return_value = mock_dal
         mock_dal.get_all_server_commands.return_value = mock_command_data
 
-        from src.bot.cogs.admin.custom_cmd import edit_custom_command
-
         await edit_custom_command(mock_ctx, subcommand_passed="hello Updated greeting!")
 
         mock_delete_msg.assert_called_once_with(mock_ctx)
@@ -211,7 +209,6 @@ class TestCustomCommand:
     @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg")
     async def test_edit_custom_command_missing_args(self, mock_send_error, mock_delete_msg, custom_cmd_cog, mock_ctx):
         """Test edit command with missing arguments."""
-        from src.bot.cogs.admin.custom_cmd import edit_custom_command
 
         await edit_custom_command(mock_ctx, subcommand_passed="hello")
 
@@ -233,8 +230,6 @@ class TestCustomCommand:
         mock_dal_class.return_value = mock_dal
         mock_dal.get_all_server_commands.return_value = []
 
-        from src.bot.cogs.admin.custom_cmd import edit_custom_command
-
         await edit_custom_command(mock_ctx, subcommand_passed="hello Updated greeting!")
 
         mock_delete_msg.assert_called_once_with(mock_ctx)
@@ -251,8 +246,6 @@ class TestCustomCommand:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_all_server_commands.return_value = mock_command_data
-
-        from src.bot.cogs.admin.custom_cmd import edit_custom_command
 
         await edit_custom_command(mock_ctx, subcommand_passed="nonexistent Updated greeting!")
 
@@ -273,8 +266,6 @@ class TestCustomCommand:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_all_server_commands.return_value = mock_command_data
-
-        from src.bot.cogs.admin.custom_cmd import remove_custom_command
 
         await remove_custom_command(mock_ctx, cmd_name="hello")
 
@@ -297,8 +288,6 @@ class TestCustomCommand:
         mock_dal_class.return_value = mock_dal
         mock_dal.get_all_server_commands.return_value = []
 
-        from src.bot.cogs.admin.custom_cmd import remove_custom_command
-
         await remove_custom_command(mock_ctx, cmd_name="hello")
 
         mock_send_warning.assert_called_once_with(mock_ctx, messages.CustomCommand.NO_COMMANDS_FOUND)
@@ -313,8 +302,6 @@ class TestCustomCommand:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_all_server_commands.return_value = mock_command_data
-
-        from src.bot.cogs.admin.custom_cmd import remove_custom_command
 
         await remove_custom_command(mock_ctx, cmd_name="nonexistent")
 
@@ -336,8 +323,6 @@ class TestCustomCommand:
         mock_dal_class.return_value = mock_dal
         mock_dal.get_all_server_commands.return_value = mock_command_data
 
-        from src.bot.cogs.admin.custom_cmd import remove_all_custom_commands
-
         await remove_all_custom_commands(mock_ctx)
 
         mock_dal.get_all_server_commands.assert_called_once_with(12345)
@@ -354,8 +339,6 @@ class TestCustomCommand:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_all_server_commands.return_value = []
-
-        from src.bot.cogs.admin.custom_cmd import remove_all_custom_commands
 
         await remove_all_custom_commands(mock_ctx)
 
@@ -394,8 +377,6 @@ class TestCustomCommand:
         mock_convert_datetime.return_value = "2023-01-01 12:00:00"
         mock_inline.side_effect = lambda x: f"inline({x})"
 
-        from src.bot.cogs.admin.custom_cmd import list_custom_commands
-
         await list_custom_commands(mock_ctx)
 
         mock_dal.get_all_server_commands.assert_called_once_with(12345)
@@ -417,8 +398,6 @@ class TestCustomCommand:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_all_server_commands.return_value = []
-
-        from src.bot.cogs.admin.custom_cmd import list_custom_commands
 
         await list_custom_commands(mock_ctx)
 
@@ -450,8 +429,6 @@ class TestCustomCommand:
         mock_get_member.return_value = None
         mock_convert_datetime.return_value = "2023-01-01 12:00:00"
         mock_inline.side_effect = lambda x: f"inline({x})"
-
-        from src.bot.cogs.admin.custom_cmd import list_custom_commands
 
         await list_custom_commands(mock_ctx)
 
@@ -493,8 +470,6 @@ class TestCustomCommand:
         mock_convert_datetime.return_value = "2023-01-01 12:00:00"
         mock_inline.side_effect = lambda x: f"inline({x})"
 
-        from src.bot.cogs.admin.custom_cmd import list_custom_commands
-
         await list_custom_commands(mock_ctx)
 
         embed = mock_send_embed.call_args[0][1]
@@ -503,7 +478,6 @@ class TestCustomCommand:
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
         """Test the setup function."""
-        from src.bot.cogs.admin.custom_cmd import setup
 
         await setup(mock_bot)
 
@@ -515,7 +489,6 @@ class TestCustomCommand:
 
     def test_custom_command_cog_inheritance(self, custom_cmd_cog):
         """Test that CustomCommand cog properly inherits from Admin."""
-        from src.bot.cogs.admin.admin import Admin
 
         assert isinstance(custom_cmd_cog, Admin)
         assert hasattr(custom_cmd_cog, "bot")
@@ -531,8 +504,6 @@ class TestCustomCommand:
         mock_command = MagicMock()
         mock_command.name = "Help"
         mock_ctx.bot.commands = [mock_command]
-
-        from src.bot.cogs.admin.custom_cmd import add_custom_command
 
         with patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg") as mock_send_error:
             await add_custom_command(mock_ctx, subcommand_passed="help Some description")
@@ -552,8 +523,6 @@ class TestCustomCommand:
         mock_dal = AsyncMock()
         mock_dal_class.return_value = mock_dal
         mock_dal.get_command.return_value = None
-
-        from src.bot.cogs.admin.custom_cmd import add_custom_command
 
         await add_custom_command(mock_ctx, subcommand_passed="greet Hello there everyone! Welcome to our server!")
 
@@ -575,8 +544,6 @@ class TestCustomCommand:
 
         name_20_chars = "a" * 20
 
-        from src.bot.cogs.admin.custom_cmd import add_custom_command
-
         await add_custom_command(mock_ctx, subcommand_passed=f"{name_20_chars} Description")
 
         mock_dal.insert_command.assert_called_once_with(12345, 67890, name_20_chars, "Description")
@@ -587,7 +554,6 @@ class TestCustomCommand:
     @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg")
     async def test_add_custom_command_empty_args(self, mock_send_error, mock_delete_msg, custom_cmd_cog, mock_ctx):
         """Test add command with completely empty arguments."""
-        from src.bot.cogs.admin.custom_cmd import add_custom_command
 
         await add_custom_command(mock_ctx, subcommand_passed="")
 
@@ -599,7 +565,6 @@ class TestCustomCommand:
     @patch("src.bot.cogs.admin.custom_cmd.bot_utils.send_error_msg")
     async def test_edit_custom_command_empty_args(self, mock_send_error, mock_delete_msg, custom_cmd_cog, mock_ctx):
         """Test edit command with completely empty arguments."""
-        from src.bot.cogs.admin.custom_cmd import edit_custom_command
 
         await edit_custom_command(mock_ctx, subcommand_passed="")
 

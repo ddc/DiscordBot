@@ -9,6 +9,8 @@ from src.bot.constants import messages, variables
 from src.bot.tools import chat_formatting
 from src.bot.tools.background_tasks import BackGroundTasks
 from src.database.dal.bot.servers_dal import ServersDal
+lazy from src.database.dal.bot.embed_pages_dal import EmbedPagesDal
+lazy from src.gw2.tools import gw2_utils
 
 
 class Colors(Enum):
@@ -41,9 +43,6 @@ async def insert_server(bot: commands.Bot, server: discord.Guild) -> None:
     """Insert server information into database and initialize GW2 configs."""
     servers_dal = ServersDal(bot.db_session, bot.log)
     await servers_dal.insert_server(server.id, server.name)
-
-    from src.gw2.tools import gw2_utils
-
     await gw2_utils.insert_gw2_server_configs(bot, server)
 
 
@@ -117,18 +116,14 @@ async def send_help_msg(ctx, cmd):
 
 
 def _is_transient_discord_error(e: discord.HTTPException) -> bool:
-    """Return True for Discord errors worth retrying (5xx, or 429 with code 40062)."""
+    """Return True for Discord errors worth retrying (5xx, or 429 with code 40062)"""
     status = getattr(e, "status", None)
     code = getattr(e, "code", None)
     return (isinstance(status, int) and status >= 500) or code == 40062
 
 
 async def send_with_retry(ctx, send_method, *args, max_attempts: int = 3, base_delay: float = 1.0, **kwargs):
-    """Call send_method(*args, **kwargs) and retry on transient Discord errors.
-
-    On the first transient failure, posts a one-time "retrying" notice to the channel.
-    Non-transient errors propagate immediately, preserving caller's error handling.
-    """
+    """Call send_method(*args, **kwargs) and retry on transient Discord errors"""
     notified = False
     for attempt in range(1, max_attempts + 1):
         try:
@@ -150,12 +145,12 @@ async def send_with_retry(ctx, send_method, *args, max_attempts: int = 3, base_d
                     )
                     notified = True
                 except discord.HTTPException:
-                    pass  # Notice itself failed; keep retrying the main send
+                    pass
             await asyncio.sleep(base_delay * 2 ** (attempt - 1))
 
 
 async def _send_embed_to_dm(ctx, embed) -> None:
-    """Send the embed to the author's DM and post a notice in the channel; fall back to the channel."""
+    """Send the embed to the author's DM and post a notice in the channel; fall back to the channel"""
     try:
         await send_with_retry(ctx, ctx.author.send, embed=embed)
         notification_embed = discord.Embed(description="📬 Response sent to your DM", color=discord.Color.green())
@@ -237,8 +232,6 @@ class EmbedPaginatorView(discord.ui.View):
         """
         msg = await send_with_retry(ctx, ctx.send, embed=self.pages[0], view=self)
         self.message = msg
-        from src.database.dal.bot.embed_pages_dal import EmbedPagesDal
-
         dal = EmbedPagesDal(ctx.bot.db_session, ctx.bot.log)
         pages_data = [self._embed_to_dict(p) for p in self.pages]
         await dal.insert_embed_pages(msg.id, msg.channel.id, self.author_id, pages_data)
@@ -247,8 +240,6 @@ class EmbedPaginatorView(discord.ui.View):
         """Load pages from database if not in memory. Returns True if loaded."""
         if self.pages:
             return True
-        from src.database.dal.bot.embed_pages_dal import EmbedPagesDal
-
         bot = interaction.client
         dal = EmbedPagesDal(bot.db_session, bot.log)
         record = await dal.get_embed_pages(interaction.message.id)
@@ -263,8 +254,6 @@ class EmbedPaginatorView(discord.ui.View):
 
     async def _save_current_page(self, interaction: discord.Interaction) -> None:
         """Update current page in database."""
-        from src.database.dal.bot.embed_pages_dal import EmbedPagesDal
-
         bot = interaction.client
         dal = EmbedPagesDal(bot.db_session, bot.log)
         await dal.update_current_page(interaction.message.id, self.current_page)

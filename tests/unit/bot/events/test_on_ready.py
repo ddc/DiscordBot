@@ -8,6 +8,9 @@ sys.modules["ddcDatabases"] = Mock()
 
 from src.bot.cogs.events.on_ready import OnReady, StartupInfoDisplay
 from src.bot.constants import messages, variables
+lazy import inspect
+lazy from discord.ext import commands
+lazy from src.bot.cogs.events.on_ready import setup
 
 
 @pytest.fixture
@@ -124,7 +127,6 @@ class TestOnReady:
     @pytest.mark.asyncio
     async def test_setup_function(self, mock_bot):
         """Test the setup function."""
-        from src.bot.cogs.events.on_ready import setup
 
         await setup(mock_bot)
 
@@ -161,7 +163,6 @@ class TestOnReady:
 
     def test_on_ready_cog_inheritance(self, on_ready_cog):
         """Test that OnReady cog properly inherits from commands.Cog."""
-        from discord.ext import commands
 
         assert isinstance(on_ready_cog, commands.Cog)
         assert hasattr(on_ready_cog, "bot")
@@ -196,7 +197,6 @@ class TestOnReady:
 
     def test_startup_info_display_static_methods(self):
         """Test that all StartupInfoDisplay methods are static."""
-        import inspect
 
         assert inspect.isfunction(StartupInfoDisplay.print_startup_banner)
         assert inspect.isfunction(StartupInfoDisplay.print_version_info)
